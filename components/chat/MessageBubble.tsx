@@ -10,14 +10,6 @@ interface MessageBubbleProps {
 }
 
 export function MessageBubble({ message, isOwn, showSender = false }: MessageBubbleProps) {
-  if (message.is_deleted) {
-    return (
-      <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
-        <p className="px-4 py-2 text-xs italic text-gray-400">Message deleted</p>
-      </div>
-    );
-  }
-
   return (
     <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} ${showSender ? 'mt-4' : 'mt-0.5'}`}>
       <div className="max-w-[78%]">
@@ -48,11 +40,10 @@ export function MessageBubble({ message, isOwn, showSender = false }: MessageBub
 
         {/* Bubble */}
         <div
-          className={`rounded-2xl px-4 py-2.5 ${
-            isOwn
+          className={`rounded-2xl px-4 py-2.5 ${isOwn
               ? 'rounded-br-md bg-gradient-to-br from-pink-500 to-rose-500 text-white shadow-sm shadow-pink-200/30'
               : 'rounded-bl-md bg-white/80 text-gray-800 shadow-sm ring-1 ring-pink-100/40'
-          }`}
+            }`}
         >
           {message.content_type === 'text' && (
             <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
@@ -63,7 +54,7 @@ export function MessageBubble({ message, isOwn, showSender = false }: MessageBub
           {message.content_type === 'image' && message.file_url && (
             <img
               src={message.file_url}
-              alt={message.file_name || 'Image'}
+              alt={'Image'}
               className="max-h-64 max-w-full cursor-pointer rounded-lg object-cover"
               onClick={() => window.open(message.file_url!, '_blank')}
             />
@@ -75,11 +66,10 @@ export function MessageBubble({ message, isOwn, showSender = false }: MessageBub
                 href={message.file_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`flex items-center gap-2 text-sm font-medium ${
-                  isOwn ? 'text-pink-100 hover:text-white' : 'text-pink-600 hover:text-pink-700'
-                }`}
+                className={`flex items-center gap-2 text-sm font-medium ${isOwn ? 'text-pink-100 hover:text-white' : 'text-pink-600 hover:text-pink-700'
+                  }`}
               >
-                📄 {message.file_name || 'Download file'}
+                📄 Download file
               </a>
             )}
         </div>

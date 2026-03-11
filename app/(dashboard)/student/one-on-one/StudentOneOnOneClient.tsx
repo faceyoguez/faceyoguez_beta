@@ -1,8 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { OneOnOneChat } from '@/components/chat';
 import { PageHeader } from '@/components/layout/PageHeader';
+import { getStudentResources } from '@/lib/actions/resources';
+import { createClient } from '@/lib/supabase/client';
+import { getJourneyLogs, saveDailyCheckIn, type JourneyLog } from '@/lib/actions/journey';
+import { ImageComparison } from '@/components/ui/image-comparison-slider';
+import {
+  Stepper,
+  StepperIndicator,
+  StepperItem,
+  StepperNav,
+  StepperSeparator,
+  StepperTrigger,
+} from '@/components/ui/stepper';
 import {
   Video,
   Calendar,
@@ -16,29 +28,166 @@ import {
   Edit3,
   Camera,
   CheckCircle,
+  Loader2,
+  Image as ImageIcon,
+  PlayCircle
 } from 'lucide-react';
-import type { Profile } from '@/types/database';
+import type { Profile, StudentResource } from '@/types/database';
 
 interface Props {
   currentUser: Profile;
   hasSubscription: boolean;
 }
 
+const MILESTONE_DAYS = [1, 7, 14, 21, 30];
+
 export function StudentOneOnOneClient({ currentUser, hasSubscription }: Props) {
   const [sliderValue, setSliderValue] = useState(50);
+  const [resources, setResources] = useState<StudentResource[]>([]);
+  const [isLoadingResources, setIsLoadingResources] = useState(false);
 
-  if (!hasSubscription) {
-    return (
-      <div className="flex h-[80vh] items-center justify-center p-8">
-        <div className="max-w-md text-center">
-          <h2 className="text-xl font-bold text-gray-900">No Active Subscription</h2>
-          <p className="mt-2 text-gray-500">
-            You need an active one-on-one subscription to access this feature.
-          </p>
-        </div>
-      </div>
-    );
+  // Journey logic state
+  const [journeyLogs, setJourneyLogs] = useState<JourneyLog[]>([]);
+  const [activeStepDay, setActiveStepDay] = useState<number>(1);
+  const [notesInput, setNotesInput] = useState('');
+  const [isSavingLog, setIsSavingLog] = useState(false);
+  const [selectedImageBase64, setSelectedImageBase64] = useState<string | null>(null);
+  const [selectedImageMime, setSelectedImageMime] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const activeLog = journeyLogs.find(l => l.day_number === activeStepDay);
+  const day1Log = journeyLogs.find(l => l.day_number === 1);
+
+  // Set default view images
+  const beforeImage = day1Log?.photo_url || 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800&sat=-100';
+  let afterImage = activeLog?.photo_url || selectedImageBase64 || 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800';
+
+  // Find the latest uploaded photo if the active day has no photo, so the right side is always the current status 
+  // (unless uploading a new one, or viewing a specific old one)
+  if (!activeLog?.photo_url && !selectedImageBase64) {
+    const logsWithPhotos = [...journeyLogs].filter(l => l.photo_url).sort((a, b) => b.day_number - a.day_number);
+    if (logsWithPhotos.length > 0) {
+      afterImage = logsWithPhotos[0].photo_url as string;
+    }
   }
+
+  useEffect(() => {
+    if (hasSubscription && currentUser) {
+      const loadData = async () => {
+        setIsLoadingResources(true);
+        const [resData, logsData] = await Promise.all([
+          getStudentResources(currentUser.id),
+          getJourneyLogs(currentUser.id)
+        ]);
+        setResources(resData);
+        setJourneyLogs(logsData);
+
+        // Find current active day (latest logged day, or 1 if none)
+        if (logsData.length > 0) {
+          const latestDay = [...logsData].sort((a, b) => b.day_number - a.day_number)[0].day_number;
+          const nextMilestone = MILESTONE_DAYS.find(d => d > latestDay) || 30;
+          // If they logged today, keep that day selected, else select the next milestone if available
+          setActiveStepDay(latestDay);
+        }
+
+        setIsLoadingResources(false);
+      };
+      loadData();
+
+      // Real-time subscription for new resources
+      const supabase = createClient();
+      const channel = supabase
+        .channel(`resources:${currentUser.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'student_resources',
+            filter: `student_id=eq.${currentUser.id}`
+          },
+          (payload) => {
+            console.log('New resource received:', payload.new);
+            setResources((prev) => [payload.new as StudentResource, ...prev]);
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [hasSubscription, currentUser]);
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
+
+  const getFileIcon = (contentType: string) => {
+    if (contentType.includes('pdf')) return { icon: FileText, color: 'text-pink-500', bg: 'bg-pink-50', border: 'border-pink-100' };
+    if (contentType.includes('image')) return { icon: ImageIcon, color: 'text-blue-500', bg: 'bg-blue-50', border: 'border-blue-100' };
+    if (contentType.includes('video')) return { icon: PlayCircle, color: 'text-purple-500', bg: 'bg-purple-50', border: 'border-purple-100' };
+    return { icon: FileText, color: 'text-gray-500', bg: 'bg-gray-50', border: 'border-gray-100' };
+  };
+
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Photo must be less than 5MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64Str = event.target?.result as string;
+      // Extract just the base64 data without the data URL prefix
+      const base64Data = base64Str.split(',')[1];
+      setSelectedImageBase64(base64Data);
+      setSelectedImageMime(file.type);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveLog = async () => {
+    if (!notesInput.trim() && !selectedImageBase64) {
+      alert('Please add some notes or a photo to save.');
+      return;
+    }
+
+    setIsSavingLog(true);
+    const { success, error, data } = await saveDailyCheckIn(
+      currentUser.id,
+      activeStepDay,
+      notesInput.trim() || null,
+      selectedImageBase64,
+      selectedImageMime || 'image/jpeg'
+    );
+
+    if (success && data) {
+      setJourneyLogs(prev => {
+        const filtered = prev.filter(l => l.day_number !== activeStepDay);
+        return [...filtered, data];
+      });
+      setSelectedImageBase64(null);
+      setSelectedImageMime(null);
+      alert('Journey log saved successfully!');
+    } else {
+      alert(error || 'Failed to save log.');
+    }
+    setIsSavingLog(false);
+  };
+
+  // Pre-fill notes when switching days
+  useEffect(() => {
+    setNotesInput(activeLog?.notes || '');
+    setSelectedImageBase64(null); // Clear selected photo on day switch
+  }, [activeStepDay, activeLog]);
 
   return (
     <div className="p-4 lg:p-6 xl:p-8">
@@ -50,7 +199,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription }: Props) {
 
       {/* ── Top row: Chat + Side panels ── */}
       <div className="mb-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
-        {/* Chat */}
+        {/* Chat — ALWAYS visible */}
         <OneOnOneChat
           currentUser={currentUser}
           className="h-[480px]"
@@ -88,33 +237,58 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription }: Props) {
             </div>
           </div>
 
-          {/* Guidelines */}
-          <div className="h-[180px] shrink-0 rounded-2xl bg-white/70 p-5 shadow-sm ring-1 ring-pink-100/40 backdrop-blur-xl">
+          {/* Guidelines & Resources */}
+          <div className="flex flex-col h-[180px] shrink-0 rounded-2xl bg-white/70 p-5 shadow-sm ring-1 ring-pink-100/40 backdrop-blur-xl">
             <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-bold text-gray-700">Guidelines & Plan</h3>
+              <h3 className="text-sm font-bold text-gray-700">Guidelines & Resources</h3>
               <div className="rounded bg-pink-50 p-1 text-pink-500">
                 <BookOpen className="h-4 w-4" />
               </div>
             </div>
-            <div className="group flex flex-1 cursor-pointer items-center gap-3 rounded-xl border border-white/60 bg-white/50 p-2.5 shadow-sm transition-shadow hover:shadow-md">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white bg-pink-50 text-pink-500 shadow-sm transition-transform group-hover:scale-105">
-                <FileText className="h-5 w-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <h4 className="truncate text-xs font-bold text-gray-800">Face Yoga Plan.pdf</h4>
-                <div className="mt-0.5 flex items-center gap-2">
-                  <span className="rounded bg-white/60 px-1.5 text-[10px] text-gray-500">2.4 MB</span>
-                  <span className="text-[10px] font-bold text-pink-500">Updated today</span>
+
+            <div className="flex flex-1 flex-col gap-2 overflow-y-auto pr-1">
+              {isLoadingResources ? (
+                <div className="flex flex-1 items-center justify-center">
+                  <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
                 </div>
-              </div>
-              <div className="flex gap-1.5">
-                <button className="rounded-lg border border-gray-100 bg-white p-1.5 text-gray-600 shadow-sm transition-colors hover:bg-gray-50">
-                  <Eye className="h-4 w-4" />
-                </button>
-                <button className="rounded-lg border border-pink-100 bg-pink-50 p-1.5 text-pink-600 shadow-sm transition-colors hover:bg-pink-100">
-                  <Download className="h-4 w-4" />
-                </button>
-              </div>
+              ) : resources.length === 0 ? (
+                <div className="flex flex-1 items-center justify-center text-xs text-gray-400">
+                  No resources available.
+                </div>
+              ) : (
+                resources.map(res => {
+                  const style = getFileIcon(res.content_type || '');
+                  return (
+                    <div key={res.id} className="group flex shrink-0 cursor-pointer items-center gap-3 rounded-xl border border-white/60 bg-white/50 p-2.5 shadow-sm transition-shadow hover:shadow-md">
+                      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${style.bg} ${style.color} ${style.border} shadow-sm transition-transform group-hover:scale-105`}>
+                        <style.icon className="h-5 w-5" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="truncate text-xs font-bold text-gray-800">{res.file_name}</h4>
+                        <div className="mt-0.5 flex items-center gap-2">
+                          <span className="rounded bg-white/60 px-1.5 text-[10px] text-gray-500">{formatFileSize(res.file_size)}</span>
+                          <span className="text-[10px] font-bold text-pink-500">{new Date(res.created_at).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-1.5">
+                        <button
+                          onClick={() => window.open(res.file_url, '_blank')}
+                          className="rounded-lg border border-gray-100 bg-white p-1.5 text-gray-600 shadow-sm transition-colors hover:bg-gray-50"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                        <a
+                          href={res.file_url}
+                          download={res.file_name}
+                          className="rounded-lg border border-pink-100 bg-pink-50 p-1.5 text-pink-600 shadow-sm transition-colors hover:bg-pink-100"
+                        >
+                          <Download className="h-4 w-4" />
+                        </a>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
 
@@ -144,7 +318,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription }: Props) {
             <h3 className="flex items-center gap-2 text-lg font-bold text-gray-800">
               Transformation Journey
               <span className="rounded-full bg-pink-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-pink-600">
-                Week 3
+                Day {activeStepDay}
               </span>
             </h3>
             <p className="mt-0.5 text-xs font-medium text-gray-500">
@@ -154,97 +328,54 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription }: Props) {
         </div>
 
         {/* Journey path */}
-        <div className="relative mb-10 px-4">
+        <div className="relative mb-10 px-4 w-full overflow-hidden">
           <h4 className="mb-6 text-sm font-bold text-gray-700">Journey Path</h4>
-          <div className="relative w-full">
-            <div className="absolute left-0 top-1/2 h-[2px] w-full -translate-y-1/2 bg-gradient-to-r from-pink-200 via-pink-200 to-gray-200" />
-            <div className="relative z-10 flex w-full items-center justify-between">
-              {[
-                { label: 'Day 1', active: true, current: false },
-                { label: 'Day 7', active: true, current: false },
-                { label: 'Today', active: true, current: true },
-                { label: 'Day 21', active: false, current: false },
-                { label: 'Day 30', active: false, current: false },
-              ].map((step, i) => (
-                <div key={i} className="flex flex-col items-center gap-2">
-                  {step.current ? (
-                    <div className="relative flex h-9 w-9 scale-110 cursor-pointer items-center justify-center rounded-full border-[3px] border-pink-500 bg-white shadow-lg">
-                      <div className="h-4 w-4 rounded-full border-2 border-pink-500 bg-white" />
-                      <div className="absolute -right-1 -top-1 h-2.5 w-2.5 animate-pulse rounded-full bg-pink-500" />
-                    </div>
-                  ) : (
-                    <div
-                      className={`flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-4 border-white shadow-sm transition-transform hover:scale-110 ${
-                        step.active ? 'bg-pink-100' : 'bg-gray-100'
-                      }`}
-                    >
-                      <div className={`h-3.5 w-3.5 rounded-full ${step.active ? 'bg-pink-500' : 'bg-gray-300'}`} />
-                    </div>
+
+          <Stepper value={activeStepDay} onValueChange={setActiveStepDay} className="w-full mx-auto">
+            <StepperNav>
+              {MILESTONE_DAYS.map((day) => (
+                <StepperItem
+                  key={day}
+                  step={day}
+                  completed={journeyLogs.some(l => l.day_number === day)}
+                >
+                  <StepperTrigger>
+                    <StepperIndicator>{day}</StepperIndicator>
+                  </StepperTrigger>
+                  {MILESTONE_DAYS.indexOf(day) < MILESTONE_DAYS.length - 1 && (
+                    <StepperSeparator className="mx-2" />
                   )}
-                  <span
-                    className={`text-xs ${
-                      step.current
-                        ? 'font-bold text-pink-600'
-                        : step.active
-                          ? 'font-semibold text-gray-500'
-                          : 'font-semibold text-gray-400'
-                    }`}
-                  >
-                    {step.label}
-                  </span>
-                </div>
+                </StepperItem>
               ))}
-            </div>
-          </div>
+            </StepperNav>
+          </Stepper>
+
         </div>
 
         {/* Before / After + Daily check-in */}
         <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-2">
           {/* Slider */}
-          <div className="relative aspect-video w-full select-none overflow-hidden rounded-2xl border border-white/60 bg-gray-100 shadow-sm">
-            <div className="absolute inset-0 h-full w-full">
-              <div
-                className="absolute inset-0 h-full w-full bg-cover bg-center"
-                style={{
-                  backgroundImage: `url('https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800')`,
-                }}
-              >
-                <div className="absolute right-3 top-3 z-30 rounded-lg border border-white/40 bg-white/30 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm backdrop-blur-md">
-                  RECENT
-                </div>
+          <div className="rounded-2xl overflow-hidden ring-1 ring-black/5 shadow-md bg-white">
+            {activeStepDay < 7 || !afterImage ? (
+              <div className="w-full aspect-[4/3] bg-pink-50/30 flex flex-col items-center justify-center overflow-hidden">
+                {beforeImage ? (
+                  <img src={beforeImage} alt="Day 1 Baseline" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="flex flex-col items-center text-gray-400">
+                    <ImageIcon className="h-10 w-10 mb-2 opacity-50 text-pink-300" />
+                    <span className="text-xs font-medium text-gray-500">No Day 1 photo uploaded</span>
+                  </div>
+                )}
               </div>
-              <div
-                className="absolute inset-0 h-full w-full bg-cover bg-center"
-                style={{
-                  backgroundImage: `url('https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800&sat=-100')`,
-                  clipPath: `inset(0 ${100 - sliderValue}% 0 0)`,
-                }}
-              >
-                <div className="absolute left-3 top-3 z-30 rounded-lg border border-white/10 bg-black/30 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm backdrop-blur-md">
-                  DAY 1
-                </div>
-              </div>
-            </div>
-            <div
-              className="pointer-events-none absolute inset-0 flex h-full w-full items-center"
-              style={{ left: `${sliderValue}%`, transform: 'translateX(-50%)', zIndex: 40 }}
-            >
-              <div className="h-full w-0.5 bg-white/90 shadow-[0_0_10px_rgba(255,255,255,0.4)] backdrop-blur-sm" />
-              <div className="pointer-events-auto absolute left-1/2 top-1/2 flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 cursor-grab items-center justify-center rounded-full border border-pink-200 bg-white/90 text-pink-500 shadow-lg backdrop-blur-md transition-transform hover:scale-110">
-                <div className="flex gap-0.5">
-                  <div className="h-3 w-0.5 rounded-full bg-pink-400" />
-                  <div className="h-3 w-0.5 rounded-full bg-pink-400" />
-                </div>
-              </div>
-            </div>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={sliderValue}
-              onChange={(e) => setSliderValue(Number(e.target.value))}
-              className="absolute inset-0 z-50 h-full w-full cursor-ew-resize opacity-0"
-            />
+            ) : (
+              <ImageComparison
+                beforeImage={beforeImage}
+                afterImage={afterImage}
+                disabled={false}
+                altBefore="Day 1 Baseline"
+                altAfter={`Day ${activeStepDay} Progress`}
+              />
+            )}
           </div>
 
           {/* Daily check-in */}
@@ -254,25 +385,50 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription }: Props) {
                 <span className="rounded bg-pink-100 p-1 text-pink-500">
                   <Edit3 className="h-4 w-4" />
                 </span>
-                Daily Check-in
+                Day {activeStepDay} Check-in
               </h5>
-              <span className="text-[10px] text-gray-400">Auto-saved 2m ago</span>
+              {activeLog?.updated_at && (
+                <span className="text-[10px] text-gray-400">Last saved: {new Date(activeLog.updated_at).toLocaleDateString()}</span>
+              )}
             </div>
             <div className="mb-4 flex-1 rounded-xl border border-white/50 bg-white/40 p-1 shadow-inner transition-all focus-within:ring-2 focus-within:ring-pink-100">
               <textarea
+                value={notesInput}
+                onChange={(e) => setNotesInput(e.target.value)}
                 className="h-full min-h-[160px] w-full resize-none rounded-lg border-none bg-transparent p-3 text-sm text-gray-700 placeholder:text-gray-400 outline-none"
                 placeholder="How did your session go today? Record any observations..."
               />
             </div>
-            <div className="flex gap-3">
-              <button className="group flex w-1/3 items-center justify-center rounded-xl border border-dashed border-pink-300 bg-pink-50/50 px-4 py-2.5 transition-all hover:border-pink-400 hover:bg-pink-50">
+
+            {selectedImageBase64 && (
+              <div className="mb-4 text-xs font-semibold text-pink-600 bg-pink-50 p-2 rounded-lg border border-pink-100 flex items-center justify-between">
+                <span>Photo selected! Save log to upload.</span>
+                <button onClick={() => { setSelectedImageBase64(null); setSelectedImageMime(null); }} className="p-1 hover:bg-pink-100 rounded text-pink-700">✕</button>
+              </div>
+            )}
+
+            <div className="flex gap-3 relative">
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                ref={fileInputRef}
+                onChange={handlePhotoSelect}
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="group flex w-1/3 items-center justify-center rounded-xl border border-dashed border-pink-300 bg-pink-50/50 px-4 py-2.5 transition-all hover:border-pink-400 hover:bg-pink-50">
                 <div className="mr-2 flex h-6 w-6 items-center justify-center rounded-full bg-white text-pink-500 shadow-sm transition-transform group-hover:scale-110">
                   <Camera className="h-3.5 w-3.5" />
                 </div>
                 <span className="text-xs font-bold text-gray-600">Add Photo</span>
               </button>
-              <button className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 py-2.5 text-xs font-bold tracking-wide text-white shadow-md shadow-pink-200/30 transition-all hover:shadow-lg">
-                <CheckCircle className="h-5 w-5" /> Save Log
+              <button
+                onClick={handleSaveLog}
+                disabled={isSavingLog}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 py-2.5 text-xs font-bold tracking-wide text-white shadow-md shadow-pink-200/30 transition-all hover:shadow-lg disabled:opacity-50">
+                {isSavingLog ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle className="h-5 w-5" />}
+                {isSavingLog ? 'Saving...' : 'Save Log'}
               </button>
             </div>
           </div>

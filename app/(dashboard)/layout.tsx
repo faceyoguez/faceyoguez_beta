@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
 import { AppSidebar } from '@/components/layout/AppSidebar';
 
 export default async function DashboardLayout({
@@ -14,7 +14,9 @@ export default async function DashboardLayout({
 
   if (!user) redirect('/auth/login');
 
-  const { data: profile } = await supabase
+  const admin = createAdminClient();
+
+  const { data: profile } = await admin
     .from('profiles')
     .select('*')
     .eq('id', user.id)
@@ -22,5 +24,18 @@ export default async function DashboardLayout({
 
   if (!profile) redirect('/auth/login');
 
-  return <AppSidebar user={profile}>{children}</AppSidebar>;
+  let activePlans: string[] = [];
+  if (profile.role === 'student') {
+    const { data: subscriptions } = await admin
+      .from('subscriptions')
+      .select('plan_type')
+      .eq('student_id', user.id)
+      .in('status', ['active', 'pending']);
+
+    if (subscriptions) {
+      activePlans = subscriptions.map(sub => sub.plan_type);
+    }
+  }
+
+  return <AppSidebar user={profile} activePlans={activePlans}>{children}</AppSidebar>;
 }

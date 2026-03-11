@@ -25,3 +25,14 @@ body {
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
   background: rgba(236, 72, 153, 0.4);
 }
+@theme inline {
+  --color-destructive-foreground: var(--destructive-foreground);
+}
+
+:root {
+  --destructive-foreground: oklch(1 0 0);
+}
+
+.dark {
+  --destructive-foreground: oklch(1 0 0);
+}

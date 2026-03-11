@@ -1,0 +1,9 @@
+{
+  "data": null,
+  "error": {
+    "code": "PGRST205",
+    "details": null,
+    "hint": "Perhaps you meant the table 'public.v_student_resources'",
+    "message": "Could not find the table 'public.student_resources' in the schema cache"
+  }
+}

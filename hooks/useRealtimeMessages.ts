@@ -29,6 +29,7 @@ export function useRealtimeMessages({
   const [isChatEnabled, setIsChatEnabled] = useState(true);
   const mountedRef = useRef(true);
   const lastSignatureRef = useRef('');
+  const channelRef = useRef<any>(null); // Type 'RealtimeChannel' is tricky without deep imports, 'any' is safe here since we control it
 
   // ── Fetch messages via API route ──
   const fetchMessages = useCallback(
@@ -111,9 +112,6 @@ export function useRealtimeMessages({
         content,
         content_type: contentType,
         file_url: fileUrl || null,
-        file_name: fileName || null,
-        reply_to: replyTo || null,
-        is_deleted: false,
         created_at: new Date().toISOString(),
         sender: { id: currentUserId } as Profile,
       };
@@ -130,18 +128,18 @@ export function useRealtimeMessages({
           replyTo
         );
 
-        // Force re-fetch to replace optimistic with real message
+        // Force re-fetch to replace optimistic with real message without blocking UI
         lastSignatureRef.current = '';
-        await fetchMessages();
+        fetchMessages();
 
         // Broadcast to other client that a new message was sent!
-        const supabase = createClient();
-        const channel = supabase.channel(`room:${conversationId}`);
-        await channel.send({
-          type: 'broadcast',
-          event: 'new_message',
-          payload: { timestamp: Date.now() },
-        });
+        if (channelRef.current) {
+          channelRef.current.send({
+            type: 'broadcast',
+            event: 'new_message',
+            payload: { timestamp: Date.now() },
+          });
+        }
 
       } catch (error) {
         console.error('Error sending message:', error);
@@ -193,6 +191,7 @@ export function useRealtimeMessages({
     // Subscribe to Supabase Broadcast for this specific conversation room
     const supabase = createClient();
     const channel = supabase.channel(`room:${conversationId}`);
+    channelRef.current = channel;
 
     channel
       .on('broadcast', { event: 'new_message' }, () => {
@@ -201,6 +200,20 @@ export function useRealtimeMessages({
         lastSignatureRef.current = ''; // Force refetch
         fetchMessages();
       })
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chat_messages',
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        () => {
+          console.log('[CHAT WEBSOCKET] Received Postgres INSERT, fetching...');
+          lastSignatureRef.current = ''; // Force refetch
+          fetchMessages();
+        }
+      )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           console.log('[CHAT WEBSOCKET] Connected to room:', conversationId.slice(0, 8));
@@ -210,6 +223,7 @@ export function useRealtimeMessages({
     return () => {
       mountedRef.current = false;
       supabase.removeChannel(channel);
+      channelRef.current = null;
     };
   }, [conversationId, fetchMessages]);
 

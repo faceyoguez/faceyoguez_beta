@@ -1,0 +1,47 @@
+{
+  "enrolls": [
+    {
+      "batch_id": "b78c3adf-85e9-4e74-a309-57d84db49255",
+      "student_id": "bca4fb53-ead9-432f-886b-1e7038bbc54f",
+      "status": "active"
+    }
+  ],
+  "msgs": [
+    {
+      "id": "e0fa9e1c-07c7-43d2-b339-3cff9cd68e61",
+      "batch_id": "b78c3adf-85e9-4e74-a309-57d84db49255",
+      "sender_id": "68d560fc-8a8a-47fc-8beb-b7e7b6047441",
+      "content": "test"
+    },
+    {
+      "id": "f2e8c5a4-1119-4098-a4a9-0130707321c4",
+      "batch_id": "b78c3adf-85e9-4e74-a309-57d84db49255",
+      "sender_id": "68d560fc-8a8a-47fc-8beb-b7e7b6047441",
+      "content": "test"
+    },
+    {
+      "id": "1c7326a1-63fb-48b3-9ef7-005e037bcf02",
+      "batch_id": "b78c3adf-85e9-4e74-a309-57d84db49255",
+      "sender_id": "68d560fc-8a8a-47fc-8beb-b7e7b6047441",
+      "content": "hi"
+    },
+    {
+      "id": "13f1c7ce-83a7-403e-9b42-1fe28a0cf45f",
+      "batch_id": "b78c3adf-85e9-4e74-a309-57d84db49255",
+      "sender_id": "68d560fc-8a8a-47fc-8beb-b7e7b6047441",
+      "content": "hi"
+    },
+    {
+      "id": "201a573d-2118-467d-9e83-6fc3ad05f0cd",
+      "batch_id": "b78c3adf-85e9-4e74-a309-57d84db49255",
+      "sender_id": "68d560fc-8a8a-47fc-8beb-b7e7b6047441",
+      "content": "hiii"
+    },
+    {
+      "id": "930c7912-4bf0-430b-81a7-f8da7c8248f3",
+      "batch_id": "b78c3adf-85e9-4e74-a309-57d84db49255",
+      "sender_id": "68d560fc-8a8a-47fc-8beb-b7e7b6047441",
+      "content": "hii"
+    }
+  ]
+}

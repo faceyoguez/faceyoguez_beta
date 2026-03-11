@@ -19,7 +19,7 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
       setError(error.message);
@@ -27,6 +27,8 @@ export default function LoginPage() {
       return;
     }
 
+    // Let the server-side home page handle role-based routing
+    // It reads cookies properly and has the correct redirect logic
     router.push('/');
     router.refresh();
   };

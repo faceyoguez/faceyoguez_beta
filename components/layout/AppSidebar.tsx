@@ -14,19 +14,21 @@ import {
   ChevronLeft,
   ChevronRight,
   Flower2,
+  CreditCard,
 } from 'lucide-react';
 import type { Profile } from '@/types/database';
 
 // ── Context for sidebar state ──
-const SidebarContext = createContext({ collapsed: false, toggle: () => {} });
+const SidebarContext = createContext({ collapsed: false, toggle: () => { } });
 export const useSidebar = () => useContext(SidebarContext);
 
 // ── Nav config per role ──
 const navConfig = {
   student: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/student/dashboard' },
+    { label: 'Subscription Plans', icon: CreditCard, path: '/student/plans' },
     { label: '1-on-1 Plan', icon: User, path: '/student/one-on-one' },
-    { label: 'Group Session', icon: Users, path: '/student/group' },
+    { label: 'Group Session', icon: Users, path: '/student/group-session' },
     { label: 'Broadcasts', icon: Megaphone, path: '/student/broadcasts' },
     { label: 'LMS', icon: BookOpen, path: '/student/lms' },
   ],
@@ -57,10 +59,11 @@ const navConfig = {
 
 interface AppSidebarProps {
   user: Profile;
+  activePlans?: string[];
   children: React.ReactNode;
 }
 
-export function AppSidebar({ user, children }: AppSidebarProps) {
+export function AppSidebar({ user, activePlans = [], children }: AppSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
   const links = navConfig[user.role] || navConfig.student;
@@ -70,9 +73,8 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
       <div className="flex min-h-screen bg-gradient-to-br from-rose-50/80 via-white to-pink-50/60">
         {/* ── Sidebar ── */}
         <aside
-          className={`fixed inset-y-0 left-0 z-40 flex flex-col border-r border-pink-100/60 bg-white/80 backdrop-blur-xl transition-all duration-300 ease-in-out ${
-            collapsed ? 'w-[68px]' : 'w-64'
-          }`}
+          className={`fixed inset-y-0 left-0 z-40 flex flex-col border-r border-pink-100/60 bg-white/80 backdrop-blur-xl transition-all duration-300 ease-in-out ${collapsed ? 'w-[68px]' : 'w-64'
+            }`}
         >
           {/* Logo */}
           <div className="flex h-16 shrink-0 items-center justify-between border-b border-pink-100/60 px-4">
@@ -105,21 +107,38 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
             <ul className="space-y-1">
               {links.map(({ label, icon: Icon, path }) => {
                 const isActive = pathname === path || pathname?.startsWith(path + '/');
+
+                // Subscription Check — only students need plans, and only for 1-on-1 / Group
+                // Instructor/admin/staff always have full access. LMS is free for everyone.
+                let requiresPlan: string | null = null;
+                if (user.role === 'student') {
+                  if (path.includes('one-on-one')) requiresPlan = 'one_on_one';
+                  if (path.includes('group-session')) requiresPlan = 'group_session';
+                }
+
+                const isLocked = requiresPlan && !activePlans.includes(requiresPlan);
+                const tooltipTitle = isLocked ? 'Buy subscription to enable access' : (collapsed ? label : undefined);
+
                 return (
                   <li key={label}>
                     <Link
-                      href={path}
-                      title={collapsed ? label : undefined}
-                      className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
-                        isActive
-                          ? 'bg-pink-50 text-pink-600 shadow-sm shadow-pink-100/50'
+                      href={isLocked ? '#' : path}
+                      onClick={(e) => { if (isLocked) e.preventDefault(); }}
+                      title={tooltipTitle}
+                      className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${isActive
+                        ? 'bg-pink-50 text-pink-600 shadow-sm shadow-pink-100/50'
+                        : isLocked
+                          ? 'text-gray-400 opacity-60 cursor-not-allowed bg-gray-50/50'
                           : 'text-gray-500 hover:bg-pink-50/60 hover:text-gray-700'
-                      } ${collapsed ? 'justify-center' : ''}`}
+                        } ${collapsed ? 'justify-center' : ''}`}
                     >
                       <Icon
-                        className={`h-[18px] w-[18px] shrink-0 transition-colors ${
-                          isActive ? 'text-pink-500' : 'text-gray-400 group-hover:text-pink-400'
-                        }`}
+                        className={`h-[18px] w-[18px] shrink-0 transition-colors ${isActive
+                          ? 'text-pink-500'
+                          : isLocked
+                            ? 'text-gray-300'
+                            : 'text-gray-400 group-hover:text-pink-400'
+                          }`}
                       />
                       {!collapsed && <span>{label}</span>}
                     </Link>
@@ -132,9 +151,8 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
           {/* User profile */}
           <div className="shrink-0 border-t border-pink-100/60 px-3 py-4">
             <div
-              className={`flex items-center gap-3 rounded-xl bg-gradient-to-r from-pink-50 to-rose-50/50 p-2.5 ${
-                collapsed ? 'justify-center' : ''
-              }`}
+              className={`flex items-center gap-3 rounded-xl bg-gradient-to-r from-pink-50 to-rose-50/50 p-2.5 ${collapsed ? 'justify-center' : ''
+                }`}
             >
               {user.avatar_url ? (
                 <img
@@ -174,9 +192,8 @@ export function AppSidebar({ user, children }: AppSidebarProps) {
 
         {/* ── Main content ── */}
         <main
-          className={`flex-1 transition-all duration-300 ease-in-out ${
-            collapsed ? 'ml-[68px]' : 'ml-64'
-          }`}
+          className={`flex-1 transition-all duration-300 ease-in-out ${collapsed ? 'ml-[68px]' : 'ml-64'
+            }`}
         >
           {children}
         </main>

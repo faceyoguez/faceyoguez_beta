@@ -48,8 +48,11 @@ export function ChatWindow({
   const lastMessageId = messages[messages.length - 1]?.id;
 
   useEffect(() => {
-    if (isAtBottom) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (isAtBottom && containerRef.current) {
+      containerRef.current.scrollTo({
+        top: containerRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
     }
   }, [lastMessageId, isAtBottom]);
 
@@ -68,10 +71,7 @@ export function ChatWindow({
 
   return (
     <div className={`flex flex-col overflow-hidden rounded-2xl bg-white/70 backdrop-blur-xl ring-1 ring-pink-100/40 ${className}`}>
-      {/* DEBUG: Remove after confirming chat works */}
-      <div className="bg-yellow-100 px-3 py-1 text-[10px] font-mono text-yellow-800">
-        conv: {conversationId.slice(0, 8)}… | msgs: {messages.length} | user: {currentUser.id.slice(0, 8)}…
-      </div>
+
       {/* Header */}
       {!hideHeader && (
         <div className="flex items-center gap-3 border-b border-pink-100/40 bg-white/30 px-5 py-3 backdrop-blur-md">

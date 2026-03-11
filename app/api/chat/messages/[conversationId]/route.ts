@@ -34,7 +34,6 @@ export async function GET(
             .from('chat_messages')
             .select(`*, sender:profiles!sender_id(id, full_name, avatar_url, role)`)
             .eq('conversation_id', conversationId)
-            .eq('is_deleted', false)
             .order('created_at', { ascending: false })
             .limit(pageSize);
 

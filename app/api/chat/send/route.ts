@@ -34,8 +34,6 @@ export async function POST(request: NextRequest) {
                 content,
                 content_type: contentType || 'text',
                 file_url: fileUrl || null,
-                file_name: fileName || null,
-                reply_to: replyTo || null,
             })
             .select(`*, sender:profiles!sender_id(id, full_name, avatar_url, role)`)
             .single();

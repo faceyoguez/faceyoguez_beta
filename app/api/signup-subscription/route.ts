@@ -55,11 +55,9 @@ export async function POST(request: NextRequest) {
         end_date: endDate.toISOString().split('T')[0],
         amount: pricing[planType] || 0,
         currency: 'INR',
-        payment_method: 'signup',
+        payment_id: 'signup',
         batches_remaining: 1,
         batches_used: 0,
-        auto_renew: false,
-        notes: `Created during signup - ${planType} plan`,
       })
       .select()
       .single();

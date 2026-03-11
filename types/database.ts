@@ -1,6 +1,6 @@
 export type UserRole = 'admin' | 'instructor' | 'staff' | 'student';
 export type ConversationType = 'direct' | 'group';
-export type MessageContentType = 'text' | 'image' | 'pdf' | 'file';
+export type MessageContentType = 'text' | 'image' | 'pdf' | 'file' | 'system_alert';
 export type BatchStatus = 'upcoming' | 'active' | 'completed' | 'cancelled';
 export type EnrollmentStatus = 'active' | 'waiting' | 'completed' | 'extended';
 export type QueueStatus = 'waiting' | 'assigned' | 'cancelled';
@@ -29,18 +29,18 @@ export interface Subscription {
   plan_type: SubscriptionPlanType;
   status: SubscriptionStatus;
   duration_months: number;
-  start_date: string;
-  end_date: string;
+  start_date: string | null;
+  end_date: string | null;
   amount: number | null;
   currency: string;
   payment_id: string | null;
-  payment_method: string | null;
   batches_remaining: number;
   batches_used: number;
   auto_renew: boolean;
-  notes: string | null;
   created_at: string;
   updated_at: string;
+  created_by: string | null;
+  updated_by: string | null;
 }
 
 export interface Conversation {
@@ -49,47 +49,42 @@ export interface Conversation {
   title: string | null;
   batch_id: string | null;
   is_chat_enabled: boolean;
-  created_by: string | null;
   created_at: string;
   updated_at: string;
+  created_by: string | null;
+  updated_by: string | null;
 }
 
 export interface ConversationParticipant {
   id: string;
   conversation_id: string;
   user_id: string;
-  joined_at: string;
-  left_at: string | null;
   last_read_at: string;
+  created_by: string | null;
 }
 
 export interface ChatMessage {
   id: string;
   conversation_id: string;
-  sender_id: string;
+  sender_id: string | null;
   content: string | null;
   content_type: MessageContentType;
   file_url: string | null;
-  file_name: string | null;
-  reply_to: string | null;
-  is_deleted: boolean;
   created_at: string;
 }
 
 export interface Batch {
   id: string;
   name: string;
-  description: string | null;
+  instructor_id: string | null;
   start_date: string;
   end_date: string;
-  max_students: number;
-  current_students: number;
   status: BatchStatus;
-  plan_type: SubscriptionPlanType;
   conversation_id: string | null;
-  created_by: string | null;
   created_at: string;
   updated_at: string;
+  created_by: string | null;
+  updated_by: string | null;
 }
 
 export interface BatchEnrollment {
@@ -98,14 +93,11 @@ export interface BatchEnrollment {
   student_id: string;
   subscription_id: string;
   status: EnrollmentStatus;
-  batch_number: number;
-  total_batches: number;
   original_sub_end_date: string | null;
   effective_end_date: string | null;
   is_extended: boolean;
-  extension_note: string | null;
-  enrolled_at: string;
-  completed_at: string | null;
+  created_by: string | null;
+  updated_by: string | null;
 }
 
 export interface Broadcast {
@@ -142,6 +134,41 @@ export interface ProgressLog {
   created_at: string;
 }
 
+export interface StudentResource {
+  id: string;
+  student_id: string;
+  instructor_id: string;
+  file_name: string;
+  file_url: string;
+  file_size: number;
+  content_type: string;
+  created_at: string;
+}
+
+export interface WaitingQueue {
+  id: string;
+  student_id: string;
+  subscription_id: string;
+  status: QueueStatus;
+  requested_at: string;
+  created_by: string | null;
+  updated_by: string | null;
+}
+
+export interface BatchResource {
+  id: string;
+  batch_id: string;
+  uploader_id: string;
+  student_id: string | null;
+  title: string;
+  file_url: string;
+  description: string | null;
+  created_at: string;
+  created_by: string | null;
+  updated_by: string | null;
+  batch_name?: string; // from v_student_resources view
+}
+
 // ========================
 // JOINED / ENRICHED TYPES
 // ========================
@@ -155,7 +182,6 @@ export interface ConversationWithDetails extends Conversation {
 
 export interface ChatMessageWithSender extends ChatMessage {
   sender: Profile;
-  reply_message?: ChatMessage | null;
 }
 
 export interface BatchWithEnrollments extends Batch {
