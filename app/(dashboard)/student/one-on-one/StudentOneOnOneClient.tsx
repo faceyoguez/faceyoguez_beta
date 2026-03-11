@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { OneOnOneChat } from '@/components/chat';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { getStudentResources } from '@/lib/actions/resources';
+import { getUpcomingMeetingsForStudent } from '@/lib/actions/meetings';
 import { createClient } from '@/lib/supabase/client';
 import { getJourneyLogs, saveDailyCheckIn, type JourneyLog } from '@/lib/actions/journey';
 import { ImageComparison } from '@/components/ui/image-comparison-slider';
@@ -32,7 +33,7 @@ import {
   Image as ImageIcon,
   PlayCircle
 } from 'lucide-react';
-import type { Profile, StudentResource } from '@/types/database';
+import type { Profile, StudentResource, MeetingWithDetails } from '@/types/database';
 
 interface Props {
   currentUser: Profile;
@@ -45,6 +46,8 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription }: Props) {
   const [sliderValue, setSliderValue] = useState(50);
   const [resources, setResources] = useState<StudentResource[]>([]);
   const [isLoadingResources, setIsLoadingResources] = useState(false);
+
+  const [upcomingMeetings, setUpcomingMeetings] = useState<MeetingWithDetails[]>([]);
 
   // Journey logic state
   const [journeyLogs, setJourneyLogs] = useState<JourneyLog[]>([]);
@@ -75,12 +78,14 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription }: Props) {
     if (hasSubscription && currentUser) {
       const loadData = async () => {
         setIsLoadingResources(true);
-        const [resData, logsData] = await Promise.all([
+        const [resData, logsData, meetingsData] = await Promise.all([
           getStudentResources(currentUser.id),
-          getJourneyLogs(currentUser.id)
+          getJourneyLogs(currentUser.id),
+          getUpcomingMeetingsForStudent()
         ]);
         setResources(resData);
         setJourneyLogs(logsData);
+        setUpcomingMeetings(meetingsData || []);
 
         // Find current active day (latest logged day, or 1 if none)
         if (logsData.length > 0) {
@@ -189,6 +194,27 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription }: Props) {
     setSelectedImageBase64(null); // Clear selected photo on day switch
   }, [activeStepDay, activeLog]);
 
+  const studentMeetings = upcomingMeetings.filter(m => m.meeting_type === 'one_on_one');
+  const nextMeeting = studentMeetings.length > 0 ? studentMeetings[0] : null;
+
+  const [isJoinEnabled, setIsJoinEnabled] = useState(false);
+
+  useEffect(() => {
+    if (!nextMeeting) return;
+
+    const checkTime = () => {
+      const meetingTime = new Date(nextMeeting.start_time).getTime();
+      const now = Date.now();
+      // 5 minutes = 300000 ms
+      setIsJoinEnabled(meetingTime - now <= 300000);
+    };
+
+    checkTime();
+    const interval = setInterval(checkTime, 10000); // Check every 10 seconds
+
+    return () => clearInterval(interval);
+  }, [nextMeeting]);
+
   return (
     <div className="p-4 lg:p-6 xl:p-8">
       <PageHeader
@@ -208,34 +234,44 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription }: Props) {
         {/* Side panels */}
         <div className="flex h-[480px] flex-col gap-4">
           {/* Next session card */}
-          <div className="group relative h-[140px] shrink-0 overflow-hidden rounded-2xl p-5 text-white shadow-lg shadow-pink-200/20">
-            <div className="absolute inset-0 bg-gradient-to-br from-pink-500 to-rose-500" />
-            <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/15 blur-3xl transition-transform duration-700 group-hover:scale-110" />
-            <div className="relative z-10 flex h-full flex-col justify-between">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-lg font-bold leading-tight">Next Session</h3>
-                  <p className="mt-0.5 text-xs font-medium text-pink-100">Technique Review</p>
-                </div>
-                <div className="rounded-lg border border-white/20 bg-white/20 p-2 backdrop-blur-md">
-                  <Video className="h-5 w-5 text-white" />
-                </div>
-              </div>
-              <div className="flex items-end justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-black/20 px-3 py-1.5 text-xs font-semibold backdrop-blur-md">
-                    <Calendar className="h-3.5 w-3.5" /> Sep 24
+          {nextMeeting ? (
+            <div className="group relative h-[140px] shrink-0 overflow-hidden rounded-2xl p-5 text-white shadow-lg shadow-pink-200/20">
+              <div className="absolute inset-0 bg-gradient-to-br from-pink-500 to-rose-500" />
+              <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/15 blur-3xl transition-transform duration-700 group-hover:scale-110" />
+              <div className="relative z-10 flex h-full flex-col justify-between">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="text-lg font-bold leading-tight">Next Session</h3>
+                    <p className="mt-0.5 text-xs font-medium text-pink-100">{nextMeeting.topic}</p>
                   </div>
-                  <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-black/20 px-3 py-1.5 text-xs font-semibold backdrop-blur-md">
-                    <Clock className="h-3.5 w-3.5" /> 10:00 AM
+                  <div className="rounded-lg border border-white/20 bg-white/20 p-2 backdrop-blur-md">
+                    <Video className="h-5 w-5 text-white" />
                   </div>
                 </div>
-                <button className="flex items-center gap-2 rounded-lg bg-white px-4 py-1.5 text-xs font-bold text-pink-600 shadow-sm transition-all hover:bg-pink-50">
-                  Join <ExternalLink className="h-3.5 w-3.5" />
-                </button>
+                <div className="flex items-end justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-black/20 px-3 py-1.5 text-xs font-semibold backdrop-blur-md">
+                      <Calendar className="h-3.5 w-3.5" /> {new Date(nextMeeting.start_time).toLocaleDateString()}
+                    </div>
+                    <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-black/20 px-3 py-1.5 text-xs font-semibold backdrop-blur-md">
+                      <Clock className="h-3.5 w-3.5" /> {new Date(nextMeeting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                  <button 
+                    disabled={!isJoinEnabled}
+                    onClick={() => window.open(nextMeeting.join_url, '_blank')} 
+                    className={`flex items-center gap-2 rounded-lg px-4 py-1.5 text-xs font-bold shadow-sm transition-all ${isJoinEnabled ? 'bg-white text-pink-600 hover:bg-pink-50' : 'bg-white/20 text-white/50 cursor-not-allowed'}`}>
+                    {isJoinEnabled ? 'Join' : 'Starts 5 min before'} {isJoinEnabled && <ExternalLink className="h-3.5 w-3.5" />}
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+             <div className="group relative h-[140px] shrink-0 overflow-hidden rounded-2xl p-5 text-gray-500 bg-white/70 shadow-sm ring-1 ring-pink-100/40 backdrop-blur-xl flex flex-col items-center justify-center">
+                <Video className="h-8 w-8 text-gray-300 mb-2" />
+                <p className="text-sm font-medium">No upcoming sessions</p>
+             </div>
+          )}
 
           {/* Guidelines & Resources */}
           <div className="flex flex-col h-[180px] shrink-0 rounded-2xl bg-white/70 p-5 shadow-sm ring-1 ring-pink-100/40 backdrop-blur-xl">

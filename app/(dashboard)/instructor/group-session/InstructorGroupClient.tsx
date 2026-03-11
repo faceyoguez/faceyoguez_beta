@@ -1,15 +1,16 @@
 'use client';
 
-import React, { useState, useRef, useTransition } from 'react';
-import type { Profile, Batch, BatchResource } from '@/types/database';
+import React, { useState, useRef, useTransition, useEffect } from 'react';
+import type { Profile, Batch, BatchResource, MeetingWithDetails } from '@/types/database';
 import { createBatch } from '@/lib/actions/batch';
 import { uploadBatchResource } from '@/lib/actions/resources';
+import { getInstructorUpcomingMeetings } from '@/lib/actions/meetings';
 import {
     Search, Bell, LayoutDashboard, User, Users, GraduationCap,
     LineChart, Award, Settings, Plus, Play, CalendarPlus,
     Radio, FileText, Send, ChevronLeft, ChevronRight,
     PlayCircle, MoreVertical, Settings as SettingsIcon, Image as ImageIcon,
-    MessageSquare, Pin, X, Check, Video, CloudUpload, Loader2
+    MessageSquare, Pin, X, Check, Video, CloudUpload, Loader2, ArrowUpRight
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -34,6 +35,41 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isUploading, setIsUploading] = useState(false);
 
+    const [upcomingMeetings, setUpcomingMeetings] = useState<MeetingWithDetails[]>([]);
+    const [showScheduleModal, setShowScheduleModal] = useState(false);
+    const [isScheduling, setIsScheduling] = useState(false);
+    const [meetingTopic, setMeetingTopic] = useState('');
+    const [meetingDate, setMeetingDate] = useState('');
+    const [meetingTime, setMeetingTime] = useState('');
+    const [meetingDuration, setMeetingDuration] = useState('60');
+
+    React.useEffect(() => {
+        if (currentUser) {
+            getInstructorUpcomingMeetings()
+                .then(data => setUpcomingMeetings(data || []))
+                .catch(err => console.error("Failed to fetch meetings:", err));
+        }
+    }, [currentUser]);
+
+    const nextMeeting = activeBatch ? upcomingMeetings.find(m => m.batch_id === activeBatch.id) : null;
+    const [isJoinEnabled, setIsJoinEnabled] = useState(false);
+
+    useEffect(() => {
+        if (!nextMeeting) return;
+    
+        const checkTime = () => {
+          const meetingTime = new Date(nextMeeting.start_time).getTime();
+          const now = Date.now();
+          // 5 minutes = 300000 ms
+          setIsJoinEnabled(meetingTime - now <= 300000);
+        };
+    
+        checkTime();
+        const interval = setInterval(checkTime, 10000); // Check every 10 seconds
+    
+        return () => clearInterval(interval);
+    }, [nextMeeting]);
+
     const handleCreateBatch = () => {
         if (!batchName || !startDate || !endDate) {
             toast.error('Please fill all required fields');
@@ -54,6 +90,50 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                 toast.error(error.message || 'Failed to create batch');
             }
         });
+    };
+
+    const handleScheduleMeeting = async () => {
+        if (!activeBatch || !meetingTopic || !meetingDate || !meetingTime) {
+            toast.error('Please fill out all fields');
+            return;
+        }
+    
+        setIsScheduling(true);
+        try {
+            const startDateTime = new Date(`${meetingDate}T${meetingTime}`).toISOString();
+    
+            const res = await fetch('/api/meetings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    topic: meetingTopic,
+                    startTime: startDateTime,
+                    durationMinutes: parseInt(meetingDuration, 10),
+                    meetingType: 'group_session',
+                    batchId: activeBatch.id,
+                })
+            });
+    
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.error || 'Failed to schedule meeting');
+            }
+    
+            const updatedList = await getInstructorUpcomingMeetings();
+            setUpcomingMeetings(updatedList || []);
+          
+            setShowScheduleModal(false);
+            setMeetingTopic('');
+            setMeetingDate('');
+            setMeetingTime('');
+            setMeetingDuration('60');
+            toast.success("Meeting Scheduled Successfully!");
+        } catch (e: any) {
+            console.error(e);
+            toast.error(e.message);
+        } finally {
+            setIsScheduling(false);
+        }
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -156,7 +236,7 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                 </div>
 
                 {/* Center Content */}
-                <div className={`col-span-12 lg:col-span-7 flex flex-col gap-4 h-full overflow-hidden transition-all ${isCreateBatchModalOpen ? 'opacity-50 blur-[2px] pointer-events-none' : ''}`}>
+                <div className={`col-span-12 lg:col-span-7 flex flex-col gap-4 h-full overflow-hidden transition-all ${isCreateBatchModalOpen || showScheduleModal ? 'opacity-50 blur-[2px] pointer-events-none' : ''}`}>
 
                     {/* Active Session Hero */}
                     <div className="relative w-full rounded-xl overflow-hidden shadow-lg group h-48 shrink-0 border border-white/20">
@@ -164,26 +244,61 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                         <div className="h-full w-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1545205597-3d9d02c29597?q=80&w=1000&auto=format&fit=crop')" }}></div>
                         <div className="absolute inset-0 p-5 z-20 flex flex-row items-center justify-between gap-4">
                             <div className="max-w-md">
-                                <div className="flex items-center gap-2 mb-1.5">
-                                    <span className="flex h-2 w-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)]"></span>
-                                    <span className="text-red-400 text-xs font-bold uppercase tracking-wider">Session Live</span>
-                                </div>
-                                <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Day 12: Cheek Sculpting</h2>
-                                <div className="flex gap-3">
-                                    <div className="bg-black/30 backdrop-blur-md px-3 py-1 rounded-md border border-white/10 flex items-center gap-2">
-                                        <span className="text-white text-xs font-medium">10:00 - 11:00 AM</span>
-                                    </div>
-                                    <div className="bg-black/30 backdrop-blur-md px-3 py-1 rounded-md border border-white/10 flex items-center gap-2">
-                                        <span className="text-white text-xs font-medium">Advanced Batch</span>
-                                    </div>
-                                </div>
+                                {(() => {                                    
+                                    if (nextMeeting) {
+                                        return (
+                                            <>
+                                                <div className="flex items-center gap-2 mb-1.5">
+                                                    <span className="flex h-2 w-2 bg-green-500 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+                                                    <span className="text-green-400 text-xs font-bold uppercase tracking-wider">Upcoming Session</span>
+                                                </div>
+                                                <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">{nextMeeting.topic}</h2>
+                                                <div className="flex gap-3">
+                                                    <div className="bg-black/30 backdrop-blur-md px-3 py-1 rounded-md border border-white/10 flex items-center gap-2">
+                                                        <span className="text-white text-xs font-medium">
+                                                            {new Date(nextMeeting.start_time).toLocaleDateString()} at {new Date(nextMeeting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        </span>
+                                                    </div>
+                                                    <div className="bg-black/30 backdrop-blur-md px-3 py-1 rounded-md border border-white/10 flex items-center gap-2">
+                                                        <span className="text-white text-xs font-medium">{activeBatch?.name || 'Group Session'}</span>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        );
+                                    }
+
+                                    return (
+                                        <>
+                                            <div className="flex items-center gap-2 mb-1.5">
+                                                <span className="flex h-2 w-2 bg-gray-400 rounded-full shadow-[0_0_8px_rgba(156,163,175,0.6)]"></span>
+                                                <span className="text-gray-300 text-xs font-bold uppercase tracking-wider">No Scheduled Sessions</span>
+                                            </div>
+                                            <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Schedule Your Next Live Class</h2>
+                                            <div className="flex gap-3">
+                                                <div className="bg-black/30 backdrop-blur-md px-3 py-1 rounded-md border border-white/10 flex items-center gap-2">
+                                                    <span className="text-white text-xs font-medium">{activeBatch?.name || 'Group Session'}</span>
+                                                </div>
+                                            </div>
+                                        </>
+                                    );
+                                })()}
                             </div>
                             <div className="flex flex-col gap-2 shrink-0 items-end">
-                                <button className="bg-red-500 hover:bg-red-600 text-white px-6 py-2.5 rounded-lg font-bold flex items-center justify-center gap-2 transition-all hover:-translate-y-0.5 text-sm w-full shadow-[0_0_15px_rgba(239,68,68,0.4)]">
-                                    <Play className="h-5 w-5 fill-current" />
-                                    Start Live Stream
-                                </button>
-                                <button className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 backdrop-blur-sm transition-all text-xs w-full">
+                                {(() => {
+                                    if (nextMeeting) {
+                                        return (
+                                            <button 
+                                                disabled={!isJoinEnabled}
+                                                onClick={() => window.open(nextMeeting.start_url, '_blank')}
+                                                className={`px-6 py-2.5 rounded-lg font-bold flex items-center justify-center gap-2 transition-all text-sm w-full shadow-[0_0_15px_rgba(219,39,119,0.4)] ${isJoinEnabled ? 'bg-pink-600 hover:bg-pink-700 text-white hover:-translate-y-0.5' : 'bg-gray-700 text-gray-400 cursor-not-allowed shadow-none border border-gray-600'}`}
+                                            >
+                                                {isJoinEnabled ? <><Video className="h-5 w-5 fill-current" /> Start Zoom <ArrowUpRight className="h-4 w-4" /></> : 'Starts 5 min before'}
+                                            </button>
+                                        );
+                                    }
+                                    return null;
+                                })()}
+                                <button onClick={() => setShowScheduleModal(true)} disabled={!activeBatch} className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 backdrop-blur-sm transition-all text-xs w-full disabled:opacity-50 disabled:cursor-not-allowed">
                                     <CalendarPlus className="h-4 w-4" />
                                     Schedule Next Session
                                 </button>
@@ -298,7 +413,7 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                 </div>
 
                 {/* Right Sidebar Chat */}
-                <div className={`col-span-12 lg:col-span-3 h-full overflow-hidden transition-all ${isCreateBatchModalOpen ? 'opacity-50 blur-[2px] pointer-events-none' : ''}`}>
+                <div className={`col-span-12 lg:col-span-3 h-full overflow-hidden transition-all ${isCreateBatchModalOpen || showScheduleModal ? 'opacity-50 blur-[2px] pointer-events-none' : ''}`}>
                     <div className="rounded-xl border border-white/60 bg-white/65 shadow-sm backdrop-blur-xl h-full flex flex-col">
                         <div className="p-3 border-b border-pink-100/50 flex justify-between items-center">
                             <div>
@@ -402,23 +517,6 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                                 </select>
                             </div>
 
-                            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-4 flex items-center justify-between">
-                                <div className="flex flex-col">
-                                    <span className="font-bold text-sm text-blue-900 flex items-center gap-2">
-                                        <Video className="h-4 w-4" />
-                                        Schedule on Zoom
-                                    </span>
-                                    <span className="text-[10px] text-blue-600/70 mt-0.5">Auto-generate meeting links via API</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="bg-blue-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm">ZOOM API</span>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" className="sr-only peer" defaultChecked />
-                                        <div className="w-9 h-5 bg-gray-300 rounded-full peer peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
-                                    </label>
-                                </div>
-                            </div>
-
                             <div className="space-y-3">
                                 <div className="flex justify-between items-center">
                                     <label className="text-xs font-bold text-gray-900 uppercase tracking-wide">Daily Session Plan</label>
@@ -458,6 +556,93 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                     </div>
                 </div>
             )}
+
+            {/* SCHEDULE MEETING MODAL OVERLAY */}
+            {showScheduleModal && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-md transition-all duration-300">
+          <div className="w-full max-w-lg rounded-3xl bg-white/90 shadow-2xl overflow-hidden border border-white/40 ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-300 backdrop-blur-xl">
+            
+            {/* Modal Header */}
+            <div className="relative flex flex-col p-6 bg-gradient-to-br from-indigo-50 via-white to-indigo-50/30 border-b border-indigo-100/50">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-400 via-blue-400 to-indigo-500"></div>
+              <div className="flex items-start justify-between">
+                <div className="flex gap-4 items-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-600 shadow-inner">
+                    <CalendarPlus className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-extrabold text-gray-900 tracking-tight">Schedule Group Session</h3>
+                    <p className="text-sm font-medium text-indigo-600/80 mt-0.5 flex items-center gap-1.5">
+                      <Users className="h-3.5 w-3.5" /> Auto-generate Zoom for '{activeBatch?.name}'
+                    </p>
+                  </div>
+                </div>
+                <button onClick={() => setShowScheduleModal(false)} className="p-2 rounded-full text-gray-400 hover:bg-black/5 hover:text-gray-700 transition-all bg-white border border-gray-100 shadow-sm">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-5 bg-white/50">
+              
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100/50 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
+                  <div className="h-12 w-12 shrink-0 flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-xl shadow-inner">
+                      <Video className="h-6 w-6" />
+                  </div>
+                  <div className="flex flex-col">
+                      <span className="font-bold text-sm text-blue-900">Zoom API Integration active</span>
+                      <span className="text-xs text-blue-700/80 mt-0.5 leading-relaxed">This meeting will be generated instantly and added to the batch dashboard.</span>
+                  </div>
+              </div>
+
+              <div className="group">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-indigo-500 transition-colors">Topic</label>
+                  <div className="relative">
+                    <input value={meetingTopic} onChange={(e) => setMeetingTopic(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all" placeholder={`e.g. Day 1: ${activeBatch?.name}`} type="text" />
+                  </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-5">
+                  <div className="group">
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-indigo-500 transition-colors">Start Date</label>
+                      <input value={meetingDate} onChange={(e) => setMeetingDate(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all" type="date" />
+                  </div>
+                  <div className="group">
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-indigo-500 transition-colors">Start Time</label>
+                      <input value={meetingTime} onChange={(e) => setMeetingTime(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all" type="time" />
+                  </div>
+              </div>
+
+              <div className="group">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-indigo-500 transition-colors">Duration</label>
+                  <div className="relative">
+                    <select value={meetingDuration} onChange={(e) => setMeetingDuration(e.target.value)} className="w-full appearance-none rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all">
+                        <option value="30">30 Minutes</option>
+                        <option value="45">45 Minutes</option>
+                        <option value="60">1 Hour</option>
+                        <option value="90">1.5 Hours</option>
+                        <option value="120">2 Hours</option>
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-clock"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </div>
+                  </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex gap-3 justify-end items-center bg-gray-50/80 p-6 border-t border-gray-100">
+                <button onClick={() => setShowScheduleModal(false)} className="px-5 py-2.5 font-bold text-gray-500 hover:text-gray-900 hover:bg-gray-200/50 rounded-xl transition-all text-sm">Cancel</button>
+                <button onClick={handleScheduleMeeting} disabled={isScheduling} className="relative flex items-center gap-2 px-6 py-2.5 font-bold text-white bg-gradient-to-r from-indigo-500 to-blue-600 rounded-xl transition-all shadow-[0_4px_14px_0_rgba(79,70,229,0.39)] hover:shadow-[0_6px_20px_rgba(79,70,229,0.23)] hover:scale-[1.02] disabled:opacity-70 disabled:hover:scale-100 disabled:cursor-not-allowed text-sm active:scale-95">
+                    {isScheduling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
+                    Schedule on Zoom
+                </button>
+            </div>
+            
+          </div>
+        </div>
+      )}
         </div>
     );
 }

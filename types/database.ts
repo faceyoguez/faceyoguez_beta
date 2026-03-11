@@ -7,6 +7,7 @@ export type QueueStatus = 'waiting' | 'assigned' | 'cancelled';
 export type AudienceType = 'one_on_one' | 'group_session' | 'lms' | 'all';
 export type SubscriptionPlanType = 'one_on_one' | 'group_session' | 'lms';
 export type SubscriptionStatus = 'active' | 'expired' | 'cancelled' | 'pending';
+export type MeetingType = 'one_on_one' | 'group_session';
 
 export interface Profile {
   id: string;
@@ -180,6 +181,24 @@ export interface BatchResource {
   batch_name?: string; // from v_student_resources view
 }
 
+export interface Meeting {
+  id: string;
+  host_id: string;
+  student_id: string | null;
+  batch_id: string | null;
+  zoom_meeting_id: string;
+  topic: string;
+  start_time: string;
+  duration_minutes: number;
+  join_url: string;
+  start_url: string;
+  meeting_type: MeetingType;
+  created_at: string;
+  updated_at: string;
+  created_by: string | null;
+  updated_by: string | null;
+}
+
 // ========================
 // JOINED / ENRICHED TYPES
 // ========================
@@ -207,4 +226,10 @@ export interface BroadcastWithSender extends Broadcast {
   is_read: boolean;
   read_count: number;
   total_recipients: number;
+}
+
+export interface MeetingWithDetails extends Meeting {
+  host: Profile;
+  student?: Profile | null;
+  batch?: Batch | null;
 }

@@ -1,10 +1,10 @@
 'use client';
-import React from 'react';
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChatWindow } from '@/components/chat';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { searchStudents, getOrCreateDirectChat } from '@/lib/actions/chat';
 import { uploadResource, getStudentResources } from '@/lib/actions/resources';
+import { getInstructorUpcomingMeetings } from '@/lib/actions/meetings';
 import { createClient } from '@/lib/supabase/client';
 import {
   Search,
@@ -23,8 +23,10 @@ import {
   Loader2,
   Users,
   Image as ImageIcon,
+  X,
+  User,
 } from 'lucide-react';
-import type { Profile, StudentResource } from '@/types/database';
+import type { Profile, StudentResource, MeetingWithDetails } from '@/types/database';
 
 import { getJourneyLogs, type JourneyLog } from '@/lib/actions/journey';
 import { ImageComparison } from '@/components/ui/image-comparison-slider';
@@ -69,6 +71,15 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
   const [journeyLogs, setJourneyLogs] = useState<JourneyLog[]>([]);
   const [activeStepDay, setActiveStepDay] = useState<number>(1);
   const [isLoadingJourney, setIsLoadingJourney] = useState(false);
+
+  // Meetings state
+  const [upcomingMeetings, setUpcomingMeetings] = useState<MeetingWithDetails[]>([]);
+  const [isScheduling, setIsScheduling] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [meetingTopic, setMeetingTopic] = useState('');
+  const [meetingDate, setMeetingDate] = useState('');
+  const [meetingTime, setMeetingTime] = useState('');
+  const [meetingDuration, setMeetingDuration] = useState('30');
 
   // Derived journey variables
   const activeLog = journeyLogs.find((l) => l.day_number === activeStepDay);
@@ -162,6 +173,14 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
 
         setIsLoadingResources(false);
         setIsLoadingJourney(false);
+
+        // Fetch upcoming meetings
+        try {
+          const meetingsData = await getInstructorUpcomingMeetings();
+          setUpcomingMeetings(meetingsData || []);
+        } catch (e) {
+          console.error("Failed to load meetings", e);
+        }
       };
       loadData();
 
@@ -246,6 +265,71 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
     if (contentType.includes('video')) return { icon: PlayCircle, color: 'text-purple-500', bg: 'bg-purple-50', border: 'border-purple-100' };
     return { icon: FileText, color: 'text-gray-500', bg: 'bg-gray-50', border: 'border-gray-100' };
   };
+
+  const handleScheduleMeeting = async () => {
+    if (!selectedStudent || !meetingTopic || !meetingDate || !meetingTime) {
+      alert('Please fill out all fields');
+      return;
+    }
+
+    setIsScheduling(true);
+    try {
+      const startDateTime = new Date(`${meetingDate}T${meetingTime}`).toISOString();
+
+      const res = await fetch('/api/meetings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: meetingTopic,
+          startTime: startDateTime,
+          durationMinutes: parseInt(meetingDuration, 10),
+          meetingType: 'one_on_one',
+          studentId: selectedStudent.id,
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to schedule meeting');
+      }
+
+      // Refresh meetings list
+      const updatedList = await getInstructorUpcomingMeetings();
+      setUpcomingMeetings(updatedList || []);
+      
+      setShowScheduleModal(false);
+      setMeetingTopic('');
+      setMeetingDate('');
+      setMeetingTime('');
+      setMeetingDuration('30');
+    } catch (e: any) {
+      console.error(e);
+      alert(e.message);
+    } finally {
+      setIsScheduling(false);
+    }
+  };
+
+  const studentMeetings = upcomingMeetings.filter(m => m.student_id === selectedStudent?.id);
+  const nextMeeting = studentMeetings.length > 0 ? studentMeetings[0] : null;
+
+  const [isJoinEnabled, setIsJoinEnabled] = useState(false);
+
+  useEffect(() => {
+    if (!nextMeeting) return;
+
+    const checkTime = () => {
+      const meetingTime = new Date(nextMeeting.start_time).getTime();
+      const now = Date.now();
+      // 5 minutes = 300000 ms
+      setIsJoinEnabled(meetingTime - now <= 300000);
+    };
+
+    checkTime();
+    const interval = setInterval(checkTime, 10000); // Check every 10 seconds
+
+    return () => clearInterval(interval);
+  }, [nextMeeting]);
 
   return (
     <div className="flex flex-col p-4 lg:p-6 overflow-hidden h-[calc(100vh-2rem)]">
@@ -442,50 +526,67 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
         {/* ── Right: Actions + Resources ── */}
         <div className="flex flex-col lg:col-span-4 gap-5 min-h-0">
           {/* Schedule a New Meeting */}
-          <button className="flex w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-[#ec4899] py-4 text-[13px] font-bold uppercase tracking-wider text-white shadow-md transition-all hover:bg-pink-600">
+          <button 
+            disabled={!selectedStudent}
+            onClick={() => setShowScheduleModal(true)}
+            className="flex w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-[#ec4899] py-4 text-[13px] font-bold uppercase tracking-wider text-white shadow-md transition-all hover:bg-pink-600 disabled:opacity-50 disabled:cursor-not-allowed">
             <Calendar className="h-5 w-5" />
             Schedule a New Meeting
           </button >
 
           {/* Next session card */}
-          < div className="group shrink-0 relative overflow-hidden rounded-2xl border border-gray-700 bg-gray-900 p-4 text-white shadow-lg transition-all duration-500 hover:-translate-y-1" >
-            <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-pink-500/30 blur-[60px] transition-transform duration-700 group-hover:scale-125" />
-            <div className="relative z-10">
-              <div className="mb-4 flex items-start justify-between">
-                <div>
-                  <div className="mb-1.5 flex items-center gap-1.5">
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.6)]" />
-                    <p className="text-[9px] font-bold uppercase tracking-widest text-pink-300">
-                      Next Live Call
-                    </p>
+          {nextMeeting ? (
+            <div className="group shrink-0 relative overflow-hidden rounded-2xl border border-gray-700 bg-gray-900 p-4 text-white shadow-lg transition-all duration-500 hover:-translate-y-1" >
+              <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-pink-500/30 blur-[60px] transition-transform duration-700 group-hover:scale-125" />
+              <div className="relative z-10">
+                <div className="mb-4 flex items-start justify-between">
+                  <div>
+                    <div className="mb-1.5 flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.6)]" />
+                      <p className="text-[9px] font-bold uppercase tracking-widest text-pink-300">
+                        Next Live Call
+                      </p>
+                    </div>
+                    <h3 className="text-lg font-bold tracking-tight">{nextMeeting.topic}</h3>
                   </div>
-                  <h3 className="text-lg font-bold tracking-tight">1:1 Review</h3>
+                  <div className="rounded-lg border border-white/10 bg-white/10 p-2 backdrop-blur-md">
+                    <Video className="h-5 w-5 text-white" />
+                  </div>
                 </div>
-                <div className="rounded-lg border border-white/10 bg-white/10 p-2 backdrop-blur-md">
-                  <Video className="h-5 w-5 text-white" />
+                <div className="mb-4 flex gap-2">
+                  <div className="flex flex-1 flex-col justify-center rounded-lg border border-white/10 bg-white/5 px-3 py-2 backdrop-blur-sm">
+                    <span className="text-[9px] font-bold uppercase text-gray-400">Date</span>
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="h-3 w-3 text-pink-400" />
+                      <span className="text-xs font-bold">{new Date(nextMeeting.start_time).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-1 flex-col justify-center rounded-lg border border-white/10 bg-white/5 px-3 py-2 backdrop-blur-sm">
+                    <span className="text-[9px] font-bold uppercase text-gray-400">Time</span>
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="h-3 w-3 text-pink-400" />
+                      <span className="text-xs font-bold">
+                        {new Date(nextMeeting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  </div>
                 </div>
+                <button 
+                  disabled={!isJoinEnabled}
+                  onClick={() => window.open(nextMeeting.start_url, '_blank')}
+                  className={`flex w-full items-center justify-center gap-2 rounded-xl border py-3 mt-1 text-sm font-bold transition-all shadow-lg ${isJoinEnabled ? 'border-white/20 bg-pink-600/80 text-white hover:bg-pink-600 hover:shadow-pink-500/20' : 'border-gray-600 bg-gray-700 text-gray-400 cursor-not-allowed shadow-none'}`}>
+                  {isJoinEnabled ? 'Start Zoom' : 'Starts 5 min before'} <ArrowUpRight className="h-4 w-4" />
+                </button>
               </div>
-              <div className="mb-4 flex gap-2">
-                <div className="flex flex-1 flex-col justify-center rounded-lg border border-white/10 bg-white/5 px-3 py-2 backdrop-blur-sm">
-                  <span className="text-[9px] font-bold uppercase text-gray-400">Date</span>
-                  <div className="flex items-center gap-1.5">
-                    <Calendar className="h-3 w-3 text-pink-400" />
-                    <span className="text-xs font-bold">Sep 24</span>
-                  </div>
-                </div>
-                <div className="flex flex-1 flex-col justify-center rounded-lg border border-white/10 bg-white/5 px-3 py-2 backdrop-blur-sm">
-                  <span className="text-[9px] font-bold uppercase text-gray-400">Time</span>
-                  <div className="flex items-center gap-1.5">
-                    <Clock className="h-3 w-3 text-pink-400" />
-                    <span className="text-xs font-bold">10:00 AM</span>
-                  </div>
-                </div>
-              </div>
-              <button className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 py-3 mt-1 text-sm font-bold text-white transition-all hover:bg-white/20">
-                Join Zoom <ArrowUpRight className="h-4 w-4" />
-              </button>
             </div>
-          </div >
+          ) : (
+            <div className="group shrink-0 relative overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm" >
+               <div className="relative z-10 flex flex-col items-center justify-center py-6 text-gray-400">
+                  <Video className="h-8 w-8 mb-2 text-gray-300" />
+                  <p className="text-xs font-medium">No upcoming meetings</p>
+               </div>
+            </div>
+          )}
 
           {/* Resources */}
           <div className="flex flex-1 flex-col rounded-2xl border border-pink-100/40 bg-white p-5 shadow-sm min-h-0 overflow-hidden">
@@ -556,6 +657,82 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
           </div>
         </div>
       </div>
+
+      {/* SCHEDULE MEETING MODAL */}
+      {showScheduleModal && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-md transition-all duration-300">
+          <div className="w-full max-w-lg rounded-3xl bg-white/90 shadow-2xl overflow-hidden border border-white/40 ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-300 backdrop-blur-xl">
+            
+            {/* Modal Header */}
+            <div className="relative flex flex-col p-6 bg-gradient-to-br from-pink-50 via-white to-pink-50/30 border-b border-pink-100/50">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-400 via-rose-400 to-pink-500"></div>
+              <div className="flex items-start justify-between">
+                <div className="flex gap-4 items-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-pink-100 text-pink-600 shadow-inner">
+                    <Calendar className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-extrabold text-gray-900 tracking-tight">Schedule Session</h3>
+                    <p className="text-sm font-medium text-pink-600/80 mt-0.5 flex items-center gap-1.5">
+                      <User className="h-3.5 w-3.5" /> 1-on-1 with {selectedStudent?.full_name}
+                    </p>
+                  </div>
+                </div>
+                <button onClick={() => setShowScheduleModal(false)} className="p-2 rounded-full text-gray-400 hover:bg-black/5 hover:text-gray-700 transition-all bg-white border border-gray-100 shadow-sm">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-5 bg-white/50">
+              
+              <div className="group">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-pink-500 transition-colors">Meeting Topic</label>
+                <div className="relative">
+                  <input value={meetingTopic} onChange={(e) => setMeetingTopic(e.target.value)} type="text" className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 placeholder-gray-400 shadow-sm focus:border-pink-500 focus:bg-white focus:ring-2 focus:ring-pink-500/20 outline-none transition-all" placeholder="e.g. Weekly Catchup & Posture Review" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-5">
+                <div className="group">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-pink-500 transition-colors">Date</label>
+                  <input value={meetingDate} onChange={(e) => setMeetingDate(e.target.value)} type="date" className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm focus:border-pink-500 focus:bg-white focus:ring-2 focus:ring-pink-500/20 outline-none transition-all" />
+                </div>
+                <div className="group">
+                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-pink-500 transition-colors">Time</label>
+                  <input value={meetingTime} onChange={(e) => setMeetingTime(e.target.value)} type="time" className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm focus:border-pink-500 focus:bg-white focus:ring-2 focus:ring-pink-500/20 outline-none transition-all" />
+                </div>
+              </div>
+              
+              <div className="group">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-pink-500 transition-colors">Duration</label>
+                <div className="relative">
+                  <select value={meetingDuration} onChange={(e) => setMeetingDuration(e.target.value)} className="w-full appearance-none rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm focus:border-pink-500 focus:bg-white focus:ring-2 focus:ring-pink-500/20 outline-none transition-all">
+                    <option value="15">15 Minutes - Quick Sync</option>
+                    <option value="30">30 Minutes - Standard</option>
+                    <option value="45">45 Minutes - Deep Dive</option>
+                    <option value="60">1 Hour - Full Session</option>
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                    <Clock className="h-4 w-4" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex gap-3 justify-end items-center bg-gray-50/80 p-6 border-t border-gray-100">
+              <button onClick={() => setShowScheduleModal(false)} className="px-5 py-2.5 font-bold text-gray-500 hover:text-gray-900 hover:bg-gray-200/50 rounded-xl transition-all text-sm">Cancel</button>
+              <button onClick={handleScheduleMeeting} disabled={isScheduling} className="relative flex items-center gap-2 px-6 py-2.5 font-bold text-white bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl transition-all shadow-[0_4px_14px_0_rgba(236,72,153,0.39)] hover:shadow-[0_6px_20px_rgba(236,72,153,0.23)] hover:scale-[1.02] disabled:opacity-70 disabled:hover:scale-100 disabled:cursor-not-allowed text-sm active:scale-95">
+                {isScheduling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
+                Generate Zoom Link
+              </button>
+            </div>
+            
+          </div>
+        </div>
+      )}
     </div >
   );
 }
