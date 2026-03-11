@@ -1,6 +1,7 @@
 'use server';
 
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
+import type { ConversationType, MessageContentType } from '@/types/database';
 
 export async function getConversationIdForBatch(batchId: string) {
   const supabase = await createServerSupabaseClient();
@@ -21,12 +22,11 @@ export async function sendMessageToBatch(conversationId: string, content: string
   // First verify if chat is enabled
   const { data: conv } = await supabase
     .from('conversations')
-    .select('is_chat_enabled')
+    .select('is_chat_enabled, type')
     .eq('id', conversationId)
     .single();
 
   if (conv && conv.is_chat_enabled === false) {
-    // Here we could add logic to allow instructors to bypass the disable flag
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
@@ -38,6 +38,9 @@ export async function sendMessageToBatch(conversationId: string, content: string
     }
   }
 
+  // If this is a batch conversation, we should ideally use batch_messages table
+  // but many parts of the UI might expect chat_messages if they use ChatWindow.
+  // For now, keep using chat_messages for consistency with ChatWindow.
   const { error } = await supabase
     .from('chat_messages')
     .insert({
@@ -52,13 +55,13 @@ export async function sendMessageToBatch(conversationId: string, content: string
 }
 
 export async function getChatMessages(conversationId: string, limit = 50) {
-  const supabase = await createServerSupabaseClient();
+  const admin = createAdminClient();
 
-  const { data, error } = await supabase
+  const { data, error } = await admin
     .from('chat_messages')
     .select(`
       *,
-      sender:profiles(id, full_name, avatar_url, role)
+      sender:profiles!sender_id(id, full_name, avatar_url, role)
     `)
     .eq('conversation_id', conversationId)
     .order('created_at', { ascending: true })
@@ -84,20 +87,35 @@ export async function toggleChatStatus(conversationId: string, isEnabled: boolea
   return { success: true };
 }
 
-export async function fetchUserConversations(type?: 'direct' | 'group' | 'batch') {
+export async function fetchUserConversations(type?: ConversationType) {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
+
   if (!user) return [];
 
-  let query = supabase
+  const admin = createAdminClient();
+
+  // 1. Get IDs of conversations where this user is a participant
+  const { data: participations } = await admin
+    .from('conversation_participants')
+    .select('conversation_id')
+    .eq('user_id', user.id);
+
+  if (!participations || participations.length === 0) return [];
+
+  const conversationIds = participations.map(p => p.conversation_id);
+
+  // 2. Fetch the full conversation details
+  let query = admin
     .from('conversations')
     .select(`
       *,
       participants:conversation_participants(
         user_id,
-        profile:profiles(*)
+        profile:profiles!user_id(*)
       )
-    `);
+    `)
+    .in('id', conversationIds);
 
   if (type) {
     query = query.eq('type', type);
@@ -111,23 +129,19 @@ export async function fetchUserConversations(type?: 'direct' | 'group' | 'batch'
     return [];
   }
 
-  // Filter conversations where the user is a participant
-  // (In a real scenario, the query above would be filtered by participant user_id via a join or where clause)
-  return data?.filter(conv =>
-    (conv.participants as any[]).some(p => p.user_id === user.id)
-  ) || [];
+  return data || [];
 }
 
 export async function fetchConversationById(id: string) {
-  const supabase = await createServerSupabaseClient();
+  const admin = createAdminClient();
 
-  const { data, error } = await supabase
+  const { data, error } = await admin
     .from('conversations')
     .select(`
       *,
       participants:conversation_participants(
         user_id,
-        profile:profiles(*)
+        profile:profiles!user_id(*)
       )
     `)
     .eq('id', id)
@@ -146,7 +160,10 @@ export async function getOrCreateStudentChat() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
-  const { data: instructors } = await supabase
+  const admin = createAdminClient();
+
+  // 1. Find an instructor
+  const { data: instructors } = await admin
     .from('profiles')
     .select('id')
     .eq('role', 'instructor')
@@ -158,25 +175,42 @@ export async function getOrCreateStudentChat() {
 
   const instructorId = instructors[0].id;
 
-  // Search participants
-  const { data: connections } = await supabase
+  // 2. Find common direct conversation between user and instructor
+  const { data: commonParts } = await admin
     .from('conversation_participants')
-    .select('conversation_id')
-    .eq('user_id', user.id);
+    .select('conversation_id, user_id')
+    .in('user_id', [user.id, instructorId]);
 
-  const { data: instConnections } = await supabase
-    .from('conversation_participants')
-    .select('conversation_id')
-    .eq('user_id', instructorId);
+  const convCounts: Record<string, number> = {};
+  let commonId = null;
 
-  const commonId = connections?.find(c => instConnections?.some(ic => ic.conversation_id === c.conversation_id))?.conversation_id;
+  if (commonParts) {
+    // We want a conversation where BOTH are participants
+    commonParts.forEach(p => {
+      convCounts[p.conversation_id] = (convCounts[p.conversation_id] || 0) + 1;
+    });
 
-  if (commonId) {
-    const { data: conv } = await supabase.from('conversations').select('type').eq('id', commonId).single();
-    if (conv?.type === 'direct') return { conversationId: commonId };
+    // Find conv IDs that have 2 matching participants (user and instructor)
+    const potentialIds = Object.keys(convCounts).filter(id => convCounts[id] === 2);
+
+    if (potentialIds.length > 0) {
+      // Verify it's a 'direct' conversation
+      const { data: convs } = await admin
+        .from('conversations')
+        .select('id, type')
+        .in('id', potentialIds)
+        .eq('type', 'direct');
+
+      if (convs && convs.length > 0) {
+        commonId = convs[0].id;
+      }
+    }
   }
 
-  const { data: newConv, error: convError } = await supabase
+  if (commonId) return { conversationId: commonId };
+
+  // 3. Create new one if none found
+  const { data: newConv, error: convError } = await admin
     .from('conversations')
     .insert({ type: 'direct' })
     .select()
@@ -184,7 +218,7 @@ export async function getOrCreateStudentChat() {
 
   if (convError) throw convError;
 
-  await supabase.from('conversation_participants').insert([
+  await admin.from('conversation_participants').insert([
     { conversation_id: newConv.id, user_id: user.id },
     { conversation_id: newConv.id, user_id: instructorId }
   ]);
@@ -197,24 +231,41 @@ export async function getOrCreateDirectChat(studentId: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
-  const { data: connections } = await supabase
+  const admin = createAdminClient();
+
+  // 1. Find common direct conversation
+  const { data: commonParts } = await admin
     .from('conversation_participants')
-    .select('conversation_id')
-    .eq('user_id', user.id);
+    .select('conversation_id, user_id')
+    .in('user_id', [user.id, studentId]);
 
-  const { data: studConnections } = await supabase
-    .from('conversation_participants')
-    .select('conversation_id')
-    .eq('user_id', studentId);
+  const convCounts: Record<string, number> = {};
+  let commonId = null;
 
-  const commonId = connections?.find(c => studConnections?.some(sc => sc.conversation_id === c.conversation_id))?.conversation_id;
+  if (commonParts) {
+    commonParts.forEach(p => {
+      convCounts[p.conversation_id] = (convCounts[p.conversation_id] || 0) + 1;
+    });
 
-  if (commonId) {
-    const { data: conv } = await supabase.from('conversations').select('type').eq('id', commonId).single();
-    if (conv?.type === 'direct') return { conversationId: commonId };
+    const potentialIds = Object.keys(convCounts).filter(id => convCounts[id] === 2);
+
+    if (potentialIds.length > 0) {
+      const { data: convs } = await admin
+        .from('conversations')
+        .select('id, type')
+        .in('id', potentialIds)
+        .eq('type', 'direct');
+
+      if (convs && convs.length > 0) {
+        commonId = convs[0].id;
+      }
+    }
   }
 
-  const { data: newConv, error: convError } = await supabase
+  if (commonId) return { conversationId: commonId };
+
+  // 2. Create new one
+  const { data: newConv, error: convError } = await admin
     .from('conversations')
     .insert({ type: 'direct' })
     .select()
@@ -222,7 +273,7 @@ export async function getOrCreateDirectChat(studentId: string) {
 
   if (convError) throw convError;
 
-  await supabase.from('conversation_participants').insert([
+  await admin.from('conversation_participants').insert([
     { conversation_id: newConv.id, user_id: user.id },
     { conversation_id: newConv.id, user_id: studentId }
   ]);
@@ -236,7 +287,7 @@ export async function searchStudents(query: string) {
     .from('profiles')
     .select(`
             *,
-            subscriptions (*)
+            subscriptions!student_id (*)
         `)
     .eq('role', 'student')
     .or(`full_name.ilike.%${query}%,email.ilike.%${query}%`)
@@ -250,8 +301,8 @@ export async function searchStudents(query: string) {
 }
 
 export async function getConversationChatStatus(conversationId: string) {
-  const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase
+  const admin = createAdminClient();
+  const { data, error } = await admin
     .from('conversations')
     .select('is_chat_enabled')
     .eq('id', conversationId)
@@ -264,7 +315,7 @@ export async function getConversationChatStatus(conversationId: string) {
 export async function sendChatMessage(
   conversationId: string,
   content: string,
-  contentType: 'text' | 'image' | 'pdf' | 'file' = 'text',
+  contentType: MessageContentType = 'text',
   fileUrl?: string,
   fileName?: string,
   replyTo?: string
@@ -273,17 +324,19 @@ export async function sendChatMessage(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
+  const admin = createAdminClient();
+
   // Check if chat is enabled
   const isEnabled = await getConversationChatStatus(conversationId);
   if (!isEnabled) {
     // Only instructor/admin can bypass
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single();
     if (profile?.role !== 'instructor' && profile?.role !== 'admin') {
       throw new Error('Chat is currently disabled by the instructor.');
     }
   }
 
-  const { error } = await supabase
+  const { error } = await admin
     .from('chat_messages')
     .insert({
       conversation_id: conversationId,
@@ -298,14 +351,15 @@ export async function sendChatMessage(
 }
 
 export async function fetchActiveOneOnOneStudents(instructorId: string) {
-  const supabase = await createServerSupabaseClient();
+  const admin = createAdminClient();
 
   // 1. Get all profiles of students who are currently in an active one_on_one subscription
-  const { data: subscriptions, error: subError } = await supabase
+  // Using admin to ensure we see all active subs for the instructor's dashboard
+  const { data: subscriptions, error: subError } = await admin
     .from('subscriptions')
     .select(`
       student_id,
-      profiles:student_id (
+      profiles!student_id(
         id,
         full_name,
         email,
@@ -320,11 +374,19 @@ export async function fetchActiveOneOnOneStudents(instructorId: string) {
     return [];
   }
 
-  const students = subscriptions.map(s => s.profiles as any);
+  if (!subscriptions || subscriptions.length === 0) return [];
+
+  const students = subscriptions.map((s: any) => {
+    // PostgREST might return profiles as an array or object depending on schema
+    const profile = Array.isArray(s.profiles) ? s.profiles[0] : s.profiles;
+    return profile;
+  }).filter(Boolean);
+
   if (students.length === 0) return [];
 
   // 2. For each student, find the direct conversation ID with this instructor
-  const { data: allParticipants, error: partError } = await supabase
+  // Use admin to bypass RLS on participants
+  const { data: allParticipants, error: partError } = await admin
     .from('conversation_participants')
     .select('conversation_id, user_id')
     .in('user_id', [instructorId, ...students.map(s => s.id)]);
@@ -334,36 +396,45 @@ export async function fetchActiveOneOnOneStudents(instructorId: string) {
     return [];
   }
 
-  // 3. Match students to conversation IDs
-  const result = students.map(student => {
-    // Find a conversation where both the instructor and this student are participants
+  // 3. For the found IDs, get their conversation types to filter for 'direct'
+  const { data: conversations } = await admin
+    .from('conversations')
+    .select('id, type')
+    .in('id', Array.from(new Set(allParticipants.map(p => p.conversation_id))))
+    .eq('type', 'direct');
+
+  const directConvIds = new Set(conversations?.map(c => c.id) || []);
+
+  // 4. Match students to direct conversation IDs
+  const result = students.map((student: any) => {
+    // Find a conversation where both the instructor and this student are participants AND it is a direct chat
     const instructorConvs = allParticipants
-      .filter(p => p.user_id === instructorId)
-      .map(p => p.conversation_id);
+      .filter((p: any) => p.user_id === instructorId)
+      .map((p: any) => p.conversation_id);
 
     const studentConvs = allParticipants
-      .filter(p => p.user_id === student.id)
-      .map(p => p.conversation_id);
+      .filter((p: any) => p.user_id === student.id)
+      .map((p: any) => p.conversation_id);
 
-    const commonConvId = instructorConvs.find(id => studentConvs.includes(id));
+    const commonConvId = instructorConvs.find((id: string) => studentConvs.includes(id) && directConvIds.has(id));
 
     return {
       ...student,
       conversationId: commonConvId || null
     };
-  }).filter(s => s.conversationId !== null); // Only return students with conversations for now
+  }).filter((s: any) => s.conversationId !== null); // Only return students with conversations for now
 
   return result;
 }
 
 export async function getBatchMessages(batchId: string, limit = 50) {
-  const supabase = await createServerSupabaseClient();
+  const admin = createAdminClient();
 
-  const { data, error } = await supabase
+  const { data, error } = await admin
     .from('batch_messages')
     .select(`
       *,
-      sender:profiles(id, full_name, avatar_url, role)
+      sender:profiles!sender_id(id, full_name, avatar_url, role)
     `)
     .eq('batch_id', batchId)
     .order('created_at', { ascending: true })

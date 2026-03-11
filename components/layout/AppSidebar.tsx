@@ -60,10 +60,11 @@ const navConfig = {
 interface AppSidebarProps {
   user: Profile;
   activePlans?: string[];
+  unreadNotificationsCount?: number;
   children: React.ReactNode;
 }
 
-export function AppSidebar({ user, activePlans = [], children }: AppSidebarProps) {
+export function AppSidebar({ user, activePlans = [], unreadNotificationsCount = 0, children }: AppSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
   const links = navConfig[user.role] || navConfig.student;
@@ -140,7 +141,15 @@ export function AppSidebar({ user, activePlans = [], children }: AppSidebarProps
                             : 'text-gray-400 group-hover:text-pink-400'
                           }`}
                       />
-                      {!collapsed && <span>{label}</span>}
+                      {!collapsed && <span className="flex-1">{label}</span>}
+                      {!collapsed && label === 'Broadcasts' && unreadNotificationsCount > 0 && (
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-pink-500 text-[10px] font-bold text-white shadow-sm shadow-pink-200">
+                          {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
+                        </span>
+                      )}
+                      {collapsed && label === 'Broadcasts' && unreadNotificationsCount > 0 && (
+                        <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-pink-500 ring-2 ring-white"></span>
+                      )}
                     </Link>
                   </li>
                 );

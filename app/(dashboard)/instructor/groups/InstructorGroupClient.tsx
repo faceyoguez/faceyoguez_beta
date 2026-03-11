@@ -6,7 +6,7 @@ import {
     Search, Bell, Plus, LayoutDashboard, User, Users, GraduationCap, BarChart,
     Award, Settings, Calendar, Play, Upload,
     FileText, Send, Video, Library, ChevronLeft, ChevronRight,
-    Eye, PlusCircle, Pin, X, Trash2, CheckCircle
+    Eye, PlusCircle, Pin, X, Trash2, CheckCircle, Download
 } from 'lucide-react';
 import Image from 'next/image';
 import { createAndPopulateBatch, type CreateBatchInput } from '@/lib/actions/batches';
@@ -15,7 +15,7 @@ import type { Profile, Batch } from '@/types/database';
 import { uploadBatchResource, getBatchResources } from '@/lib/actions/resources';
 import { getBatchMessages, sendBatchMessage, toggleBatchChat } from '@/lib/actions/chat';
 import { createClient } from '@/lib/supabase/client';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
 interface GroupClientProps {
     currentUser: Profile;
@@ -156,8 +156,15 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
         const file = e.target.files?.[0];
         if (!file || !selectedBatch) return;
 
-        if (file.type !== 'application/pdf') {
-            alert("Please upload a PDF file.");
+        // 10 MB limit
+        if (file.size > 10 * 1024 * 1024) {
+            alert("File size must be less than 10MB.");
+            return;
+        }
+
+        const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png'];
+        if (!allowedTypes.includes(file.type)) {
+            alert("Please upload a PDF, Word document, or Image (JPEG/PNG).");
             return;
         }
 
@@ -195,6 +202,18 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
         const batchResources = await getBatchResources(batch.id);
         setResources(batchResources);
     };
+
+    // Filter enrolled students
+    const [studentSearchQuery, setStudentSearchQuery] = useState('');
+    const filteredStudents = useMemo(() => {
+        if (!selectedBatch?.batch_enrollments) return [];
+        if (!studentSearchQuery) return selectedBatch.batch_enrollments;
+        return selectedBatch.batch_enrollments.filter((e: any) => {
+            const name = e.student?.full_name?.toLowerCase() || '';
+            const query = studentSearchQuery.toLowerCase();
+            return name.includes(query);
+        });
+    }, [selectedBatch?.batch_enrollments, studentSearchQuery]);
 
     return (
         <div className="flex h-full flex-col overflow-hidden bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-pink-50 via-gray-50 to-white text-gray-900">
@@ -311,24 +330,22 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                         {/* Resources & Status Row */}
                         <div className="grid min-h-[160px] grid-cols-12 gap-4">
                             <div className="col-span-12 flex flex-col justify-between rounded-xl border border-white/60 bg-white/65 p-4 shadow-sm backdrop-blur-md md:col-span-12 lg:col-span-7">
-                                <div className="mb-2 flex items-start justify-between">
-                                    <div>
-                                        <h4 className="flex items-center gap-2 text-sm font-bold text-gray-900">
-                                            Broadcast Resources
-                                        </h4>
-                                        <p className="mt-1 text-[10px] text-gray-500">Share handouts or guides with the current batch instantly.</p>
+                                <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                    <div className="flex items-start gap-3">
+                                        <div className="flex bg-pink-100 text-pink-600 p-2.5 rounded-xl shrink-0">
+                                            <Library className="h-5 w-5" />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-bold text-gray-900">
+                                                Resources
+                                            </h4>
+                                            <p className="mt-0.5 text-[10px] text-gray-500">Share handouts or guides with the current batch instantly.</p>
+                                        </div>
                                     </div>
-                                    <div className="flex gap-2">
-                                        {resources.slice(0, 3).map((res: any) => (
-                                            <div key={res.id} className="flex h-8 w-8 items-center justify-center rounded border border-pink-100 bg-white text-pink-500 shadow-xs tooltip" title={res.title}>
-                                                <FileText className="h-4 w-4" />
-                                            </div>
-                                        ))}
-                                        {resources.length > 3 && (
-                                            <div className="flex h-8 w-8 items-center justify-center rounded border border-pink-100 bg-white text-gray-400 text-[10px] font-bold">
-                                                +{resources.length - 3}
-                                            </div>
-                                        )}
+                                    <div className="flex gap-2 shrink-0 self-end sm:self-auto">
+                                        <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 rounded-lg bg-pink-500 px-3 py-1.5 text-[11px] font-bold text-white shadow-sm transition-colors hover:bg-pink-600" title="Upload Resource">
+                                            <Plus className="h-3.5 w-3.5" /> Upload File
+                                        </button>
                                     </div>
                                 </div>
                                 {/* Upload Button */}
@@ -336,25 +353,40 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                     type="file"
                                     ref={fileInputRef}
                                     onChange={handleFileUpload}
-                                    accept=".pdf"
+                                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                                     className="hidden"
                                 />
-                                <div
-                                    onClick={() => !isUploading && fileInputRef.current?.click()}
-                                    className={`group flex cursor-pointer items-center justify-between gap-3 rounded-lg border-2 border-dashed border-pink-200 bg-white/40 p-3 transition-colors hover:border-pink-400 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex h-8 w-8 items-center justify-center rounded border border-red-100 bg-red-50 text-red-500 shadow-sm">
-                                            <FileText className="h-5 w-5" />
+
+                                <div className="flex-1 space-y-2 overflow-y-auto max-h-[300px] custom-scrollbar mt-2">
+                                    {isUploading && (
+                                        <div className="flex items-center gap-3 p-3 text-sm text-gray-500 justify-center border border-dashed border-pink-200 rounded-lg">
+                                            Uploading file...
                                         </div>
-                                        <div>
-                                            <p className="text-xs font-bold text-gray-900">{isUploading ? 'Uploading...' : 'Upload new PDF...'}</p>
+                                    )}
+                                    {resources.map((res: any) => (
+                                        <div key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="group flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-pink-100 bg-white/60 p-2.5 transition-all hover:border-pink-300 hover:shadow-sm">
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex h-8 w-8 items-center justify-center rounded border border-red-100 bg-red-50 text-red-500 shadow-sm">
+                                                    <FileText className="h-4 w-4" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-xs font-bold text-gray-900 line-clamp-1">{res.title || res.file_name}</h4>
+                                                    <p className="text-[9px] text-gray-500">{new Date(res.created_at).toLocaleDateString()}</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); window.open(res.file_url, '_blank'); }}
+                                                className="rounded p-1 text-gray-400 transition-colors hover:bg-pink-50 hover:text-pink-600"
+                                            >
+                                                <Download className="h-4 w-4" />
+                                            </button>
                                         </div>
-                                    </div>
-                                    <button className="flex items-center gap-1 rounded bg-pink-500 px-3 py-1.5 text-[10px] font-bold text-white shadow-sm transition-colors hover:bg-pink-600 disabled:opacity-50">
-                                        {isUploading ? 'Sending...' : 'Send to Batch'} <Send className="h-3 w-3" />
-                                    </button>
+                                    ))}
+                                    {resources.length === 0 && !isUploading && (
+                                        <p className="text-center text-[10px] text-gray-400 py-4">No resources shared yet.</p>
+                                    )}
                                 </div>
+
                             </div>
 
                             <div className="col-span-12 flex flex-col justify-between rounded-xl border border-white/60 bg-white/65 p-4 shadow-sm backdrop-blur-md md:col-span-12 lg:col-span-5">
@@ -426,28 +458,46 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                     <div className={`col-span-12 h-[600px] lg:sticky lg:top-6 lg:col-span-3 lg:h-[calc(100vh-6rem)] flex flex-col gap-4 transition-all ${isCreateBatchOpen ? 'blur-[2px] opacity-50 pointer-events-none' : ''}`}>
 
                         {/* Student List Section */}
-                        <div className="flex h-[200px] flex-col overflow-hidden rounded-xl border border-white/60 bg-white/65 shadow-sm backdrop-blur-md">
+                        <div className="flex h-[280px] flex-col overflow-hidden rounded-xl border border-white/60 bg-white/65 shadow-sm backdrop-blur-md">
                             <div className="border-b border-pink-50 bg-white/40 p-3">
-                                <h3 className="text-xs font-bold text-gray-900 flex items-center gap-2">
-                                    <Users className="h-4 w-4 text-pink-500" />
-                                    Enrolled Students
-                                </h3>
+                                <div className="flex items-center justify-between mb-2">
+                                    <h3 className="text-xs font-bold text-gray-900 flex items-center gap-2">
+                                        <Users className="h-4 w-4 text-pink-500" />
+                                        Enrolled Students
+                                    </h3>
+                                    <span className="text-[10px] font-bold text-pink-500">{filteredStudents.length} Students</span>
+                                </div>
+                                <div className="relative">
+                                    <Search className="absolute left-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search students..."
+                                        value={studentSearchQuery}
+                                        onChange={(e) => setStudentSearchQuery(e.target.value)}
+                                        className="w-full rounded-lg border border-pink-100 bg-white py-1.5 pl-8 pr-3 text-xs focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
+                                    />
+                                </div>
                             </div>
-                            <div className="flex-1 overflow-y-auto p-2 custom-scrollbar space-y-2">
-                                {selectedBatch?.batch_enrollments?.map((enrollment: any) => (
-                                    <div key={enrollment.student_id} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-white/60 transition-colors">
-                                        {enrollment.profiles?.avatar_url ? (
-                                            <img src={enrollment.profiles.avatar_url} className="h-7 w-7 rounded-full object-cover" />
+                            <div className="flex-1 overflow-y-auto p-2 custom-scrollbar space-y-1">
+                                {filteredStudents.map((enrollment: any) => (
+                                    <div key={enrollment.student_id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/60 transition-colors border border-transparent hover:border-pink-50">
+                                        {enrollment.student?.avatar_url ? (
+                                            <img src={enrollment.student.avatar_url} className="h-8 w-8 rounded-full border border-white object-cover shadow-sm" />
                                         ) : (
-                                            <div className="h-7 w-7 rounded-full bg-pink-100 flex items-center justify-center text-[10px] font-bold text-pink-600">
-                                                {enrollment.profiles?.full_name?.charAt(0) || 'S'}
+                                            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-pink-400 to-rose-400 flex items-center justify-center text-[10px] font-bold text-white shadow-sm">
+                                                {enrollment.student?.full_name?.charAt(0) || 'S'}
                                             </div>
                                         )}
-                                        <span className="text-xs font-medium text-gray-700">{enrollment.profiles?.full_name}</span>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-bold text-gray-800 line-clamp-1">{enrollment.student?.full_name}</p>
+                                            <p className="text-[9px] text-gray-400 line-clamp-1">Enrolled in {selectedBatch?.name}</p>
+                                        </div>
                                     </div>
                                 ))}
-                                {(!selectedBatch?.batch_enrollments || selectedBatch.batch_enrollments.length === 0) && (
-                                    <p className="text-center text-[10px] text-gray-400 py-4">No students enrolled.</p>
+                                {(!filteredStudents || filteredStudents.length === 0) && (
+                                    <div className="flex flex-col items-center justify-center h-full text-center">
+                                        <p className="text-[10px] text-gray-400">No students found.</p>
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -474,31 +524,36 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                             </div>
 
                             <div ref={chatContainerRef} className="flex-1 space-y-3 overflow-y-auto bg-gradient-to-b from-white/30 to-white/10 p-3 custom-scrollbar">
-                                {messages.map((msg) => (
-                                    <div key={msg.id} className={`flex gap-2 ${msg.sender_id === currentUser.id ? 'flex-row-reverse' : ''}`}>
-                                        <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-pink-200">
-                                            {msg.sender?.avatar_url ? (
-                                                <img src={msg.sender.avatar_url} alt="" className="h-full w-full object-cover" />
-                                            ) : (
-                                                <div className="flex h-full w-full items-center justify-center text-[10px] font-bold text-pink-600">
-                                                    {(msg.sender?.full_name || 'U').charAt(0)}
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className={`flex max-w-[85%] flex-col ${msg.sender_id === currentUser.id ? 'items-end' : ''}`}>
-                                            <div className="mb-0.5 flex items-center gap-2">
-                                                <span className="text-[10px] font-bold text-gray-900">{msg.sender?.full_name || 'User'}</span>
-                                                <span className="text-[9px] text-gray-500">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                                {msg.sender?.role === 'instructor' && (
-                                                    <span className="flex items-center gap-0.5 rounded border border-pink-200 bg-pink-50 px-1 text-[9px] font-bold text-pink-500">YOU <CheckCircle className="h-2 w-2" /></span>
+                                {messages.map((msg) => {
+                                    const senderProfile = msg.sender || msg.profiles || msg.senderProfile || {};
+                                    return (
+                                        <div key={msg.id} className={`flex gap-2 ${msg.sender_id === currentUser.id ? 'flex-row-reverse' : ''}`}>
+                                            <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-pink-200">
+                                                {senderProfile?.avatar_url ? (
+                                                    <img src={senderProfile.avatar_url} alt="" className="h-full w-full object-cover" />
+                                                ) : (
+                                                    <div className="flex h-full w-full items-center justify-center text-[10px] font-bold text-pink-600">
+                                                        {(senderProfile?.full_name || 'U').charAt(0)}
+                                                    </div>
                                                 )}
                                             </div>
-                                            <div className={`rounded-2xl px-3 py-2 text-xs leading-relaxed shadow-sm ${msg.sender_id === currentUser.id ? 'rounded-tr-none bg-pink-500 text-white' : 'rounded-tl-none border border-white/50 bg-white text-gray-900'}`}>
-                                                <p>{msg.content}</p>
+                                            <div className={`flex max-w-[85%] flex-col ${msg.sender_id === currentUser.id ? 'items-end' : ''}`}>
+                                                <div className="mb-0.5 flex items-center gap-2">
+                                                    <span className="text-[10px] font-bold text-gray-900">{senderProfile?.full_name || 'User'}</span>
+                                                    <span className="text-[9px] text-gray-500">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                    {senderProfile?.role === 'instructor' ? (
+                                                        <span className="flex items-center gap-0.5 rounded border border-pink-200 bg-pink-50 px-1 text-[9px] font-bold text-pink-500">{msg.sender_id === currentUser.id ? 'YOU' : 'Instructor'} <CheckCircle className="h-2 w-2" /></span>
+                                                    ) : senderProfile?.role === 'student' && msg.sender_id !== currentUser.id ? (
+                                                        <span className="flex items-center gap-0.5 rounded border border-gray-200 bg-gray-50 px-1 text-[8px] font-bold text-gray-500">Student</span>
+                                                    ) : null}
+                                                </div>
+                                                <div className={`rounded-2xl px-3 py-2 text-xs leading-relaxed shadow-sm ${msg.sender_id === currentUser.id ? 'rounded-tr-none bg-pink-500 text-white' : senderProfile?.role === 'instructor' ? 'rounded-tl-none border border-pink-300 bg-pink-50 text-gray-900 shadow-pink-100' : 'rounded-tl-none border border-white/50 bg-white text-gray-900'}`}>
+                                                    <p>{msg.content}</p>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
 
                             <div className="border-t border-pink-50 bg-white/60 p-3">
@@ -616,7 +671,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                     )}
 
                 </div>
-            </main>
-        </div>
+            </main >
+        </div >
     );
 }

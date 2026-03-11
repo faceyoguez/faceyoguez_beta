@@ -1,4 +1,4 @@
-import { sendBatchMessage } from './lib/actions/chat';
+import { sendBatchMessage } from '../lib/actions/chat';
 import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 dotenv.config({ path: '.env.local' });

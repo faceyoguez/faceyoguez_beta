@@ -121,6 +121,17 @@ export interface BroadcastRead {
   read_at: string;
 }
 
+export interface Notification {
+  id: string;
+  user_id: string;
+  broadcast_id: string | null;
+  title: string;
+  message: string;
+  type: string;
+  is_read: boolean;
+  created_at: string;
+}
+
 export interface ProgressLog {
   id: string;
   student_id: string;

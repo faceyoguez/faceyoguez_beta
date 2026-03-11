@@ -1,0 +1,5 @@
+--- Public Tables Check Start ---
+Profiles table visible. Count: 0
+Broadcasts table visible.
+Notifications table visible.
+--- Public Tables Check End ---

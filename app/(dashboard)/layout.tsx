@@ -24,8 +24,17 @@ export default async function DashboardLayout({
 
   if (!profile) redirect('/auth/login');
 
+  let unreadNotificationsCount = 0;
   let activePlans: string[] = [];
   if (profile.role === 'student') {
+    const { count } = await admin
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('is_read', false);
+
+    unreadNotificationsCount = count || 0;
+
     const { data: subscriptions } = await admin
       .from('subscriptions')
       .select('plan_type')
@@ -37,5 +46,13 @@ export default async function DashboardLayout({
     }
   }
 
-  return <AppSidebar user={profile} activePlans={activePlans}>{children}</AppSidebar>;
+  return (
+    <AppSidebar
+      user={profile}
+      activePlans={activePlans}
+      unreadNotificationsCount={unreadNotificationsCount}
+    >
+      {children}
+    </AppSidebar>
+  );
 }

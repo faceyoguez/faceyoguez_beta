@@ -49,15 +49,20 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources }: 
 
     const activeLog = journeyLogs.find(l => l.day_number === activeStepDay);
     const day1Log = journeyLogs.find(l => l.day_number === 1);
+    const day25Log = journeyLogs.find(l => l.day_number === 25);
     const beforeImage = day1Log?.photo_url || 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800&sat=-100';
-    let afterImage = activeLog?.photo_url || selectedImageBase64 || 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800';
+    let afterImage = day25Log?.photo_url || selectedImageBase64 || null;
 
-    if (!activeLog?.photo_url && !selectedImageBase64) {
-        const logsWithPhotos = [...journeyLogs].filter(l => l.photo_url).sort((a, b) => b.day_number - a.day_number);
-        if (logsWithPhotos.length > 0) {
-            afterImage = logsWithPhotos[0].photo_url as string;
-        }
-    }
+    // Calculate current day based on start_date
+    useEffect(() => {
+        if (!activeBatch?.start_date) return;
+        const startDate = new Date(activeBatch.start_date);
+        const now = new Date();
+        const diffTime = Math.abs(now.getTime() - startDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const calculatedDay = diffDays > 0 ? diffDays : 1;
+        setActiveStepDay(calculatedDay);
+    }, [activeBatch?.start_date]);
 
     useEffect(() => {
         if (!activeBatch?.id) return;
@@ -67,10 +72,6 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources }: 
             setMessages(msgs);
             const logs = await getJourneyLogs(currentUser.id);
             setJourneyLogs(logs);
-            if (logs.length > 0) {
-                const latestDay = [...logs].sort((a, b) => b.day_number - a.day_number)[0].day_number;
-                setActiveStepDay(latestDay);
-            }
         };
         init();
 
@@ -219,25 +220,6 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources }: 
                                 </div>
                             </div>
 
-                            {/* Daily Reflection */}
-                            <div className="mt-4 border-t border-pink-100/50 pt-4">
-                                <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-gray-500 opacity-70">Daily Reflection</p>
-                                <div className="px-3">
-                                    <textarea
-                                        placeholder="How are you feeling about your practice today?"
-                                        className="w-full h-24 rounded-lg border border-pink-100 bg-white/50 p-2 text-xs outline-none focus:ring-1 focus:ring-pink-500 resize-none"
-                                        value={notesInput}
-                                        onChange={(e) => setNotesInput(e.target.value)}
-                                    />
-                                    <button
-                                        onClick={handleSaveLog}
-                                        disabled={isSavingLog}
-                                        className="mt-2 w-full rounded-md bg-pink-500 py-1.5 text-[10px] font-bold text-white shadow-sm hover:bg-pink-600 transition-colors"
-                                    >
-                                        Save Reflection
-                                    </button>
-                                </div>
-                            </div>
                         </nav>
                     </div>
 
@@ -326,28 +308,30 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources }: 
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="rounded-xl overflow-hidden ring-1 ring-black/5 shadow-md bg-white aspect-[4/3]">
-                                                {activeStepDay < 7 || !afterImage ? (
+                                                {activeStepDay < 25 || !afterImage ? (
                                                     <img src={beforeImage} alt="Day 1" className="w-full h-full object-cover" />
                                                 ) : (
-                                                    <ImageComparison beforeImage={beforeImage} afterImage={afterImage} altBefore="Day 1" altAfter={`Day ${activeStepDay}`} />
+                                                    <ImageComparison beforeImage={beforeImage} afterImage={afterImage} altBefore="Day 1" altAfter={`Day 25`} />
                                                 )}
                                             </div>
-                                            <div className="flex flex-col gap-3">
-                                                <textarea
-                                                    value={notesInput}
-                                                    onChange={(e) => setNotesInput(e.target.value)}
-                                                    className="flex-1 min-h-[100px] rounded-lg border border-pink-100 bg-white/50 p-3 text-xs outline-none focus:ring-1 focus:ring-pink-500"
-                                                    placeholder="How do you feel today?"
-                                                />
-                                                <div className="flex gap-2">
-                                                    <input type="file" ref={fileInputRef} onChange={handlePhotoSelect} accept="image/*" className="hidden" />
-                                                    <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1 rounded-lg border border-pink-200 bg-white px-3 py-2 text-xs font-bold text-gray-600 hover:bg-pink-50">
-                                                        <Camera className="h-4 w-4 text-pink-500" /> Photo
-                                                    </button>
-                                                    <button onClick={handleSaveLog} disabled={isSavingLog} className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-pink-500 py-2 text-xs font-bold text-white shadow-md hover:bg-pink-600 disabled:opacity-50">
-                                                        {isSavingLog ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />} Save
-                                                    </button>
-                                                </div>
+                                            <div className="flex flex-col gap-3 justify-center items-center">
+                                                {(activeStepDay === 1 || activeStepDay === 25) && (
+                                                    <div className="flex flex-col gap-2 w-full max-w-[200px]">
+                                                        <p className="text-xs text-center text-gray-600 mb-2">Upload your Day {activeStepDay} photo</p>
+                                                        <input type="file" ref={fileInputRef} onChange={handlePhotoSelect} accept="image/*" className="hidden" />
+                                                        <button onClick={() => fileInputRef.current?.click()} className="flex items-center justify-center w-full gap-1 rounded-lg border border-pink-200 bg-white px-3 py-2 text-xs font-bold text-gray-600 hover:bg-pink-50">
+                                                            <Camera className="h-4 w-4 text-pink-500" /> Choose Photo
+                                                        </button>
+                                                        {selectedImageBase64 && (
+                                                            <button onClick={handleSaveLog} disabled={isSavingLog} className="flex w-full items-center justify-center gap-2 rounded-lg bg-pink-500 py-2 text-xs font-bold text-white shadow-md hover:bg-pink-600 disabled:opacity-50 mt-2">
+                                                                {isSavingLog ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />} Save Day {activeStepDay} Photo
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                )}
+                                                {activeStepDay !== 1 && activeStepDay !== 25 && (
+                                                    <p className="text-xs text-center text-gray-500">Photo uploads are only required on Day 1 and Day 25.</p>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -363,7 +347,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources }: 
                                     </div>
                                     <div className="flex-1 p-3 space-y-2 overflow-y-auto max-h-[300px] custom-scrollbar">
                                         {initialResources.map((res: any) => (
-                                            <div key={res.id} className="group flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-pink-100 bg-white/60 p-2.5 transition-all hover:border-pink-300 hover:shadow-sm">
+                                            <div key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="group flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-pink-100 bg-white/60 p-2.5 transition-all hover:border-pink-300 hover:shadow-sm">
                                                 <div className="flex items-center gap-3">
                                                     <div className="flex h-8 w-8 items-center justify-center rounded border border-red-100 bg-red-50 text-red-500 shadow-sm">
                                                         <FileText className="h-4 w-4" />
@@ -374,7 +358,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources }: 
                                                     </div>
                                                 </div>
                                                 <button
-                                                    onClick={() => window.open(res.file_url, '_blank')}
+                                                    onClick={(e) => { e.stopPropagation(); window.open(res.file_url, '_blank'); }}
                                                     className="rounded p-1 text-gray-400 transition-colors hover:bg-pink-50 hover:text-pink-600"
                                                 >
                                                     <Download className="h-4 w-4" />
@@ -404,31 +388,36 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources }: 
                             </div>
 
                             <div ref={chatContainerRef} className="flex-1 space-y-3 overflow-y-auto bg-gradient-to-b from-white/30 to-white/10 p-3 custom-scrollbar">
-                                {messages.map((msg) => (
-                                    <div key={msg.id} className={`flex gap-2 ${msg.sender_id === currentUser.id ? 'flex-row-reverse' : ''}`}>
-                                        <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-pink-200">
-                                            {msg.sender?.avatar_url ? (
-                                                <img src={msg.sender.avatar_url} alt="" className="h-full w-full object-cover" />
-                                            ) : (
-                                                <div className="flex h-full w-full items-center justify-center text-[10px] font-bold text-pink-600">
-                                                    {(msg.sender?.full_name || 'U').charAt(0)}
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className={`flex max-w-[85%] flex-col ${msg.sender_id === currentUser.id ? 'items-end' : ''}`}>
-                                            <div className="mb-0.5 flex items-center gap-2">
-                                                <span className="text-[10px] font-bold text-gray-900">{msg.sender?.full_name || 'User'}</span>
-                                                <span className="text-[9px] text-gray-500">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                                {msg.sender?.role === 'instructor' && (
-                                                    <span className="flex items-center gap-0.5 rounded border border-pink-200 bg-pink-50 px-1 text-[9px] font-bold text-pink-500">Instructor <CheckCircle className="h-2 w-2" /></span>
+                                {messages.map((msg) => {
+                                    const senderProfile = msg.sender || msg.profiles || msg.senderProfile || {};
+                                    return (
+                                        <div key={msg.id} className={`flex gap-2 ${msg.sender_id === currentUser.id ? 'flex-row-reverse' : ''}`}>
+                                            <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-pink-200">
+                                                {senderProfile?.avatar_url ? (
+                                                    <img src={senderProfile.avatar_url} alt="" className="h-full w-full object-cover" />
+                                                ) : (
+                                                    <div className="flex h-full w-full items-center justify-center text-[10px] font-bold text-pink-600">
+                                                        {(senderProfile?.full_name || 'U').charAt(0)}
+                                                    </div>
                                                 )}
                                             </div>
-                                            <div className={`rounded-2xl px-3 py-2 text-xs leading-relaxed shadow-sm ${msg.sender_id === currentUser.id ? 'rounded-tr-none bg-pink-500 text-white' : 'rounded-tl-none border border-white/50 bg-white text-gray-900'}`}>
-                                                <p>{msg.content}</p>
+                                            <div className={`flex max-w-[85%] flex-col ${msg.sender_id === currentUser.id ? 'items-end' : ''}`}>
+                                                <div className="mb-0.5 flex items-center gap-2">
+                                                    <span className="text-[10px] font-bold text-gray-900">{senderProfile?.full_name || 'User'}</span>
+                                                    <span className="text-[9px] text-gray-500">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                    {msg.sender_id === activeBatch?.instructor_id ? (
+                                                        <span className="flex items-center gap-0.5 rounded border border-pink-200 bg-pink-50 px-1 text-[9px] font-bold text-pink-500">Instructor <CheckCircle className="h-2 w-2" /></span>
+                                                    ) : msg.sender_id !== currentUser.id ? (
+                                                        <span className="flex items-center gap-0.5 rounded border border-gray-200 bg-gray-50 px-1 text-[8px] font-bold text-gray-500">Student</span>
+                                                    ) : null}
+                                                </div>
+                                                <div className={`rounded-2xl px-3 py-2 text-xs leading-relaxed shadow-sm ${msg.sender_id === currentUser.id ? 'rounded-tr-none bg-pink-500 text-white' : msg.sender_id === activeBatch?.instructor_id ? 'rounded-tl-none border border-pink-300 bg-pink-50 text-gray-900 shadow-pink-100' : 'rounded-tl-none border border-white/50 bg-white text-gray-900'}`}>
+                                                    <p>{msg.content}</p>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
 
                             <div className="border-t border-pink-50 bg-white/60 p-3">

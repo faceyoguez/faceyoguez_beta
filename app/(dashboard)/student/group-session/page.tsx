@@ -1,6 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { StudentGroupHub } from './StudentGroupHub';
+import { getBatchResources } from '@/lib/actions/resources';
 import type { Profile, Batch } from '@/types/database';
 
 export default async function StudentGroupPage() {
@@ -35,17 +36,10 @@ export default async function StudentGroupPage() {
 
     const activeBatch = enrollment?.batches || null;
 
-    // Let's fetch resources for this student and batch using the efficient View
+    // Let's fetch resources for this batch
     let resources = [];
     if (activeBatch) {
-        const { data: viewData } = await supabase
-            .from('v_student_resources')
-            .select('*')
-            .eq('student_id', user.id)
-            .eq('batch_id', activeBatch.id)
-            .order('created_at', { ascending: false });
-
-        resources = viewData || [];
+        resources = await getBatchResources(activeBatch.id);
     }
 
     return <StudentGroupHub currentUser={profile as Profile} activeBatch={activeBatch as Batch | null} initialResources={resources} />;
