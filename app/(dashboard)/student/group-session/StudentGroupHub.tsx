@@ -1,16 +1,18 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 // Force re-indexing of this client component for module resolution stability
 import {
     Search, Bell, Plus, Play, Calendar, GraduationCap, Check,
     Award, Users, User, Star, Settings, AlertTriangle,
-    Flame, PlayCircle, FileText, Download, CheckCircle, Send, Camera, Image as ImageIcon
+    Flame, PlayCircle, FileText, Download, CheckCircle, Send, Camera, Image as ImageIcon,
+    Video, Clock
 } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { createClient } from '../../../../lib/supabase/client';
 import { getBatchMessages, sendBatchMessage } from '../../../../lib/actions/chat';
 import { getJourneyLogs, saveDailyCheckIn, type JourneyLog } from '../../../../lib/actions/journey';
+import { getUpcomingMeetingsForStudent } from '../../../../lib/actions/meetings';
 import { ImageComparison } from '../../../../components/ui/image-comparison-slider';
 import {
     Stepper,
@@ -21,7 +23,7 @@ import {
     StepperTrigger,
 } from '../../../../components/ui/stepper';
 
-import type { Profile, Batch } from '../../../../types/database';
+import type { Profile, Batch, MeetingWithDetails } from '../../../../types/database';
 
 interface StudentGroupClientProps {
     currentUser: Profile;
@@ -37,6 +39,8 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources }: 
     const [newMessage, setNewMessage] = useState('');
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const supabase = createClient();
+
+    const [upcomingMeetings, setUpcomingMeetings] = useState<MeetingWithDetails[]>([]);
 
     // Journey State
     const [journeyLogs, setJourneyLogs] = useState<JourneyLog[]>([]);
@@ -72,6 +76,8 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources }: 
             setMessages(msgs);
             const logs = await getJourneyLogs(currentUser.id);
             setJourneyLogs(logs);
+            const meetingsData = await getUpcomingMeetingsForStudent();
+            setUpcomingMeetings(meetingsData || []);
         };
         init();
 
@@ -152,6 +158,26 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources }: 
         setIsSavingLog(false);
     };
 
+    const nextBatchMeeting = upcomingMeetings.find(m => m.batch_id === activeBatch?.id);
+
+    const [isJoinEnabled, setIsJoinEnabled] = useState(false);
+
+    useEffect(() => {
+        if (!nextBatchMeeting) return;
+    
+        const checkTime = () => {
+          const meetingTime = new Date(nextBatchMeeting.start_time).getTime();
+          const now = Date.now();
+          // 5 minutes = 300000 ms
+          setIsJoinEnabled(meetingTime - now <= 300000);
+        };
+    
+        checkTime();
+        const interval = setInterval(checkTime, 10000); // Check every 10 seconds
+    
+        return () => clearInterval(interval);
+    }, [nextBatchMeeting]);
+
     return (
         <div className="flex h-full flex-col overflow-hidden bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-pink-50 via-gray-50 to-white text-gray-900">
 
@@ -226,31 +252,45 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources }: 
                     {/* Center Main col */}
                     <div className="col-span-12 flex h-full flex-col gap-4 overflow-hidden lg:col-span-7">
                         {/* Session Thumbnail */}
-                        <div className="group relative h-48 w-full shrink-0 overflow-hidden rounded-xl border border-white/20 shadow-sm">
-                            <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/80 via-black/40 to-transparent"></div>
-                            <img src="https://images.unsplash.com/photo-1512413914565-df0a876a3ff8?q=80&w=2420&auto=format&fit=crop" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Yoga Session" />
-                            <div className="absolute inset-0 z-20 flex flex-row items-center justify-between gap-4 p-5">
-                                <div className="max-w-md">
-                                    <div className="mb-1.5 flex items-center gap-2">
-                                        <span className="flex h-2 w-2 animate-pulse rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]"></span>
-                                        <span className="text-xs font-bold uppercase tracking-wider text-red-400">Live Session Available</span>
-                                    </div>
-                                    <h2 className="mb-2 text-2xl font-bold tracking-tight text-white">{activeBatch?.name || 'Interactive Session'}</h2>
-                                    <div className="flex gap-3">
-                                        <div className="flex items-center gap-2 rounded-md border border-white/10 bg-black/30 px-3 py-1 backdrop-blur-md">
-                                            <GraduationCap className="h-3.5 w-3.5 text-white/70" />
-                                            <span className="text-xs font-medium text-white">Mentor {activeBatch?.instructor?.full_name || 'Palki'}</span>
+                        {nextBatchMeeting ? (
+                            <div className="group relative h-48 w-full shrink-0 overflow-hidden rounded-xl border border-white/20 shadow-sm">
+                                <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/80 via-black/40 to-transparent"></div>
+                                <img src="https://images.unsplash.com/photo-1512413914565-df0a876a3ff8?q=80&w=2420&auto=format&fit=crop" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Yoga Session" />
+                                <div className="absolute inset-0 z-20 flex flex-row items-center justify-between gap-4 p-5">
+                                    <div className="max-w-md">
+                                        <div className="mb-1.5 flex items-center gap-2">
+                                            <span className="flex h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+                                            <span className="text-xs font-bold uppercase tracking-wider text-green-400">Upcoming Live Session</span>
+                                        </div>
+                                        <h2 className="mb-2 text-2xl font-bold tracking-tight text-white">{nextBatchMeeting.topic}</h2>
+                                        <div className="flex gap-3">
+                                            <div className="flex items-center gap-2 rounded-md border border-white/10 bg-black/30 px-3 py-1 backdrop-blur-md">
+                                                <Calendar className="h-3.5 w-3.5 text-white/70" />
+                                                <span className="text-xs font-medium text-white">{new Date(nextBatchMeeting.start_time).toLocaleDateString()}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 rounded-md border border-white/10 bg-black/30 px-3 py-1 backdrop-blur-md">
+                                                <Clock className="h-3.5 w-3.5 text-white/70" />
+                                                <span className="text-xs font-medium text-white">{new Date(nextBatchMeeting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="flex shrink-0 flex-col items-end gap-2">
-                                    <button className="flex w-full items-center justify-center gap-2 rounded-lg bg-red-500 px-6 py-2.5 text-sm font-bold text-white shadow-[0_0_15px_rgba(239,68,68,0.4)] transition-all hover:-translate-y-0.5 hover:bg-red-600">
-                                        <Play className="h-5 w-5" />
-                                        Join Meeting
-                                    </button>
+                                    <div className="flex shrink-0 flex-col items-end gap-2">
+                                        <button 
+                                            disabled={!isJoinEnabled}
+                                            onClick={() => window.open(nextBatchMeeting.join_url, '_blank')} 
+                                            className={`flex w-full items-center justify-center gap-2 rounded-lg px-6 py-2.5 text-sm font-bold shadow-[0_0_15px_rgba(236,72,153,0.4)] transition-all ${isJoinEnabled ? 'bg-pink-500 hover:bg-pink-600 text-white hover:-translate-y-0.5' : 'bg-white/20 text-white/50 cursor-not-allowed shadow-none'}`}>
+                                            {isJoinEnabled ? <><Video className="h-5 w-5" /> Join Zoom</> : 'Starts 5 min before'}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        ) : (
+                            <div className="group relative h-48 w-full shrink-0 overflow-hidden rounded-xl border border-white/20 shadow-sm bg-gray-50 flex flex-col items-center justify-center">
+                                <Video className="h-10 w-10 text-gray-300 mb-3" />
+                                <h2 className="text-lg font-bold tracking-tight text-gray-600">No Upcoming Sessions</h2>
+                                <p className="text-sm font-medium text-gray-400">Your instructor hasn't scheduled any live sessions right now.</p>
+                            </div>
+                        )}
 
                         <div className="flex-1 space-y-4 overflow-y-auto pr-2 custom-scrollbar">
 
