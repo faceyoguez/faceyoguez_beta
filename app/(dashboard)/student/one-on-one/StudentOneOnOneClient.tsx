@@ -235,39 +235,46 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription }: Props) {
         <div className="flex h-[480px] flex-col gap-4">
           {/* Next session card */}
           {nextMeeting ? (
-            <div className="group relative h-[140px] shrink-0 overflow-hidden rounded-2xl p-5 text-white shadow-lg shadow-pink-200/20">
-              <div className="absolute inset-0 bg-gradient-to-br from-pink-500 to-rose-500" />
-              <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/15 blur-3xl transition-transform duration-700 group-hover:scale-110" />
-              <div className="relative z-10 flex h-full flex-col justify-between">
-                <div className="flex items-start justify-between">
+            <div className="group relative shrink-0 overflow-hidden rounded-2xl shadow-lg shadow-pink-200/30 ring-1 ring-black/5">
+              {/* Top accent bar */}
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-400 via-rose-400 to-pink-500 z-20" />
+              <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800" />
+              <div className="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-pink-500/20 blur-3xl transition-transform duration-700 group-hover:scale-125" />
+              <div className="absolute -left-4 bottom-0 h-24 w-24 rounded-full bg-rose-500/10 blur-2xl" />
+              <div className="relative z-10 p-5 text-white">
+                <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h3 className="text-lg font-bold leading-tight">Next Session</h3>
-                    <p className="mt-0.5 text-xs font-medium text-pink-100">{nextMeeting.topic}</p>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="flex h-2 w-2 animate-pulse rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.8)]" />
+                      <p className="text-[9px] font-bold uppercase tracking-widest text-green-400">Upcoming Session</p>
+                    </div>
+                    <h3 className="text-base font-extrabold tracking-tight text-white">{nextMeeting.topic}</h3>
                   </div>
-                  <div className="rounded-lg border border-white/20 bg-white/20 p-2 backdrop-blur-md">
+                  <div className="rounded-xl border border-white/10 bg-white/10 p-2.5 backdrop-blur-md shadow-inner">
                     <Video className="h-5 w-5 text-white" />
                   </div>
                 </div>
-                <div className="flex items-end justify-between gap-3">
+                <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-black/20 px-3 py-1.5 text-xs font-semibold backdrop-blur-md">
-                      <Calendar className="h-3.5 w-3.5" /> {new Date(nextMeeting.start_time).toLocaleDateString()}
+                    <div className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold backdrop-blur-md">
+                      <Calendar className="h-3.5 w-3.5 text-pink-300" /> {new Date(nextMeeting.start_time).toLocaleDateString()}
                     </div>
-                    <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-black/20 px-3 py-1.5 text-xs font-semibold backdrop-blur-md">
-                      <Clock className="h-3.5 w-3.5" /> {new Date(nextMeeting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    <div className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold backdrop-blur-md">
+                      <Clock className="h-3.5 w-3.5 text-pink-300" /> {new Date(nextMeeting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
                   </div>
-                  <button 
+                  <button
                     disabled={!isJoinEnabled}
-                    onClick={() => window.open(nextMeeting.join_url, '_blank')} 
-                    className={`flex items-center gap-2 rounded-lg px-4 py-1.5 text-xs font-bold shadow-sm transition-all ${isJoinEnabled ? 'bg-white text-pink-600 hover:bg-pink-50' : 'bg-white/20 text-white/50 cursor-not-allowed'}`}>
-                    {isJoinEnabled ? 'Join' : 'Starts 5 min before'} {isJoinEnabled && <ExternalLink className="h-3.5 w-3.5" />}
+                    onClick={() => window.open(nextMeeting.join_url, '_blank')}
+                    className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${isJoinEnabled ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-[0_4px_14px_0_rgba(236,72,153,0.5)] hover:shadow-[0_6px_20px_rgba(236,72,153,0.4)] hover:scale-105 active:scale-95' : 'bg-white/10 text-white/40 cursor-not-allowed border border-white/10'}`}>
+                    {isJoinEnabled ? <><Video className="h-3.5 w-3.5" /> Join Now</> : 'Starts 5 min before'}
+                    {isJoinEnabled && <ExternalLink className="h-3.5 w-3.5" />}
                   </button>
                 </div>
               </div>
             </div>
           ) : (
-             <div className="group relative h-[140px] shrink-0 overflow-hidden rounded-2xl p-5 text-gray-500 bg-white/70 shadow-sm ring-1 ring-pink-100/40 backdrop-blur-xl flex flex-col items-center justify-center">
+             <div className="group relative shrink-0 overflow-hidden rounded-2xl p-5 text-gray-500 bg-white/70 shadow-sm ring-1 ring-pink-100/40 backdrop-blur-xl flex flex-col items-center justify-center h-[120px]">
                 <Video className="h-8 w-8 text-gray-300 mb-2" />
                 <p className="text-sm font-medium">No upcoming sessions</p>
              </div>
