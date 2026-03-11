@@ -253,39 +253,41 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources }: 
                     <div className="col-span-12 flex h-full flex-col gap-4 overflow-hidden lg:col-span-7">
                         {/* Session Thumbnail */}
                         {nextBatchMeeting ? (
-                            <div className="group relative h-48 w-full shrink-0 overflow-hidden rounded-xl border border-white/20 shadow-sm">
-                                <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/80 via-black/40 to-transparent"></div>
-                                <img src="https://images.unsplash.com/photo-1512413914565-df0a876a3ff8?q=80&w=2420&auto=format&fit=crop" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Yoga Session" />
-                                <div className="absolute inset-0 z-20 flex flex-row items-center justify-between gap-4 p-5">
+                            <div className="group relative w-full shrink-0 overflow-hidden rounded-2xl shadow-lg ring-1 ring-black/5">
+                                {/* Accent top bar */}
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-400 via-rose-400 to-pink-500 z-30" />
+                                <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/90 via-black/60 to-transparent" />
+                                <img src="https://images.unsplash.com/photo-1512413914565-df0a876a3ff8?q=80&w=2420&auto=format&fit=crop" className="h-48 w-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Yoga Session" />
+                                <div className="absolute inset-0 z-20 flex flex-row items-center justify-between gap-4 p-5 pt-6">
                                     <div className="max-w-md">
                                         <div className="mb-1.5 flex items-center gap-2">
-                                            <span className="flex h-2 w-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
-                                            <span className="text-xs font-bold uppercase tracking-wider text-green-400">Upcoming Live Session</span>
+                                            <span className="flex h-2 w-2 animate-pulse rounded-full bg-green-400 shadow-[0_0_8px_rgba(34,197,94,0.8)]"></span>
+                                            <span className="text-[9px] font-bold uppercase tracking-widest text-green-400">Upcoming Live Session</span>
                                         </div>
-                                        <h2 className="mb-2 text-2xl font-bold tracking-tight text-white">{nextBatchMeeting.topic}</h2>
+                                        <h2 className="mb-3 text-2xl font-extrabold tracking-tight text-white">{nextBatchMeeting.topic}</h2>
                                         <div className="flex gap-3">
-                                            <div className="flex items-center gap-2 rounded-md border border-white/10 bg-black/30 px-3 py-1 backdrop-blur-md">
-                                                <Calendar className="h-3.5 w-3.5 text-white/70" />
+                                            <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 backdrop-blur-md">
+                                                <Calendar className="h-3.5 w-3.5 text-pink-300" />
                                                 <span className="text-xs font-medium text-white">{new Date(nextBatchMeeting.start_time).toLocaleDateString()}</span>
                                             </div>
-                                            <div className="flex items-center gap-2 rounded-md border border-white/10 bg-black/30 px-3 py-1 backdrop-blur-md">
-                                                <Clock className="h-3.5 w-3.5 text-white/70" />
+                                            <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 backdrop-blur-md">
+                                                <Clock className="h-3.5 w-3.5 text-pink-300" />
                                                 <span className="text-xs font-medium text-white">{new Date(nextBatchMeeting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                             </div>
                                         </div>
                                     </div>
                                     <div className="flex shrink-0 flex-col items-end gap-2">
-                                        <button 
+                                        <button
                                             disabled={!isJoinEnabled}
-                                            onClick={() => window.open(nextBatchMeeting.join_url, '_blank')} 
-                                            className={`flex w-full items-center justify-center gap-2 rounded-lg px-6 py-2.5 text-sm font-bold shadow-[0_0_15px_rgba(236,72,153,0.4)] transition-all ${isJoinEnabled ? 'bg-pink-500 hover:bg-pink-600 text-white hover:-translate-y-0.5' : 'bg-white/20 text-white/50 cursor-not-allowed shadow-none'}`}>
+                                            onClick={() => window.open(nextBatchMeeting.join_url, '_blank')}
+                                            className={`flex items-center justify-center gap-2 rounded-xl px-6 py-2.5 text-sm font-bold transition-all ${isJoinEnabled ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-[0_4px_14px_0_rgba(236,72,153,0.5)] hover:shadow-[0_6px_20px_rgba(236,72,153,0.4)] hover:scale-105 active:scale-95' : 'bg-white/10 text-white/40 cursor-not-allowed border border-white/10'}`}>
                                             {isJoinEnabled ? <><Video className="h-5 w-5" /> Join Zoom</> : 'Starts 5 min before'}
                                         </button>
                                     </div>
                                 </div>
                             </div>
                         ) : (
-                            <div className="group relative h-48 w-full shrink-0 overflow-hidden rounded-xl border border-white/20 shadow-sm bg-gray-50 flex flex-col items-center justify-center">
+                            <div className="group relative w-full h-48 shrink-0 overflow-hidden rounded-2xl border border-white/20 shadow-sm bg-gray-50 flex flex-col items-center justify-center">
                                 <Video className="h-10 w-10 text-gray-300 mb-3" />
                                 <h2 className="text-lg font-bold tracking-tight text-gray-600">No Upcoming Sessions</h2>
                                 <p className="text-sm font-medium text-gray-400">Your instructor hasn't scheduled any live sessions right now.</p>
