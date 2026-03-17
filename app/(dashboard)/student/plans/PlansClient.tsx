@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { User, Users, BookOpen, Check, ArrowRight, Loader2, Sparkles, CreditCard } from 'lucide-react';
+import { User, Users, BookOpen, Check, ArrowRight, Loader2, Sparkles, CreditCard, Gift } from 'lucide-react';
 import { createSubscription } from '@/lib/actions/subscription';
 import { toast } from 'sonner';
+import type { Subscription } from '@/types/database';
 
 const plans = [
     {
@@ -21,6 +22,7 @@ const plans = [
             'Progress tracking',
         ],
         popular: true,
+        trialAvailable: true,
     },
     {
         id: 'group_session' as const,
@@ -36,6 +38,7 @@ const plans = [
             'Guided routines',
         ],
         popular: false,
+        trialAvailable: true,
     },
     {
         id: 'lms' as const,
@@ -51,27 +54,52 @@ const plans = [
             'Downloadable resources',
         ],
         popular: false,
+        trialAvailable: false,
     },
 ];
 
 interface Props {
-    currentSubscription: any;
+    activeSubscriptions: Subscription[];
     userId: string;
 }
 
-export function PlansClient({ currentSubscription, userId }: Props) {
+export function PlansClient({ activeSubscriptions, userId }: Props) {
     const [selectedPlan, setSelectedPlan] = useState<string>('one_on_one');
     const [loading, setLoading] = useState(false);
+    const [trialLoading, setTrialLoading] = useState<string | null>(null);
+
+    // Check which plans the student already has active
+    const activePlanTypes = activeSubscriptions.map(s => s.plan_type);
+    const trialPlanTypes = activeSubscriptions.filter(s => s.is_trial).map(s => s.plan_type);
+    const usedTrials = activeSubscriptions.filter(s => s.is_trial).map(s => s.plan_type);
 
     const handleSubscribe = async () => {
+        if (activePlanTypes.includes(selectedPlan as any) && !trialPlanTypes.includes(selectedPlan as any)) {
+            toast.error('You already have an active subscription for this plan.');
+            return;
+        }
         setLoading(true);
         try {
-            await createSubscription(selectedPlan);
+            await createSubscription(selectedPlan, false);
             toast.success('Successfully subscribed to plan!');
+            window.location.reload();
         } catch (error: any) {
             toast.error(error.message || 'Failed to subscribe. Please try again.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleStartTrial = async (planId: string) => {
+        setTrialLoading(planId);
+        try {
+            await createSubscription(planId, true);
+            toast.success('Free trial started! You have 2 days to explore.');
+            window.location.reload();
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to start trial.');
+        } finally {
+            setTrialLoading(null);
         }
     };
 
@@ -86,23 +114,36 @@ export function PlansClient({ currentSubscription, userId }: Props) {
                     <div className="relative z-10">
                         <h1 className="text-3xl font-bold tracking-tight">Choose Your Journey</h1>
                         <p className="mt-2 text-pink-100 max-w-2xl">
-                            Select the perfect Faceyoguez subscription plan to unlock your transformation. You can upgrade or switch plans at any time.
+                            Select the perfect Faceyoguez subscription plan to unlock your transformation. You can subscribe to multiple plans simultaneously.
                         </p>
                     </div>
                 </div>
 
-                {currentSubscription && (
-                    <div className="mb-8 bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-start gap-4 shadow-sm">
-                        <div className="h-10 w-10 bg-blue-100 text-blue-500 rounded-lg flex items-center justify-center shrink-0">
-                            <CreditCard className="h-5 w-5" />
-                        </div>
-                        <div className="flex-1">
-                            <h2 className="text-sm font-bold text-blue-900">Current Active Plan</h2>
-                            <p className="text-xs text-blue-800 mt-1">
-                                You currently have an active <span className="font-bold">{currentSubscription.plan_type.replace(/_/g, ' ')}</span> subscription.
-                                Subscribing to a new plan will replace or extend your current duration depending on validity.
-                            </p>
-                        </div>
+                {/* Active subscriptions summary */}
+                {activeSubscriptions.length > 0 && (
+                    <div className="mb-8 space-y-3">
+                        {activeSubscriptions.map((sub) => (
+                            <div key={sub.id} className={`flex items-start gap-4 rounded-xl border p-4 shadow-sm ${sub.is_trial ? 'bg-amber-50 border-amber-100' : 'bg-blue-50 border-blue-100'}`}>
+                                <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${sub.is_trial ? 'bg-amber-100 text-amber-500' : 'bg-blue-100 text-blue-500'}`}>
+                                    {sub.is_trial ? <Gift className="h-5 w-5" /> : <CreditCard className="h-5 w-5" />}
+                                </div>
+                                <div className="flex-1">
+                                    <div className="flex items-center gap-2">
+                                        <h2 className={`text-sm font-bold ${sub.is_trial ? 'text-amber-900' : 'text-blue-900'}`}>
+                                            {sub.plan_type.replace(/_/g, ' ')}
+                                        </h2>
+                                        {sub.is_trial && (
+                                            <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-700">
+                                                Trial
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className={`text-xs mt-0.5 ${sub.is_trial ? 'text-amber-700' : 'text-blue-700'}`}>
+                                        {sub.is_trial ? '2-day free trial' : `₹${sub.amount}`} &middot; Expires {sub.end_date ? new Date(sub.end_date).toLocaleDateString() : 'N/A'}
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 )}
 
@@ -110,7 +151,10 @@ export function PlansClient({ currentSubscription, userId }: Props) {
                     {plans.map((plan) => {
                         const isSelected = selectedPlan === plan.id;
                         const Icon = plan.icon;
-                        const isCurrentPlan = currentSubscription?.plan_type === plan.id;
+                        const hasActivePlan = activePlanTypes.includes(plan.id);
+                        const hasActiveTrial = trialPlanTypes.includes(plan.id);
+                        const hasUsedTrial = usedTrials.includes(plan.id);
+                        const canTrial = plan.trialAvailable && !hasUsedTrial;
 
                         return (
                             <button
@@ -127,8 +171,10 @@ export function PlansClient({ currentSubscription, userId }: Props) {
                                     </span>
                                 )}
 
-                                {isCurrentPlan && (
-                                    <span className="absolute top-4 right-4 bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded uppercase">Current</span>
+                                {hasActivePlan && (
+                                    <span className={`absolute top-4 right-4 text-xs font-bold px-2 py-0.5 rounded uppercase ${hasActiveTrial ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
+                                        {hasActiveTrial ? 'Trial Active' : 'Active'}
+                                    </span>
                                 )}
 
                                 <div className="mb-4 flex items-center justify-between mt-2">
@@ -155,7 +201,7 @@ export function PlansClient({ currentSubscription, userId }: Props) {
 
                                 <p className="mt-4 text-sm leading-relaxed text-gray-600">{plan.description}</p>
 
-                                <div className="mt-6 flex flex-col gap-3 flex-1 mb-8">
+                                <div className="mt-6 flex flex-col gap-3 flex-1 mb-4">
                                     {plan.features.map((feature) => (
                                         <div key={feature} className="flex items-start gap-3">
                                             <div className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full ${isSelected ? 'bg-pink-100 text-pink-500' : 'bg-gray-100 text-gray-400'}`}>
@@ -165,6 +211,24 @@ export function PlansClient({ currentSubscription, userId }: Props) {
                                         </div>
                                     ))}
                                 </div>
+
+                                {/* Trial button */}
+                                {canTrial && (
+                                    <div
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleStartTrial(plan.id);
+                                        }}
+                                        className="mt-auto flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-amber-300 bg-amber-50 px-4 py-2.5 text-sm font-bold text-amber-700 transition-all hover:bg-amber-100 hover:border-amber-400 cursor-pointer"
+                                    >
+                                        {trialLoading === plan.id ? (
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                        ) : (
+                                            <Gift className="h-4 w-4" />
+                                        )}
+                                        Start 2-Day Free Trial
+                                    </div>
+                                )}
                             </button>
                         );
                     })}

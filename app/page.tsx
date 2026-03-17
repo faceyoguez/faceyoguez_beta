@@ -18,8 +18,12 @@ export default async function Home() {
     .eq('id', user.id)
     .single();
 
-  if (profile && ['admin', 'instructor', 'staff'].includes(profile.role)) {
+  if (profile?.role === 'instructor') {
     redirect('/instructor/dashboard');
+  }
+
+  if (profile && ['admin', 'staff', 'client_management'].includes(profile.role)) {
+    redirect('/staff/dashboard');
   }
 
   redirect('/student/dashboard');

@@ -18,8 +18,9 @@ export default async function InstructorGroupsPage() {
     .eq('id', user.id)
     .single();
 
-  if (!profile || profile.role !== 'instructor') {
-    redirect('/dashboard');
+  const ALLOWED_ROLES = ['instructor', 'admin', 'staff', 'client_management'];
+  if (!profile || !ALLOWED_ROLES.includes(profile.role)) {
+    redirect('/auth/login');
   }
 
   const batches = await getInstructorBatches(user.id);

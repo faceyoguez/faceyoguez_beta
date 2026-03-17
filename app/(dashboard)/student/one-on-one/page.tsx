@@ -33,6 +33,7 @@ export default async function StudentOneOnOnePage() {
     <StudentOneOnOneClient
       currentUser={profile}
       hasSubscription={!!subscription}
+      subscriptionStartDate={subscription?.start_date ?? null}
     />
   );
 }

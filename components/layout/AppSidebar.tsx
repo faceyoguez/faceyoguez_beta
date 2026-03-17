@@ -41,19 +41,33 @@ const navConfig = {
     { label: 'LMS', icon: BookOpen, path: '/instructor/lms' },
   ],
   admin: [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/instructor/dashboard' },
-    { label: '1-on-1', icon: User, path: '/instructor/one-on-one' },
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/staff/dashboard' },
+    { label: '1-on-1', icon: User, path: '/staff/one-on-one' },
     { label: 'Chat', icon: MessageSquare, path: '/instructor/chat' },
     { label: 'Groups', icon: Users, path: '/instructor/groups' },
     { label: 'Broadcast', icon: Megaphone, path: '/instructor/broadcast' },
     { label: 'LMS', icon: BookOpen, path: '/instructor/lms' },
   ],
   staff: [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/instructor/dashboard' },
-    { label: '1-on-1', icon: User, path: '/instructor/one-on-one' },
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/staff/dashboard' },
+    { label: '1-on-1', icon: User, path: '/staff/one-on-one' },
     { label: 'Chat', icon: MessageSquare, path: '/instructor/chat' },
     { label: 'Groups', icon: Users, path: '/instructor/groups' },
     { label: 'Broadcast', icon: Megaphone, path: '/instructor/broadcast' },
+  ],
+  client_management: [
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/staff/dashboard' },
+    { label: '1-on-1', icon: User, path: '/staff/one-on-one' },
+    { label: 'Chat', icon: MessageSquare, path: '/instructor/chat' },
+    { label: 'Groups', icon: Users, path: '/instructor/groups' },
+    { label: 'Broadcast', icon: Megaphone, path: '/instructor/broadcast' },
+    { label: 'LMS', icon: BookOpen, path: '/instructor/lms' },
+  ],
+  sales_team: [
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/instructor/dashboard' },
+  ],
+  marketing_team: [
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/instructor/dashboard' },
   ],
 };
 
@@ -67,7 +81,7 @@ interface AppSidebarProps {
 export function AppSidebar({ user, activePlans = [], unreadNotificationsCount = 0, children }: AppSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
-  const links = navConfig[user.role] || navConfig.student;
+  const links = navConfig[user.role as keyof typeof navConfig] || navConfig.student;
 
   return (
     <SidebarContext.Provider value={{ collapsed, toggle: () => setCollapsed((p) => !p) }}>
@@ -180,7 +194,7 @@ export function AppSidebar({ user, activePlans = [], unreadNotificationsCount = 
                     {user.full_name}
                   </p>
                   <p className="text-[11px] font-medium capitalize text-pink-500">
-                    {user.role}
+                    {user.role === 'client_management' ? 'Client Management' : user.role.replace(/_/g, ' ')}
                   </p>
                 </div>
               )}

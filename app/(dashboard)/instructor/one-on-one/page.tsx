@@ -18,15 +18,14 @@ export default async function InstructorOneOnOnePage() {
     .eq('id', user.id)
     .single();
 
-  if (!profile) redirect('/auth/login');
+  if (!profile || profile.role !== 'instructor') redirect('/auth/login');
 
-  // Fetch all students with active 1:1 subscriptions using the admin client
   const students = await fetchActiveOneOnOneStudents(user.id);
 
   return (
     <InstructorOneOnOneClient
       currentUser={profile}
-      students={students as Array<{ conversationId: string; id: string; full_name: string; avatar_url: string | null; email: string }>}
+      students={students}
     />
   );
 }

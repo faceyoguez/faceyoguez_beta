@@ -1,17 +1,15 @@
 'use client';
 
 import { useState, useRef, useTransition } from 'react';
-import { PageHeader } from '@/components/layout/PageHeader';
 import {
-    Search, Bell, Plus, LayoutDashboard, User, Users, GraduationCap, BarChart,
-    Award, Settings, Calendar, Play, Upload,
-    FileText, Send, Video, Library, ChevronLeft, ChevronRight,
-    Eye, PlusCircle, Pin, X, Trash2, CheckCircle, Download
+    Search, Plus, Users,
+    Award, Settings, Calendar, Play,
+    FileText, Send, Video, Library,
+    PlusCircle, X, CheckCircle, Download, Clock, Loader2, ArrowUpRight
 } from 'lucide-react';
-import Image from 'next/image';
 import { createAndPopulateBatch, type CreateBatchInput } from '@/lib/actions/batches';
 import { useRouter } from 'next/navigation';
-import type { Profile, Batch } from '@/types/database';
+import type { Profile } from '@/types/database';
 import { uploadBatchResource, getBatchResources } from '@/lib/actions/resources';
 import { getBatchMessages, sendBatchMessage, toggleBatchChat } from '@/lib/actions/chat';
 import { createClient } from '@/lib/supabase/client';
@@ -203,6 +201,80 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
         setResources(batchResources);
     };
 
+    // Zoom scheduling state
+    const [showZoomModal, setShowZoomModal] = useState(false);
+    const [zoomTopic, setZoomTopic] = useState('');
+    const [zoomDate, setZoomDate] = useState('');
+    const [zoomTime, setZoomTime] = useState('');
+    const [zoomDuration, setZoomDuration] = useState('60');
+    const [isSchedulingZoom, setIsSchedulingZoom] = useState(false);
+    const [zoomMeeting, setZoomMeeting] = useState<{ join_url: string; start_url: string; topic: string; start_time: string; duration_ms: number } | null>(null);
+    const [isJoinEnabled, setIsJoinEnabled] = useState(false);
+    const [meetingCountdown, setMeetingCountdown] = useState('');
+
+    useEffect(() => {
+        if (!zoomMeeting) { setMeetingCountdown(''); return; }
+
+        const update = () => {
+            const diff = new Date(zoomMeeting.start_time).getTime() - Date.now();
+            setIsJoinEnabled(diff <= 300000 && diff > -zoomMeeting.duration_ms);
+
+            if (diff <= 0) {
+                setMeetingCountdown('Live now');
+            } else {
+                const totalMins = Math.ceil(diff / 60000);
+                const hrs = Math.floor(totalMins / 60);
+                const mins = totalMins % 60;
+                setMeetingCountdown(hrs > 0 ? `Starts in ${hrs}h ${mins}m` : `Starts in ${mins}m`);
+            }
+        };
+
+        update();
+        const interval = setInterval(update, 10000);
+        return () => clearInterval(interval);
+    }, [zoomMeeting]);
+
+    const handleScheduleZoom = async () => {
+        if (!selectedBatch || !zoomTopic || !zoomDate || !zoomTime) {
+            alert('Please fill out all fields');
+            return;
+        }
+        setIsSchedulingZoom(true);
+        try {
+            const startDateTime = new Date(`${zoomDate}T${zoomTime}`).toISOString();
+            const res = await fetch('/api/meetings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    topic: zoomTopic,
+                    startTime: startDateTime,
+                    durationMinutes: parseInt(zoomDuration, 10),
+                    meetingType: 'group_session',
+                    batchId: selectedBatch.id,
+                }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to schedule meeting');
+            const meeting = data.meeting;
+            setZoomMeeting({
+                join_url: meeting.join_url,
+                start_url: meeting.start_url,
+                topic: meeting.topic || zoomTopic,
+                start_time: meeting.start_time || startDateTime,
+                duration_ms: parseInt(zoomDuration, 10) * 60000,
+            });
+            setShowZoomModal(false);
+            setZoomTopic('');
+            setZoomDate('');
+            setZoomTime('');
+            setZoomDuration('60');
+        } catch (e: any) {
+            alert(e.message);
+        } finally {
+            setIsSchedulingZoom(false);
+        }
+    };
+
     // Filter enrolled students
     const [studentSearchQuery, setStudentSearchQuery] = useState('');
     const filteredStudents = useMemo(() => {
@@ -218,39 +290,6 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
     return (
         <div className="flex h-full flex-col overflow-hidden bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-pink-50 via-gray-50 to-white text-gray-900">
 
-            {/* Top Embedded header (Will eventually merge with app layout header or style explicitly) */}
-            <div className="flex items-center justify-between border-b border-pink-100 bg-white/70 px-6 py-3 shadow-sm backdrop-blur-xl shrink-0">
-                <div className="flex items-center gap-2 text-pink-500">
-                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-pink-500 to-rose-600 text-white shadow-md">
-                        <span className="material-symbols-outlined text-[18px]">self_improvement</span>
-                    </div>
-                    <h2 className="text-lg font-bold tracking-tight text-gray-900">Instructor Hub</h2>
-                </div>
-
-                <div className="flex items-center gap-4">
-                    <div className="hidden w-64 relative md:flex">
-                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                            <Search className="h-4 w-4 text-gray-400" />
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Search student, session..."
-                            className="block w-full rounded-lg border border-pink-100 bg-white/50 py-1.5 pl-9 pr-3 text-xs focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
-                        />
-                    </div>
-                    <p className="hidden text-right sm:block">
-                        <span className="block text-xs font-bold leading-tight text-gray-900">{currentUser?.full_name || 'Instructor'}</span>
-                        <span className="block text-[10px] font-medium leading-tight text-pink-500">Head Instructor</span>
-                    </p>
-                    {currentUser?.avatar_url ? (
-                        <img src={currentUser.avatar_url} alt="" className="h-8 w-8 rounded-full border-2 border-white object-cover shadow-sm" />
-                    ) : (
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-pink-500 text-xs font-bold text-white shadow-sm">
-                            {currentUser?.full_name?.charAt(0) || 'I'}
-                        </div>
-                    )}
-                </div>
-            </div>
 
             <main className="relative z-0 flex-1 overflow-hidden p-4">
                 <div className="mx-auto grid h-full max-w-[1800px] grid-cols-12 gap-4">
@@ -318,11 +357,42 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex shrink-0 flex-col items-end gap-2">
-                                    <button className="flex w-full items-center justify-center gap-2 rounded-lg bg-red-500 px-6 py-2.5 text-sm font-bold text-white shadow-[0_0_15px_rgba(239,68,68,0.4)] transition-all hover:-translate-y-0.5 hover:bg-red-600 disabled:opacity-50">
-                                        <Play className="h-5 w-5" />
-                                        {selectedBatch?.status === 'active' ? 'Start Live Stream' : 'Activate Batch'}
-                                    </button>
+                                <div className="flex shrink-0 flex-col items-end gap-2 min-w-[200px]">
+                                    {zoomMeeting ? (
+                                        <div className="w-full rounded-xl border border-white/20 bg-black/40 backdrop-blur-md p-3 space-y-2">
+                                            <div className="flex items-center gap-2">
+                                                <span className={`h-2 w-2 rounded-full ${isJoinEnabled ? 'animate-pulse bg-green-400' : 'bg-pink-400'}`} />
+                                                <p className="text-[10px] font-bold uppercase tracking-wider text-white/80">Zoom Scheduled</p>
+                                            </div>
+                                            <p className="text-xs font-bold text-white truncate">{zoomMeeting.topic}</p>
+                                            <p className="text-[10px] text-white/60">{new Date(zoomMeeting.start_time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                                            <div className={`text-center rounded-lg px-3 py-1 text-[11px] font-bold ${isJoinEnabled ? 'bg-green-500/20 text-green-300' : 'bg-white/10 text-white/60'}`}>
+                                                {isJoinEnabled ? '🟢 Join Now' : meetingCountdown}
+                                            </div>
+                                            <button
+                                                disabled={!isJoinEnabled}
+                                                onClick={() => window.open(zoomMeeting.start_url, '_blank')}
+                                                className={`flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${isJoinEnabled ? 'bg-green-500 text-white hover:bg-green-600 shadow-lg shadow-green-500/30' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}
+                                            >
+                                                {isJoinEnabled ? 'Start Zoom' : 'Waiting...'} <ArrowUpRight className="h-3.5 w-3.5" />
+                                            </button>
+                                            <button
+                                                onClick={() => setShowZoomModal(true)}
+                                                className="w-full text-center text-[10px] text-white/40 hover:text-white/70 transition-colors"
+                                            >
+                                                + Schedule another
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            disabled={!selectedBatch}
+                                            onClick={() => setShowZoomModal(true)}
+                                            className="flex w-full items-center justify-center gap-2 rounded-lg bg-pink-600 px-6 py-2.5 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-pink-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            <Video className="h-5 w-5" />
+                                            Schedule Zoom
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -580,6 +650,69 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                         </div>
                     </div>
 
+                    {/* Schedule Zoom Modal */}
+                    {showZoomModal && (
+                        <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-md">
+                            <div className="w-full max-w-lg rounded-3xl bg-white/95 shadow-2xl overflow-hidden border border-white/40 animate-in fade-in zoom-in-95 duration-300">
+                                <div className="relative flex flex-col p-6 bg-gradient-to-br from-pink-50 via-white to-pink-50/30 border-b border-pink-100/50">
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-400 via-rose-400 to-pink-500" />
+                                    <div className="flex items-start justify-between">
+                                        <div className="flex gap-4 items-center">
+                                            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-pink-100 text-pink-600 shadow-inner">
+                                                <Video className="h-6 w-6" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xl font-extrabold text-gray-900 tracking-tight">Schedule Group Zoom</h3>
+                                                <p className="text-sm font-medium text-pink-600/80 mt-0.5">{selectedBatch?.name}</p>
+                                            </div>
+                                        </div>
+                                        <button onClick={() => setShowZoomModal(false)} className="p-2 rounded-full text-gray-400 hover:bg-black/5 hover:text-gray-700 transition-all bg-white border border-gray-100 shadow-sm">
+                                            <X className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="p-6 space-y-5 bg-white/50">
+                                    <div>
+                                        <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Meeting Topic</label>
+                                        <input value={zoomTopic} onChange={(e) => setZoomTopic(e.target.value)} type="text" className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 placeholder-gray-400 shadow-sm focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 outline-none transition-all" placeholder="e.g. Group Face Yoga – Week 2 Session" />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-5">
+                                        <div>
+                                            <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Date</label>
+                                            <input value={zoomDate} onChange={(e) => setZoomDate(e.target.value)} type="date" className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 outline-none transition-all" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Time</label>
+                                            <input value={zoomTime} onChange={(e) => setZoomTime(e.target.value)} type="time" className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 outline-none transition-all" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Duration</label>
+                                        <div className="relative">
+                                            <select value={zoomDuration} onChange={(e) => setZoomDuration(e.target.value)} className="w-full appearance-none rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 outline-none transition-all">
+                                                <option value="30">30 Minutes</option>
+                                                <option value="45">45 Minutes</option>
+                                                <option value="60">1 Hour</option>
+                                                <option value="90">1.5 Hours</option>
+                                                <option value="120">2 Hours</option>
+                                            </select>
+                                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                                                <Clock className="h-4 w-4" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex gap-3 justify-end items-center bg-gray-50/80 p-6 border-t border-gray-100">
+                                    <button onClick={() => setShowZoomModal(false)} className="px-5 py-2.5 font-bold text-gray-500 hover:text-gray-900 hover:bg-gray-200/50 rounded-xl transition-all text-sm">Cancel</button>
+                                    <button onClick={handleScheduleZoom} disabled={isSchedulingZoom} className="flex items-center gap-2 px-6 py-2.5 font-bold text-white bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] disabled:opacity-70 disabled:hover:scale-100 disabled:cursor-not-allowed text-sm transition-all">
+                                        {isSchedulingZoom ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
+                                        Generate Zoom Link
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Create Batch Modal Overlay */}
                     {isCreateBatchOpen && (
                         <div className="absolute inset-0 z-50 flex justify-end">
@@ -644,10 +777,6 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                         />
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold uppercase tracking-wide text-gray-900">Session Plan Generation Placeholder</label>
-                                        <button className="w-full rounded border border-dashed border-pink-300 py-2 text-xs font-bold text-pink-500 hover:bg-pink-50">Generate Zoom Links & Schedule</button>
-                                    </div>
                                 </div>
 
                                 <div className="flex justify-end gap-3 border-t border-pink-100 bg-white/60 p-5 backdrop-blur-xl">

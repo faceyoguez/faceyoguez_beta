@@ -8,14 +8,7 @@ import { getUpcomingMeetingsForStudent } from '@/lib/actions/meetings';
 import { createClient } from '@/lib/supabase/client';
 import { getJourneyLogs, saveDailyCheckIn, type JourneyLog } from '@/lib/actions/journey';
 import { ImageComparison } from '@/components/ui/image-comparison-slider';
-import {
-  Stepper,
-  StepperIndicator,
-  StepperItem,
-  StepperNav,
-  StepperSeparator,
-  StepperTrigger,
-} from '@/components/ui/stepper';
+import { JourneyProgress, JOURNEY_MAX_DAY } from '@/components/ui/journey-progress';
 import {
   Video,
   Calendar,
@@ -38,11 +31,18 @@ import type { Profile, StudentResource, MeetingWithDetails } from '@/types/datab
 interface Props {
   currentUser: Profile;
   hasSubscription: boolean;
+  subscriptionStartDate: string | null;
 }
 
-const MILESTONE_DAYS = [1, 7, 14, 21, 30];
+export function StudentOneOnOneClient({ currentUser, hasSubscription, subscriptionStartDate }: Props) {
+  // Day elapsed since subscription started (clamped to 1–JOURNEY_MAX_DAY)
+  const currentDay = subscriptionStartDate
+    ? Math.min(
+        JOURNEY_MAX_DAY,
+        Math.max(1, Math.floor((Date.now() - new Date(subscriptionStartDate).getTime()) / 86400000) + 1)
+      )
+    : 1;
 
-export function StudentOneOnOneClient({ currentUser, hasSubscription }: Props) {
   const [sliderValue, setSliderValue] = useState(50);
   const [resources, setResources] = useState<StudentResource[]>([]);
   const [isLoadingResources, setIsLoadingResources] = useState(false);
@@ -87,11 +87,9 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription }: Props) {
         setJourneyLogs(logsData);
         setUpcomingMeetings(meetingsData || []);
 
-        // Find current active day (latest logged day, or 1 if none)
+        // Set active day to latest logged milestone, or day 1
         if (logsData.length > 0) {
-          const latestDay = [...logsData].sort((a, b) => b.day_number - a.day_number)[0].day_number;
-          const nextMilestone = MILESTONE_DAYS.find(d => d > latestDay) || 30;
-          // If they logged today, keep that day selected, else select the next milestone if available
+          const latestDay = [...logsData].sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0].day_number;
           setActiveStepDay(latestDay);
         }
 
@@ -361,7 +359,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription }: Props) {
             <h3 className="flex items-center gap-2 text-lg font-bold text-gray-800">
               Transformation Journey
               <span className="rounded-full bg-pink-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-pink-600">
-                Day {activeStepDay}
+                Day {currentDay}
               </span>
             </h3>
             <p className="mt-0.5 text-xs font-medium text-gray-500">
@@ -371,28 +369,13 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription }: Props) {
         </div>
 
         {/* Journey path */}
-        <div className="relative mb-10 px-4 w-full overflow-hidden">
-          <h4 className="mb-6 text-sm font-bold text-gray-700">Journey Path</h4>
-
-          <Stepper value={activeStepDay} onValueChange={setActiveStepDay} className="w-full mx-auto">
-            <StepperNav>
-              {MILESTONE_DAYS.map((day) => (
-                <StepperItem
-                  key={day}
-                  step={day}
-                  completed={journeyLogs.some(l => l.day_number === day)}
-                >
-                  <StepperTrigger>
-                    <StepperIndicator>{day}</StepperIndicator>
-                  </StepperTrigger>
-                  {MILESTONE_DAYS.indexOf(day) < MILESTONE_DAYS.length - 1 && (
-                    <StepperSeparator className="mx-2" />
-                  )}
-                </StepperItem>
-              ))}
-            </StepperNav>
-          </Stepper>
-
+        <div className="relative mb-10 w-full">
+          <JourneyProgress
+            currentDay={currentDay}
+            activeDay={activeStepDay}
+            onSelectDay={setActiveStepDay}
+            completedDays={new Set(journeyLogs.map(l => l.day_number))}
+          />
         </div>
 
         {/* Before / After + Daily check-in */}
@@ -428,7 +411,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription }: Props) {
                 <span className="rounded bg-pink-100 p-1 text-pink-500">
                   <Edit3 className="h-4 w-4" />
                 </span>
-                Day {activeStepDay} Check-in
+                Day {currentDay} Check-in
               </h5>
               {activeLog?.updated_at && (
                 <span className="text-[10px] text-gray-400">Last saved: {new Date(activeLog.updated_at).toLocaleDateString()}</span>

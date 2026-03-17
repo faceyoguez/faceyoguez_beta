@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { PlansClient } from './PlansClient';
 
@@ -10,15 +10,15 @@ export default async function PlansPage() {
         redirect('/auth/login');
     }
 
-    // Get current subscription to see if they are already on a plan
-    const { data: subscription } = await supabase
+    const admin = createAdminClient();
+
+    // Get ALL active subscriptions (student can have multiple)
+    const { data: subscriptions } = await admin
         .from('subscriptions')
         .select('*')
         .eq('student_id', user.id)
         .in('status', ['active', 'pending'])
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+        .order('created_at', { ascending: false });
 
-    return <PlansClient currentSubscription={subscription} userId={user.id} />;
+    return <PlansClient activeSubscriptions={subscriptions || []} userId={user.id} />;
 }

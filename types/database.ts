@@ -1,13 +1,17 @@
-export type UserRole = 'admin' | 'instructor' | 'staff' | 'student';
+export type UserRole = 'admin' | 'instructor' | 'staff' | 'client_management' | 'sales_team' | 'marketing_team' | 'student';
 export type ConversationType = 'direct' | 'group';
 export type MessageContentType = 'text' | 'image' | 'pdf' | 'file' | 'system_alert';
 export type BatchStatus = 'upcoming' | 'active' | 'completed' | 'cancelled';
 export type EnrollmentStatus = 'active' | 'waiting' | 'completed' | 'extended';
 export type QueueStatus = 'waiting' | 'assigned' | 'cancelled';
-export type AudienceType = 'one_on_one' | 'group_session' | 'lms' | 'all';
+export type AudienceType = 'one_on_one' | 'group_session' | 'lms' | 'all' | 'trial' | 'unsubscribed';
 export type SubscriptionPlanType = 'one_on_one' | 'group_session' | 'lms';
 export type SubscriptionStatus = 'active' | 'expired' | 'cancelled' | 'pending';
 export type MeetingType = 'one_on_one' | 'group_session';
+
+// Roles that can access the staff/instructor dashboard
+export const STAFF_ROLES: UserRole[] = ['admin', 'instructor', 'staff', 'client_management'];
+export const CAN_CREATE_BATCHES: UserRole[] = ['admin', 'client_management']; // + master instructor
 
 export interface Profile {
   id: string;
@@ -16,6 +20,7 @@ export interface Profile {
   phone: string | null;
   avatar_url: string | null;
   role: UserRole;
+  is_master_instructor: boolean;
   date_of_birth: string | null;
   gender: string | null;
   emergency_contact: string | null;
@@ -38,6 +43,9 @@ export interface Subscription {
   batches_remaining: number;
   batches_used: number;
   auto_renew: boolean;
+  is_trial: boolean;
+  assigned_instructor_id: string | null;
+  instructor_notes: string | null;
   created_at: string;
   updated_at: string;
   created_by: string | null;
@@ -199,6 +207,16 @@ export interface Meeting {
   updated_by: string | null;
 }
 
+export interface JourneyLog {
+  id: string;
+  student_id: string;
+  day_number: number;
+  notes: string | null;
+  photo_url: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 // ========================
 // JOINED / ENRICHED TYPES
 // ========================
@@ -232,4 +250,24 @@ export interface MeetingWithDetails extends Meeting {
   host: Profile;
   student?: Profile | null;
   batch?: Batch | null;
+}
+
+// Student info used in instructor dashboards
+export interface StudentInfo {
+  id: string;
+  full_name: string;
+  email: string;
+  avatar_url: string | null;
+  conversationId: string | null;
+  subscription?: Subscription | null;
+  daysLeft?: number | null;
+  isTrial?: boolean;
+}
+
+// Live growth metrics
+export interface LiveGrowthMetrics {
+  newJoineesThisMonth: number;
+  renewalsThisMonth: number;
+  totalActiveStudents: number;
+  expiringThisWeek: number;
 }

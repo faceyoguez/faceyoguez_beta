@@ -25,6 +25,7 @@ interface OneOnOneChatProps {
   selectedStudentId?: string;
   hideHeader?: boolean;
   className?: string;
+  isMultiParty?: boolean;
 }
 
 export function OneOnOneChat({
@@ -32,6 +33,7 @@ export function OneOnOneChat({
   selectedStudentId,
   hideHeader = false,
   className = 'h-full',
+  isMultiParty = true,
 }: OneOnOneChatProps) {
   const [conversation, setConversation] = useState<ConversationWithDetails | null>(null);
   const [otherParticipant, setOtherParticipant] = useState<Profile | null>(null);
@@ -112,6 +114,7 @@ export function OneOnOneChat({
         otherParticipant={otherParticipant || undefined}
         hideHeader={hideHeader}
         className={className}
+        isMultiParty={isMultiParty}
       />
     );
   }

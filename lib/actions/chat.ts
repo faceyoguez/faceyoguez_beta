@@ -33,7 +33,7 @@ export async function sendMessageToBatch(conversationId: string, content: string
       .eq('id', senderId)
       .single();
 
-    if (profile?.role !== 'instructor' && profile?.role !== 'admin') {
+    if (!['instructor', 'admin', 'staff', 'client_management'].includes(profile?.role || '')) {
       return { success: false, error: 'Chat is currently disabled for this batch.' };
     }
   }
@@ -281,6 +281,143 @@ export async function getOrCreateDirectChat(studentId: string) {
   return { conversationId: newConv.id };
 }
 
+// Create or find a direct conversation between two specific users (used by instructor assignment)
+/**
+ * getOrCreateSharedChat — The canonical one-on-one support conversation.
+ *
+ * For each student, the "real" conversation is between the student and their
+ * assigned instructor.  When staff (or anyone else) opens the chat, they are
+ * added as a participant of that SAME conversation rather than creating a new
+ * one.  This means the student, the instructor, and any staff member all see
+ * the same message thread.
+ */
+export async function getOrCreateSharedChat(studentId: string, assignedInstructorId: string | null) {
+  const supabase = await createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const admin = createAdminClient();
+
+  // The canonical conversation is anchored to the student ↔ assigned instructor pair.
+  // If there is no assigned instructor yet, fall back to the current user as instructor.
+  const instructorId = assignedInstructorId || user.id;
+
+  // 1. Find a direct conversation where BOTH student AND instructor are participants.
+  const { data: parts } = await admin
+    .from('conversation_participants')
+    .select('conversation_id, user_id')
+    .in('user_id', [instructorId, studentId]);
+
+  let sharedConvId: string | null = null;
+
+  if (parts && parts.length > 0) {
+    const convCounts: Record<string, number> = {};
+    parts.forEach(p => {
+      convCounts[p.conversation_id] = (convCounts[p.conversation_id] || 0) + 1;
+    });
+    const potentialIds = Object.keys(convCounts).filter(id => convCounts[id] >= 2);
+
+    if (potentialIds.length > 0) {
+      const { data: convs } = await admin
+        .from('conversations')
+        .select('id, type')
+        .in('id', potentialIds)
+        .eq('type', 'direct');
+
+      if (convs && convs.length > 0) {
+        sharedConvId = convs[0].id;
+      }
+    }
+  }
+
+  if (sharedConvId) {
+    // Conversation already exists — add current user as participant if they aren't one yet.
+    if (user.id !== instructorId && user.id !== studentId) {
+      const { data: existing } = await admin
+        .from('conversation_participants')
+        .select('id')
+        .eq('conversation_id', sharedConvId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (!existing) {
+        await admin.from('conversation_participants').insert({
+          conversation_id: sharedConvId,
+          user_id: user.id,
+        });
+      }
+    }
+    return { conversationId: sharedConvId };
+  }
+
+  // 2. No shared conversation yet — create one with all relevant participants.
+  const { data: newConv, error: convError } = await admin
+    .from('conversations')
+    .insert({ type: 'direct' })
+    .select()
+    .single();
+
+  if (convError) throw convError;
+
+  const participantRows: { conversation_id: string; user_id: string }[] = [
+    { conversation_id: newConv.id, user_id: studentId },
+    { conversation_id: newConv.id, user_id: instructorId },
+  ];
+
+  // Include the current user (staff) if they are a third party.
+  if (user.id !== instructorId && user.id !== studentId) {
+    participantRows.push({ conversation_id: newConv.id, user_id: user.id });
+  }
+
+  await admin.from('conversation_participants').insert(participantRows);
+
+  return { conversationId: newConv.id };
+}
+
+export async function getOrCreateDirectChatBetween(userId1: string, userId2: string) {
+  const admin = createAdminClient();
+
+  const { data: commonParts } = await admin
+    .from('conversation_participants')
+    .select('conversation_id, user_id')
+    .in('user_id', [userId1, userId2]);
+
+  if (commonParts) {
+    const convCounts: Record<string, number> = {};
+    commonParts.forEach(p => {
+      convCounts[p.conversation_id] = (convCounts[p.conversation_id] || 0) + 1;
+    });
+    const potentialIds = Object.keys(convCounts).filter(id => convCounts[id] === 2);
+
+    if (potentialIds.length > 0) {
+      const { data: convs } = await admin
+        .from('conversations')
+        .select('id, type')
+        .in('id', potentialIds)
+        .eq('type', 'direct');
+
+      if (convs && convs.length > 0) {
+        return { conversationId: convs[0].id };
+      }
+    }
+  }
+
+  const { data: newConv, error: convError } = await admin
+    .from('conversations')
+    .insert({ type: 'direct' })
+    .select()
+    .single();
+
+  if (convError) throw convError;
+
+  await admin.from('conversation_participants').insert([
+    { conversation_id: newConv.id, user_id: userId1 },
+    { conversation_id: newConv.id, user_id: userId2 }
+  ]);
+
+  return { conversationId: newConv.id };
+}
+
 export async function searchStudents(query: string) {
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase
@@ -331,7 +468,7 @@ export async function sendChatMessage(
   if (!isEnabled) {
     // Only instructor/admin can bypass
     const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single();
-    if (profile?.role !== 'instructor' && profile?.role !== 'admin') {
+    if (!['instructor', 'admin', 'staff', 'client_management'].includes(profile?.role || '')) {
       throw new Error('Chat is currently disabled by the instructor.');
     }
   }
@@ -353,12 +490,27 @@ export async function sendChatMessage(
 export async function fetchActiveOneOnOneStudents(instructorId: string) {
   const admin = createAdminClient();
 
-  // 1. Get all profiles of students who are currently in an active one_on_one subscription
-  // Using admin to ensure we see all active subs for the instructor's dashboard
-  const { data: subscriptions, error: subError } = await admin
+  // Check if this user is master instructor, staff, or client_management
+  const { data: currentProfile } = await admin
+    .from('profiles')
+    .select('role, is_master_instructor')
+    .eq('id', instructorId)
+    .single();
+
+  const isMaster = currentProfile?.is_master_instructor === true;
+  const isStaffRole = ['admin', 'staff', 'client_management'].includes(currentProfile?.role || '');
+  const seesAll = isMaster || isStaffRole;
+
+  // 1. Get active one_on_one subscriptions
+  let query = admin
     .from('subscriptions')
     .select(`
+      id,
       student_id,
+      is_trial,
+      start_date,
+      end_date,
+      assigned_instructor_id,
       profiles!student_id(
         id,
         full_name,
@@ -369,6 +521,13 @@ export async function fetchActiveOneOnOneStudents(instructorId: string) {
     .eq('plan_type', 'one_on_one')
     .eq('status', 'active');
 
+  // Regular instructors only see students assigned to them
+  if (!seesAll) {
+    query = query.eq('assigned_instructor_id', instructorId);
+  }
+
+  const { data: subscriptions, error: subError } = await query;
+
   if (subError) {
     console.error('Error fetching one-on-one subscriptions:', subError);
     return [];
@@ -376,40 +535,77 @@ export async function fetchActiveOneOnOneStudents(instructorId: string) {
 
   if (!subscriptions || subscriptions.length === 0) return [];
 
-  const students = subscriptions.map((s: any) => {
-    // PostgREST might return profiles as an array or object depending on schema
+  // Build student list with subscription info
+  const studentsWithSubs = subscriptions.map((s: any) => {
     const profile = Array.isArray(s.profiles) ? s.profiles[0] : s.profiles;
-    return profile;
+    if (!profile) return null;
+
+    // Calculate days left
+    let daysLeft: number | null = null;
+    if (s.end_date) {
+      const end = new Date(s.end_date);
+      const now = new Date();
+      daysLeft = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+    }
+
+    return {
+      ...profile,
+      subscriptionId: s.id,
+      isTrial: s.is_trial || false,
+      daysLeft,
+      assignedInstructorId: s.assigned_instructor_id,
+      startDate: s.start_date || null,
+    };
   }).filter(Boolean);
 
-  if (students.length === 0) return [];
+  if (studentsWithSubs.length === 0) return [];
 
-  // 2. For each student, find the direct conversation ID with this instructor
-  // Use admin to bypass RLS on participants
+  // 2. Find the shared direct conversation for each student.
+  //    Staff AND master instructors must look up the conversation between the
+  //    student's ASSIGNED instructor and the student (not their own ID).
+  const studentIds = studentsWithSubs.map((s: any) => s.id);
+  const useAssignedMatching = isStaffRole || isMaster;
+  const assignedInstructorIds = useAssignedMatching
+    ? Array.from(new Set(studentsWithSubs.map((s: any) => s.assignedInstructorId).filter(Boolean)))
+    : [];
+
+  const queryUserIds = Array.from(new Set([instructorId, ...studentIds, ...assignedInstructorIds]));
+
   const { data: allParticipants, error: partError } = await admin
     .from('conversation_participants')
     .select('conversation_id, user_id')
-    .in('user_id', [instructorId, ...students.map(s => s.id)]);
+    .in('user_id', queryUserIds);
 
   if (partError) {
     console.error('Error fetching conversation participants:', partError);
     return [];
   }
 
-  // 3. For the found IDs, get their conversation types to filter for 'direct'
+  // 3. Filter for direct conversations
+  const convIds = Array.from(new Set(allParticipants.map(p => p.conversation_id)));
   const { data: conversations } = await admin
     .from('conversations')
     .select('id, type')
-    .in('id', Array.from(new Set(allParticipants.map(p => p.conversation_id))))
+    .in('id', convIds)
     .eq('type', 'direct');
 
   const directConvIds = new Set(conversations?.map(c => c.id) || []);
 
-  // 4. Match students to direct conversation IDs
-  const result = students.map((student: any) => {
-    // Find a conversation where both the instructor and this student are participants AND it is a direct chat
+  // 4. Match students to conversations.
+  //    Staff & master instructor: use the student's assigned instructor to locate
+  //    the shared canonical conversation.
+  //    Regular instructor: use their own ID (they ARE the instructor).
+  const result = studentsWithSubs.map((student: any) => {
+    const effectiveInstructorId = useAssignedMatching
+      ? (student.assignedInstructorId || instructorId) // fall back to self for unassigned
+      : instructorId;
+
+    if (!effectiveInstructorId) {
+      return { ...student, conversationId: null };
+    }
+
     const instructorConvs = allParticipants
-      .filter((p: any) => p.user_id === instructorId)
+      .filter((p: any) => p.user_id === effectiveInstructorId)
       .map((p: any) => p.conversation_id);
 
     const studentConvs = allParticipants
@@ -422,8 +618,10 @@ export async function fetchActiveOneOnOneStudents(instructorId: string) {
       ...student,
       conversationId: commonConvId || null
     };
-  }).filter((s: any) => s.conversationId !== null); // Only return students with conversations for now
+  });
 
+  // All roles: show all assigned students, even if no conversation yet
+  // The client will offer a "Start Chat" button if conversationId is null
   return result;
 }
 
@@ -465,7 +663,7 @@ export async function sendBatchMessage(batchId: string, content: string, senderI
       .eq('id', senderId)
       .single();
 
-    if (profile?.role !== 'instructor' && profile?.role !== 'admin') {
+    if (!['instructor', 'admin', 'staff', 'client_management'].includes(profile?.role || '')) {
       return { success: false, error: 'Chat is currently disabled for this batch.' };
     }
   }
