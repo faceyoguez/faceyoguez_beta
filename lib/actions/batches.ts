@@ -1,6 +1,6 @@
 'use server';
 
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 
 // Interface matching the front end form fields for a new Batch
@@ -28,6 +28,23 @@ export async function createAndPopulateBatch(input: CreateBatchInput) {
 
     if (!user) {
         return { success: false, error: 'Unauthorized' };
+    }
+
+    // Permission check: only admin, client_management, staff, or master instructor can create batches
+    const admin = createAdminClient();
+    const { data: profile } = await admin
+        .from('profiles')
+        .select('role, is_master_instructor')
+        .eq('id', user.id)
+        .single();
+
+    const canCreate = profile && (
+        ['admin', 'client_management', 'staff'].includes(profile.role) ||
+        profile.is_master_instructor === true
+    );
+
+    if (!canCreate) {
+        return { success: false, error: 'You do not have permission to create batches.' };
     }
 
     try {
@@ -133,9 +150,21 @@ export async function createAndPopulateBatch(input: CreateBatchInput) {
  * Retrieves all batches created by or assigned to a specific instructor.
  */
 export async function getInstructorBatches(instructorId: string) {
-    const supabase = await createServerSupabaseClient();
+    const adminClient = createAdminClient();
 
-    const { data, error } = await supabase
+    // Check if user is master instructor or staff (sees all batches)
+    const { data: profile } = await adminClient
+        .from('profiles')
+        .select('role, is_master_instructor')
+        .eq('id', instructorId)
+        .single();
+
+    const seesAll = profile && (
+        ['admin', 'client_management', 'staff'].includes(profile.role) ||
+        profile.is_master_instructor === true
+    );
+
+    let query = adminClient
         .from('batches')
         .select(`
             *,
@@ -143,9 +172,13 @@ export async function getInstructorBatches(instructorId: string) {
                 student_id,
                 student: profiles!batch_enrollments_student_id_fkey(id, full_name, avatar_url)
             )
-                `)
-        .eq('instructor_id', instructorId)
-        .order('created_at', { ascending: false });
+        `);
+
+    if (!seesAll) {
+        query = query.eq('instructor_id', instructorId);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) {
         console.error('Fetch batches error:', error);

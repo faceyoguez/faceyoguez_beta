@@ -73,6 +73,7 @@ export function StudentChatClient({ currentUser, planType }: Props) {
           title={instructor?.profile?.full_name || 'Instructor'}
           otherParticipant={instructor?.profile}
           className="h-full"
+          isMultiParty={true}
         />
       </div>
     );

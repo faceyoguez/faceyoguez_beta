@@ -1,6 +1,6 @@
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { PlansClient } from './PlansClient';
+import PlansClient from './PlansClient';
 
 export default async function PlansPage() {
     const supabase = await createServerSupabaseClient();
@@ -25,9 +25,7 @@ export default async function PlansPage() {
         .select('*')
         .eq('student_id', user.id)
         .in('status', ['active', 'pending'])
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+        .order('created_at', { ascending: false });
 
     return (
         <PlansClient

@@ -17,6 +17,12 @@ interface ChatWindowProps {
   hideHeader?: boolean;
   /** Optional class for the outermost wrapper */
   className?: string;
+  /**
+   * When true, render in group-chat style: show sender name + role badge on
+   * every message (own and others) even for 'direct' type conversations.
+   * Use this whenever 3+ parties share one conversation thread.
+   */
+  isMultiParty?: boolean;
 }
 
 export function ChatWindow({
@@ -27,6 +33,7 @@ export function ChatWindow({
   otherParticipant,
   hideHeader = false,
   className = '',
+  isMultiParty = false,
 }: ChatWindowProps) {
   const {
     messages,
@@ -144,7 +151,8 @@ export function ChatWindow({
                   key={msg.id}
                   message={msg}
                   isOwn={msg.sender_id === currentUser.id}
-                  showSender={showSender && conversationType === 'group'}
+                  showSender={showSender && (conversationType === 'group' || isMultiParty)}
+                  isMultiParty={isMultiParty}
                 />
               );
             })}

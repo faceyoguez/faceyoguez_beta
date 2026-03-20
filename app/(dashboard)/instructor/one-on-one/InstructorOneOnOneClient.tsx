@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChatWindow } from '@/components/chat';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { searchStudents, getOrCreateDirectChat } from '@/lib/actions/chat';
+import { searchStudents, getOrCreateSharedChat } from '@/lib/actions/chat';
 import { uploadResource, getStudentResources } from '@/lib/actions/resources';
 import { getInstructorUpcomingMeetings } from '@/lib/actions/meetings';
 import { createClient } from '@/lib/supabase/client';
@@ -30,23 +30,19 @@ import type { Profile, StudentResource, MeetingWithDetails } from '@/types/datab
 
 import { getJourneyLogs, type JourneyLog } from '@/lib/actions/journey';
 import { ImageComparison } from '@/components/ui/image-comparison-slider';
-import {
-  Stepper,
-  StepperIndicator,
-  StepperItem,
-  StepperNav,
-  StepperSeparator,
-  StepperTrigger,
-} from '@/components/ui/stepper';
-
-const MILESTONE_DAYS = [1, 7, 14, 21, 30];
+import { JourneyProgress, JOURNEY_MAX_DAY } from '@/components/ui/journey-progress';
 
 interface StudentInfo {
-  conversationId: string;
+  conversationId: string | null;
   id: string;
   full_name: string;
   avatar_url: string | null;
   email: string;
+  isTrial?: boolean;
+  daysLeft?: number | null;
+  subscriptionId?: string;
+  assignedInstructorId?: string | null;
+  startDate?: string | null;
 }
 
 interface Props {
@@ -130,17 +126,22 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
   const handleStartChatWithStudent = async (studentId: string) => {
     setIsStartingChat(true);
     try {
-      const { conversationId } = await getOrCreateDirectChat(studentId);
-      const student = globalSearchResults.find((s) => s.id === studentId);
-      if (student) {
-        const newStudent: StudentInfo = {
+      // Use the student's assigned instructor so master instructor joins the
+      // existing shared conversation rather than creating a separate one.
+      const fromList = students.find((s) => s.id === studentId);
+      const assignedInstructorId = fromList?.assignedInstructorId || null;
+      const { conversationId } = await getOrCreateSharedChat(studentId, assignedInstructorId);
+      // Check if it's from the search results or the existing student list
+      const fromSearch = globalSearchResults.find((s) => s.id === studentId);
+      const source = fromSearch || fromList;
+      if (source) {
+        setSelectedStudent({
           conversationId,
-          id: student.id,
-          full_name: student.full_name,
-          avatar_url: student.avatar_url,
-          email: student.email,
-        };
-        setSelectedStudent(newStudent);
+          id: source.id,
+          full_name: source.full_name,
+          avatar_url: source.avatar_url,
+          email: source.email,
+        });
       }
       setGlobalSearchQuery('');
       setGlobalSearchResults([]);
@@ -215,7 +216,6 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
     if (!e.target.files || e.target.files.length === 0 || !selectedStudent) return;
     const file = e.target.files[0];
 
-    // Basic size validation (e.g., 5MB limit)
     const MAX_SIZE_MB = 5;
     if (file.size > MAX_SIZE_MB * 1024 * 1024) {
       alert(`File size exceeds ${MAX_SIZE_MB}MB limit.`);
@@ -224,7 +224,6 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
 
     setIsUploading(true);
     try {
-      // Read file to base64
       const buffer = await file.arrayBuffer();
       const base64Data = Buffer.from(buffer).toString('base64');
 
@@ -293,10 +292,9 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
         throw new Error(data.error || 'Failed to schedule meeting');
       }
 
-      // Refresh meetings list
       const updatedList = await getInstructorUpcomingMeetings();
       setUpcomingMeetings(updatedList || []);
-      
+
       setShowScheduleModal(false);
       setMeetingTopic('');
       setMeetingDate('');
@@ -321,12 +319,11 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
     const checkTime = () => {
       const meetingTime = new Date(nextMeeting.start_time).getTime();
       const now = Date.now();
-      // 5 minutes = 300000 ms
       setIsJoinEnabled(meetingTime - now <= 300000);
     };
 
     checkTime();
-    const interval = setInterval(checkTime, 10000); // Check every 10 seconds
+    const interval = setInterval(checkTime, 10000);
 
     return () => clearInterval(interval);
   }, [nextMeeting]);
@@ -381,25 +378,39 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                       : 'border-transparent bg-white/40 hover:border-pink-100 hover:bg-white/60'
                       }`}
                   >
-                    {student.avatar_url ? (
-                      <img
-                        src={student.avatar_url}
-                        alt=""
-                        className="h-9 w-9 rounded-full border-2 border-white object-cover shadow-sm"
-                      />
-                    ) : (
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-pink-400 to-rose-400 text-xs font-bold text-white shadow-sm">
-                        {student.full_name?.charAt(0)}
-                      </div>
-                    )}
+                    <div className="relative">
+                      {student.avatar_url ? (
+                        <img
+                          src={student.avatar_url}
+                          alt=""
+                          className="h-9 w-9 rounded-full border-2 border-white object-cover shadow-sm"
+                        />
+                      ) : (
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-pink-400 to-rose-400 text-xs font-bold text-white shadow-sm">
+                          {student.full_name?.charAt(0)}
+                        </div>
+                      )}
+                      {student.isTrial && (
+                        <span className="absolute -top-1 -right-1 rounded-full bg-amber-400 px-1 text-[7px] font-bold text-white">T</span>
+                      )}
+                    </div>
                     <div className="min-w-0 flex-1 text-left">
                       <div className="flex items-center justify-between gap-1">
                         <p className="truncate text-xs font-bold text-gray-800">
                           {student.full_name}
                         </p>
-                        <span className="h-2 w-2 shrink-0 rounded-full bg-green-400 shadow-[0_0_4px_rgba(74,222,128,0.5)]" />
+                        {student.isTrial ? (
+                          <span className="shrink-0 rounded bg-amber-100 px-1.5 py-0.5 text-[8px] font-bold text-amber-600">TRIAL</span>
+                        ) : (
+                          <span className="h-2 w-2 shrink-0 rounded-full bg-green-400 shadow-[0_0_4px_rgba(74,222,128,0.5)]" />
+                        )}
                       </div>
                       <p className="truncate text-[10px] text-gray-400">{student.email}</p>
+                      {student.daysLeft !== null && student.daysLeft !== undefined && (
+                        <p className={`text-[9px] font-bold mt-0.5 ${(student.daysLeft ?? 0) <= 3 ? 'text-red-500' : 'text-pink-400'}`}>
+                          {student.daysLeft}d left
+                        </p>
+                      )}
                     </div>
                   </button>
                 ))
@@ -414,7 +425,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
               <h3 className="text-sm font-bold text-gray-900">Direct Messages</h3>
             </div>
             <div className="flex-1 min-h-0">
-              {selectedStudent ? (
+              {selectedStudent && selectedStudent.conversationId ? (
                 <ChatWindow
                   key={selectedStudent.conversationId}
                   conversationId={selectedStudent.conversationId}
@@ -429,7 +440,26 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                   } as Profile}
                   className="h-full"
                   hideHeader={true}
+                  isMultiParty={true}
                 />
+              ) : selectedStudent && !selectedStudent.conversationId ? (
+                <div className="flex h-full flex-col items-center justify-center gap-3 px-4 text-center">
+                  <MessageSquare className="h-10 w-10 text-gray-200" />
+                  <p className="text-sm font-bold text-gray-600">No conversation yet</p>
+                  <p className="text-xs text-gray-400">Start a conversation with {selectedStudent.full_name}</p>
+                  <button
+                    onClick={() => handleStartChatWithStudent(selectedStudent.id)}
+                    disabled={isStartingChat}
+                    className="flex items-center gap-2 rounded-xl bg-pink-500 px-5 py-2.5 text-sm font-bold text-white shadow hover:bg-pink-600 transition-all disabled:opacity-60"
+                  >
+                    {isStartingChat ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <MessageSquare className="h-4 w-4" />
+                    )}
+                    Start Chat
+                  </button>
+                </div>
               ) : (
                 <div className="flex h-full flex-col items-center justify-center text-gray-400">
                   <MessageSquare className="mb-3 h-12 w-12 text-gray-200" />
@@ -438,7 +468,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
               )}
             </div>
           </div>
-        </div >
+        </div>
 
         {/* ── Middle: Transformation Journey ── */}
         <div className="flex flex-col lg:col-span-5 min-h-0">
@@ -449,11 +479,23 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                   Journey Path
                 </h3>
                 <p className="mt-0.5 text-[10px] uppercase font-bold tracking-wider text-gray-500">
-                  {selectedStudent ? `DAY ${activeStepDay} ANALYSIS` : 'No student selected'}
+                  {selectedStudent
+                    ? (() => {
+                        const d = selectedStudent.startDate
+                          ? Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate).getTime()) / 86400000) + 1))
+                          : 1;
+                        return `DAY ${d} ANALYSIS`;
+                      })()
+                    : 'No student selected'}
                 </p>
               </div>
               <span className="rounded-full bg-pink-100 px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-pink-600">
-                Week {Math.ceil(activeStepDay / 7)}
+                {selectedStudent?.startDate
+                  ? (() => {
+                      const d = Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate).getTime()) / 86400000) + 1));
+                      return `Week ${Math.ceil(d / 7)}`;
+                    })()
+                  : 'Week 1'}
               </span>
             </div>
 
@@ -461,24 +503,14 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
               <div className="flex flex-1 flex-col overflow-hidden min-h-0 gap-3">
                 {/* Journey path */}
                 <div className="w-full shrink-0">
-                  <Stepper value={activeStepDay} onValueChange={setActiveStepDay} className="w-full mt-2 mb-2">
-                    <StepperNav>
-                      {MILESTONE_DAYS.map((day) => (
-                        <StepperItem
-                          key={day}
-                          step={day}
-                          completed={journeyLogs.some(l => l.day_number === day)}
-                        >
-                          <StepperTrigger>
-                            <StepperIndicator>{day}</StepperIndicator>
-                          </StepperTrigger>
-                          {MILESTONE_DAYS.indexOf(day) < MILESTONE_DAYS.length - 1 && (
-                            <StepperSeparator className="mx-2" />
-                          )}
-                        </StepperItem>
-                      ))}
-                    </StepperNav>
-                  </Stepper>
+                  <JourneyProgress
+                    currentDay={selectedStudent.startDate
+                      ? Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate).getTime()) / 86400000) + 1))
+                      : 1}
+                    activeDay={activeStepDay}
+                    onSelectDay={setActiveStepDay}
+                    completedDays={new Set(journeyLogs.map(l => l.day_number))}
+                  />
                 </div>
 
                 {/* Slider */}
@@ -521,22 +553,22 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
               </div>
             )}
           </div>
-        </div >
+        </div>
 
         {/* ── Right: Actions + Resources ── */}
         <div className="flex flex-col lg:col-span-4 gap-5 min-h-0">
           {/* Schedule a New Meeting */}
-          <button 
+          <button
             disabled={!selectedStudent}
             onClick={() => setShowScheduleModal(true)}
             className="flex w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-[#ec4899] py-4 text-[13px] font-bold uppercase tracking-wider text-white shadow-md transition-all hover:bg-pink-600 disabled:opacity-50 disabled:cursor-not-allowed">
             <Calendar className="h-5 w-5" />
             Schedule a New Meeting
-          </button >
+          </button>
 
           {/* Next session card */}
           {nextMeeting ? (
-            <div className="group shrink-0 relative overflow-hidden rounded-2xl border border-gray-700 bg-gray-900 p-4 text-white shadow-lg transition-all duration-500 hover:-translate-y-1" >
+            <div className="group shrink-0 relative overflow-hidden rounded-2xl border border-gray-700 bg-gray-900 p-4 text-white shadow-lg transition-all duration-500 hover:-translate-y-1">
               <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-pink-500/30 blur-[60px] transition-transform duration-700 group-hover:scale-125" />
               <div className="relative z-10">
                 <div className="mb-4 flex items-start justify-between">
@@ -571,7 +603,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                     </div>
                   </div>
                 </div>
-                <button 
+                <button
                   disabled={!isJoinEnabled}
                   onClick={() => window.open(nextMeeting.start_url, '_blank')}
                   className={`flex w-full items-center justify-center gap-2 rounded-xl border py-3 mt-1 text-sm font-bold transition-all shadow-lg ${isJoinEnabled ? 'border-white/20 bg-pink-600/80 text-white hover:bg-pink-600 hover:shadow-pink-500/20' : 'border-gray-600 bg-gray-700 text-gray-400 cursor-not-allowed shadow-none'}`}>
@@ -580,11 +612,11 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
               </div>
             </div>
           ) : (
-            <div className="group shrink-0 relative overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm" >
-               <div className="relative z-10 flex flex-col items-center justify-center py-6 text-gray-400">
-                  <Video className="h-8 w-8 mb-2 text-gray-300" />
-                  <p className="text-xs font-medium">No upcoming meetings</p>
-               </div>
+            <div className="group shrink-0 relative overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 p-4 shadow-sm">
+              <div className="relative z-10 flex flex-col items-center justify-center py-6 text-gray-400">
+                <Video className="h-8 w-8 mb-2 text-gray-300" />
+                <p className="text-xs font-medium">No upcoming meetings</p>
+              </div>
             </div>
           )}
 
@@ -662,7 +694,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
       {showScheduleModal && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-md transition-all duration-300">
           <div className="w-full max-w-lg rounded-3xl bg-white/90 shadow-2xl overflow-hidden border border-white/40 ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-300 backdrop-blur-xl">
-            
+
             {/* Modal Header */}
             <div className="relative flex flex-col p-6 bg-gradient-to-br from-pink-50 via-white to-pink-50/30 border-b border-pink-100/50">
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-400 via-rose-400 to-pink-500"></div>
@@ -686,12 +718,9 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
 
             {/* Modal Body */}
             <div className="p-6 space-y-5 bg-white/50">
-              
               <div className="group">
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-pink-500 transition-colors">Meeting Topic</label>
-                <div className="relative">
-                  <input value={meetingTopic} onChange={(e) => setMeetingTopic(e.target.value)} type="text" className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 placeholder-gray-400 shadow-sm focus:border-pink-500 focus:bg-white focus:ring-2 focus:ring-pink-500/20 outline-none transition-all" placeholder="e.g. Weekly Catchup & Posture Review" />
-                </div>
+                <input value={meetingTopic} onChange={(e) => setMeetingTopic(e.target.value)} type="text" className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 placeholder-gray-400 shadow-sm focus:border-pink-500 focus:bg-white focus:ring-2 focus:ring-pink-500/20 outline-none transition-all" placeholder="e.g. Weekly Catchup & Posture Review" />
               </div>
 
               <div className="grid grid-cols-2 gap-5">
@@ -704,7 +733,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                   <input value={meetingTime} onChange={(e) => setMeetingTime(e.target.value)} type="time" className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm focus:border-pink-500 focus:bg-white focus:ring-2 focus:ring-pink-500/20 outline-none transition-all" />
                 </div>
               </div>
-              
+
               <div className="group">
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-pink-500 transition-colors">Duration</label>
                 <div className="relative">
@@ -729,10 +758,9 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                 Generate Zoom Link
               </button>
             </div>
-            
           </div>
         </div>
       )}
-    </div >
+    </div>
   );
 }
