@@ -272,3 +272,55 @@ export interface LiveGrowthMetrics {
   totalActiveStudents: number;
   expiringThisWeek: number;
 }
+
+// ========================
+// LMS TYPES
+// ========================
+
+export interface Course {
+  id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  thumbnail_url: string | null;
+  level: 'Level 1' | 'Level 2' | 'Level 3' | 'Masterclass';
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Module {
+  id: string;
+  course_id: string;
+  title: string;
+  order_index: number;
+  created_at: string;
+  updated_at: string;
+  lessons?: Lesson[];
+}
+
+export interface Lesson {
+  id: string;
+  module_id: string;
+  title: string;
+  slug: string;
+  video_url: string;
+  youtube_id: string | null;
+  content: string | null;
+  is_free_preview: boolean;
+  order_index: number;
+  duration_seconds: number;
+  created_at: string;
+  updated_at: string;
+  is_completed?: boolean;
+}
+
+export interface UserProgress {
+  id: string;
+  user_id: string;
+  lesson_id: string;
+  completed_at: string | null;
+  last_watched_at: string;
+  progress_percent: number;
+}
+
