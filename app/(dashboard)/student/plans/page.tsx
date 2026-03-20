@@ -12,13 +12,26 @@ export default async function PlansPage() {
 
     const admin = createAdminClient();
 
-    // Get ALL active subscriptions (student can have multiple)
-    const { data: subscriptions } = await admin
+    // Get current user profile for Razorpay prefill
+    const { data: profile } = await admin
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+    // Get current subscription to see if they are already on a plan
+    const { data: subscription } = await supabase
         .from('subscriptions')
         .select('*')
         .eq('student_id', user.id)
         .in('status', ['active', 'pending'])
         .order('created_at', { ascending: false });
 
-    return <PlansClient activeSubscriptions={subscriptions || []} user={user} />;
+    return (
+        <PlansClient
+            currentSubscription={subscription}
+            userId={user.id}
+            currentUser={profile}
+        />
+    );
 }
