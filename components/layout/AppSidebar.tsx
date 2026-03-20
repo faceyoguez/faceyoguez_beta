@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, createContext, useContext } from 'react';
+import { useState, createContext, useContext, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -15,6 +15,8 @@ import {
   ChevronRight,
   Flower2,
   CreditCard,
+  Menu,
+  X
 } from 'lucide-react';
 import type { Profile } from '@/types/database';
 
@@ -80,51 +82,91 @@ interface AppSidebarProps {
 
 export function AppSidebar({ user, activePlans = [], unreadNotificationsCount = 0, children }: AppSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const links = navConfig[user.role as keyof typeof navConfig] || navConfig.student;
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
   return (
     <SidebarContext.Provider value={{ collapsed, toggle: () => setCollapsed((p) => !p) }}>
-      <div className="flex min-h-screen bg-gradient-to-br from-rose-50/80 via-white to-pink-50/60">
+      <div className="flex min-h-screen bg-[#FAF9F6] selection:bg-[#e8c6c8] selection:text-[#1a1a1a]">
+        
+        {/* Mobile Header (Hamburger Menu) */}
+        <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-xl border-b border-[#f4e8e5] z-40 flex items-center justify-between px-4">
+          <Link href="/" className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#f4e8e5] text-[#2d3748]">
+              <Flower2 className="h-5 w-5" />
+            </div>
+            <span className="text-lg font-serif font-bold tracking-tight text-gray-900">
+              Faceyoguez
+            </span>
+          </Link>
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="p-2 -mr-2 text-gray-500 hover:text-gray-900 focus:outline-none"
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+        </div>
+
+        {/* Mobile menu overlay */}
+        {mobileMenuOpen && (
+          <div 
+            className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm z-40 lg:hidden"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+        )}
+
         {/* ── Sidebar ── */}
         <aside
-          className={`fixed inset-y-0 left-0 z-40 flex flex-col border-r border-pink-100/60 bg-white/80 backdrop-blur-xl transition-all duration-300 ease-in-out ${collapsed ? 'w-[68px]' : 'w-64'
-            }`}
+          className={`fixed inset-y-0 left-0 z-50 flex flex-col border-r border-[#f4e8e5] bg-white transition-all duration-300 ease-in-out
+            ${collapsed ? 'w-[72px] hidden lg:flex' : 'w-72'} 
+            ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          `}
         >
-          {/* Logo */}
-          <div className="flex h-16 shrink-0 items-center justify-between border-b border-pink-100/60 px-4">
-            <Link href="/" className="flex items-center gap-2.5 overflow-hidden">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 text-white shadow-md shadow-pink-200/50">
+          {/* Logo Handle */}
+          <div className="flex h-[72px] shrink-0 items-center justify-between border-b border-[#f4e8e5] px-5">
+            <Link href="/" className="flex items-center gap-3 overflow-hidden">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#f4e8e5] text-[#2d3748]">
                 <Flower2 className="h-5 w-5" />
               </div>
               {!collapsed && (
-                <span className="text-lg font-bold tracking-tight text-gray-900">
+                <span className="text-xl font-serif font-bold tracking-tight text-gray-900">
                   Faceyoguez
                 </span>
               )}
             </Link>
             <button
               onClick={() => setCollapsed((p) => !p)}
-              className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-pink-50 hover:text-pink-500"
+              className="hidden lg:flex h-8 w-8 items-center justify-center text-gray-400 transition-colors hover:text-gray-900"
               aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
-              {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+              {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+            </button>
+            <button
+               onClick={() => setMobileMenuOpen(false)}
+               className="lg:hidden p-2 text-gray-400 hover:text-gray-900"
+            >
+               <X className="h-5 w-5" />
             </button>
           </div>
 
-          {/* Nav */}
-          <nav className="flex-1 overflow-y-auto px-3 py-5">
+          {/* Nav Links */}
+          <nav className="flex-1 overflow-y-auto px-4 py-8">
             {!collapsed && (
-              <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+              <p className="mb-4 px-3 text-[11px] font-bold uppercase tracking-widest text-gray-400">
                 Menu
               </p>
             )}
-            <ul className="space-y-1">
+            <ul className="space-y-1.5">
               {links.map(({ label, icon: Icon, path }) => {
                 const isActive = pathname === path || pathname?.startsWith(path + '/');
 
-                // Subscription Check — only students need plans, and only for 1-on-1 / Group
-                // Instructor/admin/staff always have full access. LMS is free for everyone.
                 let requiresPlan: string | null = null;
                 if (user.role === 'student') {
                   if (path.includes('one-on-one')) requiresPlan = 'one_on_one';
@@ -140,29 +182,31 @@ export function AppSidebar({ user, activePlans = [], unreadNotificationsCount = 
                       href={isLocked ? '#' : path}
                       onClick={(e) => { if (isLocked) e.preventDefault(); }}
                       title={tooltipTitle}
-                      className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${isActive
-                        ? 'bg-pink-50 text-pink-600 shadow-sm shadow-pink-100/50'
+                      className={`group flex items-center gap-3.5 rounded-2xl px-3.5 py-3 text-sm font-medium transition-all duration-200 ${
+                        isActive
+                        ? 'bg-[#f4e8e5]/60 text-[#2d3748] shadow-sm font-semibold'
                         : isLocked
-                          ? 'text-gray-400 opacity-60 cursor-not-allowed bg-gray-50/50'
-                          : 'text-gray-500 hover:bg-pink-50/60 hover:text-gray-700'
+                          ? 'text-gray-300 cursor-not-allowed bg-gray-50/50'
+                          : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
                         } ${collapsed ? 'justify-center' : ''}`}
                     >
                       <Icon
-                        className={`h-[18px] w-[18px] shrink-0 transition-colors ${isActive
-                          ? 'text-pink-500'
+                        className={`h-5 w-5 shrink-0 transition-colors ${
+                          isActive
+                          ? 'text-[#2d3748]'
                           : isLocked
-                            ? 'text-gray-300'
-                            : 'text-gray-400 group-hover:text-pink-400'
+                            ? 'text-gray-200'
+                            : 'text-gray-400 group-hover:text-gray-600'
                           }`}
                       />
                       {!collapsed && <span className="flex-1">{label}</span>}
                       {!collapsed && label === 'Broadcasts' && unreadNotificationsCount > 0 && (
-                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-pink-500 text-[10px] font-bold text-white shadow-sm shadow-pink-200">
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#e8c6c8] text-[#2d3748] text-[10px] font-bold">
                           {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
                         </span>
                       )}
                       {collapsed && label === 'Broadcasts' && unreadNotificationsCount > 0 && (
-                        <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-pink-500 ring-2 ring-white"></span>
+                        <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-[#e8c6c8] ring-2 ring-white"></span>
                       )}
                     </Link>
                   </li>
@@ -171,29 +215,29 @@ export function AppSidebar({ user, activePlans = [], unreadNotificationsCount = 
             </ul>
           </nav>
 
-          {/* User profile */}
-          <div className="shrink-0 border-t border-pink-100/60 px-3 py-4">
+          {/* User Profile */}
+          <div className="shrink-0 border-t border-[#f4e8e5] p-4">
             <div
-              className={`flex items-center gap-3 rounded-xl bg-gradient-to-r from-pink-50 to-rose-50/50 p-2.5 ${collapsed ? 'justify-center' : ''
+              className={`flex items-center gap-3 rounded-2xl bg-[#faf9f6] p-3 border border-gray-100/50 shadow-sm ${collapsed ? 'justify-center' : ''
                 }`}
             >
               {user.avatar_url ? (
                 <img
                   src={user.avatar_url}
                   alt={user.full_name}
-                  className="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-pink-200/60"
+                  className="h-10 w-10 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm"
                 />
               ) : (
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-pink-200 text-sm font-bold text-pink-600 ring-2 ring-pink-200/60">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f4e8e5] text-sm font-bold text-[#2d3748] ring-2 ring-white shadow-sm">
                   {user.full_name?.charAt(0)?.toUpperCase() || '?'}
                 </div>
               )}
               {!collapsed && (
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-gray-800">
+                  <p className="truncate text-sm font-bold text-gray-900">
                     {user.full_name}
                   </p>
-                  <p className="text-[11px] font-medium capitalize text-pink-500">
+                  <p className="text-[11px] font-medium capitalize text-gray-500 tracking-wide mt-0.5">
                     {user.role === 'client_management' ? 'Client Management' : user.role.replace(/_/g, ' ')}
                   </p>
                 </div>
@@ -202,7 +246,7 @@ export function AppSidebar({ user, activePlans = [], unreadNotificationsCount = 
                 <form action="/auth/logout" method="post">
                   <button
                     type="submit"
-                    className="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-pink-100/60 hover:text-pink-500"
+                    className="rounded-xl p-2 text-gray-400 transition-colors hover:bg-white hover:text-red-500 hover:shadow-sm"
                     title="Log out"
                   >
                     <LogOut className="h-4 w-4" />
@@ -213,10 +257,12 @@ export function AppSidebar({ user, activePlans = [], unreadNotificationsCount = 
           </div>
         </aside>
 
-        {/* ── Main content ── */}
+        {/* ── Main content wrapper ── */}
         <main
-          className={`flex-1 transition-all duration-300 ease-in-out ${collapsed ? 'ml-[68px]' : 'ml-64'
-            }`}
+          className={`flex-1 transition-all duration-300 ease-in-out w-full
+            pt-16 lg:pt-0 
+            ${collapsed ? 'lg:ml-[72px]' : 'lg:ml-72'}
+          `}
         >
           {children}
         </main>

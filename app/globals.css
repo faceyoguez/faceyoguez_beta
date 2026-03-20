@@ -1,38 +1,120 @@
 @import "tailwindcss";
 
 :root {
-  --foreground: #1a1a1a;
-  --background: #fefefe;
-}
-
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-
-/* Smooth scrollbar for chat */
-.overflow-y-auto::-webkit-scrollbar {
-  width: 4px;
-}
-.overflow-y-auto::-webkit-scrollbar-track {
-  background: transparent;
-}
-.overflow-y-auto::-webkit-scrollbar-thumb {
-  background: rgba(236, 72, 153, 0.2);
-  border-radius: 20px;
-}
-.overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background: rgba(236, 72, 153, 0.4);
-}
-@theme inline {
-  --color-destructive-foreground: var(--destructive-foreground);
-}
-
-:root {
+  /* Zen-minimalist Color Palette */
+  --foreground: #2d3748;
+  --background: #faf9f6; /* Off-white / Cream */
+  
+  --brand-blush: #f4e8e5; /* Soft blush */
+  --brand-rose: #e8c6c8; /* Deeper rose pastel */
+  --brand-sage: #e1e9e2; /* Soft sage green */
+  --brand-emerald: #10b981; /* Accent green */
+  --brand-sand: #f2efe9; /* Warm neutral */
+  
   --destructive-foreground: oklch(1 0 0);
 }
 
 .dark {
   --destructive-foreground: oklch(1 0 0);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  /* Uses the DM Sans font variable defined in layout.tsx */
+  font-family: var(--font-dm-sans), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Selection Color */
+::selection {
+  background-color: var(--brand-rose);
+  color: #1a1a1a;
+}
+
+/* Smooth scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(45, 55, 72, 0.15);
+  border-radius: 20px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(45, 55, 72, 0.3);
+}
+
+@theme inline {
+  --color-destructive-foreground: var(--destructive-foreground);
+  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-playfair), ui-serif, Georgia, serif;
+}
+
+/* Premium Liquid Glass Utilities */
+@layer utilities {
+  .liquid-glass {
+    backdrop-filter: blur(40px) saturate(200%);
+    background: rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 
+      inset 0 0 20px rgba(255, 255, 255, 0.2),
+      0 10px 40px rgba(0, 0, 0, 0.05);
+  }
+
+  .lustre-border {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .lustre-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 1px solid transparent;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0) 60%, rgba(255,255,255,0.4) 100%) border-box;
+    mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .aura-glow {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 140vw;
+    height: 140vh;
+    z-index: -1;
+    background: 
+      radial-gradient(circle at 20% 30%, var(--brand-blush) 0%, transparent 40%),
+      radial-gradient(circle at 80% 20%, #FDF2F8 0%, transparent 40%),
+      radial-gradient(circle at 50% 80%, var(--brand-sand) 0%, transparent 50%),
+      radial-gradient(circle at 10% 90%, #F5F3FF 0%, transparent 30%);
+    filter: blur(80px);
+    animation: aurora-flow 25s infinite alternate ease-in-out;
+    opacity: 0.8;
+  }
+}
+
+@keyframes aurora-flow {
+  0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+  33% { transform: translate(-45%, -55%) rotate(5deg) scale(1.1); }
+  66% { transform: translate(-55%, -45%) rotate(-5deg) scale(0.95); }
+  100% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+}
+
+.text-gradient-rose {
+  background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }

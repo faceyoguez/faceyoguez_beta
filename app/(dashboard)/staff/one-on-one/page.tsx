@@ -31,7 +31,7 @@ export default async function StaffOneOnOnePage() {
       currentUser={profile}
       students={students}
       metrics={metrics}
-      instructors={instructors}
+      instructors={instructors as unknown as import('@/types/database').Profile[]}
     />
   );
 }

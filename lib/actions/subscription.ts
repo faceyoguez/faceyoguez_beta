@@ -3,21 +3,43 @@
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 
-const PRICING: Record<string, number> = {
-    one_on_one: 4999,
-    group_session: 1999,
-    lms: 999,
+const PRICING: Record<string, Record<string, number>> = {
+    one_on_one: {
+        '1_month': 5499,
+        '3_months': 11000,
+        '6_months': 18000,
+        '12_months': 30000,
+    },
+    group_session: {
+        '1_month_12d': 1499,
+        '1_month_lifetime': 1998,
+        '3_months_12d': 3499,
+        '3_months_lifetime': 4348,
+    },
+    lms: {
+        'level_1': 999,
+        'level_1_2': 1499,
+    },
 };
 
-export async function createSubscription(planType: string, isTrial: boolean = false) {
+export async function createSubscription(
+    planType: string,
+    isTrial: boolean = false,
+    options?: {
+        variant?: string;
+        customAmount?: number;
+        customDuration?: number;
+        metadata?: Record<string, any>;
+    }
+) {
     const supabase = await createServerSupabaseClient();
     const adminAuth = createAdminClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) throw new Error('Not authenticated');
 
-    const validPlans = ['one_on_one', 'group_session', 'lms'];
-    if (!validPlans.includes(planType)) {
+    const validPlanTypes = ['one_on_one', 'group_session', 'lms'];
+    if (!validPlanTypes.includes(planType)) {
         throw new Error('Invalid plan type provided.');
     }
 
@@ -39,13 +61,36 @@ export async function createSubscription(planType: string, isTrial: boolean = fa
     const startDate = new Date();
     const endDate = new Date();
 
+    let amount = 0;
+    let durationMonths = options?.customDuration || 1;
+
     if (isTrial) {
         endDate.setDate(endDate.getDate() + 2); // 2-day trial
+        durationMonths = 0;
+        amount = 0;
     } else {
-        endDate.setMonth(endDate.getMonth() + 1); // 1 month
-    }
+        // Determine amount from variant or customAmount
+        if (options?.customAmount !== undefined) {
+            amount = options.customAmount;
+        } else if (options?.variant && PRICING[planType]?.[options.variant]) {
+            amount = PRICING[planType][options.variant];
+            // Infer duration if variant matches month count
+            if (options.variant.includes('1_month')) durationMonths = 1;
+            if (options.variant.includes('3_months')) durationMonths = 3;
+            if (options.variant.includes('6_months')) durationMonths = 6;
+            if (options.variant.includes('12_months')) durationMonths = 12;
+            if (planType === 'lms') durationMonths = 999; // Lifetime
+        } else {
+            // Fallback to basic 1-month if exists
+            amount = PRICING[planType]?.['1_month'] || 0;
+        }
 
-    const amount = isTrial ? 0 : (PRICING[planType] || 0);
+        if (durationMonths === 999) {
+            endDate.setFullYear(endDate.getFullYear() + 50); // Effectively lifetime
+        } else {
+            endDate.setMonth(endDate.getMonth() + durationMonths);
+        }
+    }
 
     const { data: subscription, error } = await adminAuth
         .from('subscriptions')
@@ -53,15 +98,19 @@ export async function createSubscription(planType: string, isTrial: boolean = fa
             student_id: user.id,
             plan_type: planType,
             status: 'active',
-            duration_months: isTrial ? 0 : 1,
+            duration_months: durationMonths,
             start_date: startDate.toISOString().split('T')[0],
             end_date: endDate.toISOString().split('T')[0],
             amount: amount,
             currency: 'INR',
             payment_id: isTrial ? 'trial' : 'dashboard',
-            batches_remaining: 1,
+            batches_remaining: planType === 'group_session' ? durationMonths : 1,
             batches_used: 0,
             is_trial: isTrial,
+            metadata: {
+                variant: options?.variant,
+                ...options?.metadata
+            }
         })
         .select()
         .single();

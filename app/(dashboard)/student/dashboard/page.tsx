@@ -132,12 +132,12 @@ export default async function StudentDashboardPage() {
 
   // ─── RENDER ───────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-slate-50/50 p-6 lg:p-8 space-y-8 font-sans">
+    <div className="min-h-screen bg-[#FAF9F6] p-6 lg:p-10 space-y-8 font-sans pb-24 lg:pb-10">
 
       {/* 1. Top Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-3xl md:text-4xl font-serif font-bold text-[#2d3748] tracking-tight">
             Welcome back, {firstName} <span className="inline-block animate-pulse">✨</span>
           </h1>
           <p className="mt-2 text-sm text-gray-500 font-medium italic flex items-center gap-1.5">
@@ -145,11 +145,11 @@ export default async function StudentDashboardPage() {
             &quot;Your face is a canvas, and your practice is the art.&quot;
           </p>
         </div>
-        <div className="flex items-center gap-4">
-          <button className="relative p-2 bg-white rounded-full shadow-sm border border-gray-100 hover:bg-gray-50 transition-colors">
+        <div className="flex items-center gap-4 hidden md:flex">
+          <button className="relative p-2.5 bg-white rounded-2xl shadow-sm border border-[#f4e8e5] hover:bg-[#faf9f6] transition-colors">
             <Bell className="w-5 h-5 text-gray-600" />
           </button>
-          <div className="w-10 h-10 rounded-full bg-emerald-100 border border-emerald-200 overflow-hidden shadow-sm">
+          <div className="w-12 h-12 rounded-2xl bg-[#e1e9e2] border border-white overflow-hidden shadow-sm">
             {profile.avatar_url ? (
               <img src={profile.avatar_url} alt={profile.full_name} className="w-full h-full object-cover" />
             ) : (
@@ -162,9 +162,9 @@ export default async function StudentDashboardPage() {
       </div>
 
       {/* 2. Plan Highlights */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {/* Joined Card */}
-        <div className="bg-white/80 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-gray-100/60 hover:shadow-md transition-shadow">
+        <div className="bg-white/80 backdrop-blur-3xl rounded-[2rem] p-6 shadow-sm border border-[#f4e8e5] transition-shadow">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-emerald-50 rounded-lg">
               <Calendar className="w-5 h-5 text-emerald-600" />
@@ -182,7 +182,7 @@ export default async function StudentDashboardPage() {
         </div>
 
         {/* Renewed Card */}
-        <div className="bg-white/80 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-gray-100/60 hover:shadow-md transition-shadow">
+        <div className="bg-white/80 backdrop-blur-3xl rounded-[2rem] p-6 shadow-sm border border-[#f4e8e5] transition-shadow">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-blue-50 rounded-lg">
               <Clock className="w-5 h-5 text-blue-600" />
@@ -195,7 +195,7 @@ export default async function StudentDashboardPage() {
         </div>
 
         {/* Days Left Card */}
-        <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl p-5 shadow-sm border border-emerald-400 text-white hover:shadow-md transition-shadow">
+        <div className="col-span-2 md:col-span-1 bg-gradient-to-br from-[#10b981] to-[#047857] rounded-[2rem] p-6 shadow-lg border border-[#34d399]/30 text-white transition-all">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
               <Sparkles className="w-5 h-5 text-white" />
@@ -215,9 +215,9 @@ export default async function StudentDashboardPage() {
         <div className="lg:col-span-2 space-y-8">
 
           {/* 3. Today's Schedule */}
-          <section className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Today&apos;s Schedule</h2>
+          <section className="bg-white rounded-[2rem] p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[#f4e8e5]">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-serif font-bold text-[#2d3748]">Today&apos;s Schedule</h2>
               <span className="text-sm text-gray-400 font-medium">
                 {format(new Date(), 'EEEE, MMM d')}
               </span>
@@ -283,10 +283,10 @@ export default async function StudentDashboardPage() {
                           href={meeting.join_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className={`w-full sm:w-auto px-6 py-2.5 text-center font-medium rounded-xl transition-colors shadow-sm flex-shrink-0 ${
+                          className={`w-full sm:w-auto px-6 py-3 text-center font-bold rounded-2xl transition-all shadow-sm flex-shrink-0 ${
                             isLive
-                              ? 'bg-emerald-600 text-white hover:bg-emerald-700'
-                              : 'bg-gray-900 text-white hover:bg-gray-800'
+                              ? 'bg-[#10b981] text-white hover:bg-[#059669]'
+                              : 'bg-[#2d3748] text-white hover:bg-[#1a202c]'
                           }`}
                         >
                           {isLive ? '🔴 Join Now' : 'Join'}

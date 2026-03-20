@@ -87,31 +87,37 @@ export default function SignUpForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-rose-50 via-white to-pink-50 p-4">
-      <div className="w-full max-w-sm rounded-2xl bg-white/80 p-8 shadow-xl ring-1 ring-pink-100/50 backdrop-blur-xl transition-all duration-300">
-        <div className="mb-6 flex flex-col items-center">
-          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-200/50">
-            <Flower2 className="h-6 w-6" />
+    <div className="flex min-h-screen items-center justify-center bg-[#FAF9F6] p-4 font-sans selection:bg-[#e8c6c8] selection:text-[#1a1a1a] py-12">
+      {/* Background Decorative Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-[#e1e9e2] blur-[120px] opacity-60"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-[#f4e8e5] blur-[120px] opacity-60"></div>
+      </div>
+
+      <div className="relative w-full max-w-[420px] rounded-[2rem] bg-white/70 p-8 sm:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-[#f4e8e5] backdrop-blur-2xl transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#e1e9e2] text-[#2d3748] shadow-sm">
+            <Flower2 className="h-6 w-6" strokeWidth={1.5} />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Faceyoguez</h1>
-          <p className="mt-1 text-sm text-gray-500">Create your account</p>
+          <h1 className="text-3xl font-serif font-bold text-[#2d3748] tracking-tight">Faceyoguez</h1>
+          <p className="mt-2 text-sm text-gray-500 font-medium">Begin your wellness journey</p>
         </div>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-5">
           <div>
-            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-gray-500">
+            <label className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-gray-400">
               Full Name *
             </label>
             <input
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="Enter your full name"
-              className="w-full rounded-xl border border-pink-100/60 bg-white/50 px-4 py-2.5 text-sm outline-none transition-all focus:ring-2 focus:ring-pink-200"
+              placeholder="Emma Thompson"
+              className="w-full rounded-xl border border-[#f2efe9] bg-white/50 px-4 py-3 text-sm text-[#2d3748] outline-none transition-all placeholder:text-gray-300 focus:border-[#e8c6c8] focus:bg-white focus:ring-4 focus:ring-[#f4e8e5]"
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-gray-500">
+            <label className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-gray-400">
               Email *
             </label>
             <input
@@ -119,23 +125,23 @@ export default function SignUpForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full rounded-xl border border-pink-100/60 bg-white/50 px-4 py-2.5 text-sm outline-none transition-all focus:ring-2 focus:ring-pink-200"
+              className="w-full rounded-xl border border-[#f2efe9] bg-white/50 px-4 py-3 text-sm text-[#2d3748] outline-none transition-all placeholder:text-gray-300 focus:border-[#e8c6c8] focus:bg-white focus:ring-4 focus:ring-[#f4e8e5]"
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-gray-500">
+            <label className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-gray-400">
               Phone
             </label>
             <input
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="+91 98765 43210"
-              className="w-full rounded-xl border border-pink-100/60 bg-white/50 px-4 py-2.5 text-sm outline-none transition-all focus:ring-2 focus:ring-pink-200"
+              placeholder="+1 (555) 000-0000"
+              className="w-full rounded-xl border border-[#f2efe9] bg-white/50 px-4 py-3 text-sm text-[#2d3748] outline-none transition-all placeholder:text-gray-300 focus:border-[#e8c6c8] focus:bg-white focus:ring-4 focus:ring-[#f4e8e5]"
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-gray-500">
+            <label className="mb-2 block text-[11px] font-bold uppercase tracking-widest text-gray-400">
               Password *
             </label>
             <input
@@ -143,12 +149,12 @@ export default function SignUpForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Min 6 characters"
-              className="w-full rounded-xl border border-pink-100/60 bg-white/50 px-4 py-2.5 text-sm outline-none transition-all focus:ring-2 focus:ring-pink-200"
+              className="w-full rounded-xl border border-[#f2efe9] bg-white/50 px-4 py-3 text-sm text-[#2d3748] outline-none transition-all placeholder:text-gray-300 focus:border-[#e8c6c8] focus:bg-white focus:ring-4 focus:ring-[#f4e8e5]"
             />
           </div>
 
           {error && (
-            <p className="rounded-lg bg-red-50 px-3 py-2 text-xs font-medium text-red-600">
+            <p className="rounded-xl bg-red-50/50 px-4 py-3 text-xs font-semibold text-red-600 border border-red-100">
               {error}
             </p>
           )}
@@ -156,16 +162,20 @@ export default function SignUpForm() {
           <button
             onClick={handleComplete}
             disabled={loading}
-            className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 py-2.5 text-sm font-bold text-white shadow-md shadow-pink-200/50 transition-all hover:shadow-lg disabled:opacity-60"
+            className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-[#2d3748] py-3.5 text-sm font-bold text-white shadow-md shadow-gray-200 transition-all hover:bg-[#1a202c] hover:shadow-lg disabled:opacity-70 group"
           >
-            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-            Create Account <ArrowRight className="h-4 w-4" />
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (
+               <>
+                 Create Account 
+                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+               </>
+            )}
           </button>
         </div>
 
-        <p className="mt-6 text-center text-xs text-gray-500">
+        <p className="mt-8 text-center text-sm text-gray-500 font-medium">
           Already have an account?{' '}
-          <Link href="/auth/login" className="font-semibold text-pink-500 hover:text-pink-600">
+          <Link href="/auth/login" className="font-bold text-[#2d3748] transition-colors hover:text-[#1a202c] underline decoration-[#e1e9e2] underline-offset-4">
             Sign In
           </Link>
         </p>

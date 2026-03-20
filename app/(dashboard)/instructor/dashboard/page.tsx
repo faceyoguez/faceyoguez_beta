@@ -166,12 +166,12 @@ export default async function InstructorDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50 p-6 lg:p-8 space-y-8 font-sans">
+    <div className="min-h-screen bg-[#FAF9F6] p-4 sm:p-6 lg:p-10 space-y-8 font-sans pb-24 lg:pb-10">
       
       {/* 1. Top Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
+          <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#2d3748] tracking-tight flex items-center gap-2">
             Welcome back, {isMaster ? 'Master Instructor' : 'Instructor'} {firstName}
             <span className="inline-block animate-pulse">✨</span>
           </h1>
@@ -192,7 +192,7 @@ export default async function InstructorDashboardPage() {
       {/* 2. Key Statistics (Platform view for Masters, or broad overview) */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {/* Total 1-on-1 */}
-        <div className="bg-white/80 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-gray-100/60 hover:shadow-md transition-shadow">
+        <div className="bg-white/80 backdrop-blur-3xl rounded-[2rem] p-6 shadow-sm border border-[#f4e8e5] transition-shadow">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-emerald-50 rounded-lg">
               <Users className="w-5 h-5 text-emerald-600" />
@@ -203,7 +203,7 @@ export default async function InstructorDashboardPage() {
         </div>
         
         {/* Total Group Students */}
-        <div className="bg-white/80 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-gray-100/60 hover:shadow-md transition-shadow">
+        <div className="bg-white/80 backdrop-blur-3xl rounded-[2rem] p-6 shadow-sm border border-[#f4e8e5] transition-shadow">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-indigo-50 rounded-lg">
               <Users className="w-5 h-5 text-indigo-600" />
@@ -214,7 +214,7 @@ export default async function InstructorDashboardPage() {
         </div>
 
         {/* New Joinees */}
-        <div className="bg-white/80 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-gray-100/60 hover:shadow-md transition-shadow">
+        <div className="bg-white/80 backdrop-blur-3xl rounded-[2rem] p-6 shadow-sm border border-[#f4e8e5] transition-shadow">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-blue-50 rounded-lg">
               <UserPlus className="w-5 h-5 text-blue-600" />
@@ -226,7 +226,7 @@ export default async function InstructorDashboardPage() {
         </div>
 
         {/* Rejoinees */}
-        <div className="bg-white/80 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-gray-100/60 hover:shadow-md transition-shadow">
+        <div className="bg-white/80 backdrop-blur-3xl rounded-[2rem] p-6 shadow-sm border border-[#f4e8e5] transition-shadow">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-rose-50 rounded-lg">
               <Sparkles className="w-5 h-5 text-rose-600" />
@@ -244,9 +244,9 @@ export default async function InstructorDashboardPage() {
         <div className="lg:col-span-2 space-y-8">
           
           {/* 3. Today's Meetings */}
-          <section className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
-             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Today's Sessions</h2>
+          <section className="bg-white rounded-[2rem] p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[#f4e8e5]">
+             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-2">
+              <h2 className="text-2xl font-serif font-bold text-[#2d3748]">Today's Sessions</h2>
               <span className="text-sm text-gray-400 font-medium">
                 {format(now, 'EEEE, MMM d')}
               </span>
@@ -313,9 +313,9 @@ export default async function InstructorDashboardPage() {
 
           {/* 5. Master Overview (Team Management) */}
           {isMaster && (
-            <section className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
-               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900">Instructor Overview</h2>
+            <section className="bg-white rounded-[2rem] p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[#f4e8e5]">
+               <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-2">
+                <h2 className="text-2xl font-serif font-bold text-[#2d3748]">Instructor Overview</h2>
                 <button className="text-sm text-emerald-600 font-medium hover:text-emerald-700 flex items-center gap-1">
                   View All Team <ChevronRight className="w-4 h-4" />
                 </button>
@@ -413,20 +413,22 @@ export default async function InstructorDashboardPage() {
                   <p className="text-sm text-center">No new students assigned<br/>this month.</p>
                 </div>
               ) : (
-                newAllocations.map(alloc => (
+                newAllocations.map(alloc => {
+                  const student = Array.isArray(alloc.student) ? alloc.student[0] : alloc.student;
+                  return (
                   <div key={alloc.id} className="p-3 bg-gray-50/50 rounded-xl border border-gray-100 flex items-center justify-between hover:bg-white transition-colors group">
                     <div className="flex items-center gap-3">
                        <div className="w-10 h-10 rounded-full bg-emerald-100 overflow-hidden flex-shrink-0">
-                          {alloc.student?.avatar_url ? (
-                            <img src={alloc.student.avatar_url} alt="" className="w-full h-full object-cover" />
+                          {student?.avatar_url ? (
+                            <img src={student.avatar_url} alt="" className="w-full h-full object-cover" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-emerald-700 font-bold text-sm">
-                               {alloc.student?.full_name?.charAt(0) || '?'}
+                               {student?.full_name?.charAt(0) || '?'}
                             </div>
                           )}
                        </div>
                        <div>
-                         <p className="text-sm font-bold text-gray-900">{alloc.student?.full_name || 'Unknown'}</p>
+                         <p className="text-sm font-bold text-gray-900">{student?.full_name || 'Unknown'}</p>
                          <p className="text-xs text-gray-500">Starts {alloc.start_date ? format(new Date(alloc.start_date), 'MMM d') : 'Pending'}</p>
                        </div>
                     </div>
@@ -435,7 +437,7 @@ export default async function InstructorDashboardPage() {
                       <ChevronRight className="w-4 h-4" />
                     </button>
                   </div>
-                ))
+                )})
               )}
             </div>
 
