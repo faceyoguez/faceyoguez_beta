@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { PlansClient } from './PlansClient';
 
@@ -10,6 +10,15 @@ export default async function PlansPage() {
         redirect('/auth/login');
     }
 
+    const admin = createAdminClient();
+
+    // Get current user profile for Razorpay prefill
+    const { data: profile } = await admin
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
     // Get current subscription to see if they are already on a plan
     const { data: subscription } = await supabase
         .from('subscriptions')
@@ -20,5 +29,11 @@ export default async function PlansPage() {
         .limit(1)
         .single();
 
-    return <PlansClient currentSubscription={subscription} userId={user.id} />;
+    return (
+        <PlansClient
+            currentSubscription={subscription}
+            userId={user.id}
+            currentUser={profile}
+        />
+    );
 }

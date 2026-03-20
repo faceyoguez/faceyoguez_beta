@@ -28,6 +28,7 @@ export interface Subscription {
   id: string;
   student_id: string;
   plan_type: SubscriptionPlanType;
+  plan_variant: string | null;
   status: SubscriptionStatus;
   duration_months: number;
   start_date: string | null;
