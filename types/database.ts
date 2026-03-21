@@ -8,10 +8,36 @@ export type AudienceType = 'one_on_one' | 'group_session' | 'lms' | 'all' | 'tri
 export type SubscriptionPlanType = 'one_on_one' | 'group_session' | 'lms';
 export type SubscriptionStatus = 'active' | 'expired' | 'cancelled' | 'pending';
 export type MeetingType = 'one_on_one' | 'group_session';
+export type BatchMessageType = 'text' | 'poll';
+
+// Roles allowed to create polls in batch chat
+export const POLL_CREATOR_ROLES: UserRole[] = ['admin', 'instructor', 'staff', 'client_management'];
+
+export interface BatchPollOption {
+  id: string;
+  poll_id: string;
+  option_text: string;
+  position: number;
+  vote_count: number;
+}
+
+export interface BatchPoll {
+  id: string;
+  batch_id: string;
+  created_by: string;
+  question: string;
+  is_closed: boolean;
+  created_at: string;
+  options: BatchPollOption[];
+  total_votes: number;
+  /** option_id the current viewer voted for, null if not voted */
+  my_vote_option_id: string | null;
+  creator: { full_name: string; role: string } | null;
+}
 
 // Roles that can access the staff/instructor dashboard
 export const STAFF_ROLES: UserRole[] = ['admin', 'instructor', 'staff', 'client_management'];
-export const CAN_CREATE_BATCHES: UserRole[] = ['admin', 'client_management']; // + master instructor
+export const CAN_CREATE_BATCHES: UserRole[] = ['admin', 'client_management', 'staff']; // + master instructor
 
 export interface Profile {
   id: string;
@@ -89,7 +115,10 @@ export interface Batch {
   instructor_id: string | null;
   start_date: string;
   end_date: string;
+  max_students: number;
+  current_students: number;
   status: BatchStatus;
+  is_chat_enabled: boolean;
   conversation_id: string | null;
   created_at: string;
   updated_at: string;
@@ -106,6 +135,7 @@ export interface BatchEnrollment {
   original_sub_end_date: string | null;
   effective_end_date: string | null;
   is_extended: boolean;
+  is_trial_access: boolean;
   created_by: string | null;
   updated_by: string | null;
 }
@@ -206,6 +236,16 @@ export interface Meeting {
   updated_at: string;
   created_by: string | null;
   updated_by: string | null;
+}
+
+export interface RecordedSession {
+  id: string;
+  topic: string;
+  start_time: string;
+  duration_minutes: number;
+  /** Zoom cloud recording play URL — null while the recording is still processing */
+  play_url: string | null;
+  is_available: boolean;
 }
 
 export interface JourneyLog {

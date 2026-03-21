@@ -16,6 +16,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  transpilePackages: ['razorpay'],
 };
 
 export default nextConfig;

@@ -4,15 +4,15 @@ import * as React from "react"
 import { CheckCircle, Camera } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export const JOURNEY_MILESTONES = [1, 7, 14, 21, 25]
-export const JOURNEY_MAX_DAY = 25
+export const JOURNEY_MILESTONES = [1, 25]
+export const JOURNEY_MAX_DAY = 30
 
 interface JourneyProgressProps {
   /** Day elapsed since subscription start (calculated server/client side) */
   currentDay: number
   /** Currently selected milestone day for viewing logs */
   activeDay: number
-  onSelectDay: (day: number) => void
+  onSelectDay?: (day: number) => void
   /** Set of day_numbers that have a completed log entry */
   completedDays: Set<number>
   className?: string
@@ -68,10 +68,9 @@ export function JourneyProgress({
             const isReached = day <= clampedDay
 
             return (
-              <button
+              <div
                 key={day}
-                onClick={() => onSelectDay(day)}
-                className="group relative flex flex-col items-center focus:outline-none"
+                className="group relative flex flex-col items-center"
                 title={`Day ${day}`}
               >
                 {/* Dot */}
@@ -81,10 +80,10 @@ export function JourneyProgress({
                     isActive
                       ? "scale-110 border-pink-500 bg-white ring-4 ring-pink-200"
                       : isCompleted
-                        ? "border-emerald-400 bg-emerald-50 hover:scale-105"
+                        ? "border-emerald-400 bg-emerald-50"
                         : isReached
-                          ? "border-pink-400 bg-white hover:scale-105"
-                          : "border-gray-200 bg-white hover:scale-105 hover:border-pink-200"
+                          ? "border-pink-400 bg-white"
+                          : "border-gray-200 bg-white"
                   )}
                 >
                   {isCompleted ? (
@@ -121,7 +120,7 @@ export function JourneyProgress({
                 >
                   {day === 1 ? "Day 1" : `Day ${day}`}
                 </span>
-              </button>
+              </div>
             )
           })}
         </div>

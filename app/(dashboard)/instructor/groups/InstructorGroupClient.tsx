@@ -5,13 +5,16 @@ import {
     Search, Plus, Users,
     Award, Settings, Calendar, Play,
     FileText, Send, Video, Library,
-    PlusCircle, X, CheckCircle, Download, Clock, Loader2, ArrowUpRight
+    BarChart2, X, CheckCircle, Download, Clock, Loader2, ArrowUpRight
 } from 'lucide-react';
 import { createAndPopulateBatch, type CreateBatchInput } from '@/lib/actions/batches';
 import { useRouter } from 'next/navigation';
-import type { Profile } from '@/types/database';
+import type { Profile, BatchPoll, RecordedSession } from '@/types/database';
 import { uploadBatchResource, getBatchResources } from '@/lib/actions/resources';
 import { getBatchMessages, sendBatchMessage, toggleBatchChat } from '@/lib/actions/chat';
+import { createBatchPoll, getBatchPollsMap, getPollById, closePoll } from '@/lib/actions/polls';
+import { getBatchRecordedSessions } from '@/lib/actions/meetings';
+import { PollCard } from '@/components/ui/poll-card';
 import { createClient } from '@/lib/supabase/client';
 import { useEffect, useMemo } from 'react';
 
@@ -19,9 +22,11 @@ interface GroupClientProps {
     currentUser: Profile;
     initialBatches: any[];
     initialBatchResources: any[];
+    instructors: { id: string; full_name: string; email: string; avatar_url: string | null; is_master_instructor: boolean }[];
+    waitingQueue: any[];
 }
 
-export function InstructorGroupClient({ currentUser, initialBatches, initialBatchResources }: GroupClientProps) {
+export function InstructorGroupClient({ currentUser, initialBatches, initialBatchResources, instructors, waitingQueue }: GroupClientProps) {
     const [isCreateBatchOpen, setIsCreateBatchOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
@@ -35,8 +40,10 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
     // Sync Server Data into Client State
     useEffect(() => {
         setBatches(initialBatches);
-        setSelectedBatch(initialBatches.find(b => b.status === 'active') || initialBatches[0] || null);
+        const batch = initialBatches.find(b => b.status === 'active') || initialBatches[0] || null;
+        setSelectedBatch(batch);
         setResources(initialBatchResources);
+        if (batch) fetchRecordings(batch);
     }, [initialBatches, initialBatchResources]);
 
     // Chat State
@@ -46,19 +53,34 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const supabase = createClient();
 
+    // Poll State
+    const [polls, setPolls] = useState<Record<string, BatchPoll>>({});
+    const [showPollModal, setShowPollModal] = useState(false);
+    const [pollQuestion, setPollQuestion] = useState('');
+    const [pollOptions, setPollOptions] = useState(['', '']);
+    const [isCreatingPoll, setIsCreatingPoll] = useState(false);
+
+    // Recordings State
+    const [recordings, setRecordings] = useState<RecordedSession[]>([]);
+    const [isLoadingRecordings, setIsLoadingRecordings] = useState(false);
+
     useEffect(() => {
         if (!selectedBatch?.id) return;
 
-        // Fetch initial messages
-        const fetchMessages = async () => {
-            const msgs = await getBatchMessages(selectedBatch.id);
+        // Fetch initial messages + polls
+        const fetchAll = async () => {
+            const [msgs, pollsMap] = await Promise.all([
+                getBatchMessages(selectedBatch.id),
+                getBatchPollsMap(selectedBatch.id, currentUser.id),
+            ]);
             setMessages(msgs);
+            setPolls(pollsMap);
             setIsChatEnabled(selectedBatch.is_chat_enabled ?? true);
         };
-        fetchMessages();
+        fetchAll();
 
-        // Subscribe to real-time
-        const channel = supabase
+        // Subscribe to new chat messages (text + poll)
+        const msgChannel = supabase
             .channel(`batch-chat-${selectedBatch.id}`)
             .on(
                 'postgres_changes',
@@ -69,7 +91,6 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                     filter: `batch_id=eq.${selectedBatch.id}`
                 },
                 async (payload: { new: any }) => {
-                    // Fetch profile for the new message
                     const { data: profile } = await supabase
                         .from('profiles')
                         .select('id, full_name, avatar_url, role')
@@ -78,12 +99,37 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
 
                     const newMsg = { ...payload.new, sender: profile };
                     setMessages(prev => [...prev, newMsg]);
+
+                    // If it's a poll message, fetch the poll data
+                    if (payload.new.message_type === 'poll' && payload.new.poll_id) {
+                        const pollData = await getPollById(payload.new.poll_id, currentUser.id);
+                        if (pollData) {
+                            setPolls(prev => ({ ...prev, [pollData.id]: pollData }));
+                        }
+                    }
+                }
+            )
+            .subscribe();
+
+        // Subscribe to poll vote changes to update live counts
+        const voteChannel = supabase
+            .channel(`batch-votes-${selectedBatch.id}`)
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'batch_poll_votes' },
+                async (payload: { new: any }) => {
+                    const pollId = payload.new?.poll_id;
+                    if (!pollId) return;
+                    // Always refetch — avoids stale closure on `polls` state
+                    const updated = await getPollById(pollId, currentUser.id);
+                    if (updated) setPolls(prev => ({ ...prev, [pollId]: updated }));
                 }
             )
             .subscribe();
 
         return () => {
-            supabase.removeChannel(channel);
+            supabase.removeChannel(msgChannel);
+            supabase.removeChannel(voteChannel);
         };
     }, [selectedBatch?.id, supabase]);
 
@@ -115,6 +161,32 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
         }
     };
 
+    const handleCreatePoll = async () => {
+        if (!selectedBatch?.id) return;
+        setIsCreatingPoll(true);
+        const res = await createBatchPoll(selectedBatch.id, pollQuestion, pollOptions);
+        if (res.success) {
+            setShowPollModal(false);
+            setPollQuestion('');
+            setPollOptions(['', '']);
+        } else {
+            alert(res.error);
+        }
+        setIsCreatingPoll(false);
+    };
+
+    const handleClosePoll = async (pollId: string) => {
+        const res = await closePoll(pollId);
+        if (res.success) {
+            setPolls(prev => ({
+                ...prev,
+                [pollId]: { ...prev[pollId], is_closed: true },
+            }));
+        } else {
+            alert(res.error);
+        }
+    };
+
     // Form State
     const [formData, setFormData] = useState<Partial<CreateBatchInput>>({
         name: '',
@@ -136,13 +208,12 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                 startDate: formData.startDate!,
                 endDate: formData.endDate!,
                 maxStudents: formData.maxStudents || 30,
-                instructorId: currentUser.id
+                instructorId: formData.instructorId || currentUser.id,
             });
 
             if (result.success) {
                 setIsCreateBatchOpen(false);
                 setFormData({ name: '', startDate: '', endDate: '', maxStudents: 30, instructorId: currentUser.id });
-                // We could fetch batches again or just refresh
                 router.refresh();
             } else {
                 alert("Error: " + result.error);
@@ -195,10 +266,19 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
         }
     };
 
+    const fetchRecordings = async (batch: any) => {
+        if (!batch?.id || !batch?.end_date) return;
+        setIsLoadingRecordings(true);
+        const recs = await getBatchRecordedSessions(batch.id, batch.end_date);
+        setRecordings(recs);
+        setIsLoadingRecordings(false);
+    };
+
     const handleBatchChange = async (batch: any) => {
         setSelectedBatch(batch);
         const batchResources = await getBatchResources(batch.id);
         setResources(batchResources);
+        fetchRecordings(batch);
     };
 
     // Zoom scheduling state
@@ -484,42 +564,55 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                             <div className="flex items-center justify-between border-b border-pink-50 bg-white/40 p-3">
                                 <h3 className="flex items-center gap-2 text-sm font-bold text-gray-900">
                                     <Library className="h-4 w-4 text-pink-500" />
-                                    Recorded Daily Archives
+                                    Recorded Sessions
                                 </h3>
+                                <span className="text-[10px] text-gray-400">Zoom cloud recordings</span>
                             </div>
-                            <div className="flex-1 overflow-x-auto p-4 custom-scrollbar">
-                                <div className="flex h-full items-center gap-4">
-                                    {/* Item 1 */}
-                                    <div className="group flex h-full w-[200px] min-w-[200px] flex-col rounded-lg border border-pink-100 bg-white/60 shadow-sm transition-all hover:border-pink-300">
-                                        <div className="relative h-28 w-full shrink-0 overflow-hidden rounded-t-lg bg-gray-200">
-                                            <div className="absolute inset-0 z-10 bg-black/10 transition-colors group-hover:bg-black/0"></div>
-                                            <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=400&auto=format&fit=crop" className="h-full w-full object-cover" alt="" />
-                                            <div className="absolute bottom-2 right-2 z-20 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-medium text-white">45:10</div>
-                                        </div>
-                                        <div className="flex flex-1 flex-col p-3">
-                                            <div className="mb-1 flex items-start justify-between">
-                                                <span className="rounded bg-pink-50 px-1.5 text-[10px] font-medium text-pink-500">Day 11</span>
-                                                <span className="text-[10px] text-gray-500">Oct 24</span>
-                                            </div>
-                                            <h4 className="mb-1 line-clamp-2 text-xs font-bold text-gray-900">Full Face Activation</h4>
-                                        </div>
+                            <div className="flex-1 overflow-x-auto p-4 custom-scrollbar min-h-[80px]">
+                                {isLoadingRecordings ? (
+                                    <div className="flex h-full items-center justify-center">
+                                        <Loader2 className="h-5 w-5 animate-spin text-pink-400" />
                                     </div>
-                                    {/* Item 2 */}
-                                    <div className="group flex h-full w-[200px] min-w-[200px] flex-col rounded-lg border border-pink-100 bg-white/60 shadow-sm transition-all hover:border-pink-300">
-                                        <div className="relative h-28 w-full shrink-0 overflow-hidden rounded-t-lg bg-gray-200">
-                                            <div className="absolute inset-0 z-10 bg-black/10 transition-colors group-hover:bg-black/0"></div>
-                                            <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=400&auto=format&fit=crop" className="h-full w-full object-cover" alt="" />
-                                            <div className="absolute bottom-2 right-2 z-20 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-medium text-white">42:30</div>
-                                        </div>
-                                        <div className="flex flex-1 flex-col p-3">
-                                            <div className="mb-1 flex items-start justify-between">
-                                                <span className="rounded bg-pink-50 px-1.5 text-[10px] font-medium text-pink-500">Day 10</span>
-                                                <span className="text-[10px] text-gray-500">Oct 23</span>
-                                            </div>
-                                            <h4 className="mb-1 line-clamp-2 text-xs font-bold text-gray-900">Neck & Jaw Tension Relief</h4>
-                                        </div>
+                                ) : recordings.length === 0 ? (
+                                    <div className="flex h-full items-center justify-center">
+                                        <p className="text-[10px] text-gray-400">No recorded sessions yet for this batch.</p>
                                     </div>
-                                </div>
+                                ) : (
+                                    <div className="flex h-full items-start gap-4">
+                                        {recordings.map((rec) => {
+                                            const date = new Date(rec.start_time);
+                                            const h = Math.floor(rec.duration_minutes / 60);
+                                            const m = rec.duration_minutes % 60;
+                                            const durationLabel = h > 0 ? `${h}h ${m}m` : `${m}m`;
+                                            return (
+                                                <div key={rec.id} className="group flex h-[155px] w-[200px] min-w-[200px] flex-col rounded-lg border border-pink-100 bg-white/60 shadow-sm transition-all hover:border-pink-300">
+                                                    <div className="relative h-28 w-full shrink-0 overflow-hidden rounded-t-lg bg-gradient-to-br from-pink-100 via-rose-100 to-pink-200">
+                                                        <div className="absolute inset-0 z-10 flex items-center justify-center">
+                                                            {rec.is_available ? (
+                                                                <button
+                                                                    onClick={() => window.open(rec.play_url!, '_blank')}
+                                                                    className="flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-bold text-pink-600 shadow-md transition-all hover:bg-white hover:scale-105"
+                                                                >
+                                                                    <Play className="h-3 w-3" /> Watch
+                                                                </button>
+                                                            ) : (
+                                                                <span className="rounded-full bg-black/40 px-2.5 py-1 text-[9px] font-bold text-white">Processing…</span>
+                                                            )}
+                                                        </div>
+                                                        <div className="absolute bottom-2 right-2 z-20 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white">{durationLabel}</div>
+                                                    </div>
+                                                    <div className="flex flex-1 flex-col p-3">
+                                                        <div className="mb-1 flex items-start justify-between">
+                                                            <span className="rounded bg-pink-50 px-1.5 text-[10px] font-medium text-pink-500">Recording</span>
+                                                            <span className="text-[10px] text-gray-500">{date.toLocaleDateString()}</span>
+                                                        </div>
+                                                        <h4 className="line-clamp-2 text-xs font-bold text-gray-900">{rec.topic}</h4>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -535,7 +628,9 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                         <Users className="h-4 w-4 text-pink-500" />
                                         Enrolled Students
                                     </h3>
-                                    <span className="text-[10px] font-bold text-pink-500">{filteredStudents.length} Students</span>
+                                    <span className="text-[10px] font-bold text-pink-500">
+                                        {filteredStudents.length + (studentSearchQuery ? 0 : waitingQueue.length)} Students
+                                    </span>
                                 </div>
                                 <div className="relative">
                                     <Search className="absolute left-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-gray-400" />
@@ -559,15 +654,48 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                             </div>
                                         )}
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-xs font-bold text-gray-800 line-clamp-1">{enrollment.student?.full_name}</p>
+                                            <div className="flex items-center gap-1.5">
+                                                <p className="text-xs font-bold text-gray-800 line-clamp-1">{enrollment.student?.full_name}</p>
+                                                {enrollment.is_trial_access && (
+                                                    <span className="shrink-0 rounded border border-amber-200 bg-amber-50 px-1 text-[8px] font-bold text-amber-600">TRIAL</span>
+                                                )}
+                                            </div>
                                             <p className="text-[9px] text-gray-400 line-clamp-1">Enrolled in {selectedBatch?.name}</p>
                                         </div>
                                     </div>
                                 ))}
-                                {(!filteredStudents || filteredStudents.length === 0) && (
+                                {(!filteredStudents || filteredStudents.length === 0) && (!waitingQueue || waitingQueue.length === 0) && (
                                     <div className="flex flex-col items-center justify-center h-full text-center">
                                         <p className="text-[10px] text-gray-400">No students found.</p>
                                     </div>
+                                )}
+
+                                {/* Waiting Queue Students */}
+                                {!studentSearchQuery && waitingQueue && waitingQueue.length > 0 && (
+                                    <>
+                                        <div className="py-2 px-1">
+                                            <div className="h-px bg-pink-100/50 w-full mb-2"></div>
+                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-1">Waiting List ({waitingQueue.length})</p>
+                                        </div>
+                                        {waitingQueue.map((entry: any) => (
+                                            <div key={entry.student_id} className="flex items-center gap-3 p-2 rounded-lg bg-pink-50/30 border border-pink-100/50 opacity-80">
+                                                {entry.student?.avatar_url ? (
+                                                    <img src={entry.student.avatar_url} className="h-8 w-8 rounded-full border border-white object-cover shadow-sm bg-white" />
+                                                ) : (
+                                                    <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-400 shadow-sm border border-white">
+                                                        {entry.student?.full_name?.charAt(0) || 'W'}
+                                                    </div>
+                                                )}
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <p className="text-xs font-bold text-gray-500 line-clamp-1">{entry.student?.full_name}</p>
+                                                        <span className="shrink-0 rounded border border-pink-200 bg-pink-50 px-1 text-[8px] font-bold text-pink-400">QUEUED</span>
+                                                    </div>
+                                                    <p className="text-[9px] text-gray-400 line-clamp-1">Awaiting batch assignment</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </>
                                 )}
                             </div>
                         </div>
@@ -596,6 +724,9 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                             <div ref={chatContainerRef} className="flex-1 space-y-3 overflow-y-auto bg-gradient-to-b from-white/30 to-white/10 p-3 custom-scrollbar">
                                 {messages.map((msg) => {
                                     const senderProfile = msg.sender || msg.profiles || msg.senderProfile || {};
+                                    const isPoll = msg.message_type === 'poll' && msg.poll_id;
+                                    const poll = isPoll ? polls[msg.poll_id] : null;
+
                                     return (
                                         <div key={msg.id} className={`flex gap-2 ${msg.sender_id === currentUser.id ? 'flex-row-reverse' : ''}`}>
                                             <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-pink-200">
@@ -607,7 +738,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                                     </div>
                                                 )}
                                             </div>
-                                            <div className={`flex max-w-[85%] flex-col ${msg.sender_id === currentUser.id ? 'items-end' : ''}`}>
+                                            <div className={`flex max-w-[90%] flex-col ${msg.sender_id === currentUser.id ? 'items-end' : ''}`}>
                                                 <div className="mb-0.5 flex items-center gap-2">
                                                     <span className="text-[10px] font-bold text-gray-900">{senderProfile?.full_name || 'User'}</span>
                                                     <span className="text-[9px] text-gray-500">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
@@ -617,9 +748,21 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                                         <span className="flex items-center gap-0.5 rounded border border-gray-200 bg-gray-50 px-1 text-[8px] font-bold text-gray-500">Student</span>
                                                     ) : null}
                                                 </div>
-                                                <div className={`rounded-2xl px-3 py-2 text-xs leading-relaxed shadow-sm ${msg.sender_id === currentUser.id ? 'rounded-tr-none bg-pink-500 text-white' : senderProfile?.role === 'instructor' ? 'rounded-tl-none border border-pink-300 bg-pink-50 text-gray-900 shadow-pink-100' : 'rounded-tl-none border border-white/50 bg-white text-gray-900'}`}>
-                                                    <p>{msg.content}</p>
-                                                </div>
+                                                {isPoll ? (
+                                                    poll ? (
+                                                        <PollCard
+                                                            poll={poll}
+                                                            isAdmin
+                                                            onClose={() => handleClosePoll(poll.id)}
+                                                        />
+                                                    ) : (
+                                                        <div className="rounded-xl border border-pink-100 bg-pink-50 px-3 py-2 text-xs text-gray-400">Loading poll…</div>
+                                                    )
+                                                ) : (
+                                                    <div className={`rounded-2xl px-3 py-2 text-xs leading-relaxed shadow-sm ${msg.sender_id === currentUser.id ? 'rounded-tr-none bg-pink-500 text-white' : senderProfile?.role === 'instructor' ? 'rounded-tl-none border border-pink-300 bg-pink-50 text-gray-900 shadow-pink-100' : 'rounded-tl-none border border-white/50 bg-white text-gray-900'}`}>
+                                                        <p>{msg.content}</p>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     );
@@ -628,8 +771,12 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
 
                             <div className="border-t border-pink-50 bg-white/60 p-3">
                                 <div className="relative flex items-center gap-2">
-                                    <button className="absolute left-1 z-10 rounded-full p-1.5 text-gray-400 transition-colors hover:bg-white hover:text-pink-500">
-                                        <PlusCircle className="h-4 w-4" />
+                                    <button
+                                        onClick={() => setShowPollModal(true)}
+                                        title="Create Poll"
+                                        className="absolute left-1 z-10 rounded-full p-1.5 text-gray-400 transition-colors hover:bg-white hover:text-pink-500"
+                                    >
+                                        <BarChart2 className="h-4 w-4" />
                                     </button>
                                     <input
                                         type="text"
@@ -649,6 +796,92 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                             </div>
                         </div>
                     </div>
+
+                    {/* Poll Creation Modal */}
+                    {showPollModal && (
+                        <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-md">
+                            <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white/95 shadow-2xl border border-white/40 animate-in fade-in zoom-in-95 duration-300">
+                                <div className="relative flex items-start justify-between border-b border-pink-100/50 bg-gradient-to-br from-pink-50 via-white to-pink-50/30 p-6">
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-400 via-rose-400 to-pink-500" />
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-pink-100 text-pink-600">
+                                            <BarChart2 className="h-5 w-5" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-extrabold text-gray-900">Create Poll</h3>
+                                            <p className="text-xs text-pink-600/70">{selectedBatch?.name}</p>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setShowPollModal(false)} className="p-2 rounded-full text-gray-400 hover:bg-black/5 hover:text-gray-700 transition-all bg-white border border-gray-100 shadow-sm">
+                                        <X className="h-4 w-4" />
+                                    </button>
+                                </div>
+
+                                <div className="space-y-4 p-6">
+                                    <div>
+                                        <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Question</label>
+                                        <input
+                                            value={pollQuestion}
+                                            onChange={(e) => setPollQuestion(e.target.value)}
+                                            placeholder="e.g. How are you finding today's session?"
+                                            className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 placeholder-gray-400 shadow-sm focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 outline-none"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Options</label>
+                                        <div className="space-y-2">
+                                            {pollOptions.map((opt, i) => (
+                                                <div key={i} className="flex items-center gap-2">
+                                                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-pink-100 text-[10px] font-bold text-pink-600">
+                                                        {String.fromCharCode(65 + i)}
+                                                    </span>
+                                                    <input
+                                                        value={opt}
+                                                        onChange={(e) => {
+                                                            const next = [...pollOptions];
+                                                            next[i] = e.target.value;
+                                                            setPollOptions(next);
+                                                        }}
+                                                        placeholder={`Option ${i + 1}`}
+                                                        className="flex-1 rounded-lg border border-gray-200 bg-white/80 px-3 py-2 text-sm placeholder-gray-400 shadow-sm focus:border-pink-500 focus:ring-1 focus:ring-pink-500/20 outline-none"
+                                                    />
+                                                    {pollOptions.length > 2 && (
+                                                        <button
+                                                            onClick={() => setPollOptions(pollOptions.filter((_, j) => j !== i))}
+                                                            className="rounded-full p-1 text-gray-300 hover:text-red-400 transition-colors"
+                                                        >
+                                                            <X className="h-3.5 w-3.5" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                        {pollOptions.length < 6 && (
+                                            <button
+                                                onClick={() => setPollOptions([...pollOptions, ''])}
+                                                className="mt-2 text-xs font-semibold text-pink-500 hover:text-pink-700 transition-colors"
+                                            >
+                                                + Add option
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3 items-center justify-end border-t border-gray-100 bg-gray-50/80 px-6 py-4">
+                                    <button onClick={() => setShowPollModal(false)} className="px-4 py-2 text-sm font-bold text-gray-500 hover:text-gray-900 hover:bg-gray-200/50 rounded-xl transition-all">Cancel</button>
+                                    <button
+                                        onClick={handleCreatePoll}
+                                        disabled={isCreatingPoll || !pollQuestion.trim() || pollOptions.filter(Boolean).length < 2}
+                                        className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all"
+                                    >
+                                        {isCreatingPoll ? <Loader2 className="h-4 w-4 animate-spin" /> : <BarChart2 className="h-4 w-4" />}
+                                        Send Poll
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Schedule Zoom Modal */}
                     {showZoomModal && (
@@ -775,6 +1008,21 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                             onChange={(e) => setFormData({ ...formData, maxStudents: parseInt(e.target.value) })}
                                             className="w-full rounded-lg border-pink-200 bg-white/60 px-4 py-2.5 text-sm shadow-sm focus:border-pink-500 focus:ring-pink-500"
                                         />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold uppercase tracking-wide text-gray-900">Assign Instructor</label>
+                                        <select
+                                            value={formData.instructorId || currentUser.id}
+                                            onChange={(e) => setFormData({ ...formData, instructorId: e.target.value })}
+                                            className="w-full rounded-lg border-pink-200 bg-white/60 px-4 py-2.5 text-sm shadow-sm focus:border-pink-500 focus:ring-pink-500"
+                                        >
+                                            {instructors.map((inst) => (
+                                                <option key={inst.id} value={inst.id}>
+                                                    {inst.full_name}{inst.is_master_instructor ? ' (Master)' : ''}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
 
                                 </div>

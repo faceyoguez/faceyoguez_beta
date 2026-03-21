@@ -92,19 +92,22 @@ export async function createSubscription(
         }
     }
 
+    // Group sessions: start as 'pending' — activated when batch is created
+    const isGroupSession = planType === 'group_session' && !isTrial;
+
     const { data: subscription, error } = await adminAuth
         .from('subscriptions')
         .insert({
             student_id: user.id,
             plan_type: planType,
-            status: 'active',
+            status: isGroupSession ? 'pending' : 'active',
             duration_months: durationMonths,
-            start_date: startDate.toISOString().split('T')[0],
-            end_date: endDate.toISOString().split('T')[0],
+            start_date: isGroupSession ? null : startDate.toISOString().split('T')[0],
+            end_date: isGroupSession ? null : endDate.toISOString().split('T')[0],
             amount: amount,
             currency: 'INR',
             payment_id: isTrial ? 'trial' : 'dashboard',
-            batches_remaining: planType === 'group_session' ? durationMonths : 1,
+            batches_remaining: planType === 'group_session' ? (durationMonths || 1) : 1,
             batches_used: 0,
             is_trial: isTrial,
             metadata: {
@@ -118,6 +121,12 @@ export async function createSubscription(
     if (error) {
         console.error('Failed to create subscription', error);
         throw new Error('Database Error: ' + error.message);
+    }
+
+    // For group sessions, add to waiting queue (may also grant trial access to current batch)
+    if (planType === 'group_session') {
+        const { enrollInWaitingQueue } = await import('./batches');
+        await enrollInWaitingQueue(user.id, subscription.id);
     }
 
     revalidatePath('/student/plans');

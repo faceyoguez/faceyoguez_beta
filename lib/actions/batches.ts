@@ -3,7 +3,6 @@
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 
-// Interface matching the front end form fields for a new Batch
 export interface CreateBatchInput {
     name: string;
     startDate: string;       // YYYY-MM-DD
@@ -13,14 +12,11 @@ export interface CreateBatchInput {
 }
 
 /**
- * Executes the complex "Smart Rollover" logic upon a new Batch creation.
- * 
- * 1. Creates a new conversation thread for the batch.
- * 2. Creates the `batch` record.
- * 3. Identifies ALL waitlisted students in the `waiting_queue`.
- * 4. Iterates through them to update their `subscriptions` (assigning Start/End dates if pending).
- * 5. Injects them into `batch_enrollments` for the new batch.
- * 6. Drops them from the `waiting_queue`.
+ * Creates a new batch and auto-enrolls:
+ *  1. All students in the waiting_queue
+ *  2. Multi-month rollover students (active group subscriptions with batches_remaining > 0)
+ *
+ * Also creates a linked group conversation for batch chat.
  */
 export async function createAndPopulateBatch(input: CreateBatchInput) {
     const supabase = await createServerSupabaseClient();
@@ -30,7 +26,6 @@ export async function createAndPopulateBatch(input: CreateBatchInput) {
         return { success: false, error: 'Unauthorized' };
     }
 
-    // Permission check: only admin, client_management, staff, or master instructor can create batches
     const admin = createAdminClient();
     const { data: profile } = await admin
         .from('profiles')
@@ -48,8 +43,15 @@ export async function createAndPopulateBatch(input: CreateBatchInput) {
     }
 
     try {
-        // Step 1: Create the Batch
-        const { data: batch, error: batchError } = await supabase
+        // Step 1: Create group conversation for the batch
+        const { data: convo } = await admin.from('conversations').insert({
+            type: 'group',
+            title: `${input.name} Chat`,
+            is_chat_enabled: true,
+        }).select().single();
+
+        // Step 2: Create the batch record
+        const { data: batch, error: batchError } = await admin
             .from('batches')
             .insert({
                 name: input.name,
@@ -58,7 +60,8 @@ export async function createAndPopulateBatch(input: CreateBatchInput) {
                 end_date: input.endDate,
                 max_students: input.maxStudents,
                 status: 'upcoming',
-                is_chat_enabled: true
+                is_chat_enabled: true,
+                conversation_id: convo?.id || null,
             })
             .select()
             .single();
@@ -66,93 +69,190 @@ export async function createAndPopulateBatch(input: CreateBatchInput) {
         if (batchError) throw new Error('DB Error: ' + batchError.message);
         if (!batch) throw new Error('Failed to create batch record.');
 
-        // Step 2: Fetch Waiting Queue Candidates
-        const { data: queue, error: queueError } = await supabase
+        // Link conversation back to batch
+        if (convo) {
+            await admin.from('conversations').update({ batch_id: batch.id }).eq('id', convo.id);
+        }
+
+        let enrolledCount = 0;
+        const enrolledStudentIds = new Set<string>();
+
+        // Step 3: Process waiting queue students
+        const { data: queue } = await admin
             .from('waiting_queue')
             .select('*')
             .eq('status', 'waiting')
             .order('requested_at', { ascending: true })
             .limit(input.maxStudents);
 
-        if (queueError) throw new Error('Could not pull from waiting queue: ' + queueError.message);
-
-        let enrolledCount = 0;
-
-        // Step 3-5: The Rollover Processing Loop
         if (queue && queue.length > 0) {
-            for (const waitlistEntry of queue) {
-                // Determine if this subscription was "Pending" start date
-                const { data: subData } = await supabase
+            for (const entry of queue) {
+                if (enrolledCount >= input.maxStudents) break;
+
+                const { data: subData } = await admin
                     .from('subscriptions')
                     .select('*')
-                    .eq('id', waitlistEntry.subscription_id)
+                    .eq('id', entry.subscription_id)
                     .single();
 
-                if (subData) {
-                    let updatedEndDate = subData.end_date;
+                if (!subData) continue;
 
-                    // If it was a pending multi-month plan, start it NOW along with the batch
-                    if (subData.status === 'pending') {
-                        // Calculate end date based on duration
-                        const start = new Date(input.startDate);
-                        const end = new Date(start);
-                        end.setMonth(start.getMonth() + subData.duration_months);
-                        updatedEndDate = end.toISOString().split('T')[0];
+                let updatedEndDate = subData.end_date;
 
-                        await supabase
+                // Activate pending subscriptions — set start/end dates based on batch start
+                if (subData.status === 'pending' || !subData.start_date) {
+                    const start = new Date(input.startDate);
+                    const end = new Date(start);
+                    end.setMonth(start.getMonth() + (subData.duration_months || 1));
+                    updatedEndDate = end.toISOString().split('T')[0];
+
+                    await admin
+                        .from('subscriptions')
+                        .update({
+                            status: 'active',
+                            start_date: input.startDate,
+                            end_date: updatedEndDate,
+                        })
+                        .eq('id', subData.id);
+                }
+
+                // Auto-extend subscription if batch outlasts it
+                const isExtended = updatedEndDate && updatedEndDate < input.endDate;
+                const effectiveEnd = isExtended ? input.endDate : updatedEndDate;
+                if (isExtended) {
+                    await admin
+                        .from('subscriptions')
+                        .update({ end_date: input.endDate })
+                        .eq('id', subData.id);
+                }
+
+                // Remove any existing trial enrollment for this student
+                await admin
+                    .from('batch_enrollments')
+                    .delete()
+                    .eq('student_id', entry.student_id)
+                    .eq('is_trial_access', true);
+
+                // Enroll in the new batch
+                await admin
+                    .from('batch_enrollments')
+                    .insert({
+                        batch_id: batch.id,
+                        student_id: entry.student_id,
+                        subscription_id: entry.subscription_id,
+                        status: 'active',
+                        effective_end_date: effectiveEnd,
+                        original_sub_end_date: isExtended ? updatedEndDate : null,
+                        is_extended: !!isExtended,
+                        is_trial_access: false,
+                    });
+
+                // Mark queue entry as assigned
+                await admin
+                    .from('waiting_queue')
+                    .update({ status: 'assigned' })
+                    .eq('id', entry.id);
+
+                enrolledStudentIds.add(entry.student_id);
+                enrolledCount++;
+            }
+        }
+
+        // Step 4: Multi-month rollover — enroll students with active group subs and batches_remaining > 0
+        if (enrolledCount < input.maxStudents) {
+            const { data: activeSubs } = await admin
+                .from('subscriptions')
+                .select('id, student_id, end_date, batches_remaining, duration_months')
+                .eq('plan_type', 'group_session')
+                .eq('status', 'active')
+                .eq('is_trial', false)
+                .gt('batches_remaining', 0);
+
+            if (activeSubs) {
+                for (const sub of activeSubs) {
+                    if (enrolledCount >= input.maxStudents) break;
+                    if (enrolledStudentIds.has(sub.student_id)) continue;
+
+                    // Check student isn't already in another active batch
+                    const { data: existing } = await admin
+                        .from('batch_enrollments')
+                        .select('id')
+                        .eq('student_id', sub.student_id)
+                        .eq('status', 'active')
+                        .eq('is_trial_access', false)
+                        .limit(1);
+
+                    if (existing && existing.length > 0) continue;
+
+                    // Auto-extend if batch outlasts subscription
+                    const isExtended = sub.end_date && sub.end_date < input.endDate;
+                    if (isExtended) {
+                        await admin
                             .from('subscriptions')
-                            .update({
-                                status: 'active',
-                                start_date: input.startDate,
-                                end_date: updatedEndDate
-                            })
-                            .eq('id', subData.id);
+                            .update({ end_date: input.endDate })
+                            .eq('id', sub.id);
                     }
 
-                    // Enroll them in the incoming batch
-                    await supabase
+                    await admin
                         .from('batch_enrollments')
                         .insert({
                             batch_id: batch.id,
-                            student_id: waitlistEntry.student_id,
-                            subscription_id: waitlistEntry.subscription_id,
+                            student_id: sub.student_id,
+                            subscription_id: sub.id,
                             status: 'active',
-                            effective_end_date: updatedEndDate
+                            effective_end_date: isExtended ? input.endDate : sub.end_date,
+                            original_sub_end_date: isExtended ? sub.end_date : null,
+                            is_extended: !!isExtended,
+                            is_trial_access: false,
                         });
 
-                    // Terminate them from the queue
-                    await supabase
-                        .from('waiting_queue')
-                        .update({ status: 'assigned' })
-                        .eq('id', waitlistEntry.id);
+                    // Decrement batches remaining
+                    await admin
+                        .from('subscriptions')
+                        .update({ batches_remaining: (sub.batches_remaining || 1) - 1, batches_used: (sub.batches_remaining || 1) > 0 ? 1 : 0 })
+                        .eq('id', sub.id);
 
+                    enrolledStudentIds.add(sub.student_id);
                     enrolledCount++;
                 }
             }
         }
 
-        // Final Update to batch reflecting real enrolled volume
-        await supabase
+        // Step 5: Update batch with enrolled count
+        await admin
             .from('batches')
             .update({ current_students: enrolledCount })
             .eq('id', batch.id);
 
+        // Step 6: Send notifications to enrolled students
+        const notificationRows = Array.from(enrolledStudentIds).map(studentId => ({
+            user_id: studentId,
+            title: 'You\'ve been enrolled in a new batch!',
+            message: `You are now enrolled in "${input.name}" starting ${input.startDate}. Get ready for your transformation journey!`,
+            type: 'batch_enrollment',
+            is_read: false,
+        }));
+        if (notificationRows.length > 0) {
+            await admin.from('notifications').insert(notificationRows);
+        }
+
         revalidatePath('/instructor/groups');
+        revalidatePath('/staff/groups');
+        revalidatePath('/student/group-session');
         return { success: true, batchId: batch.id, enrolled: enrolledCount };
 
     } catch (err: any) {
-        console.error("Batch Rollover Action Failed:", err);
+        console.error("Batch creation failed:", err);
         return { success: false, error: err.message };
     }
 }
 
 /**
- * Retrieves all batches created by or assigned to a specific instructor.
+ * Retrieves all batches — master instructors, staff, admins see all; regular instructors see only theirs.
  */
 export async function getInstructorBatches(instructorId: string) {
     const adminClient = createAdminClient();
 
-    // Check if user is master instructor or staff (sees all batches)
     const { data: profile } = await adminClient
         .from('profiles')
         .select('role, is_master_instructor')
@@ -169,9 +269,12 @@ export async function getInstructorBatches(instructorId: string) {
         .select(`
             *,
             batch_enrollments(
+                id,
                 student_id,
-                student: profiles!batch_enrollments_student_id_fkey(id, full_name, avatar_url)
-            )
+                status,
+                student:profiles!student_id(id, full_name, avatar_url)
+            ),
+            instructor:profiles!instructor_id(id, full_name, avatar_url)
         `);
 
     if (!seesAll) {
@@ -181,7 +284,7 @@ export async function getInstructorBatches(instructorId: string) {
     const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) {
-        console.error('Fetch batches error:', error);
+        console.error('Fetch batches error:', error.message, error.details, error.hint);
         return [];
     }
 
@@ -192,20 +295,22 @@ export async function getInstructorBatches(instructorId: string) {
  * Retrieves the active batch enrollment for a specific student.
  */
 export async function getStudentBatchEnrollment(studentId: string) {
-    const supabase = await createServerSupabaseClient();
+    const admin = createAdminClient();
 
-    const { data, error } = await supabase
+    const { data, error } = await admin
         .from('batch_enrollments')
         .select(`
             *,
-            batch: batches(
+            batch:batches(
                 *,
-                instructor: profiles!batches_instructor_id_fkey(full_name, avatar_url)
+                instructor:profiles!instructor_id(full_name, avatar_url)
             )
-            `)
+        `)
         .eq('student_id', studentId)
-        .eq('status', 'active')
-        .single();
+        .in('status', ['active', 'extended'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
     if (error) {
         console.error('Fetch enrollment error:', error);
@@ -213,4 +318,192 @@ export async function getStudentBatchEnrollment(studentId: string) {
     }
 
     return data;
+}
+
+/**
+ * Adds a student to the waiting queue. If an active batch has available slots,
+ * grants 2-day trial access instead.
+ */
+export async function enrollInWaitingQueue(studentId: string, subscriptionId: string) {
+    const admin = createAdminClient();
+
+    // Check if there's an active batch with available slots
+    const { data: activeBatches } = await admin
+        .from('batches')
+        .select('id, max_students, current_students')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+    const activeBatch = activeBatches?.[0];
+    const hasSlots = activeBatch && (activeBatch.current_students || 0) < (activeBatch.max_students || 30);
+
+    if (activeBatch) {
+        // Always grant 2-day trial access to the running batch if someone buys a plan or takes a trial,
+        // even if slots are full, because trials are short-lived and this allows them to explore the platform.
+        await grantTrialAccess(studentId, subscriptionId, activeBatch.id);
+    }
+
+    // Always add to waiting queue (even with trial access, they wait for the NEXT proper batch)
+    const { error } = await admin.from('waiting_queue').insert({
+        student_id: studentId,
+        subscription_id: subscriptionId,
+        status: 'waiting',
+    });
+
+    if (error) {
+        console.error('Waiting queue insert error:', error);
+        return { success: false, error: error.message };
+    }
+
+    // Notify the student
+    await admin.from('notifications').insert({
+        user_id: studentId,
+        title: hasSlots ? 'Trial access granted!' : 'You\'re in the queue!',
+        message: hasSlots
+            ? 'You have 2-day trial access to the current batch. Your full subscription will start with the next batch.'
+            : 'A batch is currently in progress. You\'ll be notified when the next batch starts. Your subscription will begin on the first day of your batch.',
+        type: 'waiting_queue',
+        is_read: false,
+    });
+
+    revalidatePath('/student/group-session');
+    return { success: true, trialGranted: !!hasSlots };
+}
+
+/**
+ * Grants 2-day trial access to an active batch.
+ */
+export async function grantTrialAccess(studentId: string, subscriptionId: string, batchId: string) {
+    const admin = createAdminClient();
+
+    const trialEnd = new Date();
+    trialEnd.setDate(trialEnd.getDate() + 2);
+
+    await admin.from('batch_enrollments').insert({
+        batch_id: batchId,
+        student_id: studentId,
+        subscription_id: subscriptionId,
+        status: 'active',
+        is_trial_access: true,
+        effective_end_date: trialEnd.toISOString().split('T')[0],
+        is_extended: false,
+    });
+
+    // Update batch student count using manual increment (simplest)
+    try {
+        const { data } = await admin.from('batches')
+            .select('current_students')
+            .eq('id', batchId)
+            .single();
+        
+        if (data) {
+            await admin.from('batches')
+                .update({ current_students: (data.current_students || 0) + 1 })
+                .eq('id', batchId);
+        }
+    } catch (e) {
+        console.error('Failed to increment batch count:', e);
+    }
+}
+
+/**
+ * Get all students in the waiting queue.
+ */
+export async function getWaitingQueueStudents() {
+    const admin = createAdminClient();
+
+    const { data, error } = await admin
+        .from('waiting_queue')
+        .select(`
+            *,
+            student:profiles!student_id(id, full_name, email, avatar_url),
+            subscription:subscriptions!subscription_id(id, plan_type, duration_months, status)
+        `)
+        .eq('status', 'waiting')
+        .order('requested_at', { ascending: true });
+
+    if (error) {
+        console.error('Fetch waiting queue error:', error);
+        return [];
+    }
+
+    return data || [];
+}
+
+/**
+ * Get a student's waiting queue entry.
+ */
+export async function getStudentWaitingStatus(studentId: string) {
+    const admin = createAdminClient();
+
+    const { data } = await admin
+        .from('waiting_queue')
+        .select('*')
+        .eq('student_id', studentId)
+        .eq('status', 'waiting')
+        .maybeSingle();
+
+    return data;
+}
+
+/**
+ * Check for expiring subscriptions and send notifications (5 days before expiry).
+ */
+export async function checkExpiringSubscriptions() {
+    const admin = createAdminClient();
+
+    const now = new Date();
+    const fiveDaysFromNow = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const today = now.toISOString().split('T')[0];
+
+    const { data: expiringSubs } = await admin
+        .from('subscriptions')
+        .select('id, student_id, end_date, plan_type')
+        .eq('status', 'active')
+        .eq('plan_type', 'group_session')
+        .eq('is_trial', false)
+        .lte('end_date', fiveDaysFromNow)
+        .gte('end_date', today);
+
+    if (!expiringSubs || expiringSubs.length === 0) return;
+
+    for (const sub of expiringSubs) {
+        // Check if notification already sent for this subscription
+        const { data: existing } = await admin
+            .from('notifications')
+            .select('id')
+            .eq('user_id', sub.student_id)
+            .eq('type', 'subscription_expiry')
+            .ilike('message', `%${sub.id}%`)
+            .limit(1);
+
+        if (existing && existing.length > 0) continue;
+
+        await admin.from('notifications').insert({
+            user_id: sub.student_id,
+            title: 'Subscription Expiring Soon',
+            message: `Your group session subscription expires on ${sub.end_date}. Renew now to continue in the next batch! (ref:${sub.id})`,
+            type: 'subscription_expiry',
+            is_read: false,
+        });
+    }
+}
+
+export async function getWaitingQueue() {
+    const admin = createAdminClient();
+    const { data, error } = await admin
+        .from('waiting_queue')
+        .select(`
+            *,
+            student:profiles!student_id(id, full_name, avatar_url)
+        `)
+        .eq('status', 'waiting')
+        .order('requested_at', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching waiting queue:', error);
+        return [];
+    }
+    return data || [];
 }

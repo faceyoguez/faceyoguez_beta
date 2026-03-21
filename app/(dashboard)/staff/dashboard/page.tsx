@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
 import { getLiveGrowthMetrics } from '@/lib/actions/subscription';
+import { checkExpiringSubscriptions } from '@/lib/actions/batches';
 
 const STAFF_ROLES = ['admin', 'staff', 'client_management'];
 
@@ -17,6 +18,9 @@ export default async function StaffDashboardPage() {
     .single();
 
   if (!profile || !STAFF_ROLES.includes(profile.role)) redirect('/auth/login');
+
+  // Fire-and-forget: check for expiring subscriptions and send notifications
+  checkExpiringSubscriptions().catch(() => {});
 
   const metrics = await getLiveGrowthMetrics();
 

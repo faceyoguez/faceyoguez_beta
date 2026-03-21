@@ -1,11 +1,11 @@
 import { redirect } from 'next/navigation';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
-import { InstructorGroupClient } from './InstructorGroupClient';
-import { getInstructorBatches, getWaitingQueue } from '@/lib/actions/batches';
+import { InstructorGroupClient } from '../../instructor/groups/InstructorGroupClient';
+import { getInstructorBatches } from '@/lib/actions/batches';
 import { getBatchResources } from '@/lib/actions/resources';
 import { getInstructors } from '@/lib/actions/subscription';
 
-export default async function InstructorGroupsPage() {
+export default async function StaffGroupsPage() {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -19,15 +19,13 @@ export default async function InstructorGroupsPage() {
     .eq('id', user.id)
     .single();
 
-  const ALLOWED_ROLES = ['instructor', 'admin', 'staff', 'client_management'];
-  if (!profile || !ALLOWED_ROLES.includes(profile.role)) {
+  if (!profile || !['admin', 'staff', 'client_management'].includes(profile.role)) {
     redirect('/auth/login');
   }
 
-  const [batches, instructors, waitingQueue] = await Promise.all([
+  const [batches, instructors] = await Promise.all([
     getInstructorBatches(user.id),
     getInstructors(),
-    getWaitingQueue(),
   ]);
 
   const activeBatch = batches.find(b => b.status === 'active') || batches[0] || null;
@@ -40,7 +38,6 @@ export default async function InstructorGroupsPage() {
         initialBatches={batches}
         initialBatchResources={initialResources}
         instructors={instructors}
-        waitingQueue={waitingQueue}
       />
     </div>
   );

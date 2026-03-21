@@ -195,93 +195,29 @@ export function PlansClient({ currentSubscription, userId, currentUser }: Props)
     setLoading(true);
 
     try {
-      // 1. Load Razorpay script
-      const loaded = await loadRazorpayScript();
-      if (!loaded) {
-        toast.error('Failed to load payment gateway. Please try again.');
-        setLoading(false);
-        return;
-      }
-
-      // 2. Create order on server
-      const orderRes = await fetch('/api/razorpay/create-order', {
+      // Direct activation for testing (Bypassing Razorpay)
+      const verifyRes = await fetch('/api/razorpay/verify-payment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          razorpay_order_id: `test_order_${Date.now()}`,
+          razorpay_payment_id: `test_payment_${Date.now()}`,
+          razorpay_signature: 'test_bypass',
           planType: activeCategory,
           planVariant: selectedPlan.id,
           amount: selectedPlan.price,
+          durationMonths: selectedPlan.durationMonths,
         }),
       });
 
-      if (!orderRes.ok) {
-        const err = await orderRes.json();
-        throw new Error(err.error || 'Failed to create order');
-      }
+      const verifyData = await verifyRes.json();
+      if (!verifyRes.ok) throw new Error(verifyData.error || 'Activation failed');
 
-      const { orderId, amount, currency, keyId } = await orderRes.json();
-
-      // 3. Open Razorpay modal
-      await new Promise<void>((resolve, reject) => {
-        const rzp = new window.Razorpay({
-          key: keyId,
-          amount,
-          currency,
-          order_id: orderId,
-          name: 'FaceYoguez',
-          description: selectedPlan.label,
-          image: '/logo.png',
-          prefill: {
-            name: currentUser?.full_name || '',
-            email: currentUser?.email || '',
-            contact: currentUser?.phone || '',
-          },
-          theme: { color: '#ec4899' },
-          handler: async function (response: any) {
-            try {
-              // 4. Verify payment on server
-              const verifyRes = await fetch('/api/razorpay/verify-payment', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  razorpay_order_id: response.razorpay_order_id,
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_signature: response.razorpay_signature,
-                  planType: activeCategory,
-                  planVariant: selectedPlan.id,
-                  amount: selectedPlan.price,
-                  durationMonths: selectedPlan.durationMonths,
-                }),
-              });
-
-              const verifyData = await verifyRes.json();
-              if (!verifyRes.ok) throw new Error(verifyData.error || 'Payment verification failed');
-
-              toast.success('🎉 Payment successful! Your subscription is now active.');
-              resolve();
-              setTimeout(() => window.location.reload(), 1500);
-            } catch (verifyErr: any) {
-              reject(verifyErr);
-            }
-          },
-          modal: {
-            ondismiss: () => {
-              reject(new Error('dismissed'));
-            },
-          },
-        });
-
-        rzp.on('payment.failed', function (resp: any) {
-          reject(new Error(resp.error?.description || 'Payment failed'));
-        });
-
-        rzp.open();
-      });
+      toast.success('🎉 Plan activated successfully! (Test Mode)');
+      setTimeout(() => window.location.reload(), 1500);
 
     } catch (error: any) {
-      if (error.message !== 'dismissed') {
-        toast.error(error.message || 'Payment failed. Please try again.');
-      }
+      toast.error(error.message || 'Activation failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -524,7 +460,7 @@ function MousePointer2(props: any) {
     )
 }
 
-function Video(props: any) {
+function ZenVideo(props: any) {
     return (
         <svg
             {...props}

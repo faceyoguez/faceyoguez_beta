@@ -102,6 +102,51 @@ export async function createZoomMeeting(options: ZoomMeetingOptions): Promise<Zo
   return response.json();
 }
 
+export interface ZoomRecordingFile {
+  id: string;
+  file_type: string;
+  file_size: number;
+  play_url: string;
+  download_url: string;
+  status: 'completed' | 'processing';
+  recording_start: string;
+  recording_end: string;
+  recording_type: string;
+}
+
+export interface ZoomMeetingRecordings {
+  uuid: string;
+  id: number;
+  topic: string;
+  start_time: string;
+  duration: number;
+  recording_files: ZoomRecordingFile[];
+}
+
+/**
+ * Fetch cloud recordings for a specific Zoom meeting.
+ * Returns null if the meeting has no recording yet (404) or on error.
+ * Response is cached for 5 minutes to avoid hammering the Zoom API.
+ */
+export async function getZoomMeetingRecordings(
+  meetingId: string
+): Promise<ZoomMeetingRecordings | null> {
+  try {
+    const token = await getZoomToken();
+    const url = `${ZOOM_API_BASE}/meetings/${meetingId}/recordings`;
+
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+      next: { revalidate: 300 }, // Cache for 5 minutes server-side
+    });
+
+    if (!response.ok) return null; // 404 = no recording yet; any error → null
+    return response.json();
+  } catch {
+    return null;
+  }
+}
+
 export async function deleteZoomMeeting(meetingId: string): Promise<void> {
   const token = await getZoomToken();
 

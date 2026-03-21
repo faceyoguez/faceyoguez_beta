@@ -1,6 +1,6 @@
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import PlansClient from './PlansClient';
+import { PlansClient } from './PlansClient';
 
 export default async function PlansPage() {
     const supabase = await createServerSupabaseClient();
