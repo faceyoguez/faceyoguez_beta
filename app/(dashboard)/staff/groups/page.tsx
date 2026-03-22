@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { InstructorGroupClient } from '../../instructor/groups/InstructorGroupClient';
-import { getInstructorBatches } from '@/lib/actions/batches';
+import { getInstructorBatches, getWaitingQueue } from '@/lib/actions/batches';
 import { getBatchResources } from '@/lib/actions/resources';
 import { getInstructors } from '@/lib/actions/subscription';
 
@@ -23,9 +23,10 @@ export default async function StaffGroupsPage() {
     redirect('/auth/login');
   }
 
-  const [batches, instructors] = await Promise.all([
+  const [batches, instructors, waitingQueue] = await Promise.all([
     getInstructorBatches(user.id),
     getInstructors(),
+    getWaitingQueue()
   ]);
 
   const activeBatch = batches.find(b => b.status === 'active') || batches[0] || null;
@@ -38,6 +39,7 @@ export default async function StaffGroupsPage() {
         initialBatches={batches}
         initialBatchResources={initialResources}
         instructors={instructors}
+        waitingQueue={waitingQueue}
       />
     </div>
   );

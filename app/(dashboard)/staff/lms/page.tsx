@@ -2,7 +2,9 @@ import { redirect } from 'next/navigation';
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
 import { CourseCreator } from '@/components/lms/CourseCreator';
 
-export default async function InstructorLmsPage() {
+const ALLOWED_ROLES = ['admin', 'staff', 'client_management'];
+
+export default async function StaffLMSPage() {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/auth/login');
@@ -14,14 +16,14 @@ export default async function InstructorLmsPage() {
     .eq('id', user.id)
     .single();
 
-  if (!profile) redirect('/auth/login');
+  if (!profile || !ALLOWED_ROLES.includes(profile.role)) redirect('/auth/login');
 
   return (
     <div className="p-6 lg:p-10 space-y-8">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-extrabold text-foreground tracking-tight">LMS Management</h1>
+        <h1 className="text-3xl font-extrabold text-foreground tracking-tight">LMS Repository</h1>
         <p className="text-foreground/60 max-w-xl">
-          Course creation portal for Master Instructors. Sequential learning paths are automatically generated from YouTube playlists.
+          Manage your sequential level courses here. Paste a YouTube playlist URL to automatically import videos.
         </p>
       </div>
 
