@@ -1,20 +1,43 @@
 @import "tailwindcss";
 
 :root {
-  /* Zen-minimalist Color Palette */
-  --foreground: #2d3748;
-  --background: #faf9f6; /* Off-white / Cream */
+  /* Zenith Ethereal Color Palette */
+  --foreground: #303330;
+  --background: #faf9f6;
   
-  --brand-blush: #f4e8e5; /* Soft blush */
-  --brand-rose: #e8c6c8; /* Deeper rose pastel */
-  --brand-sage: #e1e9e2; /* Soft sage green */
-  --brand-emerald: #10b981; /* Accent green */
-  --brand-sand: #f2efe9; /* Warm neutral */
+  --brand-primary: #bc162d;
+  --brand-primary-container: #f84651;
+  --brand-secondary: #755763;
+  --brand-secondary-container: #ffd8e7;
+  --brand-tertiary: #5a6343;
+  
+  --surface: #faf9f6;
+  --surface-container-low: #f4f4f0;
+  --surface-container-lowest: #ffffff;
+  --surface-container-highest: #e1e3de;
+
+  --outline-variant: #b0b3ae;
   
   --destructive-foreground: oklch(1 0 0);
 }
 
 .dark {
+  --foreground: #e1e3de;
+  --background: #0d0f0d;
+  
+  --brand-primary: #ff8993;
+  --brand-primary-container: #aa0023;
+  --brand-secondary: #f4b8ce;
+  --brand-secondary-container: #533743;
+  --brand-tertiary: #d4e0b5;
+
+  --surface: #141715;
+  --surface-container-low: #1a1e1b;
+  --surface-container-lowest: #0d0f0d;
+  --surface-container-highest: #303330;
+
+  --outline-variant: #5d605c;
+
   --destructive-foreground: oklch(1 0 0);
 }
 
@@ -57,6 +80,25 @@ body {
   --color-destructive-foreground: var(--destructive-foreground);
   --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-playfair), ui-serif, Georgia, serif;
+  
+  --color-primary: var(--brand-primary);
+  --color-primary-container: var(--brand-primary-container);
+  --color-secondary: var(--brand-secondary);
+  --color-secondary-container: var(--brand-secondary-container);
+  --color-tertiary: var(--brand-tertiary);
+  
+  --color-surface: var(--surface);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-surface-container-lowest: var(--surface-container-lowest);
+  --color-outline-variant: var(--outline-variant);
+  
+  /* Retain old brand colors for backward compatibility temporarily */
+  --color-brand-blush: #f4e8e5;
+  --color-brand-rose: #e8c6c8;
+  --color-brand-sage: #e1e9e2;
+  --color-brand-emerald: #10b981;
+  --color-brand-sand: #f2efe9;
 }
 
 /* Premium Liquid Glass Utilities */
@@ -91,30 +133,53 @@ body {
     position: fixed;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
     width: 140vw;
     height: 140vh;
     z-index: -1;
     background: 
-      radial-gradient(circle at 20% 30%, var(--brand-blush) 0%, transparent 40%),
-      radial-gradient(circle at 80% 20%, #FDF2F8 0%, transparent 40%),
-      radial-gradient(circle at 50% 80%, var(--brand-sand) 0%, transparent 50%),
-      radial-gradient(circle at 10% 90%, #F5F3FF 0%, transparent 30%);
-    filter: blur(80px);
-    animation: aurora-flow 25s infinite alternate ease-in-out;
-    opacity: 0.8;
+      radial-gradient(circle at 20% 30%, var(--brand-secondary-container) 0%, transparent 40%),
+      radial-gradient(circle at 80% 20%, var(--brand-primary-container) 0%, transparent 40%),
+      radial-gradient(circle at 50% 80%, var(--surface-container-highest) 0%, transparent 50%),
+      radial-gradient(circle at 10% 90%, var(--surface-container-low) 0%, transparent 30%);
+    filter: blur(100px);
+    animation: aurora-corner-1 15s infinite alternate ease-in-out;
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  .aura-glow-alt {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 140vw;
+    height: 140vh;
+    z-index: -1;
+    background: 
+      radial-gradient(circle at 50% 50%, var(--brand-primary-container) 0%, transparent 60%),
+      radial-gradient(circle at 10% 10%, var(--brand-secondary-container) 0%, transparent 40%);
+    filter: blur(120px);
+    animation: aurora-corner-2 20s infinite alternate-reverse ease-in-out;
+    opacity: 0.5;
+    pointer-events: none;
   }
 }
 
-@keyframes aurora-flow {
-  0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
-  33% { transform: translate(-45%, -55%) rotate(5deg) scale(1.1); }
-  66% { transform: translate(-55%, -45%) rotate(-5deg) scale(0.95); }
-  100% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+@keyframes aurora-corner-1 {
+  0% { transform: translate(-70%, -70%) rotate(0deg) scale(1.1); }
+  33% { transform: translate(-30%, -60%) rotate(30deg) scale(1.3); }
+  66% { transform: translate(-60%, -30%) rotate(-45deg) scale(1.2); }
+  100% { transform: translate(-30%, -30%) rotate(90deg) scale(1.4); }
+}
+
+@keyframes aurora-corner-2 {
+  0% { transform: translate(-30%, -30%) rotate(0deg) scale(1.2); }
+  50% { transform: translate(-70%, -60%) rotate(-60deg) scale(1.4); }
+  100% { transform: translate(-60%, -70%) rotate(45deg) scale(1.1); }
 }
 
 .text-gradient-rose {
   background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }

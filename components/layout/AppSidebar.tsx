@@ -19,6 +19,7 @@ import {
   X
 } from 'lucide-react';
 import type { Profile } from '@/types/database';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 // ── Context for sidebar state ──
 const SidebarContext = createContext({ collapsed: false, toggle: () => { } });
@@ -56,6 +57,7 @@ const navConfig = {
     { label: 'Chat', icon: MessageSquare, path: '/instructor/chat' },
     { label: 'Groups', icon: Users, path: '/staff/groups' },
     { label: 'Broadcast', icon: Megaphone, path: '/instructor/broadcast' },
+    { label: 'LMS', icon: BookOpen, path: '/instructor/lms' },
   ],
   client_management: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/staff/dashboard' },
@@ -93,21 +95,21 @@ export function AppSidebar({ user, activePlans = [], unreadNotificationsCount = 
 
   return (
     <SidebarContext.Provider value={{ collapsed, toggle: () => setCollapsed((p) => !p) }}>
-      <div className="flex min-h-screen bg-[#FAF9F6] selection:bg-[#e8c6c8] selection:text-[#1a1a1a]">
+      <div className="flex min-h-[100dvh] bg-background selection:bg-primary-container selection:text-primary">
         
         {/* Mobile Header (Hamburger Menu) */}
-        <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-xl border-b border-[#f4e8e5] z-40 flex items-center justify-between px-4">
+        <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-surface/80 backdrop-blur-2xl border-b border-outline-variant/10 z-40 flex items-center justify-between px-4 shadow-[0_4px_16px_rgba(0,0,0,0.02)]">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#f4e8e5] text-[#2d3748]">
-              <Flower2 className="h-5 w-5" />
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-secondary-container text-secondary shadow-sm ring-1 ring-secondary-container/50">
+              <Flower2 className="h-4 w-4" />
             </div>
-            <span className="text-lg font-serif font-bold tracking-tight text-gray-900">
+            <span className="text-lg font-bold tracking-tight text-foreground">
               Faceyoguez
             </span>
           </Link>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 -mr-2 text-gray-500 hover:text-gray-900 focus:outline-none"
+            className="p-2 -mr-2 text-foreground/50 hover:text-foreground focus:outline-none transition-colors"
             aria-label="Toggle menu"
           >
             {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -124,42 +126,42 @@ export function AppSidebar({ user, activePlans = [], unreadNotificationsCount = 
 
         {/* ── Sidebar ── */}
         <aside
-          className={`fixed inset-y-0 left-0 z-50 flex flex-col border-r border-[#f4e8e5] bg-white transition-all duration-300 ease-in-out
+          className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-surface-container-lowest/80 backdrop-blur-3xl ring-1 ring-outline-variant/10 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-all duration-300 ease-in-out
             ${collapsed ? 'w-[72px] hidden lg:flex' : 'w-72'} 
             ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           `}
         >
           {/* Logo Handle */}
-          <div className="flex h-[72px] shrink-0 items-center justify-between border-b border-[#f4e8e5] px-5">
+          <div className="flex h-[72px] shrink-0 items-center justify-between border-b border-outline-variant/10 px-5">
             <Link href="/" className="flex items-center gap-3 overflow-hidden">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#f4e8e5] text-[#2d3748]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-secondary-container text-secondary shadow-sm ring-1 ring-secondary-container/50">
                 <Flower2 className="h-5 w-5" />
               </div>
               {!collapsed && (
-                <span className="text-xl font-serif font-bold tracking-tight text-gray-900">
+                <span className="text-xl font-bold tracking-tight text-foreground">
                   Faceyoguez
                 </span>
               )}
             </Link>
             <button
               onClick={() => setCollapsed((p) => !p)}
-              className="hidden lg:flex h-8 w-8 items-center justify-center text-gray-400 transition-colors hover:text-gray-900"
+              className="hidden lg:flex h-8 w-8 items-center justify-center text-foreground/40 transition-colors hover:text-foreground"
               aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
               {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
             </button>
             <button
                onClick={() => setMobileMenuOpen(false)}
-               className="lg:hidden p-2 text-gray-400 hover:text-gray-900"
+               className="lg:hidden p-2 text-foreground/40 hover:text-foreground"
             >
                <X className="h-5 w-5" />
             </button>
           </div>
 
           {/* Nav Links */}
-          <nav className="flex-1 overflow-y-auto px-4 py-8">
+          <nav className="flex-1 overflow-y-auto px-4 py-8 custom-scrollbar">
             {!collapsed && (
-              <p className="mb-4 px-3 text-[11px] font-bold uppercase tracking-widest text-gray-400">
+              <p className="mb-4 px-3 text-[11px] font-bold uppercase tracking-widest text-foreground/40">
                 Menu
               </p>
             )}
@@ -182,31 +184,31 @@ export function AppSidebar({ user, activePlans = [], unreadNotificationsCount = 
                       href={isLocked ? '#' : path}
                       onClick={(e) => { if (isLocked) e.preventDefault(); }}
                       title={tooltipTitle}
-                      className={`group flex items-center gap-3.5 rounded-2xl px-3.5 py-3 text-sm font-medium transition-all duration-200 ${
+                      className={`group flex items-center gap-3.5 rounded-[1.25rem] px-3.5 py-3 text-[13px] font-semibold transition-all duration-200 ${
                         isActive
-                        ? 'bg-[#f4e8e5]/60 text-[#2d3748] shadow-sm font-semibold'
+                        ? 'bg-primary/10 text-primary shadow-[inset_0_2px_4px_rgba(255,255,255,0.5)] ring-1 ring-primary/20 backdrop-blur-md'
                         : isLocked
-                          ? 'text-gray-300 cursor-not-allowed bg-gray-50/50'
-                          : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                          ? 'text-foreground/30 cursor-not-allowed bg-surface-container/30'
+                          : 'text-foreground/60 hover:bg-surface-container-high/50 hover:text-foreground'
                         } ${collapsed ? 'justify-center' : ''}`}
                     >
                       <Icon
-                        className={`h-5 w-5 shrink-0 transition-colors ${
+                        className={`h-[18px] w-[18px] shrink-0 transition-all ${
                           isActive
-                          ? 'text-[#2d3748]'
+                          ? 'text-primary'
                           : isLocked
-                            ? 'text-gray-200'
-                            : 'text-gray-400 group-hover:text-gray-600'
+                            ? 'text-foreground/20'
+                            : 'text-foreground/40 group-hover:text-foreground/70'
                           }`}
                       />
                       {!collapsed && <span className="flex-1">{label}</span>}
                       {!collapsed && label === 'Broadcasts' && unreadNotificationsCount > 0 && (
-                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#e8c6c8] text-[#2d3748] text-[10px] font-bold">
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-error-container text-error text-[10px] font-bold shadow-sm ring-1 ring-error/20">
                           {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
                         </span>
                       )}
                       {collapsed && label === 'Broadcasts' && unreadNotificationsCount > 0 && (
-                        <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-[#e8c6c8] ring-2 ring-white"></span>
+                        <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-error shadow-sm ring-2 ring-surface-container-lowest"></span>
                       )}
                     </Link>
                   </li>
@@ -215,29 +217,33 @@ export function AppSidebar({ user, activePlans = [], unreadNotificationsCount = 
             </ul>
           </nav>
 
+          <div className="shrink-0 px-4 pb-2">
+            <ThemeToggle collapsed={collapsed} />
+          </div>
+
           {/* User Profile */}
-          <div className="shrink-0 border-t border-[#f4e8e5] p-4">
+          <div className="shrink-0 border-t border-outline-variant/10 p-4">
             <div
-              className={`flex items-center gap-3 rounded-2xl bg-[#faf9f6] p-3 border border-gray-100/50 shadow-sm ${collapsed ? 'justify-center' : ''
+              className={`flex items-center gap-3 rounded-[1.5rem] bg-surface-container-low/50 p-3 ring-1 ring-outline-variant/15 shadow-sm backdrop-blur-md transition-all hover:bg-surface-container-low/80 ${collapsed ? 'justify-center' : ''
                 }`}
             >
               {user.avatar_url ? (
                 <img
                   src={user.avatar_url}
                   alt={user.full_name}
-                  className="h-10 w-10 shrink-0 rounded-full object-cover ring-2 ring-white shadow-sm"
+                  className="h-10 w-10 shrink-0 rounded-[1rem] object-cover shadow-sm ring-1 ring-outline-variant/20"
                 />
               ) : (
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f4e8e5] text-sm font-bold text-[#2d3748] ring-2 ring-white shadow-sm">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] bg-secondary-container text-sm font-extrabold text-secondary shadow-sm ring-1 ring-secondary/20">
                   {user.full_name?.charAt(0)?.toUpperCase() || '?'}
                 </div>
               )}
               {!collapsed && (
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold text-gray-900">
+                  <p className="truncate text-[13px] font-extrabold text-foreground">
                     {user.full_name}
                   </p>
-                  <p className="text-[11px] font-medium capitalize text-gray-500 tracking-wide mt-0.5">
+                  <p className="text-[11px] font-medium capitalize text-foreground/50 tracking-wide mt-0.5">
                     {user.role === 'client_management' ? 'Client Management' : user.role.replace(/_/g, ' ')}
                   </p>
                 </div>
@@ -246,10 +252,10 @@ export function AppSidebar({ user, activePlans = [], unreadNotificationsCount = 
                 <form action="/auth/logout" method="post">
                   <button
                     type="submit"
-                    className="rounded-xl p-2 text-gray-400 transition-colors hover:bg-white hover:text-red-500 hover:shadow-sm"
+                    className="flex h-8 w-8 items-center justify-center rounded-[0.75rem] text-foreground/40 transition-colors hover:bg-surface hover:text-error hover:shadow-sm ring-1 ring-transparent hover:ring-outline-variant/10"
                     title="Log out"
                   >
-                    <LogOut className="h-4 w-4" />
+                    <LogOut className="h-[14px] w-[14px]" />
                   </button>
                 </form>
               )}
