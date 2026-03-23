@@ -4,7 +4,7 @@ import { StudentGroupHub } from './StudentGroupHub';
 import { getBatchResources } from '@/lib/actions/resources';
 import { getStudentWaitingStatus } from '@/lib/actions/batches';
 import type { Profile, Batch } from '@/types/database';
-import { Clock, Bell, Sparkles } from 'lucide-react';
+import { Clock, Bell, Sparkles, ChevronRight } from 'lucide-react';
 
 export default async function StudentGroupPage() {
     const supabase = await createServerSupabaseClient();
@@ -94,26 +94,31 @@ export default async function StudentGroupPage() {
 
     if (waitingStatus || activeSub) {
         return (
-            <div className="flex min-h-[60vh] items-center justify-center p-6">
-                <div className="w-full max-w-lg rounded-2xl border border-pink-100 bg-white/80 p-8 text-center shadow-lg backdrop-blur-xl">
-                    <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-pink-100 text-pink-500">
-                        <Clock className="h-8 w-8" />
+            <div className="flex min-h-[80vh] items-center justify-center p-8 animate-in fade-in duration-1000">
+                <div className="w-full max-w-xl rounded-[3rem] border border-outline-variant/10 bg-white shadow-2xl p-12 text-center space-y-8 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/10 via-primary to-primary/10" />
+                    
+                    <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[2rem] bg-foreground/5 text-foreground/20">
+                        <Clock className="h-10 w-10" />
                     </div>
-                    <h2 className="mb-2 text-xl font-bold text-gray-900">
-                        {waitingStatus ? "You're in the Queue!" : "Subscription Active!"}
-                    </h2>
-                    <p className="mb-6 text-sm text-gray-500 leading-relaxed">
-                        {waitingStatus 
-                            ? "A batch is currently in progress. You'll be automatically enrolled when the next batch starts."
-                            : "Your subscription is active! We're currently assigning you to a batch. You'll be notified as soon as you can join."
-                        }
-                        {" "}Your subscription will begin on the first day of your batch.
-                    </p>
-                    <div className="flex items-center justify-center gap-2 rounded-xl bg-pink-50 border border-pink-100 px-4 py-3">
-                        <Bell className="h-4 w-4 text-pink-500" />
-                        <p className="text-xs font-medium text-pink-600">
-                            You&apos;ll be notified via the platform once your batch assignment is complete.
+
+                    <div className="space-y-4">
+                        <h2 className="text-3xl font-serif font-bold text-foreground tracking-tight">
+                            {waitingStatus ? "Awaiting Resonance" : "Communion Active"}
+                        </h2>
+                        <p className="text-sm text-foreground/40 font-medium italic leading-relaxed max-w-sm mx-auto">
+                            {waitingStatus 
+                                ? "A batch is presently in flow. You will be automatically aligned with the next frequency when it manifests."
+                                : "Your frequency is active! We are currently assigning you to a batch node. You will be notified the moment of alignment."
+                            }
+                            <br /><br />
+                            Your cycle officially begins on the first day of your collective practice.
                         </p>
+                    </div>
+
+                    <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-primary/5 text-primary text-[10px] font-black uppercase tracking-widest border border-primary/10">
+                        <Bell className="h-3.5 w-3.5 animate-pulse" />
+                        Transmission Pending
                     </div>
                 </div>
             </div>
@@ -122,21 +127,25 @@ export default async function StudentGroupPage() {
 
     // No enrollment and not in queue — no group subscription
     return (
-        <div className="flex min-h-[60vh] items-center justify-center p-6">
-            <div className="w-full max-w-lg rounded-2xl border border-gray-100 bg-white/80 p-8 text-center shadow-lg backdrop-blur-xl">
-                <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100 text-gray-400">
-                    <Sparkles className="h-8 w-8" />
+        <div className="flex min-h-[80vh] items-center justify-center p-8 animate-in fade-in duration-1000">
+            <div className="w-full max-w-xl rounded-[3rem] border border-outline-variant/10 bg-white shadow-2xl p-12 text-center space-y-8">
+                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[2rem] bg-foreground/5 text-foreground/20">
+                    <Sparkles className="h-10 w-10" />
                 </div>
-                <h2 className="mb-2 text-xl font-bold text-gray-900">No Active Group Session</h2>
-                <p className="mb-6 text-sm text-gray-500 leading-relaxed">
-                    You don&apos;t have an active group session subscription. Purchase a plan to join the next batch!
-                </p>
+
+                <div className="space-y-4">
+                    <h2 className="text-3xl font-serif font-bold text-foreground tracking-tight">Sacred Collective</h2>
+                    <p className="text-sm text-foreground/40 font-medium italic leading-relaxed max-w-sm mx-auto">
+                        You have not yet joined a group frequency. Embark on a collective journey of transformation by selecting a resonance.
+                    </p>
+                </div>
+
                 <a
                     href="/student/plans"
-                    className="inline-flex items-center gap-2 rounded-xl bg-pink-500 px-6 py-3 text-sm font-bold text-white shadow-md transition-all hover:bg-pink-600 hover:shadow-lg"
+                    className="inline-flex h-14 items-center gap-3 rounded-2xl bg-foreground px-10 text-[10px] font-black uppercase tracking-[0.2em] text-background shadow-xl hover:scale-105 active:scale-95 transition-all"
                 >
-                    <Sparkles className="h-4 w-4" />
-                    View Plans
+                    Explore Resonances
+                    <ChevronRight className="h-4 w-4" />
                 </a>
             </div>
         </div>

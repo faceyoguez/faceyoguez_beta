@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
-import { Users, Video, Sparkles, Clock, Calendar, ChevronRight, UserPlus, Shield } from 'lucide-react';
+import { Users, Video, Sparkles, Clock, Calendar, ChevronRight, UserPlus, Shield, ArrowUpRight, TrendingUp } from 'lucide-react';
 import { format, startOfMonth, startOfDay, endOfDay, addMinutes } from 'date-fns';
 import Link from 'next/link';
 
@@ -22,37 +22,29 @@ export default async function InstructorDashboardPage() {
   const isMaster = profile.is_master_instructor;
   const firstName = profile.full_name?.split(' ')[0] || 'Instructor';
 
-  // ─── 2. Statistics (Platform-Wide) ───────────────────────────────
-  // Total 1-on-1 Students
+  // ─── 2. Statistics ───────────────────────────────────────────────
   const { count: totalOneOnOne } = await admin
     .from('subscriptions')
     .select('*', { count: 'exact', head: true })
     .eq('plan_type', 'one_on_one')
     .in('status', ['active', 'pending']);
 
-  // Total Group Students (active enrollments)
   const { count: totalGroup } = await admin
     .from('batch_enrollments')
     .select('*', { count: 'exact', head: true })
     .in('status', ['active', 'extended']);
 
-  // Joinees logic: fetch all subscriptions created this month
   const startOfThisMonth = startOfMonth(new Date()).toISOString();
   const { data: recentSubs } = await admin
     .from('subscriptions')
     .select('student_id, created_at')
     .gte('created_at', startOfThisMonth);
 
-  // To figure out new vs rejoinee, we ideally check if the student had a previous subscription
-  // For a fast approximation: count how many unique student_ids exist.
-  // Then check if those student_ids have any subscription created BEFORE this month.
   let newJoineesCount = 0;
   let rejoineesCount = 0;
 
   if (recentSubs && recentSubs.length > 0) {
     const recentStudentIds = [...new Set(recentSubs.map(s => s.student_id))];
-    
-    // Find past subscriptions for these students
     const { data: pastSubs } = await admin
       .from('subscriptions')
       .select('student_id')
@@ -60,13 +52,9 @@ export default async function InstructorDashboardPage() {
       .lt('created_at', startOfThisMonth);
 
     const studentsWithPastData = new Set((pastSubs || []).map(s => s.student_id));
-
     recentStudentIds.forEach(id => {
-      if (studentsWithPastData.has(id)) {
-        rejoineesCount++;
-      } else {
-        newJoineesCount++;
-      }
+      if (studentsWithPastData.has(id)) rejoineesCount++;
+      else newJoineesCount++;
     });
   }
 
@@ -77,7 +65,7 @@ export default async function InstructorDashboardPage() {
   const { data: todaysMeetingsRaw } = await admin
     .from('meetings')
     .select('*')
-    .eq('host_id', user.id) // Instructor's own meetings
+    .eq('host_id', user.id)
     .gte('start_time', todayStart)
     .lte('start_time', todayEnd)
     .order('start_time', { ascending: true });
@@ -85,7 +73,6 @@ export default async function InstructorDashboardPage() {
   const todaysMeetings = todaysMeetingsRaw || [];
 
   // ─── 4. New Allocations (1-on-1) ─────────────────────────────────
-  // Subscriptions assigned to THIS instructor recently
   const { data: newAllocations } = await admin
     .from('subscriptions')
     .select(`
@@ -99,16 +86,15 @@ export default async function InstructorDashboardPage() {
     `)
     .eq('assigned_instructor_id', user.id)
     .eq('plan_type', 'one_on_one')
-    .gte('created_at', startOfThisMonth) // E.g., allocated this month
+    .gte('created_at', startOfThisMonth)
     .order('created_at', { ascending: false })
     .limit(5);
 
-  // ─── 5. Master Overview (Team Management) ────────────────────────
+  // ─── 5. Master Overview ───────────────────────────────
   let activeBatches: any[] = [];
   let instructorAllocations: any[] = [];
 
   if (isMaster) {
-    // A) Group Sessions handled by instructors
     const { data: batches } = await admin
       .from('batches')
       .select(`
@@ -124,8 +110,6 @@ export default async function InstructorDashboardPage() {
       .not('instructor_id', 'is', null);
     activeBatches = batches || [];
 
-    // B) 1-on-1 Students handled by instructors
-    // Group active 1-on-1s by instructor
     const { data: active1on1Subs } = await admin
       .from('subscriptions')
       .select(`
@@ -138,8 +122,6 @@ export default async function InstructorDashboardPage() {
       .eq('plan_type', 'one_on_one')
       .in('status', ['active', 'pending'])
       .not('assigned_instructor_id', 'is', null);
-
-    // Grouping logic
     const instructorMap = new Map();
     (active1on1Subs || []).forEach(sub => {
       const instructorId = sub.assigned_instructor_id;
@@ -154,7 +136,6 @@ export default async function InstructorDashboardPage() {
     instructorAllocations = Array.from(instructorMap.values());
   }
 
-  // ─── Helpers ─────────────────────────────────────────────────────
   const now = new Date();
   function isMeetingLive(startTime: string, durationMinutes: number) {
     const start = new Date(startTime);
@@ -166,97 +147,85 @@ export default async function InstructorDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6] p-4 sm:p-6 lg:p-10 space-y-8 font-sans pb-24 lg:pb-10">
+    <div className="min-h-screen bg-background p-6 lg:p-12 space-y-12 font-sans overflow-hidden animate-in fade-in duration-1000">
       
-      {/* 1. Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#2d3748] tracking-tight flex items-center gap-2">
-            Welcome back, {isMaster ? 'Master Instructor' : 'Instructor'} {firstName}
-            <span className="inline-block animate-pulse">✨</span>
+      {/* 1. Header Section */}
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
+        <div className="space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold tracking-widest uppercase border border-primary/10">
+            <TrendingUp className="w-3 h-3" />
+            Instructor Portal
+          </div>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-foreground tracking-tight">
+            Greetings, {firstName}
           </h1>
-          <p className="mt-2 text-sm text-gray-500 font-medium italic flex items-center gap-1.5">
-            <Sparkles className="w-4 h-4 text-emerald-500" />
-            "Empowering transformations, one face at a time."
+          <p className="text-lg text-foreground/40 italic font-medium max-w-lg">
+            &quot;Empowering transformations, one face at a time.&quot;
           </p>
         </div>
         
         {isMaster && (
-          <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 rounded-full border border-amber-200 shadow-sm text-sm font-semibold text-amber-700">
-            <Shield className="w-4 h-4" />
-            Master Privileges Active
+          <div className="flex items-center gap-3 px-6 py-3 bg-white shadow-sm rounded-3xl border border-primary/10 group">
+            <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover:rotate-12 transition-transform">
+              <Shield className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-[9px] font-bold text-primary/50 uppercase tracking-widest leading-none">Status</p>
+              <p className="text-sm font-bold text-foreground/80">Master Instructor</p>
+            </div>
           </div>
         )}
+      </header>
+
+      {/* 2. Platform Statistics */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
+        {[
+          { icon: Users, label: '1-on-1 Portfolio', val: totalOneOnOne || 0, color: 'text-primary', bg: 'bg-primary/5', sub: 'Total Clients' },
+          { icon: Sparkles, label: 'Group Reach', val: totalGroup || 0, color: 'text-primary', bg: 'bg-primary/5', sub: 'Active Students' },
+          { icon: UserPlus, label: 'New Joinees', val: newJoineesCount, color: 'text-primary', bg: 'bg-primary/5', sub: 'This Month' },
+          { icon: TrendingUp, label: 'Rejoinees', val: rejoineesCount, color: 'text-primary', bg: 'bg-primary/5', sub: 'Returning Clients' }
+        ].map((stat, i) => (
+          <div key={i} className="rounded-3xl p-8 border border-primary/5 hover:border-primary/20 transition-all duration-500 group flex flex-col justify-between shadow-sm bg-white/60 backdrop-blur-xl">
+            <div className="flex items-center gap-4 mb-6">
+              <div className={`h-12 w-12 rounded-xl ${stat.bg} flex items-center justify-center ${stat.color} group-hover:scale-110 transition-transform`}>
+                <stat.icon className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest leading-none mb-1">{stat.label}</h3>
+                <p className="text-3xl font-black text-foreground tracking-tighter">{stat.val}</p>
+              </div>
+            </div>
+            <p className="text-[9px] font-bold text-foreground/20 uppercase tracking-widest truncate">{stat.sub}</p>
+          </div>
+        ))}
       </div>
 
-      {/* 2. Key Statistics (Platform view for Masters, or broad overview) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {/* Total 1-on-1 */}
-        <div className="bg-white/80 backdrop-blur-3xl rounded-[2rem] p-6 shadow-sm border border-[#f4e8e5] transition-shadow">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-emerald-50 rounded-lg">
-              <Users className="w-5 h-5 text-emerald-600" />
-            </div>
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Total 1-on-1</h3>
-          </div>
-          <p className="text-2xl font-bold text-gray-900 ml-11">{totalOneOnOne || 0}</p>
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 relative z-10">
         
-        {/* Total Group Students */}
-        <div className="bg-white/80 backdrop-blur-3xl rounded-[2rem] p-6 shadow-sm border border-[#f4e8e5] transition-shadow">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-indigo-50 rounded-lg">
-              <Users className="w-5 h-5 text-indigo-600" />
-            </div>
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Group Students</h3>
-          </div>
-          <p className="text-2xl font-bold text-gray-900 ml-11">{totalGroup || 0}</p>
-        </div>
-
-        {/* New Joinees */}
-        <div className="bg-white/80 backdrop-blur-3xl rounded-[2rem] p-6 shadow-sm border border-[#f4e8e5] transition-shadow">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-blue-50 rounded-lg">
-              <UserPlus className="w-5 h-5 text-blue-600" />
-            </div>
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">New Joinees</h3>
-          </div>
-          <p className="text-2xl font-bold text-gray-900 ml-11">{newJoineesCount}</p>
-          <p className="text-xs text-gray-400 ml-11 mt-0.5">This Month</p>
-        </div>
-
-        {/* Rejoinees */}
-        <div className="bg-white/80 backdrop-blur-3xl rounded-[2rem] p-6 shadow-sm border border-[#f4e8e5] transition-shadow">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-rose-50 rounded-lg">
-              <Sparkles className="w-5 h-5 text-rose-600" />
-            </div>
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Rejoinees</h3>
-          </div>
-          <p className="text-2xl font-bold text-gray-900 ml-11">{rejoineesCount}</p>
-          <p className="text-xs text-gray-400 ml-11 mt-0.5">This Month</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Left Column (Meetings & Team Overview) */}
-        <div className="lg:col-span-2 space-y-8">
+        {/* Left Section (Sessions & Team) */}
+        <div className="lg:col-span-8 space-y-10">
           
-          {/* 3. Today's Meetings */}
-          <section className="bg-white rounded-[2rem] p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[#f4e8e5]">
-             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-2">
-              <h2 className="text-2xl font-serif font-bold text-[#2d3748]">Today's Sessions</h2>
-              <span className="text-sm text-gray-400 font-medium">
-                {format(now, 'EEEE, MMM d')}
-              </span>
+          {/* 3. Today's Sessions */}
+          <section className="rounded-3xl p-8 md:p-12 border border-primary/5 bg-white/60 backdrop-blur-xl shadow-sm">
+            <div className="flex items-center justify-between mb-10">
+              <div className="space-y-1">
+                <h2 className="text-3xl font-serif font-bold text-foreground">Today&apos;s Sessions</h2>
+                <div className="h-1 w-10 bg-primary/30 rounded-full" />
+              </div>
+              <div className="px-4 py-2 bg-white/80 backdrop-blur-md rounded-2xl border border-primary/5 shadow-sm">
+                <span className="text-xs font-bold text-primary/40 uppercase tracking-widest">
+                  {format(now, 'EEEE, MMM d')}
+                </span>
+              </div>
             </div>
 
             {todaysMeetings.length === 0 ? (
-               <div className="text-center py-10 text-gray-400">
-                <Calendar className="w-10 h-10 mx-auto mb-3 text-gray-300" />
-                <p className="font-medium">No sessions to host today</p>
-                <p className="text-sm mt-1">Enjoy your schedule! ✨</p>
+              <div className="text-center py-20 bg-background/20 rounded-3xl border border-dashed border-primary/20">
+                <div className="h-16 w-16 bg-white/50 backdrop-blur-md rounded-full flex items-center justify-center mx-auto mb-6 text-primary/10">
+                  <Calendar className="w-8 h-8" />
+                </div>
+                <p className="text-xl font-bold text-foreground/30 tracking-tight">No sessions hosted today</p>
+                <p className="text-foreground/10 font-bold mt-1 uppercase text-[9px] tracking-widest">A moment for deep preparation</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -266,191 +235,194 @@ export default async function InstructorDashboardPage() {
                   const isOneOnOne = meeting.meeting_type === 'one_on_one';
                   
                   return (
-                     <div key={meeting.id} className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-2xl border gap-4 transition-all ${
-                        isLive ? 'border-emerald-200 bg-emerald-50/50 shadow-md' : 'border-gray-100 bg-gray-50/50 hover:bg-white hover:shadow-md'
-                      }`}>
-                         <div className="flex items-start gap-4">
-                           <div className={`p-3 rounded-xl flex-shrink-0 ${isOneOnOne ? 'bg-indigo-100' : 'bg-emerald-100'}`}>
-                              <Video className={`w-6 h-6 ${isOneOnOne ? 'text-indigo-600' : 'text-emerald-600'}`} />
-                           </div>
-                           <div>
-                             <div className="flex items-center gap-2">
-                                <h4 className="font-bold text-gray-900">{meeting.topic}</h4>
-                                {isLive && (
-                                  <span className="px-2 py-0.5 bg-emerald-500 text-white text-xs font-bold rounded-full animate-pulse">LIVE</span>
-                                )}
-                             </div>
-                             <p className="text-sm text-gray-500 mt-1 flex items-center gap-2 font-medium">
-                                <Clock className="w-4 h-4" />
-                                {format(new Date(meeting.start_time), 'h:mm a')} – {format(addMinutes(new Date(meeting.start_time), meeting.duration_minutes), 'h:mm a')}
-                             </p>
-                             <span className={`inline-block text-xs mt-1.5 px-2 py-0.5 rounded-full font-semibold ${
-                                isOneOnOne ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'
-                              }`}>
-                                {isOneOnOne ? '1-on-1' : 'Group Session'}
+                    <div key={meeting.id} className={`flex flex-col sm:flex-row sm:items-center justify-between p-6 sm:p-8 rounded-3xl transition-all duration-500 border ${
+                      isLive ? 'border-primary/40 bg-primary/5 shadow-md shadow-primary/5' : 'border-primary/5 bg-white/40 backdrop-blur-md hover:bg-white hover:border-primary/20'
+                    }`}>
+                      <div className="flex items-start gap-6">
+                        <div className={`h-14 w-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm bg-primary/10 text-primary`}>
+                          <Video className="w-7 h-7" />
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center flex-wrap gap-2">
+                            <h4 className="text-2xl font-bold tracking-tight text-foreground">{meeting.topic}</h4>
+                            {isLive && (
+                              <span className="px-3 py-1 bg-primary text-white text-[9px] font-bold tracking-widest uppercase rounded-full animate-pulse shadow-sm">
+                                HOSTING NOW
                               </span>
-                           </div>
-                         </div>
-                         
-                         {(isLive || isUpcoming) ? (
-                            <a href={meeting.start_url || meeting.join_url} target="_blank" rel="noopener noreferrer"
-                               className={`w-full sm:w-auto px-6 py-2.5 text-center font-medium rounded-xl transition-colors shadow-sm flex-shrink-0 ${
-                                isLive ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-gray-900 text-white hover:bg-gray-800'
-                               }`}>
-                              Start Meeting
-                            </a>
-                         ) : (
-                           <span className="w-full sm:w-auto px-6 py-2.5 text-center bg-gray-100 text-gray-400 font-medium rounded-xl flex-shrink-0">
-                              Ended
-                            </span>
-                         )}
-                     </div>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-4 text-xs font-bold text-foreground/40">
+                             <div className="flex items-center gap-1.5 uppercase tracking-widest">
+                               <Clock className="w-3.5 h-3.5" />
+                               {format(new Date(meeting.start_time), 'h:mm a')} – {format(addMinutes(new Date(meeting.start_time), meeting.duration_minutes), 'h:mm a')}
+                             </div>
+                             <span className="h-1 w-1 rounded-full bg-primary/10" />
+                             <span className={`uppercase tracking-widest text-[9px] font-bold text-primary`}>
+                                {isOneOnOne ? '1-on-1' : 'Group Session'}
+                             </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-6 sm:mt-0">
+                        {(isLive || isUpcoming) ? (
+                           <a href={meeting.start_url || meeting.join_url} target="_blank" rel="noopener noreferrer"
+                               className="px-8 py-3.5 bg-foreground text-background font-bold text-xs uppercase tracking-widest rounded-2xl transition-all shadow-lg hover:scale-105 active:scale-95 block text-center min-w-[140px]">
+                             Start Room
+                           </a>
+                        ) : (
+                          <div className="px-8 py-3 bg-foreground/5 text-foreground/20 font-bold rounded-2xl uppercase tracking-widest text-[9px]">
+                            Archived
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   );
                 })}
               </div>
             )}
           </section>
 
-          {/* 5. Master Overview (Team Management) */}
+          {/* 5. Master View: Team Management */}
           {isMaster && (
-            <section className="bg-white rounded-[2rem] p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-[#f4e8e5]">
-               <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-2">
-                <h2 className="text-2xl font-serif font-bold text-[#2d3748]">Instructor Overview</h2>
-                <button className="text-sm text-emerald-600 font-medium hover:text-emerald-700 flex items-center gap-1">
-                  View All Team <ChevronRight className="w-4 h-4" />
-                </button>
+            <section className="bg-white/60 backdrop-blur-2xl rounded-3xl p-8 md:p-12 border border-primary/5 shadow-sm transition-all duration-500 hover:shadow-md">
+              <div className="flex items-center justify-between mb-10">
+                <div className="space-y-1">
+                  <h2 className="text-3xl font-serif font-bold text-foreground">Instructor Ecosystem</h2>
+                  <div className="h-1 w-10 bg-primary/30 rounded-full" />
+                </div>
+                <Link href="/staff/groups" className="text-[10px] font-bold text-primary uppercase tracking-widest hover:underline italic">
+                  Advanced Controls
+                </Link>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                
-                {/* Group Classes Handling */}
-                <div className="border border-gray-100 rounded-2xl p-4 bg-slate-50/50">
-                  <h3 className="text-sm font-bold text-gray-700 mb-3 border-b border-gray-100 pb-2">Group Classes</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Group Classes */}
+                <div className="space-y-6">
+                  <h3 className="text-[9px] font-bold text-primary/40 uppercase tracking-widest ml-2 italic">Active Batches</h3>
                   {activeBatches.length > 0 ? (
                     <div className="space-y-3">
                       {activeBatches.map(batch => (
-                        <div key={batch.id} className="flex items-center justify-between">
+                        <div key={batch.id} className="flex items-center justify-between p-4 bg-white/80 rounded-2xl border border-primary/5 hover:border-primary/20 transition-all duration-500 group shadow-sm">
                           <div className="flex items-center gap-3">
-                             <div className="w-8 h-8 rounded-full bg-emerald-100 overflow-hidden flex-shrink-0">
+                             <div className="w-10 h-10 rounded-full bg-primary/5 overflow-hidden ring-2 ring-white shadow-sm">
                                 {batch.instructor?.avatar_url ? (
-                                  <img src={batch.instructor.avatar_url} alt="" className="w-full h-full object-cover" />
+                                  <img src={batch.instructor.avatar_url} alt="" className="w-full h-full object-cover grayscale" />
                                 ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-emerald-700 font-bold text-xs">
+                                  <div className="w-full h-full flex items-center justify-center text-primary/30 font-bold text-xs">
                                     {batch.instructor?.full_name?.charAt(0) || '?'}
                                   </div>
                                 )}
                              </div>
-                             <div>
-                               <p className="text-sm font-semibold text-gray-900 truncate max-w-[120px]">{batch.instructor?.full_name || 'Unknown'}</p>
-                               <p className="text-xs text-gray-500 truncate max-w-[120px]">{batch.name}</p>
+                             <div className="min-w-0">
+                               <p className="text-sm font-bold text-foreground truncate">{batch.instructor?.full_name || 'Unknown'}</p>
+                               <p className="text-[9px] text-foreground/40 font-bold uppercase tracking-widest truncate italic">{batch.name}</p>
                              </div>
                           </div>
-                          <span className="text-xs font-semibold bg-white border border-gray-100 px-2 py-1 rounded-lg text-gray-600">
-                            👤 {batch.current_students}
-                          </span>
+                          <div className="px-3 py-1 bg-primary/10 text-primary text-[9px] font-bold uppercase tracking-widest rounded-lg border border-primary/10">
+                            {batch.current_students} Students
+                          </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-gray-400 italic">No active group sessions.</p>
+                    <p className="text-[10px] text-foreground/20 font-bold italic ml-2 uppercase tracking-widest">No active group sessions.</p>
                   )}
                 </div>
 
-                {/* 1-on-1 Tagging */}
-                 <div className="border border-gray-100 rounded-2xl p-4 bg-slate-50/50">
-                  <h3 className="text-sm font-bold text-gray-700 mb-3 border-b border-gray-100 pb-2">1-on-1 Portfolios</h3>
+                {/* 1-on-1 Portfolio */}
+                <div className="space-y-6">
+                  <h3 className="text-[9px] font-bold text-primary/40 uppercase tracking-widest ml-2 italic">1-on-1 Portfolios</h3>
                   {instructorAllocations.length > 0 ? (
                     <div className="space-y-3">
                       {instructorAllocations.map((alloc, idx) => (
-                        <div key={idx} className="flex items-center justify-between">
+                        <div key={idx} className="flex items-center justify-between p-4 bg-white/80 rounded-2xl border border-primary/5 hover:border-primary/20 transition-all duration-500 group shadow-sm">
                            <div className="flex items-center gap-3">
-                             <div className="w-8 h-8 rounded-full bg-indigo-100 overflow-hidden flex-shrink-0">
+                             <div className="w-10 h-10 rounded-full bg-primary/5 overflow-hidden ring-2 ring-white shadow-sm">
                                 {alloc.instructor?.avatar_url ? (
-                                  <img src={alloc.instructor.avatar_url} alt="" className="w-full h-full object-cover" />
+                                  <img src={alloc.instructor.avatar_url} alt="" className="w-full h-full object-cover grayscale" />
                                 ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-indigo-700 font-bold text-xs">
+                                  <div className="w-full h-full flex items-center justify-center text-primary/30 font-bold text-xs">
                                     {alloc.instructor?.full_name?.charAt(0) || '?'}
                                   </div>
                                 )}
                              </div>
-                             <div>
-                               <p className="text-sm font-semibold text-gray-900 truncate max-w-[120px]">{alloc.instructor?.full_name || 'Unknown'}</p>
-                               <p className="text-xs text-gray-500">1-on-1 Sessions</p>
+                             <div className="min-w-0">
+                               <p className="text-sm font-bold text-foreground truncate">{alloc.instructor?.full_name || 'Unknown'}</p>
+                               <p className="text-[9px] text-foreground/40 font-bold uppercase tracking-widest italic">Private Coaching</p>
                              </div>
                           </div>
-                          <span className="text-xs font-semibold bg-white border border-gray-100 px-2 py-1 rounded-lg text-gray-600">
-                            👤 {alloc.studentCount} Tagged
-                          </span>
+                          <div className="px-3 py-1 bg-primary/10 text-primary text-[9px] font-bold uppercase tracking-widest rounded-lg border border-primary/10">
+                            {alloc.studentCount} Active
+                          </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-gray-400 italic">No assigned 1-on-1s.</p>
+                    <p className="text-[10px] text-foreground/20 font-bold italic ml-2 uppercase tracking-widest">No assigned 1-on-1s.</p>
                   )}
                 </div>
-
               </div>
             </section>
           )}
 
         </div>
 
-        {/* Right Column (Allocations) */}
-        <div className="lg:col-span-1">
-          {/* 4. Newly Assigned Allocations */}
-          <section className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 h-full flex flex-col">
-            <div className="flex items-center justify-between mb-4 border-b border-gray-50 pb-4">
-              <div>
-                <h2 className="text-lg font-bold text-gray-900">Newly Assigned</h2>
-                <p className="text-xs text-gray-500 font-medium mt-0.5">Your 1-on-1 Students</p>
-              </div>
+        {/* Right Section (New Students) */}
+        <div className="lg:col-span-4">
+          <section className="rounded-3xl p-8 border border-primary/5 h-full flex flex-col bg-white/60 backdrop-blur-xl shadow-sm">
+            <div className="space-y-1 mb-10">
+              <h2 className="text-2xl font-serif font-bold text-foreground">New Arrivals</h2>
+              <div className="h-1 w-10 bg-primary/30 rounded-full" />
             </div>
 
-            <div className="space-y-3 flex-1">
+            <div className="space-y-4 flex-1">
               {!newAllocations || newAllocations.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-gray-400 py-8">
-                  <UserPlus className="w-8 h-8 text-gray-200 mb-2" />
-                  <p className="text-sm text-center">No new students assigned<br/>this month.</p>
+                <div className="flex flex-col items-center justify-center py-24 text-center space-y-4 opacity-10 grayscale">
+                  <UserPlus className="w-12 h-12 text-primary" />
+                  <p className="text-[9px] font-bold text-foreground uppercase tracking-widest">Awaiting Allocations</p>
                 </div>
               ) : (
                 newAllocations.map(alloc => {
                   const student = Array.isArray(alloc.student) ? alloc.student[0] : alloc.student;
                   return (
-                  <div key={alloc.id} className="p-3 bg-gray-50/50 rounded-xl border border-gray-100 flex items-center justify-between hover:bg-white transition-colors group">
-                    <div className="flex items-center gap-3">
-                       <div className="w-10 h-10 rounded-full bg-emerald-100 overflow-hidden flex-shrink-0">
-                          {student?.avatar_url ? (
-                            <img src={student.avatar_url} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-emerald-700 font-bold text-sm">
-                               {student?.full_name?.charAt(0) || '?'}
+                    <div key={alloc.id} className="p-5 bg-white/80 border border-primary/5 rounded-3xl flex items-center justify-between hover:border-primary/20 transition-all duration-500 group shadow-sm">
+                      <div className="flex items-center gap-4">
+                         <div className="w-12 h-12 rounded-2xl bg-white shadow-sm overflow-hidden p-0.5 border border-primary/10">
+                            <div className="w-full h-full rounded-[0.9rem] overflow-hidden bg-primary/5 flex items-center justify-center">
+                              {student?.avatar_url ? (
+                                <img src={student.avatar_url} alt="" className="w-full h-full object-cover grayscale" />
+                              ) : (
+                                <span className="text-primary/30 font-bold text-xs">{student?.full_name?.charAt(0)}</span>
+                              )}
                             </div>
-                          )}
-                       </div>
-                       <div>
-                         <p className="text-sm font-bold text-gray-900">{student?.full_name || 'Unknown'}</p>
-                         <p className="text-xs text-gray-500">Starts {alloc.start_date ? format(new Date(alloc.start_date), 'MMM d') : 'Pending'}</p>
-                       </div>
+                         </div>
+                         <div>
+                           <p className="text-sm font-bold text-foreground">{student?.full_name || 'Anonymous'}</p>
+                           <p className="text-[9px] font-bold text-primary uppercase tracking-widest italic">
+                             Starts {alloc.start_date ? format(new Date(alloc.start_date), 'MMM d') : '—'}
+                           </p>
+                         </div>
+                      </div>
+                      <Link href="/instructor/one-on-one" className="h-10 w-10 flex items-center justify-center rounded-xl bg-foreground text-background shadow-lg opacity-0 group-hover:opacity-100 transition-all scale-75 group-hover:scale-100">
+                        <ArrowUpRight className="w-4 h-4 text-primary" />
+                      </Link>
                     </div>
-                    
-                    <button className="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-gray-200 text-gray-500 group-hover:bg-emerald-50 group-hover:text-emerald-600 group-hover:border-emerald-200 transition-colors">
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                )})
+                  )
+                })
               )}
             </div>
 
-            <div className="mt-6 pt-4 border-t border-gray-50">
-              <Link href="/instructor/one-on-one" className="block w-full text-center py-2.5 text-sm font-bold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition-colors">
-                Manage Portfolio
+            <div className="mt-10 pt-8 border-t border-primary/10">
+              <Link href="/instructor/one-on-one" className="flex items-center justify-center gap-3 py-5 bg-foreground text-background font-bold uppercase tracking-widest text-[10px] rounded-2xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all">
+                Open Client Hub
+                <ChevronRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           </section>
         </div>
 
       </div>
-
     </div>
   );
 }

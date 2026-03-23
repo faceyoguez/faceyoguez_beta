@@ -282,7 +282,7 @@ export function StepperIndicator({ children, className }: React.ComponentProps<'
             data-slot="stepper-indicator"
             data-state={state}
             className={cn(
-                'relative flex items-center overflow-hidden justify-center size-8 md:size-10 shrink-0 border-background bg-gray-100 text-gray-500 rounded-full text-xs font-bold data-[state=completed]:bg-pink-100 data-[state=completed]:text-pink-600 data-[state=active]:bg-white data-[state=active]:border-2 data-[state=active]:border-pink-500 data-[state=active]:text-pink-600 shadow-sm transition-all',
+                'relative flex items-center overflow-hidden justify-center size-8 md:size-10 shrink-0 border-background bg-primary/5 text-primary/40 rounded-full text-xs font-bold data-[state=completed]:bg-primary/20 data-[state=completed]:text-primary data-[state=active]:bg-white data-[state=active]:border-2 data-[state=active]:border-primary data-[state=active]:text-primary shadow-sm transition-all',
                 className,
             )}
         >
@@ -321,7 +321,7 @@ export function StepperTitle({ children, className }: React.ComponentProps<'h3'>
     const { state } = useStepItem();
 
     return (
-        <h3 data-slot="stepper-title" data-state={state} className={cn('text-xs font-bold leading-none mt-2 transition-colors', state === 'active' ? 'text-pink-600' : state === 'completed' ? 'text-gray-700' : 'text-gray-400', className)}>
+        <h3 data-slot="stepper-title" data-state={state} className={cn('text-xs font-bold leading-none mt-2 transition-colors', state === 'active' ? 'text-primary' : state === 'completed' ? 'text-foreground/60' : 'text-foreground/20', className)}>
             {children}
         </h3>
     );

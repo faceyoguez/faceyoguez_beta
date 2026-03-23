@@ -65,24 +65,24 @@ export default async function StudentLmsPage() {
   }) || [];
 
   return (
-    <div className="p-6 lg:p-10 space-y-10 min-h-screen pb-24 lg:pb-10">
-      <header className="space-y-4 max-w-2xl">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-brand-primary/10 flex items-center justify-center text-brand-primary shadow-sm ring-1 ring-brand-primary/20">
-            <BookOpen className="w-6 h-6" />
-          </div>
-          <h1 className="text-3xl font-extrabold text-foreground tracking-tight">LMS Learning Platform</h1>
+    <div className="p-6 lg:p-10 space-y-10 min-h-screen bg-transparent pb-24 lg:pb-10 font-sans relative">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
+      
+      <header className="flex flex-col items-center text-center space-y-4 relative z-10 py-12 md:py-16 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-primary/10 text-primary text-[10px] font-bold tracking-[0.2em] uppercase shadow-sm">
+          <BookOpen className="w-3.5 h-3.5" />
+          Learning Path
         </div>
-        <p className="text-foreground/60 leading-relaxed font-medium">
-          Welcome back to your practice. Follow your assigned sequential path to master the art of Face Yoga effectively.
+        <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-black text-foreground tracking-tight leading-none max-w-3xl">
+          The Curriculum
+        </h1>
+        <p className="text-lg text-foreground/50 italic font-medium max-w-xl">
+          Follow your sequential path to master structural renewal and the art of Face Yoga.
         </p>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10 animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-200 lg:px-12">
         {courseStatus.map((course, index) => {
-          // Logic:
-          // Level 1: Unlocked if they have ANY active subscription OR are Admin/Staff
-          // Level 2: Unlocked if they have Level 2 in variant (or Admin) AND Level 1 is fully completed (or Admin)
           let isUnlocked = false;
           
           if (course.level === 1) {
@@ -90,7 +90,6 @@ export default async function StudentLmsPage() {
           } else if (course.level === 2) {
             const level1Course = courseStatus.find(c => c.level === 1);
             const level1Completed = level1Course?.isFullyCompleted || false;
-            // Admins bypass both the sub check and the completion check for Level 2
             isUnlocked = isAdmin || (hasActiveSub && hasLevel2 && level1Completed);
           }
 
@@ -111,26 +110,27 @@ export default async function StudentLmsPage() {
 
         {/* Level Indicator for Level 2 locked */}
         {courseStatus.length > 1 && !courseStatus.find(c => c.level === 2)?.isFullyCompleted && (
-          <div className="md:col-span-1 lg:col-span-1 border-2 border-dashed border-outline-variant/30 rounded-[2.5rem] p-8 flex flex-col items-center justify-center text-center space-y-4 bg-surface-container-low/10 group hover:bg-surface-container-low/20 transition-all duration-500">
-            <div className="w-16 h-16 rounded-3xl bg-surface-container-highest flex items-center justify-center text-foreground/20 group-hover:scale-110 transition-transform duration-500">
-              <Sparkles className="w-8 h-8" />
+          <div className="md:col-span-1 lg:col-span-1 border border-white/60 rounded-[2.5rem] p-10 flex flex-col items-center justify-center text-center space-y-6 bg-white/40 backdrop-blur-3xl group hover:border-white hover:bg-white/60 transition-all duration-700 shadow-[0_20px_60px_rgba(0,0,0,0.03)] opacity-80">
+            <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-primary group-hover:scale-110 shadow-sm transition-transform duration-700">
+              <Sparkles className="w-6 h-6" />
             </div>
-            <div className="space-y-1">
-              <h4 className="font-extrabold text-foreground/30">Next Level Awaits</h4>
-              <p className="text-xs text-foreground/20 font-bold uppercase tracking-widest leading-normal">
-                Finish Level 1 completely<br />to reveal Level 2 content
+            <div className="space-y-3">
+              <h4 className="font-serif font-black text-2xl text-foreground tracking-tight">Next Level Awaits</h4>
+              <p className="text-[10px] text-foreground/40 font-bold uppercase tracking-[0.2em] leading-relaxed max-w-[200px] mx-auto">
+                Master Level 1 entirely to reveal the secrets of Level 2
               </p>
             </div>
           </div>
         )}
       </div>
 
-      {!courses || courses.length === 0 && (
-         <div className="flex flex-col items-center justify-center py-24 text-center space-y-4">
-            <div className="w-20 h-20 rounded-full bg-brand-primary/5 flex items-center justify-center text-brand-primary/20">
-               <BookOpen className="w-10 h-10" />
+      {(!courses || courses?.length === 0) && (
+         <div className="flex flex-col items-center justify-center py-32 text-center space-y-5 opacity-40">
+            <div className="h-20 w-20 rounded-full bg-white flex items-center justify-center text-primary shadow-sm border border-black/5 mb-4">
+              <BookOpen className="w-8 h-8" />
             </div>
-            <p className="text-foreground/40 font-bold italic">No courses have been assigned to the LMS platform yet.</p>
+            <p className="text-2xl font-serif font-black tracking-tight text-foreground">No courses available.</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-foreground/50">The path is being prepared for you</p>
          </div>
       )}
     </div>

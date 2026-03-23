@@ -1,10 +1,11 @@
 'use client';
 
 import {
-    Bell, CheckCircle2, Megaphone, Clock, Info, User as UserIcon
+    Bell, CheckCircle2, Megaphone, Clock, Info, User as UserIcon, ShieldCheck, Download, Sparkles
 } from 'lucide-react';
 import { markNotificationAsRead } from '@/lib/actions/broadcast';
 import type { Profile } from '@/types/database';
+import { cn } from '@/lib/utils';
 
 interface StudentBroadcastClientProps {
     currentUser: Profile;
@@ -14,24 +15,37 @@ interface StudentBroadcastClientProps {
 export function StudentBroadcastClient({ currentUser, notifications }: StudentBroadcastClientProps) {
 
     return (
-        <div className="flex h-[calc(100vh-theme(spacing.16))] flex-col overflow-hidden p-6 lg:p-8">
-            <div className="mb-6">
-                <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900">
-                    <Megaphone className="h-6 w-6 text-pink-500" />
-                    Instructor Broadcasts
-                </h1>
-                <p className="mt-1 text-sm text-gray-500">Official announcements and resources from instructors.</p>
-            </div>
+        <div className="min-h-screen bg-background p-6 lg:p-12 space-y-12 font-sans overflow-hidden animate-in fade-in duration-1000">
+            
+            {/* Header Section */}
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
+                <div className="space-y-2">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black tracking-widest uppercase">
+                        <Megaphone className="w-3 h-3" />
+                        Ethereal Frequency
+                    </div>
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-gradient-zen tracking-tight">
+                        Instructor Broadcasts
+                    </h1>
+                    <p className="text-lg text-foreground/60 italic font-medium max-w-lg">
+                        Direct transmissions and sacred announcements from your guides.
+                    </p>
+                </div>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar pb-10">
+                <div className="flex h-20 w-20 rounded-[2.5rem] bg-white border border-outline-variant/10 shadow-xl items-center justify-center text-foreground/10 -rotate-6 hover:rotate-0 transition-transform duration-700">
+                   <Bell className="w-8 h-8" />
+                </div>
+            </header>
+
+            <main className="relative z-10">
                 {notifications.length === 0 ? (
-                    <div className="flex h-[400px] flex-col items-center justify-center rounded-3xl border border-white/60 bg-white/60 shadow-sm backdrop-blur-md">
-                        <Bell className="mb-4 h-12 w-12 text-pink-200" />
-                        <h3 className="text-lg font-bold text-gray-900">All Caught Up!</h3>
-                        <p className="mt-1 text-sm text-gray-500">You don't have any broadcasts from your instructors yet.</p>
+                    <div className="flex h-[400px] flex-col items-center justify-center rounded-[3rem] liquid-glass border border-outline-variant/10 shadow-sm bg-white/40">
+                        <Sparkles className="mb-6 h-16 w-16 text-primary/10 animate-pulse" />
+                        <h3 className="text-xl font-serif font-bold text-foreground">Perfect Stillness</h3>
+                        <p className="mt-2 text-sm text-foreground/40 font-medium italic">No new transmissions have reached your frequency yet.</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
+                    <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
                         {notifications.map((notif) => {
                             const broadcast = notif.broadcasts || {};
                             const instructor = broadcast.sender || {};
@@ -44,71 +58,95 @@ export function StudentBroadcastClient({ currentUser, notifications }: StudentBr
                                             markNotificationAsRead(notif.id);
                                         }
                                     }}
-                                    className={`relative flex flex-col rounded-3xl border ${notif.is_read ? 'border-white/60 bg-white/60 cursor-default' : 'border-pink-200 bg-gradient-to-br from-pink-50/80 to-white cursor-pointer'} p-6 shadow-sm transition-all hover:shadow-md backdrop-blur-md`}
+                                    className={cn(
+                                        "group relative flex flex-col rounded-[2.5rem] border transition-all duration-700 backdrop-blur-3xl overflow-hidden",
+                                        notif.is_read 
+                                            ? "border-outline-variant/5 bg-white/30 cursor-default opacity-80" 
+                                            : "border-primary/20 bg-white/60 cursor-pointer shadow-2xl scale-[1.01]"
+                                    )}
                                 >
                                     {!notif.is_read && (
-                                        <span className="absolute -right-1 -top-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-pink-500 ring-4 ring-white"></span>
+                                        <div className="absolute top-8 right-8 h-3 w-3 rounded-full bg-primary shadow-[0_0_15px_rgba(var(--brand-primary),0.5)] animate-pulse" />
                                     )}
 
-                                    <div className="mb-4 flex items-center justify-between gap-4 border-b border-pink-100/50 pb-4">
-                                        <div className="flex items-center gap-3">
-                                            {instructor.avatar_url ? (
-                                                <img src={instructor.avatar_url} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover ring-2 ring-pink-100" />
-                                            ) : (
-                                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-pink-100 text-sm font-bold text-pink-500 ring-2 ring-pink-50">
-                                                    {(instructor.full_name || 'I').charAt(0)}
+                                    <div className="p-8 pb-0">
+                                        <div className="flex items-center justify-between gap-6 mb-8">
+                                            <div className="flex items-center gap-4">
+                                                <div className="h-12 w-12 rounded-2xl overflow-hidden border border-outline-variant/10 shadow-sm bg-white shrink-0">
+                                                    {instructor.avatar_url ? (
+                                                        <img src={instructor.avatar_url} alt="" className="h-full w-full object-cover" />
+                                                    ) : (
+                                                        <div className="h-full w-full flex items-center justify-center text-[10px] font-black uppercase text-foreground/20">
+                                                            {(instructor.full_name || 'I').charAt(0)}
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            )}
-                                            <div>
-                                                <h4 className="text-sm font-bold text-gray-900">{instructor.full_name || 'Instructor'}</h4>
-                                                <span className="flex items-center gap-1 text-[10px] font-bold text-pink-500">
-                                                    <CheckCircle2 className="h-3 w-3" /> VERIFIED INSTRUCTOR
-                                                </span>
+                                                <div>
+                                                    <h4 className="text-[11px] font-black uppercase tracking-tight text-foreground">{instructor.full_name || 'Guide'}</h4>
+                                                    <div className="flex items-center gap-1.5 text-[8px] font-black text-primary uppercase tracking-widest mt-0.5">
+                                                        <ShieldCheck className="h-2.5 w-2.5" /> VERIFIED GUIDE
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-[9px] font-black text-foreground/20 uppercase tracking-[0.2em] italic">
+                                                    {new Date(notif.created_at).toLocaleDateString()}
+                                                </p>
+                                                <p className="text-[9px] font-black text-foreground/10 uppercase tracking-[0.2em] italic mt-1">
+                                                    {new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </p>
                                             </div>
                                         </div>
-                                        <span className="text-right text-[10px] font-bold text-gray-400">
-                                            {new Date(notif.created_at).toLocaleDateString()}<br />
-                                            {new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                        </span>
-                                    </div>
 
-                                    <div className="flex-1">
-                                        <h3 className="mb-2 font-bold text-gray-900">{notif.title}</h3>
-                                        <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-600">
-                                            {notif.message}
-                                        </p>
+                                        <div className="space-y-4 mb-8">
+                                            <h3 className="text-xl font-serif font-bold text-foreground leading-tight italic">"{notif.title}"</h3>
+                                            <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/60 font-medium font-sans">
+                                                {notif.message}
+                                            </p>
+                                        </div>
                                     </div>
 
                                     {broadcast.file_url && (
-                                        <div className="mt-5 rounded-xl border border-pink-100 bg-pink-50/50 p-4">
-                                            <div className="flex items-center justify-between gap-4">
-                                                <div className="flex items-center gap-3 overflow-hidden">
-                                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-pink-500 shadow-sm">
-                                                        <Info className="h-4 w-4" />
+                                        <div className="mt-auto border-t border-outline-variant/5 px-8 py-6 bg-foreground/2 group-hover:bg-foreground/5 transition-colors">
+                                            <div className="flex items-center justify-between gap-6">
+                                                <div className="flex items-center gap-4 overflow-hidden">
+                                                    <div className="h-10 w-10 rounded-xl bg-white shadow-sm border border-outline-variant/5 flex items-center justify-center text-primary">
+                                                        <Download className="h-4 w-4" />
                                                     </div>
                                                     <div className="min-w-0">
-                                                        <p className="truncate text-sm font-bold text-gray-900">{broadcast.file_name || 'Attachment'}</p>
-                                                        <p className="text-[10px] text-gray-500">Tap to download</p>
+                                                        <p className="truncate text-[10px] font-black uppercase tracking-tight text-foreground">{broadcast.file_name || 'Sacred Artifact'}</p>
+                                                        <p className="text-[8px] font-black text-foreground/20 uppercase tracking-widest italic mt-0.5">Manifest to view</p>
                                                     </div>
                                                 </div>
                                                 <a
                                                     href={broadcast.file_url}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="shrink-0 rounded-lg bg-pink-500 px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:bg-pink-600"
+                                                    className="h-10 px-6 rounded-full bg-foreground text-background text-[9px] font-black uppercase tracking-[0.2em] flex items-center shadow-xl hover:scale-110 active:scale-95 transition-all"
                                                 >
-                                                    Open
+                                                    Manifest
                                                 </a>
                                             </div>
                                         </div>
                                     )}
 
+                                    {!broadcast.file_url && <div className="mt-auto h-4 w-full bg-gradient-to-r from-primary/5 via-transparent to-transparent" />}
                                 </div>
                             );
                         })}
                     </div>
                 )}
-            </div>
+            </main>
+
+            {/* Background accents */}
+            <div className="fixed top-0 right-0 w-1/3 h-1/3 bg-primary/2 rounded-full blur-[120px] -z-10 animate-pulse" />
+            <div className="fixed bottom-0 left-0 w-1/4 h-1/2 bg-brand-rose/2 rounded-full blur-[120px] -z-10" />
+            
+            <style jsx global>{`
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.05); border-radius: 10px; }
+            `}</style>
         </div>
     );
 }

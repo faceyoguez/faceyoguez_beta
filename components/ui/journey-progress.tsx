@@ -1,32 +1,20 @@
 "use client"
 
 import * as React from "react"
-import { CheckCircle, Camera } from "lucide-react"
+import { CheckCircle, Camera, Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export const JOURNEY_MILESTONES = [1, 25]
+export const JOURNEY_MILESTONES = [1, 7, 14, 21, 25, 30]
 export const JOURNEY_MAX_DAY = 30
 
 interface JourneyProgressProps {
-  /** Day elapsed since subscription start (calculated server/client side) */
   currentDay: number
-  /** Currently selected milestone day for viewing logs */
   activeDay: number
   onSelectDay?: (day: number) => void
-  /** Set of day_numbers that have a completed log entry */
   completedDays: Set<number>
   className?: string
 }
 
-/**
- * JourneyProgress — A pink gradient progress bar with milestone markers.
- *
- * Milestones: Day 1 · 7 · 14 · 21 · 25
- * Each milestone dot shows:
- *  - Green checkmark  → has a completed journey log
- *  - Pink filled ring → current active milestone (today's nearest)
- *  - Gray empty ring  → future / not yet reached
- */
 export function JourneyProgress({
   currentDay,
   activeDay,
@@ -38,24 +26,14 @@ export function JourneyProgress({
   const progressPct = Math.min(100, Math.max(0, ((clampedDay - 1) / (JOURNEY_MAX_DAY - 1)) * 100))
 
   return (
-    <div className={cn("w-full select-none", className)}>
-      {/* Header row */}
-      <div className="mb-4 flex items-center justify-between px-1">
-        <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400">
-          Journey Path
-        </p>
-        <span className="rounded-full bg-pink-100 px-2.5 py-0.5 text-[10px] font-bold text-pink-600">
-          Day {Math.max(1, clampedDay)} / {JOURNEY_MAX_DAY}
-        </span>
-      </div>
-
+    <div className={cn("w-full select-none space-y-8", className)}>
       {/* Track + Milestones */}
-      <div className="relative px-2">
+      <div className="relative px-4">
         {/* Background track */}
-        <div className="absolute left-0 right-0 top-1/2 mx-2 h-2 -translate-y-1/2 overflow-hidden rounded-full bg-pink-100">
+        <div className="absolute left-0 right-0 top-1/2 mx-4 h-1.5 -translate-y-1/2 overflow-hidden rounded-full bg-foreground/5">
           {/* Filled portion */}
           <div
-            className="h-full rounded-full bg-gradient-to-r from-pink-400 via-rose-400 to-pink-500 shadow-sm transition-all duration-700 ease-out"
+            className="h-full rounded-full bg-gradient-to-r from-primary/40 via-primary to-primary/40 shadow-[0_0_15px_rgba(var(--primary),0.2)] transition-all duration-1000 ease-out"
             style={{ width: `${progressPct}%` }}
           />
         </div>
@@ -68,38 +46,36 @@ export function JourneyProgress({
             const isReached = day <= clampedDay
 
             return (
-              <div
+              <button
                 key={day}
-                className="group relative flex flex-col items-center"
-                title={`Day ${day}`}
+                onClick={() => onSelectDay?.(day)}
+                className="group relative flex flex-col items-center transition-transform hover:scale-110 active:scale-95"
+                title={`Ritual Day ${day}`}
               >
                 {/* Dot */}
                 <div
                   className={cn(
-                    "relative z-10 flex h-9 w-9 items-center justify-center rounded-full border-2 shadow-md transition-all duration-200",
+                    "relative z-10 flex h-10 w-10 items-center justify-center rounded-2xl border transition-all duration-500 shadow-xl",
                     isActive
-                      ? "scale-110 border-pink-500 bg-white ring-4 ring-pink-200"
+                      ? "scale-125 border-foreground bg-foreground text-background"
                       : isCompleted
-                        ? "border-emerald-400 bg-emerald-50"
+                        ? "border-primary/40 bg-primary/10 text-primary"
                         : isReached
-                          ? "border-pink-400 bg-white"
-                          : "border-gray-200 bg-white"
+                          ? "border-primary/20 bg-white text-primary/60"
+                          : "border-primary/5 bg-white/50 text-foreground/10"
                   )}
                 >
                   {isCompleted ? (
-                    <CheckCircle className="h-4 w-4 text-emerald-500" />
+                    <CheckCircle className="h-5 w-5" />
                   ) : isReached ? (
-                    <div className={cn(
-                      "h-3 w-3 rounded-full",
-                      isActive ? "bg-pink-500" : "bg-pink-300"
-                    )} />
+                    <span className="text-[10px] font-black">{day}</span>
                   ) : (
-                    <div className="h-3 w-3 rounded-full bg-gray-200" />
+                    <Sparkles className="h-4 w-4 opacity-20" />
                   )}
 
-                  {/* Camera badge if has photo */}
-                  {isCompleted && (
-                    <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-pink-500">
+                  {/* Photo badge */}
+                  {isCompleted && !isActive && (
+                    <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-lg bg-primary shadow-lg border border-white/20">
                       <Camera className="h-2 w-2 text-white" />
                     </span>
                   )}
@@ -108,37 +84,17 @@ export function JourneyProgress({
                 {/* Day label */}
                 <span
                   className={cn(
-                    "mt-2 text-[10px] font-bold transition-colors",
+                    "absolute top-12 whitespace-nowrap text-[8px] font-black uppercase tracking-[0.2em] transition-all duration-500",
                     isActive
-                      ? "text-pink-600"
-                      : isCompleted
-                        ? "text-emerald-600"
-                        : isReached
-                          ? "text-gray-500"
-                          : "text-gray-300"
+                      ? "text-foreground opacity-100"
+                      : "text-foreground/20 opacity-0 group-hover:opacity-100"
                   )}
                 >
-                  {day === 1 ? "Day 1" : `Day ${day}`}
+                  Day {day}
                 </span>
-              </div>
+              </button>
             )
           })}
-        </div>
-      </div>
-
-      {/* Legend */}
-      <div className="mt-4 flex items-center gap-4 px-2">
-        <div className="flex items-center gap-1.5">
-          <CheckCircle className="h-3 w-3 text-emerald-500" />
-          <span className="text-[10px] text-gray-400">Logged</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="h-3 w-3 rounded-full bg-pink-400" />
-          <span className="text-[10px] text-gray-400">Reached</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="h-3 w-3 rounded-full bg-gray-200" />
-          <span className="text-[10px] text-gray-400">Upcoming</span>
         </div>
       </div>
     </div>

@@ -90,10 +90,10 @@ export function ChatSidebar({
   };
 
   return (
-    <div className="flex h-full w-80 flex-col border-r border-pink-100/40 bg-white/60 backdrop-blur-xl">
+    <div className="flex h-full w-80 flex-col border-r border-primary/5 bg-white/60 backdrop-blur-xl">
       {/* Header */}
-      <div className="border-b border-pink-100/40 px-4 py-4">
-        <h2 className="text-base font-bold text-gray-900">
+      <div className="border-b border-primary/5 px-4 py-4">
+        <h2 className="text-base font-bold text-foreground">
           {type === 'direct' ? 'Direct Messages' : 'Group Chats'}
         </h2>
 
@@ -105,7 +105,7 @@ export function ChatSidebar({
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
               placeholder="Search students..."
-              className="w-full rounded-xl border border-pink-100/60 bg-white/50 py-2 pl-9 pr-4 text-sm outline-none transition-all focus:ring-2 focus:ring-pink-200"
+              className="w-full rounded-xl border border-primary/10 bg-white/50 py-2 pl-9 pr-4 text-sm outline-none transition-all focus:ring-4 focus:ring-primary/5 focus:border-primary/20"
             />
 
             {searchResults.length > 0 && (
@@ -119,9 +119,9 @@ export function ChatSidebar({
                       key={student.id}
                       onClick={() => handleStartChat(student.id)}
                       disabled={!hasOneOnOne}
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-pink-50 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-pink-400 to-rose-400 text-sm font-bold text-white">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-white shadow-lg">
                         {student.full_name?.charAt(0)}
                       </div>
                       <div className="min-w-0 flex-1">
@@ -157,16 +157,16 @@ export function ChatSidebar({
             <button
               key={conv.id}
               onClick={() => onSelectConversation(conv)}
-              className={`flex w-full items-center gap-3 border-b border-pink-50/60 px-4 py-3 text-left transition-colors hover:bg-pink-50/40 ${
+              className={`flex w-full items-center gap-3 border-b border-primary/5 px-4 py-3 text-left transition-colors hover:bg-primary/5 ${
                 selectedConversationId === conv.id
-                  ? 'border-l-2 border-l-pink-500 bg-pink-50/60'
+                  ? 'border-l-2 border-l-primary bg-primary/5'
                   : ''
               }`}
             >
               {getAvatar(conv) ? (
-                <img src={getAvatar(conv)!} alt="" className="h-10 w-10 rounded-full object-cover" />
+                <img src={getAvatar(conv)!} alt="" className="h-10 w-10 rounded-full object-cover shadow-sm ring-1 ring-primary/10" />
               ) : (
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-pink-400 to-rose-500 text-sm font-bold text-white">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-sm font-bold text-white shadow-md">
                   {getTitle(conv).charAt(0)}
                 </div>
               )}
@@ -186,7 +186,7 @@ export function ChatSidebar({
                     {conv.last_message?.content || 'No messages yet'}
                   </p>
                   {conv.unread_count > 0 && (
-                    <span className="ml-2 min-w-[18px] flex-shrink-0 rounded-full bg-pink-500 px-1.5 py-0.5 text-center text-[10px] font-bold text-white">
+                    <span className="ml-2 min-w-[18px] flex-shrink-0 rounded-full bg-primary px-1.5 py-0.5 text-center text-[10px] font-bold text-white shadow-sm ring-1 ring-primary/20">
                       {conv.unread_count}
                     </span>
                   )}

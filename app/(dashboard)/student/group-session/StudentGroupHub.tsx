@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
     Calendar, Users, Star,
     Flame, PlayCircle, FileText, Download, CheckCircle, Send, Camera,
-    Video, Clock
+    Video, Clock, Sparkles, ChevronRight, Play, ShieldCheck
 } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import { createClient } from '../../../../lib/supabase/client';
@@ -14,19 +14,18 @@ import { getUpcomingMeetingsForStudent, getBatchRecordedSessions } from '../../.
 import { ImageComparison } from '../../../../components/ui/image-comparison-slider';
 import { JourneyProgress, JOURNEY_MAX_DAY } from '../../../../components/ui/journey-progress';
 import { PollCard } from '../../../../components/ui/poll-card';
+import { cn } from '@/lib/utils';
 
 import type { Profile, MeetingWithDetails, BatchPoll, RecordedSession } from '../../../../types/database';
 
 interface StudentGroupClientProps {
     currentUser: Profile;
-    activeBatch: any; // Using any for flexibility with joined data
+    activeBatch: any;
     initialResources: any[];
     isTrialAccess?: boolean;
     trialEndDate?: string | null;
     subscriptionStartDate?: string | null;
 }
-
-// Milestones for the Transformation Journey are now handled by JourneyProgress component
 
 export function StudentGroupHub({ currentUser, activeBatch, initialResources, isTrialAccess = false, trialEndDate, subscriptionStartDate }: StudentGroupClientProps) {
     const isChatEnabled = activeBatch?.is_chat_enabled ?? true;
@@ -36,16 +35,10 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
     const supabase = createClient();
 
     const [upcomingMeetings, setUpcomingMeetings] = useState<MeetingWithDetails[]>([]);
-
-    // Recordings State
     const [recordings, setRecordings] = useState<RecordedSession[]>([]);
     const [isLoadingRecordings, setIsLoadingRecordings] = useState(false);
-
-    // Poll State
     const [polls, setPolls] = useState<Record<string, BatchPoll>>({});
     const [votingPollId, setVotingPollId] = useState<string | null>(null);
-
-    // Journey State
     const [journeyLogs, setJourneyLogs] = useState<JourneyLog[]>([]);
     const [activeStepDay, setActiveStepDay] = useState<number>(1);
     const [notesInput, setNotesInput] = useState('');
@@ -60,7 +53,6 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
     const beforeImage = day1Log?.photo_url || 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800&sat=-100';
     let afterImage = day25Log?.photo_url || selectedImageBase64 || null;
 
-    // Calculate current day based on batch start date
     const currentDay = React.useMemo(() => {
         const anchorDateStr = activeBatch?.start_date || subscriptionStartDate;
         if (!anchorDateStr) return 1;
@@ -68,11 +60,10 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
         const startDate = new Date(anchorDateStr);
         const now = new Date();
         const diffTime = now.getTime() - startDate.getTime();
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1; // Day 1, Day 2, etc.
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
         return Math.min(JOURNEY_MAX_DAY, Math.max(1, diffDays));
     }, [subscriptionStartDate, activeBatch?.start_date]);
 
-    // Initialize active step to today's day when the batch loads
     useEffect(() => {
         setActiveStepDay(currentDay);
     }, [currentDay]);
@@ -98,7 +89,6 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
         };
         init();
 
-        // Subscribe to new chat messages (text + poll)
         const msgChannel = supabase
             .channel(`batch-chat-${activeBatch.id}`)
             .on(
@@ -117,7 +107,6 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                         .single();
                     setMessages(prev => [...prev, { ...payload.new, sender: profile }]);
 
-                    // If it's a poll message, fetch poll data
                     if (payload.new.message_type === 'poll' && payload.new.poll_id) {
                         const pollData = await getPollById(payload.new.poll_id, currentUser.id);
                         if (pollData) setPolls(prev => ({ ...prev, [pollData.id]: pollData }));
@@ -126,7 +115,6 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
             )
             .subscribe();
 
-        // Subscribe to poll vote changes for live count updates
         const voteChannel = supabase
             .channel(`student-votes-${activeBatch.id}`)
             .on(
@@ -135,7 +123,6 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                 async (payload: any) => {
                     const pollId = payload.new?.poll_id;
                     if (!pollId) return;
-                    // Always refetch — avoids stale closure on `polls` state
                     const updated = await getPollById(pollId, currentUser.id);
                     if (updated) setPolls(prev => ({ ...prev, [pollId]: updated }));
                 }
@@ -165,8 +152,6 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
         if (res.success) {
             const updated = await getPollById(pollId, currentUser.id);
             if (updated) setPolls(prev => ({ ...prev, [pollId]: updated }));
-        } else {
-            alert(res.error);
         }
         setVotingPollId(null);
     };
@@ -174,17 +159,12 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
     const handleSendMessage = async () => {
         if (!newMessage.trim() || !activeBatch?.id) return;
         try {
-            console.log("SENDING MESSAGE...", { batchId: activeBatch.id, msg: newMessage, sender: currentUser.id });
             const res = await sendBatchMessage(activeBatch.id, newMessage.trim(), currentUser.id);
-            console.log("SERVER ACTION RES:", res);
             if (res.success) {
                 setNewMessage('');
-            } else {
-                alert("Server Action Rejected: " + res.error);
             }
         } catch (err: any) {
-            console.error("FATAL SEND ERROR:", err);
-            alert("Network/Fatal Error sending message: " + err.message);
+            console.error("SEND ERROR:", err);
         }
     };
 
@@ -202,392 +182,324 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
 
     const handleSaveLog = async () => {
         setIsSavingLog(true);
-        const { success, error, data } = await saveDailyCheckIn(currentUser.id, activeStepDay, notesInput.trim() || null, selectedImageBase64, selectedImageMime || 'image/jpeg');
+        const { success, data } = await saveDailyCheckIn(currentUser.id, activeStepDay, notesInput.trim() || null, selectedImageBase64, selectedImageMime || 'image/jpeg');
         if (success && data) {
             setJourneyLogs(prev => [...prev.filter(l => l.day_number !== activeStepDay), data]);
             setSelectedImageBase64(null);
-            alert('Progress saved!');
-        } else {
-            alert(error || 'Failed to save log.');
         }
         setIsSavingLog(false);
     };
 
     const nextBatchMeeting = upcomingMeetings.find(m => m.batch_id === activeBatch?.id);
-
     const [isJoinEnabled, setIsJoinEnabled] = useState(false);
 
     useEffect(() => {
         if (!nextBatchMeeting) return;
-    
         const checkTime = () => {
           const meetingTime = new Date(nextBatchMeeting.start_time).getTime();
           const now = Date.now();
-          // 5 minutes = 300000 ms
           setIsJoinEnabled(meetingTime - now <= 300000);
         };
-    
         checkTime();
-        const interval = setInterval(checkTime, 10000); // Check every 10 seconds
-    
+        const interval = setInterval(checkTime, 10000);
         return () => clearInterval(interval);
     }, [nextBatchMeeting]);
 
-    // Trial countdown
-    const trialTimeLeft = React.useMemo(() => {
-        if (!isTrialAccess || !trialEndDate) return null;
-        const end = new Date(trialEndDate).getTime();
-        const now = Date.now();
-        const diff = end - now;
-        if (diff <= 0) return 'Expired';
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        return `${hours}h ${mins}m remaining`;
-    }, [isTrialAccess, trialEndDate]);
-
     return (
-        <div className="relative flex h-[100dvh] w-full flex-col overflow-hidden bg-background font-sans text-foreground">
-            <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-                <div className="aura-glow"></div>
-            </div>
+        <div className="flex h-screen w-full flex-col overflow-hidden bg-background animate-in fade-in duration-1000">
+            
+            {/* Background elements */}
+            <div className="fixed top-0 right-0 w-[50vw] h-[50vh] bg-primary/2 rounded-full blur-[120px] -z-10" />
 
             {/* Trial Access Banner */}
             {isTrialAccess && (
-                <div className="relative z-10 flex items-center justify-center gap-2 bg-secondary-container/80 backdrop-blur-md border-b border-transparent px-4 py-2 shrink-0">
-                    <span className="rounded bg-background/50 px-2 py-0.5 text-xs font-bold text-secondary">TRIAL</span>
-                    <p className="text-xs text-secondary">
-                        You have trial access to this batch.
-                        {trialTimeLeft && <span className="ml-1 font-semibold">{trialTimeLeft}</span>}
-                    </p>
+                <div className="relative z-10 flex items-center justify-center gap-2 bg-foreground text-background px-4 py-1.5 shrink-0 text-[10px] font-bold uppercase tracking-widest">
+                    <Sparkles className="w-3 h-3 text-primary" />
+                    Trial Access Active: {trialEndDate && <span>{new Date(trialEndDate).toLocaleDateString()}</span>}
                 </div>
             )}
 
-            <main className="relative z-10 flex-1 overflow-hidden p-4 lg:p-6">
-                <div className="mx-auto grid h-full max-w-[1800px] grid-cols-12 gap-6">
+            <main className="flex-1 flex overflow-hidden lg:p-10 gap-8">
+                
+                {/* ── LEFT RAIL: Batch Meta ── */}
+                <div className="hidden lg:flex w-80 flex-col gap-8 shrink-0">
+                    <div className="surface-container p-8 rounded-3xl flex flex-col gap-8 border border-outline-variant/10 h-min bg-white/50 backdrop-blur-xl shadow-sm">
+                        <div className="space-y-1.5">
+                           <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary border border-primary/10">
+                              <Users className="w-5 h-5" />
+                           </div>
+                           <h2 className="text-2xl font-serif font-bold text-foreground tracking-tight">{activeBatch?.name || 'Your Batch'}</h2>
+                           <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 italic">Collective Growth</p>
+                        </div>
 
-                    {/* Left Navigation col */}
-                    <div className="col-span-12 flex h-full flex-col gap-4 lg:col-span-2">
-                        <nav className="flex h-full flex-col gap-1 rounded-[2rem] bg-surface-container-lowest/60 p-4 shadow-[0_8px_32px_rgba(0,0,0,0.04)] ring-1 ring-outline-variant/20 backdrop-blur-[40px]">
-                            <p className="mb-2 px-3 py-2 text-[11px] font-bold uppercase tracking-widest text-foreground/50">My Journey</p>
+                        <div className="space-y-6">
+                           <div className="flex items-center gap-4">
+                              <div className="h-11 w-11 rounded-xl overflow-hidden border border-outline-variant/10 shadow-sm bg-white shrink-0">
+                                 {activeBatch?.instructor?.avatar_url ? (
+                                    <img src={activeBatch.instructor.avatar_url} className="w-full h-full object-cover" />
+                                 ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-xs font-bold text-foreground/20 bg-foreground/5">{(activeBatch?.instructor?.full_name || 'I').charAt(0).toUpperCase()}</div>
+                                 )}
+                              </div>
+                              <div className="min-w-0">
+                                 <p className="text-[9px] font-bold uppercase tracking-widest text-foreground/30 leading-none mb-1">Your Guide</p>
+                                 <p className="text-sm font-bold text-foreground truncate">{activeBatch?.instructor?.full_name || 'Instructor'}</p>
+                              </div>
+                           </div>
 
-                            {/* Batch Card Status */}
-                            <div className="mt-2 rounded-[1.5rem] bg-surface-container-low/50 p-4 ring-1 ring-outline-variant/10">
-                                <div className="mb-3 flex items-center justify-between">
-                                    <Users className="h-4 w-4 text-primary" />
-                                    <span className="rounded-full bg-surface-container-lowest px-2 py-0.5 text-[10px] font-bold text-tertiary shadow-sm">Active</span>
-                                </div>
-                                <h4 className="text-sm font-extrabold tracking-tight text-foreground">{activeBatch?.name || 'Classroom'}</h4>
-                                <p className="mb-3 line-clamp-1 text-[11px] font-medium text-foreground/50">Instructor {activeBatch?.instructor?.full_name || 'Expert'}</p>
+                           <div className="flex items-center gap-4">
+                              <div className="h-11 w-11 rounded-xl bg-primary/5 flex items-center justify-center text-primary shrink-0 border border-primary/10">
+                                 <Flame className="w-5 h-5" />
+                              </div>
+                              <div className="min-w-0">
+                                 <p className="text-[9px] font-bold uppercase tracking-widest text-foreground/30 leading-none mb-1">Current Streak</p>
+                                 <p className="text-sm font-bold text-foreground truncate">Day {currentDay}</p>
+                              </div>
+                           </div>
+                        </div>
 
-                                <div className="flex items-center justify-between gap-2 border-t border-outline-variant/10 pt-3">
-                                    <div className="flex -space-x-2">
-                                        <div className="flex h-6 w-6 items-center justify-center rounded-full border border-surface bg-surface-container-low text-[9px] font-bold text-foreground">
-                                            {activeBatch?.current_students || 1}
-                                        </div>
-                                    </div>
-                                    <span className="text-[10px] font-medium tracking-tight text-foreground/60">Enrolled</span>
-                                </div>
-                            </div>
-
-                            {/* Badges/Streaks */}
-                            <div className="mt-auto border-t border-outline-variant/10 pt-4">
-                                <div className="flex items-center gap-3 px-2">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary-container/50 text-secondary">
-                                        <Flame className="h-5 w-5" />
-                                    </div>
-                                    <div>
-                                        <h4 className="text-sm font-bold text-foreground">Day {currentDay} Streak</h4>
-                                        <p className="text-[11px] font-medium text-foreground/50">Keep it up!</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </nav>
-                    </div>
-
-                    {/* Center Main col */}
-                    <div className="col-span-12 flex h-full flex-col gap-6 overflow-hidden lg:col-span-7">
-                        {/* Session Thumbnail */}
-                        {nextBatchMeeting ? (
-                            <div className="group relative w-full shrink-0 overflow-hidden rounded-[2rem] shadow-[0_8px_32px_rgba(0,0,0,0.08)] ring-1 ring-outline-variant/20">
-                                {/* Accent top bar */}
-                                <div className="absolute top-0 left-0 z-30 h-1.5 w-full bg-gradient-to-r from-primary via-primary-container to-secondary" />
-                                <div className="absolute inset-0 z-10 bg-gradient-to-r from-surface-container-lowest/95 via-surface-container-lowest/70 to-surface-container-lowest/20 mix-blend-multiply" />
-                                <img src="https://images.unsplash.com/photo-1512413914565-df0a876a3ff8?q=80&w=2420&auto=format&fit=crop" className="h-56 w-full object-cover transition-transform duration-1000 group-hover:scale-105" alt="Yoga Session" />
-                                <div className="absolute inset-0 z-20 flex flex-row items-center justify-between gap-6 p-7 pt-8">
-                                    <div className="max-w-md">
-                                        <div className="mb-2 flex items-center gap-2">
-                                            <span className="flex h-2.5 w-2.5 animate-pulse rounded-full bg-tertiary opacity-80 shadow-[0_0_12px_var(--color-tertiary)]"></span>
-                                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground mix-blend-overlay">Upcoming Live Session</span>
-                                        </div>
-                                        <h2 className="mb-4 text-3xl font-extrabold tracking-tight text-surface-container-lowest drop-shadow-md">{nextBatchMeeting.topic}</h2>
-                                        <div className="flex gap-3">
-                                            <div className="flex items-center gap-2 rounded-2xl border border-surface-container-lowest/20 bg-surface-container-lowest/10 px-4 py-2 backdrop-blur-md">
-                                                <Calendar className="h-4 w-4 text-surface-container-lowest" />
-                                                <span className="text-xs font-semibold tracking-wide text-surface-container-lowest">{new Date(nextBatchMeeting.start_time).toLocaleDateString()}</span>
-                                            </div>
-                                            <div className="flex items-center gap-2 rounded-2xl border border-surface-container-lowest/20 bg-surface-container-lowest/10 px-4 py-2 backdrop-blur-md">
-                                                <Clock className="h-4 w-4 text-surface-container-lowest" />
-                                                <span className="text-xs font-semibold tracking-wide text-surface-container-lowest">{new Date(nextBatchMeeting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="flex shrink-0 flex-col items-end gap-2">
-                                        <button
-                                            disabled={!isJoinEnabled}
-                                            onClick={() => window.open(nextBatchMeeting.join_url, '_blank')}
-                                            className={`flex h-12 items-center justify-center gap-2 rounded-full px-8 text-sm font-bold transition-all ${isJoinEnabled ? 'bg-primary text-surface-container-lowest shadow-[0_4px_24px_var(--color-primary-container)] hover:scale-105 hover:bg-primary-container active:scale-95' : 'cursor-not-allowed bg-surface-container-lowest/10 text-surface-container-lowest/50 backdrop-blur-md'}`}>
-                                            {isJoinEnabled ? <><Video className="h-5 w-5" /> Join Zoom</> : 'Starts 5 min before'}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="group relative flex h-48 w-full shrink-0 flex-col items-center justify-center overflow-hidden rounded-[2rem] bg-surface-container-lowest/40 shadow-sm ring-1 ring-outline-variant/15 backdrop-blur-[40px]">
-                                <Video className="mb-4 h-12 w-12 text-foreground/20" />
-                                <h2 className="text-lg font-extrabold tracking-tight text-foreground/80">No Upcoming Sessions</h2>
-                                <p className="text-sm font-medium text-foreground/50">Your instructor hasn't scheduled any live sessions right now.</p>
-                            </div>
-                        )}
-
-                        <div className="flex-1 space-y-6 overflow-y-auto pr-2 custom-scrollbar">
-
-                            {/* Recorded Sessions Row */}
-                            <div className="flex flex-col overflow-hidden rounded-[2rem] bg-surface-container-lowest/60 shadow-[0_8px_32px_rgba(0,0,0,0.04)] ring-1 ring-outline-variant/20 backdrop-blur-[40px]">
-                                <div className="flex items-center justify-between border-b border-outline-variant/10 bg-surface/40 p-5 backdrop-blur-md">
-                                    <h3 className="flex items-center gap-2 text-base font-extrabold text-foreground">
-                                        <PlayCircle className="h-5 w-5 text-primary" />
-                                        Catch Up on Past Sessions
-                                    </h3>
-                                    <span className="text-[11px] font-medium text-foreground/50">Available until batch ends</span>
-                                </div>
-                                <div className="flex overflow-x-auto p-5 custom-scrollbar gap-4 min-h-[100px]">
-                                    {isLoadingRecordings ? (
-                                        <div className="flex w-full items-center justify-center py-6">
-                                            <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                                        </div>
-                                    ) : recordings.length === 0 ? (
-                                        <p className="flex w-full items-center justify-center py-6 mx-auto text-[11px] font-medium text-foreground/50">No recorded sessions yet.</p>
-                                    ) : (
-                                        recordings.map((rec) => {
-                                            const date = new Date(rec.start_time);
-                                            const h = Math.floor(rec.duration_minutes / 60);
-                                            const m = rec.duration_minutes % 60;
-                                            const durationLabel = h > 0 ? `${h}h ${m}m` : `${m}m`;
-                                            return (
-                                                <div key={rec.id} className="group flex h-[160px] w-[220px] min-w-[220px] flex-col rounded-[1.5rem] bg-surface-container-lowest/80 shadow-sm ring-1 ring-outline-variant/15 transition-all hover:ring-primary/50 hover:shadow-lg">
-                                                    <div className="relative h-28 w-full shrink-0 overflow-hidden rounded-t-[1.5rem] bg-surface-container-low">
-                                                        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/5">
-                                                            {rec.is_available ? (
-                                                                <button
-                                                                    onClick={() => window.open(rec.play_url!, '_blank')}
-                                                                    className="flex items-center gap-2 rounded-full bg-surface-container-lowest/90 px-4 py-2 text-xs font-bold text-primary shadow-[0_4px_16px_rgba(0,0,0,0.1)] transition-all hover:scale-105 hover:bg-surface-container-lowest backdrop-blur-md"
-                                                                >
-                                                                    <PlayCircle className="h-4 w-4" /> Watch
-                                                                </button>
-                                                            ) : (
-                                                                <span className="rounded-full bg-surface-container-lowest/50 px-3 py-1.5 text-[10px] font-bold text-foreground backdrop-blur-md">Processing…</span>
-                                                            )}
-                                                        </div>
-                                                        <div className="absolute bottom-2 right-2 z-20 rounded-md bg-foreground/80 px-2 py-0.5 text-[10px] font-bold tracking-wider text-surface-container-lowest backdrop-blur-md">{durationLabel}</div>
-                                                    </div>
-                                                    <div className="flex flex-1 flex-col justify-center p-3">
-                                                        <div className="mb-1 flex items-center justify-between">
-                                                            <span className="text-[10px] font-extrabold uppercase tracking-widest text-secondary">Recording</span>
-                                                            <span className="text-[10px] font-medium text-foreground/50">{date.toLocaleDateString()}</span>
-                                                        </div>
-                                                        <h4 className="line-clamp-1 text-sm font-bold text-foreground">{rec.topic}</h4>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Transformation Journey and Resources Row Grid */}
-                            <div className="grid grid-cols-12 gap-6">
-
-                                {/* Transformation Journey */}
-                                <div className="col-span-12 flex flex-col rounded-[2rem] bg-surface-container-lowest/60 shadow-[0_8px_32px_rgba(0,0,0,0.04)] ring-1 ring-outline-variant/20 backdrop-blur-[40px] xl:col-span-7">
-                                    <div className="border-b border-outline-variant/10 bg-surface/40 p-5 backdrop-blur-md">
-                                        <h3 className="flex items-center gap-2 text-base font-extrabold text-foreground">
-                                            <Star className="h-5 w-5 text-primary" />
-                                            Transformation Journey - Day {currentDay}
-                                        </h3>
-                                    </div>
-                                    <div className="flex-1 p-5 flex flex-col gap-8">
-                                        <div className="rounded-[1.5rem] bg-surface-container-lowest/80 p-6 shadow-sm ring-1 ring-outline-variant/15 backdrop-blur-md">
-                                            <JourneyProgress 
-                                                currentDay={currentDay}
-                                                activeDay={activeStepDay}
-                                                onSelectDay={setActiveStepDay}
-                                                completedDays={new Set(journeyLogs.map(l => l.day_number))}
-                                            />
-                                        </div>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div className="rounded-[1.5rem] overflow-hidden ring-1 ring-outline-variant/15 shadow-[0_8px_24px_rgba(0,0,0,0.06)] bg-surface-container-low aspect-[4/3] relative">
-                                                {activeStepDay === 25 && afterImage ? (
-                                                    <ImageComparison beforeImage={beforeImage} afterImage={afterImage as string} altBefore="Day 1" altAfter={`Day 25`} />
-                                                ) : (
-                                                    <img src={activeLog?.photo_url || (activeStepDay === 25 ? (afterImage as string ?? beforeImage) : beforeImage)} alt={`Day ${activeStepDay}`} className="w-full h-full object-cover transition-opacity duration-500" />
-                                                )}
-                                            </div>
-                                            <div className="flex flex-col gap-4 justify-center items-center">
-                                                {(activeStepDay === 1 || activeStepDay === 25) && (
-                                                    <div className="flex flex-col gap-3 w-full max-w-[220px]">
-                                                        <p className="text-xs font-semibold uppercase tracking-widest text-center text-foreground/60 mb-1">Day {activeStepDay} Snapshot</p>
-                                                        <input type="file" ref={fileInputRef} onChange={handlePhotoSelect} accept="image/*" className="hidden" />
-                                                        <button onClick={() => fileInputRef.current?.click()} className="flex items-center justify-center w-full gap-2 rounded-xl bg-surface-container-lowest/80 px-4 py-3 text-sm font-extrabold text-foreground shadow-sm ring-1 ring-outline-variant/20 transition-all hover:scale-105 hover:bg-surface-container-lowest">
-                                                            <Camera className="h-4 w-4 text-primary" /> Select Photo
-                                                        </button>
-                                                        {selectedImageBase64 && (
-                                                            <button onClick={handleSaveLog} disabled={isSavingLog} className="flex mt-2 w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-extrabold text-surface-container-lowest shadow-[0_8px_16px_var(--color-primary-container)] transition-all hover:scale-105 hover:bg-primary-container disabled:opacity-50 disabled:hover:scale-100">
-                                                                {isSavingLog ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />} Save Day {activeStepDay}
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                )}
-                                                {activeStepDay !== 1 && activeStepDay !== JOURNEY_MAX_DAY && (
-                                                    <p className="text-[11px] font-medium text-center text-foreground/40 leading-relaxed max-w-[200px]">Photo upload required only on Day 1 and Day {JOURNEY_MAX_DAY}. Continue your breathing routines.</p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Resources Feed */}
-                                <div className="col-span-12 flex flex-col rounded-[2rem] bg-surface-container-lowest/60 shadow-[0_8px_32px_rgba(0,0,0,0.04)] ring-1 ring-outline-variant/20 backdrop-blur-[40px] xl:col-span-5 relative">
-                                    <div className="border-b border-outline-variant/10 bg-surface/40 p-5 backdrop-blur-md">
-                                        <h3 className="flex items-center gap-2 text-base font-extrabold text-foreground">
-                                            <FileText className="h-5 w-5 text-primary" />
-                                            Sanctuary Library
-                                        </h3>
-                                    </div>
-                                    <div className="flex-1 p-4 space-y-3 overflow-y-auto max-h-[350px] custom-scrollbar">
-                                        {initialResources.map((res: any) => (
-                                            <div key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="group flex cursor-pointer items-center justify-between gap-4 rounded-[1.25rem] bg-surface-container-lowest/80 p-3 shadow-sm ring-1 ring-outline-variant/15 backdrop-blur-md transition-all hover:scale-[1.02] hover:ring-primary/40">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary-container/50 text-secondary shadow-[inset_0_2px_4px_rgba(255,255,255,0.5)]">
-                                                        <FileText className="h-5 w-5" />
-                                                    </div>
-                                                    <div>
-                                                        <h4 className="text-sm font-bold text-foreground line-clamp-1">{res.title || res.file_name}</h4>
-                                                        <p className="text-[11px] font-medium text-foreground/50">{new Date(res.created_at).toLocaleDateString()}</p>
-                                                    </div>
-                                                </div>
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); window.open(res.file_url, '_blank'); }}
-                                                    className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-low text-foreground/50 transition-colors hover:bg-primary/10 hover:text-primary"
-                                                >
-                                                    <Download className="h-4 w-4" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                        {initialResources.length === 0 && (
-                                            <div className="flex h-full min-h-[150px] flex-col items-center justify-center opacity-60">
-                                                <FileText className="mb-2 h-8 w-8 text-foreground/20" />
-                                                <p className="text-center text-[11px] font-medium text-foreground/50">Your sanctuary is empty. Resources will appear here.</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                            </div>
+                        <div className="pt-6 border-t border-outline-variant/5 flex items-center gap-2">
+                           <div className="h-2 w-2 rounded-full bg-brand-emerald shadow-[0_0_8px_rgba(16,185,129,0.3)]" />
+                           <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">{activeBatch?.current_students || 1} Souls Breathing</span>
                         </div>
                     </div>
 
-                    {/* Right Chat col */}
-                    <div className="col-span-12 h-[600px] lg:sticky lg:top-6 lg:col-span-3 lg:h-[calc(100vh-3rem)]">
-                        <div className="flex h-full flex-col overflow-hidden rounded-[2rem] bg-surface-container-lowest/60 shadow-[0_8px_32px_rgba(0,0,0,0.04)] ring-1 ring-outline-variant/20 backdrop-blur-[40px]">
-                            <div className="flex items-center justify-between border-b border-outline-variant/10 bg-surface/40 px-5 py-4 backdrop-blur-md">
-                                <div>
-                                    <h3 className="flex items-center gap-2 text-base font-extrabold text-foreground">
-                                        Batch Chat
-                                    </h3>
-                                    <p className="text-[11px] font-medium text-foreground/50">24 Online</p>
-                                </div>
-                            </div>
-
-                            <div ref={chatContainerRef} className="flex-1 space-y-4 overflow-y-auto p-4 custom-scrollbar">
-                                {messages.map((msg) => {
-                                    const senderProfile = msg.sender || msg.profiles || msg.senderProfile || {};
-                                    const isPoll = msg.message_type === 'poll' && msg.poll_id;
-                                    const poll = isPoll ? polls[msg.poll_id] : null;
-
-                                    return (
-                                        <div key={msg.id} className={`flex gap-3 ${msg.sender_id === currentUser.id ? 'flex-row-reverse' : ''}`}>
-                                            <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-secondary-container ring-2 ring-surface-container-lowest shadow-sm">
-                                                {senderProfile?.avatar_url ? (
-                                                    <img src={senderProfile.avatar_url} alt="" className="h-full w-full object-cover" />
-                                                ) : (
-                                                    <div className="flex h-full w-full items-center justify-center text-xs font-bold text-secondary">
-                                                        {(senderProfile?.full_name || 'U').charAt(0)}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className={`flex max-w-[85%] flex-col ${msg.sender_id === currentUser.id ? 'items-end' : ''}`}>
-                                                <div className="mb-1 flex items-center gap-2">
-                                                    <span className="text-[11px] font-bold text-foreground">{senderProfile?.full_name || 'User'}</span>
-                                                    <span className="text-[9px] font-medium text-foreground/50">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                                    {msg.sender_id === activeBatch?.instructor_id ? (
-                                                        <span className="flex items-center gap-1 rounded-full bg-secondary-container/50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-secondary ring-1 ring-secondary-container">Instructor <CheckCircle className="h-2 w-2" /></span>
-                                                    ) : msg.sender_id !== currentUser.id ? (
-                                                        <span className="flex items-center gap-1 rounded-full bg-surface-container-high px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-foreground/50 ring-1 ring-outline-variant/10">Student</span>
-                                                    ) : null}
-                                                </div>
-                                                {isPoll ? (
-                                                    poll ? (
-                                                        <PollCard
-                                                            poll={poll}
-                                                            isAdmin={false}
-                                                            onVote={(optionId) => handleVotePoll(poll.id, optionId)}
-                                                            isVoting={votingPollId === poll.id}
-                                                        />
-                                                    ) : (
-                                                        <div className="rounded-2xl bg-surface-container-low px-4 py-3 text-xs font-medium text-foreground/50 shadow-sm ring-1 ring-outline-variant/10">Loading poll…</div>
-                                                    )
-                                                ) : (
-                                                    <div className={`rounded-[1.5rem] px-4 py-3 text-[13px] leading-relaxed shadow-sm ring-1 ${msg.sender_id === currentUser.id ? 'rounded-tr-sm bg-primary text-surface-container-lowest ring-transparent shadow-[0_4px_16px_var(--color-primary-container)]' : msg.sender_id === activeBatch?.instructor_id ? 'rounded-tl-sm bg-secondary-container/30 text-foreground ring-secondary/20' : 'rounded-tl-sm bg-surface-container-lowest/80 text-foreground ring-outline-variant/10 backdrop-blur-sm'}`}>
-                                                        <p>{msg.content}</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                            <div className="border-t border-outline-variant/10 bg-surface/60 p-4 backdrop-blur-md">
-                                {isChatEnabled ? (
-                                    <div className="relative flex items-center gap-3">
-                                        <input
-                                            type="text"
-                                            value={newMessage}
-                                            onChange={(e) => setNewMessage(e.target.value)}
-                                            onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                                            placeholder="Say something to the batch..."
-                                            className="w-full rounded-[1.5rem] bg-surface-container-lowest/90 border-0 p-3.5 pr-12 text-[13px] font-medium text-foreground shadow-sm ring-1 ring-outline-variant/20 placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all backdrop-blur-md"
-                                        />
-                                        <button
-                                            onClick={handleSendMessage}
-                                            className="absolute right-2 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-surface-container-lowest shadow-sm transition-all hover:scale-105 hover:bg-primary-container"
-                                        >
-                                            <Send className="h-4 w-4" />
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className="rounded-xl bg-surface-container-low p-3 text-center text-xs font-semibold text-foreground/50 ring-1 ring-outline-variant/10">
-                                        Chat is currently disabled by the instructor.
-                                    </div>
-                                )}
-                            </div>
+                    <div className="surface-container p-8 rounded-3xl border border-outline-variant/10 flex-1 overflow-hidden flex flex-col bg-white/50 backdrop-blur-xl shadow-sm">
+                        <div className="flex items-center justify-between mb-8">
+                           <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Resources</h3>
+                           <FileText className="w-4 h-4 text-foreground/20" />
+                        </div>
+                        <div className="space-y-3 overflow-y-auto custom-scrollbar flex-1 pr-2">
+                           {initialResources.map((res: any) => (
+                              <button key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="w-full flex items-center gap-4 p-4 bg-white/40 border border-outline-variant/5 rounded-2xl hover:border-primary/20 hover:bg-white hover:shadow-md transition-all text-left group">
+                                 <div className="h-10 w-10 rounded-xl bg-foreground/5 flex items-center justify-center text-foreground/20 group-hover:bg-primary/5 group-hover:text-primary transition-colors">
+                                    <Download className="w-4 h-4" />
+                                 </div>
+                                 <div className="min-w-0">
+                                    <p className="text-xs font-bold text-foreground truncate">{res.title || res.file_name}</p>
+                                    <p className="text-[9px] font-bold text-foreground/20 uppercase tracking-widest mt-0.5">Download Artifact</p>
+                                 </div>
+                              </button>
+                           ))}
+                           {initialResources.length === 0 && <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/20 text-center py-12 opacity-50">Awaiting artifacts...</p>}
                         </div>
                     </div>
-
                 </div>
+
+                {/* ── CENTER: Focus Area ── */}
+                <div className="flex-1 flex flex-col gap-8 overflow-hidden">
+                    
+                    {/* Live Section */}
+                    {nextBatchMeeting ? (
+                        <div className="group relative w-full h-80 rounded-3xl overflow-hidden shadow-xl border border-outline-variant/10 bg-black">
+                            <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2420&auto=format&fit=crop" className="w-full h-full object-cover opacity-60 transition-transform duration-[2000ms] group-hover:scale-105" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+                            
+                            <div className="absolute top-8 left-8 z-20">
+                               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 text-white text-[10px] font-bold uppercase tracking-widest">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                                  Frequency Upcoming
+                               </div>
+                            </div>
+
+                            <div className="absolute inset-x-8 bottom-8 z-20 flex items-end justify-between gap-10">
+                               <div className="space-y-3 max-w-xl">
+                                  <h2 className="text-4xl font-serif font-bold text-white tracking-tight leading-tight">{nextBatchMeeting.topic}</h2>
+                                  <div className="flex gap-4">
+                                     <div className="flex items-center gap-2 text-white/50 text-[10px] font-bold uppercase tracking-widest">
+                                        <Calendar className="w-3.5 h-3.5" /> {new Date(nextBatchMeeting.start_time).toLocaleDateString()}
+                                     </div>
+                                     <div className="flex items-center gap-2 text-white/50 text-[10px] font-bold uppercase tracking-widest">
+                                        <Clock className="w-3.5 h-3.5" /> {new Date(nextBatchMeeting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                     </div>
+                                  </div>
+                               </div>
+                               <button
+                                   disabled={!isJoinEnabled}
+                                   onClick={() => window.open(nextBatchMeeting.join_url, '_blank')}
+                                   className={cn(
+                                       "h-16 px-10 rounded-2xl text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-3",
+                                       isJoinEnabled 
+                                          ? "bg-white text-black hover:scale-[1.02] active:scale-[0.98] shadow-lg" 
+                                          : "bg-white/10 text-white/20 backdrop-blur-md border border-white/10 cursor-not-allowed"
+                                   )}
+                               >
+                                   {isJoinEnabled ? <><Play className="w-4 h-4 fill-current" /> Enter Presence</> : 'Patience'}
+                               </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="w-full h-32 surface-container rounded-3xl border border-outline-variant/10 flex flex-col items-center justify-center gap-2 bg-white/40 backdrop-blur-xl shrink-0 opacity-50">
+                           <Video className="w-6 h-6 text-foreground/20" />
+                           <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/20">No active transmissions</p>
+                        </div>
+                    )}
+
+                    {/* Journey Rail */}
+                    <div className="surface-container p-8 rounded-3xl border border-outline-variant/10 flex flex-col gap-10 overflow-hidden bg-white/50 backdrop-blur-xl shadow-sm">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-2xl font-serif font-bold text-foreground tracking-tight">Ethereal Journey – Day {currentDay}</h3>
+                            <JourneyProgress 
+                                currentDay={currentDay}
+                                activeDay={activeStepDay}
+                                onSelectDay={setActiveStepDay}
+                                completedDays={new Set(journeyLogs.map(l => l.day_number))}
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+                            <div className="relative aspect-video rounded-3xl overflow-hidden border border-outline-variant/10 shadow-lg bg-surface-container-highest">
+                                {activeStepDay === 25 && afterImage ? (
+                                    <ImageComparison beforeImage={beforeImage} afterImage={afterImage as string} altBefore="Origin" altAfter="Transcendence" />
+                                ) : (
+                                    <img src={activeLog?.photo_url || (activeStepDay === 25 ? (afterImage as string ?? beforeImage) : beforeImage)} alt={`Day ${activeStepDay}`} className="w-full h-full object-cover animate-in fade-in duration-700" />
+                                )}
+                                <div className="absolute top-4 left-4 z-10">
+                                   <div className="bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-full text-[9px] font-bold text-white uppercase tracking-widest border border-white/10">
+                                      Chronicle {activeStepDay}
+                                   </div>
+                                </div>
+                            </div>
+                            
+                            <div className="space-y-6">
+                               <div className="space-y-2">
+                                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">Ritual Snapshot</h4>
+                                  <p className="text-sm text-foreground/40 font-medium leading-relaxed italic">Capture your essence at critical nodes of transcendence. Required on Day 1 and 25.</p>
+                               </div>
+
+                               {(activeStepDay === 1 || activeStepDay === 25) ? (
+                                   <div className="flex flex-col gap-3">
+                                       <input type="file" ref={fileInputRef} onChange={handlePhotoSelect} accept="image/*" className="hidden" />
+                                       <button onClick={() => fileInputRef.current?.click()} className="h-14 w-full rounded-2xl bg-white border border-outline-variant/10 shadow-sm flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-widest hover:border-primary/20 hover:scale-[1.01] transition-all">
+                                           <Camera className="w-4 h-4 text-primary" /> Select Source
+                                       </button>
+                                       {selectedImageBase64 && (
+                                           <button onClick={handleSaveLog} disabled={isSavingLog} className="h-14 w-full rounded-2xl bg-foreground text-background shadow-lg flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-widest hover:scale-[1.01] active:scale-[0.99] transition-all">
+                                               {isSavingLog ? <Loader2 className="w-4 h-4 animate-spin text-background" /> : <ShieldCheck className="w-4 h-4" />} Commit Archive
+                                           </button>
+                                       )}
+                                   </div>
+                               ) : (
+                                   <div className="h-32 rounded-2xl border border-dashed border-outline-variant/20 flex flex-col items-center justify-center p-6 text-center opacity-40 bg-foreground/[0.02]">
+                                      <Sparkles className="w-5 h-5 text-foreground/20 mb-3" />
+                                      <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/20 leading-relaxed">Observe & Breathe. The next archive window opens at node 25.</p>
+                                   </div>
+                               )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Recordings Suite */}
+                    <div className="surface-container rounded-3xl border border-outline-variant/10 flex flex-col overflow-hidden bg-white/50 backdrop-blur-xl shadow-sm">
+                        <div className="p-8 border-b border-outline-variant/5 flex items-center justify-between">
+                           <h3 className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">Past Transmissions</h3>
+                           <PlayCircle className="w-4 h-4 text-foreground/10" />
+                        </div>
+                        <div className="flex overflow-x-auto p-8 gap-6 custom-scrollbar">
+                           {recordings.map((rec) => (
+                              <div key={rec.id} className="min-w-[280px] w-[280px] flex flex-col bg-white border border-outline-variant/5 rounded-3xl overflow-hidden shadow-sm hover:shadow-md hover:scale-[1.01] transition-all group">
+                                 <div className="aspect-video relative overflow-hidden bg-foreground/[0.02]">
+                                    <div className="absolute inset-0 flex items-center justify-center z-10">
+                                       {rec.is_available ? (
+                                          <button onClick={() => window.open(rec.play_url!, '_blank')} className="h-10 w-10 rounded-full bg-white text-black shadow-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                                             <Play className="w-4 h-4 fill-current ml-0.5" />
+                                          </button>
+                                       ) : (
+                                          <div className="text-[8px] font-bold text-foreground/20 uppercase tracking-widest">Processing</div>
+                                       )}
+                                    </div>
+                                    <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg text-[8px] font-bold text-white/90 uppercase tracking-widest">
+                                       {rec.duration_minutes}m
+                                    </div>
+                                 </div>
+                                 <div className="p-5 space-y-1.5">
+                                    <p className="text-[9px] font-bold text-primary uppercase tracking-widest">{new Date(rec.start_time).toLocaleDateString()}</p>
+                                    <h4 className="text-sm font-bold text-foreground leading-tight truncate">{rec.topic}</h4>
+                                 </div>
+                              </div>
+                           ))}
+                           {recordings.length === 0 && <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/20 py-12 w-full text-center opacity-50">No recorded echoes yet.</p>}
+                        </div>
+                    </div>
+                </div>
+
+                {/* ── RIGHT RAIL: Communion ── */}
+                <div className="hidden xl:flex w-96 flex-col gap-6 shrink-0 h-full">
+                    <div className="surface-container rounded-3xl border border-outline-variant/10 h-full flex flex-col overflow-hidden bg-white/50 backdrop-blur-xl shadow-sm">
+                        <div className="p-8 border-b border-outline-variant/5 flex flex-col gap-1.5">
+                           <div className="flex items-center justify-between">
+                              <h3 className="text-2xl font-serif font-bold tracking-tight text-foreground">Communion</h3>
+                              <div className="h-2 w-2 rounded-full bg-primary/40" />
+                           </div>
+                           <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 italic">Collective Energy Stream</p>
+                        </div>
+
+                        <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar">
+                           {messages.map((msg) => {
+                               const sender = msg.sender || msg.profiles || msg.senderProfile || {};
+                               const isOwn = msg.sender_id === currentUser.id;
+                               const isPoll = msg.message_type === 'poll';
+                               const poll = isPoll ? polls[msg.poll_id] : null;
+
+                               return (
+                                  <div key={msg.id} className={cn("flex flex-col gap-1.5", isOwn ? "items-end" : "items-start")}>
+                                     {!isOwn && (
+                                        <div className="flex items-center gap-2 mb-0.5">
+                                           <div className="h-6 w-6 rounded-lg overflow-hidden border border-outline-variant/10 bg-white">
+                                              {sender.avatar_url ? <img src={sender.avatar_url} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-[7px] font-bold text-foreground/20 bg-foreground/5">{(sender.full_name || 'U').charAt(0).toUpperCase()}</div>}
+                                           </div>
+                                           <p className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest">{sender.full_name}</p>
+                                           {msg.sender_id === activeBatch?.instructor_id && <ShieldCheck className="w-3 h-3 text-primary/60" />}
+                                        </div>
+                                     )}
+                                     
+                                     {isPoll ? (
+                                         poll && <div className="w-full"><PollCard poll={poll} isAdmin={false} onVote={(id) => handleVotePoll(poll.id, id)} isVoting={votingPollId === poll.id} /></div>
+                                     ) : (
+                                         <div className={cn(
+                                            "max-w-[90%] px-4 py-2.5 rounded-2xl text-[13px] font-medium leading-relaxed border shadow-sm",
+                                            isOwn 
+                                               ? "bg-foreground text-background border-foreground rounded-tr-none" 
+                                               : "bg-white border-outline-variant/5 text-foreground/70 rounded-tl-none"
+                                         )}>
+                                            {msg.content}
+                                         </div>
+                                     )}
+                                     <p className="text-[8px] font-bold text-foreground/20 uppercase tracking-widest mt-0.5">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                  </div>
+                               );
+                           })}
+                        </div>
+
+                        <div className="p-8 border-t border-outline-variant/10 bg-white/40 backdrop-blur-md">
+                           {isChatEnabled ? (
+                              <div className="relative group">
+                                 <input
+                                     type="text"
+                                     value={newMessage}
+                                     onChange={(e) => setNewMessage(e.target.value)}
+                                     onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                                     placeholder="Resonate with others..."
+                                     className="w-full h-12 pl-5 pr-12 rounded-xl bg-white border border-outline-variant/10 text-[13px] text-foreground font-medium placeholder:text-foreground/20 focus:ring-2 focus:ring-primary/10 focus:outline-none transition-all shadow-sm group-hover:border-primary/20"
+                                 />
+                                 <button onClick={handleSendMessage} className="absolute right-1.5 top-1.5 h-9 w-9 rounded-lg bg-foreground text-background flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
+                                    <Send className="w-3.5 h-3.5" />
+                                 </button>
+                              </div>
+                           ) : (
+                              <div className="h-12 rounded-xl bg-foreground/5 flex items-center justify-center text-[10px] font-bold uppercase tracking-widest text-foreground/20">Quietude Enabled</div>
+                           )}
+                        </div>
+                    </div>
+                </div>
+
             </main>
+
+            <style jsx global>{`
+                .custom-scrollbar::-webkit-scrollbar { width: 3px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.05); border-radius: 10px; }
+            `}</style>
         </div>
     );
 }

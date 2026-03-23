@@ -560,13 +560,21 @@ export async function fetchActiveOneOnOneStudents(instructorId: string) {
 
   if (studentsWithSubs.length === 0) return [];
 
+  // Deduplicate by student ID to prevent React key errors in the hub
+  const seenIds = new Set();
+  const uniqueStudentsWithSubs = studentsWithSubs.filter(s => {
+    if (seenIds.has(s.id)) return false;
+    seenIds.add(s.id);
+    return true;
+  });
+
   // 2. Find the shared direct conversation for each student.
   //    Staff AND master instructors must look up the conversation between the
   //    student's ASSIGNED instructor and the student (not their own ID).
-  const studentIds = studentsWithSubs.map((s: any) => s.id);
+  const studentIds = uniqueStudentsWithSubs.map((s: any) => s.id);
   const useAssignedMatching = isStaffRole || isMaster;
   const assignedInstructorIds = useAssignedMatching
-    ? Array.from(new Set(studentsWithSubs.map((s: any) => s.assignedInstructorId).filter(Boolean)))
+    ? Array.from(new Set(uniqueStudentsWithSubs.map((s: any) => s.assignedInstructorId).filter(Boolean)))
     : [];
 
   const queryUserIds = Array.from(new Set([instructorId, ...studentIds, ...assignedInstructorIds]));
@@ -595,7 +603,7 @@ export async function fetchActiveOneOnOneStudents(instructorId: string) {
   //    Staff & master instructor: use the student's assigned instructor to locate
   //    the shared canonical conversation.
   //    Regular instructor: use their own ID (they ARE the instructor).
-  const result = studentsWithSubs.map((student: any) => {
+  const result = uniqueStudentsWithSubs.map((student: any) => {
     const effectiveInstructorId = useAssignedMatching
       ? (student.assignedInstructorId || instructorId) // fall back to self for unassigned
       : instructorId;

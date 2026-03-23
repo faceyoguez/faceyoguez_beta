@@ -1,7 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { ChatWindow } from '@/components/chat';
-import { PageHeader } from '@/components/layout/PageHeader';
 import { searchStudents, getOrCreateSharedChat } from '@/lib/actions/chat';
 import { uploadResource, getStudentResources } from '@/lib/actions/resources';
 import { assignInstructor } from '@/lib/actions/subscription';
@@ -29,8 +28,17 @@ import {
   UserPlus,
   Activity,
   Clock,
+  Sparkles,
+  ArrowRight,
+  ShieldCheck,
+  Target,
+  CheckCircle,
+  Filter
 } from 'lucide-react';
 import type { Profile, StudentResource, LiveGrowthMetrics } from '@/types/database';
+import { ImageComparison } from '@/components/ui/image-comparison-slider';
+import { JourneyProgress, JOURNEY_MAX_DAY } from '@/components/ui/journey-progress';
+import { cn } from '@/lib/utils';
 
 interface StudentInfo {
   conversationId: string | null;
@@ -42,6 +50,7 @@ interface StudentInfo {
   daysLeft?: number | null;
   subscriptionId?: string;
   assignedInstructorId?: string | null;
+  startDate?: string | null;
 }
 
 interface Props {
@@ -56,23 +65,30 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTrial, setFilterTrial] = useState<'all' | 'trial' | 'paid'>('all');
 
-  // Resources state
   const [resources, setResources] = useState<StudentResource[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isLoadingResources, setIsLoadingResources] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  // Journey state
   const [journeyLogs, setJourneyLogs] = useState<JourneyLog[]>([]);
   const [isLoadingJourney, setIsLoadingJourney] = useState(false);
+  const [activeStepDay, setActiveStepDay] = useState<number>(1);
 
-  // Assign instructor modal
+  // Derived journey variables
+  const activeLog = journeyLogs.find((l) => l.day_number === activeStepDay);
+  const day1Log = journeyLogs.find((l) => l.day_number === 1);
+  const beforeImage = day1Log?.photo_url || 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800&sat=-100';
+  let afterImage = activeLog?.photo_url || 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800';
+  if (!activeLog?.photo_url) {
+    const logsWithPhotos = [...journeyLogs].filter(l => l.photo_url).sort((a, b) => b.day_number - a.day_number);
+    if (logsWithPhotos.length > 0) afterImage = logsWithPhotos[0].photo_url as string;
+  }
+
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedInstructorId, setSelectedInstructorId] = useState('');
   const [isAssigning, setIsAssigning] = useState(false);
   const [isStartingChat, setIsStartingChat] = useState(false);
 
-  // Global search (add student to view)
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
   const [globalSearchResults, setGlobalSearchResults] = useState<
     Array<{ id: string; full_name: string; email: string; avatar_url: string | null }>
@@ -97,37 +113,31 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
     return instructors.find((i) => i.id === instructorId)?.full_name || null;
   };
 
-  // Load data when student changes
   useEffect(() => {
     if (!selectedStudent) {
-      setResources([]);
-      setJourneyLogs([]);
-      return;
+      setResources([]); setJourneyLogs([]); return;
     }
 
     const loadData = async () => {
-      setIsLoadingResources(true);
-      setIsLoadingJourney(true);
+      setIsLoadingResources(true); setIsLoadingJourney(true);
       const [resData, logsData] = await Promise.all([
         getStudentResources(selectedStudent.id),
         getJourneyLogs(selectedStudent.id),
       ]);
-      setResources(resData);
-      setJourneyLogs(logsData);
-      setIsLoadingResources(false);
-      setIsLoadingJourney(false);
+      setResources(resData); setJourneyLogs(logsData);
+      if (logsData.length > 0) {
+        const latestDay = [...logsData].sort((a, b) => b.day_number - a.day_number)[0].day_number;
+        setActiveStepDay(latestDay);
+      } else setActiveStepDay(1);
+      setIsLoadingResources(false); setIsLoadingJourney(false);
     };
     loadData();
 
-    // Realtime resource updates
     const supabase = createClient();
     const channel = supabase
       .channel(`staff-resources:${selectedStudent.id}`)
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'student_resources', filter: `student_id=eq.${selectedStudent.id}` },
-        (payload) => setResources((prev) => [payload.new as StudentResource, ...prev])
-      )
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'student_resources', filter: `student_id=eq.${selectedStudent.id}` },
+        (payload) => setResources((prev) => [payload.new as StudentResource, ...prev]))
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
@@ -147,11 +157,9 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
   const handleStartChatWithStudent = async (studentId: string, fromStudent?: StudentInfo) => {
     setIsStartingChat(true);
     try {
-      // Use the student's assigned instructor so all parties share one conversation
       const assignedInstructorId =
         fromStudent?.assignedInstructorId ||
-        students.find((s) => s.id === studentId)?.assignedInstructorId ||
-        null;
+        students.find((s) => s.id === studentId)?.assignedInstructorId || null;
       const { conversationId } = await getOrCreateSharedChat(studentId, assignedInstructorId);
 
       const fromSearch = globalSearchResults.find((s) => s.id === studentId);
@@ -159,11 +167,9 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
       if (source) {
         setSelectedStudent({ conversationId, id: source.id, full_name: source.full_name, avatar_url: source.avatar_url, email: source.email });
       } else {
-        // Refresh the selected student's conversationId in-place
         setSelectedStudent((prev) => prev ? { ...prev, conversationId } : prev);
       }
-      setGlobalSearchQuery('');
-      setGlobalSearchResults([]);
+      setGlobalSearchQuery(''); setGlobalSearchResults([]);
     } catch (e) { console.error(e); }
     setIsStartingChat(false);
   };
@@ -171,7 +177,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0 || !selectedStudent) return;
     const file = e.target.files[0];
-    if (file.size > 5 * 1024 * 1024) { alert('File size exceeds 5MB limit.'); return; }
+    if (file.size > 20 * 1024 * 1024) { toast.error('File size exceeds 20MB limit.'); return; }
     setIsUploading(true);
     try {
       const buffer = await file.arrayBuffer();
@@ -179,11 +185,9 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
       const result = await uploadResource(selectedStudent.id, file.name, file.type, file.size, base64Data);
       if (result.success && result.data) {
         setResources((prev) => [result.data!, ...prev]);
-        toast.success('File uploaded successfully');
-      } else {
-        toast.error(result.error || 'Upload failed');
-      }
-    } catch (err) { toast.error('Failed to process file'); }
+        toast.success('Resource manifested successfully');
+      } else toast.error(result.error || 'Manifestation failed');
+    } catch (err) { toast.error('Failed to process offering'); }
     finally { setIsUploading(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
   };
 
@@ -192,12 +196,10 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
     setIsAssigning(true);
     try {
       await assignInstructor(selectedStudent.subscriptionId, selectedInstructorId);
-      toast.success('Instructor assigned successfully!');
+      toast.success('Guide aligned successfully!');
       setShowAssignModal(false);
       setSelectedStudent((prev) => prev ? { ...prev, assignedInstructorId: selectedInstructorId } : prev);
-    } catch (e: any) {
-      toast.error(e.message || 'Failed to assign instructor');
-    }
+    } catch (e: any) { toast.error(e.message || 'Failed to align guide'); }
     setIsAssigning(false);
   };
 
@@ -210,225 +212,266 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
   };
 
   const getFileIcon = (contentType: string) => {
-    if (contentType.includes('pdf')) return { icon: FileText, color: 'text-red-500', bg: 'bg-red-50', border: 'border-red-100' };
-    if (contentType.includes('image')) return { icon: ImageIcon, color: 'text-blue-500', bg: 'bg-blue-50', border: 'border-blue-100' };
-    if (contentType.includes('video')) return { icon: PlayCircle, color: 'text-purple-500', bg: 'bg-purple-50', border: 'border-purple-100' };
-    return { icon: FileText, color: 'text-gray-500', bg: 'bg-gray-50', border: 'border-gray-100' };
+    if (contentType.includes('pdf')) return { icon: FileText, color: 'text-primary' };
+    if (contentType.includes('image')) return { icon: ImageIcon, color: 'text-brand-rose' };
+    if (contentType.includes('video')) return { icon: PlayCircle, color: 'text-brand-emerald' };
+    return { icon: FileText, color: 'text-foreground/40' };
   };
 
-  const latestJourneyPhoto = [...journeyLogs].filter(l => l.photo_url).sort((a, b) => b.day_number - a.day_number)[0]?.photo_url;
-
   return (
-    <div className="flex flex-col p-4 lg:p-6 overflow-hidden h-[calc(100vh-2rem)]">
-      <PageHeader
-        title="Client Management"
-        highlight="Command Center"
-        description="Monitor all students, assign instructors, and track growth"
-      />
+    <div className="flex flex-col h-screen bg-background text-foreground selection:bg-primary/20 overflow-hidden font-sans">
+      
+      {/* Background decoration */}
+      <div className="fixed top-0 right-0 w-[50vw] h-[50vh] bg-primary/2 rounded-full blur-[120px] -z-10" />
 
-      <div className="grid flex-1 grid-cols-1 gap-5 lg:grid-cols-12 min-h-0 h-[calc(100vh-140px)]">
-
-        {/* ── LEFT COLUMN: Metrics + Student List ── */}
-        <div className="flex flex-col lg:col-span-3 gap-4 min-h-0 overflow-y-auto">
-
-          {/* Growth Metrics */}
-          <div className="grid grid-cols-2 gap-2 shrink-0">
-            <div className="rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 p-3 text-white shadow-md">
-              <p className="text-[9px] font-bold uppercase tracking-wider opacity-80">New Joinees</p>
-              <p className="text-2xl font-extrabold">{metrics.newJoineesThisMonth}</p>
-              <p className="text-[9px] opacity-70">this month</p>
-            </div>
-            <div className="rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 p-3 text-white shadow-md">
-              <p className="text-[9px] font-bold uppercase tracking-wider opacity-80">Renewals</p>
-              <p className="text-2xl font-extrabold">{metrics.renewalsThisMonth}</p>
-              <p className="text-[9px] opacity-70">this month</p>
-            </div>
-            <div className="rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 p-3 text-white shadow-md">
-              <p className="text-[9px] font-bold uppercase tracking-wider opacity-80">Total Active</p>
-              <p className="text-2xl font-extrabold">{metrics.totalActiveStudents}</p>
-              <p className="text-[9px] opacity-70">students</p>
-            </div>
-            <div className="rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 p-3 text-white shadow-md">
-              <p className="text-[9px] font-bold uppercase tracking-wider opacity-80">Expiring</p>
-              <p className="text-2xl font-extrabold">{metrics.expiringThisWeek}</p>
-              <p className="text-[9px] opacity-70">this week</p>
-            </div>
+      {/* Header: Student-style airy title & metrics */}
+      <header className="shrink-0 p-6 lg:p-10 flex items-center justify-between relative z-50">
+        <div className="flex items-center gap-12">
+          <div className="space-y-1">
+            <h1 className="text-4xl font-serif font-bold tracking-tight text-foreground">Registry</h1>
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-foreground/30 italic">Soul Management Hub</p>
           </div>
 
-          {/* Alerts: Expiring Students */}
-          {expiringStudents.length > 0 && (
-            <div className="shrink-0 rounded-xl border border-amber-200 bg-amber-50 p-3">
-              <div className="flex items-center gap-2 mb-2">
-                <AlertTriangle className="h-4 w-4 text-amber-600" />
-                <p className="text-xs font-bold text-amber-800">Expiring Soon</p>
+          {/* Quick Metrics (Student Hub Style) */}
+          <div className="hidden lg:flex items-center gap-8 ml-4">
+            <div className="flex items-center gap-4 bg-white/50 backdrop-blur-xl px-6 py-3 rounded-2xl border border-outline-variant/10 shadow-sm">
+              <div className="h-8 w-8 rounded-xl bg-primary/5 flex items-center justify-center text-primary border border-primary/10">
+                <Sparkles className="w-4 h-4" />
               </div>
-              <div className="space-y-1.5">
-                {expiringStudents.slice(0, 4).map((s) => (
-                  <button
-                    key={s.id}
-                    onClick={() => setSelectedStudent(s)}
-                    className="flex items-center justify-between w-full text-left rounded-lg bg-white border border-amber-100 px-2.5 py-1.5 hover:border-amber-300 transition-all"
-                  >
-                    <p className="truncate text-xs font-bold text-gray-800">{s.full_name}</p>
-                    <span className="shrink-0 text-[10px] font-bold text-red-500">{s.daysLeft}d</span>
-                  </button>
-                ))}
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-foreground/30 leading-none">New Souls</p>
+                <p className="text-sm font-bold text-foreground mt-0.5">{metrics.newJoineesThisMonth}</p>
               </div>
             </div>
-          )}
-
-          {/* Student List */}
-          <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-pink-100/40 bg-white shadow-sm min-h-[200px]">
-            <div className="px-4 pt-4 pb-2 shrink-0">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-[11px] font-bold uppercase tracking-widest text-gray-400">All Students</h3>
-                <span className="text-[11px] font-bold text-pink-500">{students.length}</span>
+            <div className="flex items-center gap-4 bg-white/50 backdrop-blur-xl px-6 py-3 rounded-2xl border border-outline-variant/10 shadow-sm">
+              <div className="h-8 w-8 rounded-xl bg-primary/5 flex items-center justify-center text-primary border border-primary/10">
+                <Activity className="w-4 h-4" />
               </div>
-
-              {/* Search */}
-              <div className="relative mb-2">
-                <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search students..."
-                  className="w-full rounded-xl border border-pink-100/60 bg-white/50 py-2 pl-8 pr-3 text-xs outline-none transition-all focus:ring-2 focus:ring-pink-200"
-                />
-              </div>
-
-              {/* Filter tabs */}
-              <div className="flex gap-1 mb-1">
-                {(['all', 'trial', 'paid'] as const).map((f) => (
-                  <button
-                    key={f}
-                    onClick={() => setFilterTrial(f)}
-                    className={`flex-1 rounded-lg py-1 text-[10px] font-bold transition-all ${filterTrial === f ? 'bg-pink-500 text-white' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
-                  >
-                    {f === 'all' ? `All (${students.length})` : f === 'trial' ? `Trial (${trialStudents.length})` : `Paid (${students.length - trialStudents.length})`}
-                  </button>
-                ))}
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-foreground/30 leading-none">Alignments</p>
+                <p className="text-sm font-bold text-foreground mt-0.5">{metrics.renewalsThisMonth}</p>
               </div>
             </div>
-
-            {/* Student list items */}
-            <div className="flex flex-1 flex-col gap-1.5 overflow-y-auto px-4 pb-4">
-              {filtered.length === 0 ? (
-                <div className="flex flex-1 items-center justify-center py-6 text-xs text-gray-400">No students found</div>
-              ) : (
-                filtered.map((student) => {
-                  const assignedName = getInstructorName(student.assignedInstructorId);
-                  return (
-                    <button
-                      key={student.id}
-                      onClick={() => setSelectedStudent(student)}
-                      className={`group flex items-center gap-2.5 rounded-xl border p-2.5 transition-all text-left ${
-                        selectedStudent?.id === student.id
-                          ? 'border-pink-200 bg-gradient-to-r from-pink-50 to-rose-50 shadow-sm'
-                          : 'border-transparent bg-white/40 hover:border-pink-100 hover:bg-white/60'
-                      }`}
-                    >
-                      <div className="relative shrink-0">
-                        {student.avatar_url ? (
-                          <img src={student.avatar_url} alt="" className="h-8 w-8 rounded-full border-2 border-white object-cover shadow-sm" />
-                        ) : (
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-pink-400 to-rose-400 text-xs font-bold text-white shadow-sm">
-                            {student.full_name?.charAt(0)}
-                          </div>
-                        )}
-                        {student.isTrial && (
-                          <span className="absolute -top-1 -right-1 rounded-full bg-amber-400 px-1 text-[7px] font-bold text-white">T</span>
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-1">
-                          <p className="truncate text-xs font-bold text-gray-800">{student.full_name}</p>
-                          {student.isTrial ? (
-                            <span className="shrink-0 rounded bg-amber-100 px-1.5 py-0.5 text-[8px] font-bold text-amber-600">TRIAL</span>
-                          ) : (
-                            <span className={`shrink-0 rounded px-1.5 py-0.5 text-[8px] font-bold ${(student.daysLeft ?? 99) <= 3 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
-                              {student.daysLeft}d
-                            </span>
-                          )}
-                        </div>
-                        {assignedName ? (
-                          <p className="text-[9px] text-blue-500 font-medium mt-0.5 truncate flex items-center gap-0.5">
-                            <UserCheck className="h-2.5 w-2.5 shrink-0" />{assignedName}
-                          </p>
-                        ) : (
-                          <p className="text-[9px] text-gray-400 mt-0.5">Unassigned</p>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })
-              )}
+            <div className="flex items-center gap-4 bg-white/50 backdrop-blur-xl px-6 py-3 rounded-2xl border border-outline-variant/10 shadow-sm">
+              <div className="h-8 w-8 rounded-xl bg-primary/5 flex items-center justify-center text-primary border border-primary/10">
+                <Users className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-foreground/30 leading-none">Total Active</p>
+                <p className="text-sm font-bold text-foreground mt-0.5">{metrics.totalActiveStudents}</p>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* ── CENTER COLUMN: Student Detail + Chat ── */}
-        <div className="flex flex-col lg:col-span-5 gap-4 min-h-0">
+        <div className="flex items-center gap-4">
+          <div className="relative group">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/20 group-focus-within:text-primary transition-colors" />
+            <input
+              type="text"
+              placeholder="Search souls..."
+              className="h-12 w-64 pl-12 pr-6 rounded-xl bg-white/50 backdrop-blur-xl border border-outline-variant/10 focus:ring-2 focus:ring-primary/10 text-[12px] font-medium placeholder:text-foreground/20 transition-all shadow-sm"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <button className="h-12 w-12 rounded-xl bg-white/50 backdrop-blur-xl border border-outline-variant/10 flex items-center justify-center text-foreground/40 hover:text-primary hover:border-primary/20 transition-all shadow-sm">
+             <Filter className="w-5 h-5" />
+          </button>
+        </div>
+      </header>
 
-          {/* Student header card */}
-          {selectedStudent ? (
-            <div className="shrink-0 rounded-2xl border border-pink-100/40 bg-white p-4 shadow-sm">
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  {selectedStudent.avatar_url ? (
-                    <img src={selectedStudent.avatar_url} alt="" className="h-14 w-14 rounded-2xl border-2 border-pink-100 object-cover shadow" />
-                  ) : (
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-400 to-rose-400 text-xl font-extrabold text-white shadow">
-                      {selectedStudent.full_name?.charAt(0)}
-                    </div>
-                  )}
-                  {selectedStudent.isTrial && (
-                    <span className="absolute -top-2 -right-2 rounded-full bg-amber-400 px-2 py-0.5 text-[9px] font-bold text-white shadow">TRIAL</span>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-base font-extrabold text-gray-900 truncate">{selectedStudent.full_name}</h2>
-                  <p className="text-xs text-gray-500 truncate">{selectedStudent.email}</p>
-                  <div className="flex items-center gap-2 mt-1.5">
-                    {selectedStudent.daysLeft !== null && selectedStudent.daysLeft !== undefined && (
-                      <span className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${(selectedStudent.daysLeft ?? 99) <= 3 ? 'bg-red-100 text-red-600' : 'bg-pink-50 text-pink-600'}`}>
-                        <Clock className="h-3 w-3" />{selectedStudent.daysLeft} days left
-                      </span>
+      <main className="flex-1 flex overflow-hidden p-6 lg:p-10 gap-4 xl:gap-8 min-w-0">
+        
+        {/* LEFT: Registry List (Student Rail Style) */}
+        <div className="w-64 xl:w-80 flex flex-col gap-6 shrink-0 h-full min-w-0">
+          <div className="flex-1 bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col min-h-0 overflow-hidden">
+            <div className="p-8 border-b border-outline-variant/5">
+              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30 mb-6">Directory</h3>
+              
+              <div className="flex gap-1 bg-foreground/5 p-1 rounded-xl mb-4">
+                {(['all', 'trial', 'paid'] as const).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setFilterTrial(f)}
+                    className={cn(
+                      "flex-1 h-8 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all",
+                      filterTrial === f 
+                        ? "bg-white text-foreground shadow-sm" 
+                        : "text-foreground/40 hover:text-foreground/60"
                     )}
-                    {getInstructorName(selectedStudent.assignedInstructorId) ? (
-                      <span className="flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-600">
-                        <UserCheck className="h-3 w-3" />{getInstructorName(selectedStudent.assignedInstructorId)}
-                      </span>
-                    ) : (
-                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-gray-500">Unassigned</span>
-                    )}
-                  </div>
-                </div>
-                <button
-                  onClick={() => { setSelectedInstructorId(selectedStudent.assignedInstructorId || ''); setShowAssignModal(true); }}
-                  className="shrink-0 flex items-center gap-1.5 rounded-xl bg-pink-500 px-3 py-2 text-xs font-bold text-white shadow hover:bg-pink-600 transition-all"
-                >
-                  <UserPlus className="h-4 w-4" />
-                  Assign
-                </button>
+                  >
+                    {f}
+                  </button>
+                ))}
               </div>
             </div>
-          ) : (
-            <div className="shrink-0 rounded-2xl border border-dashed border-pink-200 bg-white/50 p-6 text-center">
-              <Users className="mx-auto h-8 w-8 text-gray-300 mb-2" />
-              <p className="text-sm text-gray-400">Select a student to view details</p>
-            </div>
-          )}
 
-          {/* Chat Window */}
-          <div className="relative flex flex-1 flex-col overflow-hidden rounded-2xl border border-pink-100/40 bg-white shadow-sm min-h-[300px]">
-            <div className="px-5 pt-4 pb-3 shrink-0 flex items-center gap-2 border-b border-pink-50">
-              <MessageSquare className="h-4 w-4 text-pink-500" />
-              <h3 className="text-sm font-bold text-gray-900">
-                {selectedStudent ? `Chat with ${selectedStudent.full_name}` : 'Direct Messages'}
-              </h3>
+            <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
+              {filtered.map((student) => (
+                <button
+                  key={student.id}
+                  onClick={() => setSelectedStudent(student)}
+                  className={cn(
+                    "w-full flex items-center gap-4 p-4 rounded-2xl transition-all text-left group",
+                    selectedStudent?.id === student.id 
+                      ? "bg-white border border-outline-variant/10 shadow-md scale-[1.02]" 
+                      : "bg-transparent border border-transparent hover:bg-white/40 hover:border-outline-variant/5"
+                  )}
+                >
+                  <div className="relative shrink-0">
+                    {student.avatar_url ? (
+                      <img src={student.avatar_url} alt="" className="w-10 h-10 rounded-xl object-cover" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center text-sm font-bold text-primary">
+                        {student.full_name[0]}
+                      </div>
+                    )}
+                    <div className={cn("absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white", student.isTrial ? "bg-primary animate-pulse" : "bg-brand-emerald")} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">{student.full_name}</h4>
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-foreground/20 mt-0.5">{student.isTrial ? "Discovery" : "Aligned"}</p>
+                  </div>
+                </button>
+              ))}
             </div>
-            <div className="flex-1 min-h-0">
+          </div>
+        </div>
+
+        {/* CENTER: Active Unfolding (Journey & Focus) */}
+        <div className="flex-1 flex flex-col gap-8 overflow-hidden min-w-0">
+          <div className="h-full flex flex-col bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm overflow-hidden overflow-y-auto custom-scrollbar">
+            {selectedStudent ? (
+              <div className="flex flex-col min-h-full">
+                {/* Profile Header (Student Focus Area Style) */}
+                <div className="p-10 border-b border-outline-variant/5 flex items-center justify-between shrink-0 bg-white/20">
+                  <div className="flex items-center gap-8">
+                    <div className="h-20 w-20 rounded-2xl overflow-hidden border border-outline-variant/10 shadow-sm relative group">
+                      {selectedStudent.avatar_url ? (
+                        <img src={selectedStudent.avatar_url} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-primary bg-primary/5">
+                          {selectedStudent.full_name[0]}
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                       <h2 className="text-3xl font-serif font-bold text-foreground tracking-tight">{selectedStudent.full_name}</h2>
+                       <div className="flex items-center gap-6">
+                         <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-foreground/30">
+                            <Clock className="w-3.5 h-3.5" /> Start: {selectedStudent.startDate ? new Date(selectedStudent.startDate).toLocaleDateString() : 'Unmanifested'}
+                         </div>
+                         <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-foreground/30">
+                            <ShieldCheck className={cn("w-3.5 h-3.5", selectedStudent.isTrial ? "text-primary/60" : "text-brand-emerald/60")} /> {selectedStudent.isTrial ? "Trial Access" : "Full Alignment"}
+                         </div>
+                       </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setShowAssignModal(true)}
+                      className="h-12 px-6 rounded-xl bg-white border border-outline-variant/10 text-[10px] font-bold uppercase tracking-widest hover:border-primary/20 hover:scale-[1.02] transition-all flex items-center gap-2 shadow-sm"
+                    >
+                      <UserPlus className="w-4 h-4 text-primary" />
+                      {selectedStudent.assignedInstructorId ? 'Re-align Guide' : 'Assign Guide'}
+                    </button>
+                    {/* Communion button removed as chat is now persistent on right */}
+                  </div>
+                </div>
+
+                {/* Journey & Transformation Focus */}
+                <div className="p-10 space-y-12">
+                   {/* Journey Progress */}
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Transformation Path</h3>
+                        <span className="text-[10px] font-bold text-primary bg-primary/5 px-3 py-1 rounded-full uppercase tracking-widest">Day {activeStepDay} of {JOURNEY_MAX_DAY}</span>
+                      </div>
+                      <JourneyProgress 
+                        currentDay={selectedStudent.startDate
+                          ? Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate).getTime()) / 86400000) + 1))
+                          : 1}
+                        activeDay={activeStepDay} 
+                        onSelectDay={setActiveStepDay}
+                        completedDays={new Set(journeyLogs.map(l => l.day_number))}
+                      />
+                    </div>
+
+                    {/* Image Comparison / Visual Log */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                      <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Visual Resonance</h3>
+                          <div className="flex items-center gap-2">
+                             <div className="h-1.5 w-1.5 rounded-full bg-brand-emerald animate-pulse" />
+                             <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20 italic text-right">Manifestation comparison</span>
+                          </div>
+                        </div>
+                        <div className="aspect-[4/5] rounded-[2.5rem] overflow-hidden border border-outline-variant/10 shadow-2xl bg-foreground">
+                          <ImageComparison 
+                            beforeImage={beforeImage}
+                            afterImage={afterImage}
+                            beforeLabel="Foundation"
+                            afterLabel={`Day ${activeStepDay}`}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-6">
+                        <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Soul Chronicles</h3>
+                        <div className="bg-white/40 backdrop-blur-md rounded-[2.5rem] p-8 border border-outline-variant/5 min-h-[300px] flex flex-col">
+                           {activeLog ? (
+                             <div className="flex-1 flex flex-col">
+                               <div className="flex items-center justify-between mb-6">
+                                  <span className="text-[9px] font-bold uppercase tracking-widest text-primary italic">Observation {activeStepDay}</span>
+                                  <span className="text-[8px] text-foreground/20">{new Date(activeLog.created_at).toLocaleDateString()}</span>
+                               </div>
+                               <p className="text-sm font-medium leading-relaxed text-foreground/70 italic whitespace-pre-wrap flex-1">
+                                 "{activeLog.notes || 'The silence speaks of unspoken progress.'}"
+                               </p>
+                               <div className="mt-8 pt-6 border-t border-outline-variant/5 flex items-center justify-between">
+                                  <div className="flex -space-x-2">
+                                     {[1,2,3].map(i => <div key={i} className="h-6 w-6 rounded-full border-2 border-white bg-primary/10" />)}
+                                  </div>
+                                  <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20">Frequency stable</span>
+                               </div>
+                             </div>
+                           ) : (
+                             <div className="flex-1 flex flex-col items-center justify-center text-center opacity-20">
+                               <Sparkles className="w-12 h-12 mb-4" />
+                               <p className="text-[10px] font-bold uppercase tracking-widest">Day {activeStepDay} awaits manifestation</p>
+                             </div>
+                           )}
+                        </div>
+                      </div>
+                    </div>
+                </div>
+              </div>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center opacity-10 grayscale">
+                <Users className="w-16 h-16 mb-6" />
+                <p className="text-[14px] font-bold uppercase tracking-widest">Select a soul to begin management</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* RIGHT: Communion & Artifacts (Instructor Pattern) */}
+        <div className="w-72 xl:w-96 flex flex-col gap-8 shrink-0 h-full min-w-0">
+          
+          {/* Interaction Box (ChatWindow) */}
+          <div className="flex-1 bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col overflow-hidden">
+            <div className="p-8 border-b border-outline-variant/5 flex items-center justify-between shrink-0 bg-white/20">
+              <div className="space-y-1">
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Communion</h3>
+                <p className="text-sm font-serif font-bold text-foreground italic">Direct Sequence</p>
+              </div>
+              <div className={cn("h-2.5 w-2.5 rounded-full border-2 border-white", selectedStudent ? "bg-brand-emerald animate-pulse" : "bg-foreground/10")} />
+            </div>
+
+            <div className="flex-1 min-h-0 bg-white/10">
               {selectedStudent?.conversationId ? (
                 <ChatWindow
                   key={selectedStudent.conversationId}
@@ -439,263 +482,139 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                   otherParticipant={{ id: selectedStudent.id, full_name: selectedStudent.full_name, avatar_url: selectedStudent.avatar_url, email: selectedStudent.email } as Profile}
                   className="h-full"
                   hideHeader={true}
-                  isMultiParty={true}
                 />
-              ) : selectedStudent ? (
-                <div className="flex h-full flex-col items-center justify-center gap-3 px-4 text-center">
-                  <MessageSquare className="h-10 w-10 text-gray-200" />
-                  <p className="text-sm font-bold text-gray-600">No conversation yet</p>
-                  <p className="text-xs text-gray-400">Open a shared thread with {selectedStudent.full_name}</p>
-                  <button
-                    onClick={() => handleStartChatWithStudent(selectedStudent.id, selectedStudent)}
-                    disabled={isStartingChat}
-                    className="flex items-center gap-2 rounded-xl bg-pink-500 px-5 py-2.5 text-sm font-bold text-white shadow hover:bg-pink-600 transition-all disabled:opacity-60"
-                  >
-                    {isStartingChat ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageSquare className="h-4 w-4" />}
-                    Start Shared Chat
-                  </button>
-                </div>
               ) : (
-                <div className="flex h-full flex-col items-center justify-center text-gray-400">
-                  <MessageSquare className="mb-3 h-12 w-12 text-gray-200" />
-                  <p className="text-sm font-medium text-gray-500">Select a student</p>
+                <div className="h-full flex flex-col items-center justify-center p-12 text-center opacity-20">
+                  <MessageSquare className="w-10 h-10 mb-4" />
+                  <p className="text-[10px] font-bold uppercase tracking-widest">Initialize dialogue below</p>
+                  {selectedStudent && (
+                    <button
+                      onClick={() => handleStartChatWithStudent(selectedStudent.id)}
+                      disabled={isStartingChat}
+                      className="mt-6 h-10 px-6 rounded-xl bg-foreground text-background text-[9px] font-bold uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2"
+                    >
+                      {isStartingChat ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3 text-primary" />}
+                      Ignite
+                    </button>
+                  )}
                 </div>
               )}
             </div>
           </div>
-        </div>
 
-        {/* ── RIGHT COLUMN: Progress Gallery + Resources ── */}
-        <div className="flex flex-col lg:col-span-4 gap-4 min-h-0">
-
-          {/* Quick Search to add any student */}
-          <div className="shrink-0 rounded-2xl border border-pink-100/40 bg-white p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-3">
-              <Search className="h-4 w-4 text-pink-500" />
-              <h3 className="text-sm font-bold text-gray-900">Find Any Student</h3>
-            </div>
-            <div className="relative">
-              <input
-                type="text"
-                value={globalSearchQuery}
-                onChange={(e) => handleGlobalSearch(e.target.value)}
-                placeholder="Search by name or email..."
-                className="w-full rounded-xl border border-pink-100/60 bg-pink-50/30 py-2 pl-4 pr-3 text-xs outline-none focus:ring-2 focus:ring-pink-200"
-              />
-              {isSearching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-gray-400" />}
-            </div>
-            {globalSearchResults.length > 0 && (
-              <div className="mt-2 rounded-xl border border-pink-100 bg-white shadow-lg overflow-hidden">
-                {globalSearchResults.slice(0, 4).map((s) => (
-                  <button
-                    key={s.id}
-                    onClick={() => handleStartChatWithStudent(s.id, undefined)}
-                    className="flex w-full items-center gap-3 px-3 py-2.5 hover:bg-pink-50 transition-colors border-b border-gray-50 last:border-0"
-                  >
-                    <div className="h-7 w-7 rounded-full bg-gradient-to-br from-pink-400 to-rose-400 flex items-center justify-center text-white text-xs font-bold shrink-0">
-                      {s.full_name.charAt(0)}
-                    </div>
-                    <div className="min-w-0 flex-1 text-left">
-                      <p className="text-xs font-bold text-gray-800 truncate">{s.full_name}</p>
-                      <p className="text-[10px] text-gray-400 truncate">{s.email}</p>
-                    </div>
-                    <ChevronRight className="h-3.5 w-3.5 text-gray-300 shrink-0" />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Progress Gallery */}
-          <div className="shrink-0 rounded-2xl border border-pink-100/40 bg-white p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Activity className="h-4 w-4 text-pink-500" />
-                <h3 className="text-sm font-bold text-gray-900">Progress Gallery</h3>
-              </div>
-              {isLoadingJourney && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
-            </div>
-            {selectedStudent ? (
-              journeyLogs.length > 0 ? (
-                <div className="grid grid-cols-3 gap-2">
-                  {journeyLogs.filter(l => l.photo_url).slice(0, 6).map((log) => (
-                    <div key={log.id} className="relative aspect-square rounded-xl overflow-hidden border border-pink-100 bg-gray-50">
-                      <img src={log.photo_url!} alt={`Day ${log.day_number}`} className="h-full w-full object-cover" />
-                      <div className="absolute bottom-0 left-0 right-0 bg-black/40 px-1.5 py-1">
-                        <p className="text-[9px] font-bold text-white">Day {log.day_number}</p>
-                      </div>
-                    </div>
-                  ))}
-                  {journeyLogs.filter(l => l.photo_url).length === 0 && (
-                    <div className="col-span-3 flex items-center justify-center py-6 text-xs text-gray-400">
-                      No photos uploaded yet
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="flex items-center justify-center py-6">
-                  <div className="text-center">
-                    <ImageIcon className="mx-auto h-8 w-8 text-gray-200 mb-1" />
-                    <p className="text-xs text-gray-400">No journey data yet</p>
-                  </div>
-                </div>
-              )
-            ) : (
-              <div className="flex items-center justify-center py-6 text-xs text-gray-400">Select a student</div>
-            )}
-          </div>
-
-          {/* Resources */}
-          <div className="flex flex-1 flex-col rounded-2xl border border-pink-100/40 bg-white p-4 shadow-sm min-h-0 overflow-hidden">
-            <div className="flex items-center justify-between mb-3 shrink-0">
-              <div className="flex items-center gap-2">
-                <FolderOpen className="h-4 w-4 text-pink-500" />
-                <h3 className="text-sm font-bold text-gray-900">Resources</h3>
-              </div>
-              <div className="flex items-center gap-2">
-                {isLoadingResources && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  className="hidden"
-                  accept=".pdf,image/*,.doc,.docx,.mp4"
-                  onChange={handleFileUpload}
-                />
+          {/* Registry Artifacts (Resources) */}
+          <div className="h-72 bg-white/50 backdrop-blur-xl p-8 rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col shrink-0 overflow-hidden">
+             <div className="flex items-center justify-between mb-8 shrink-0">
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Registry Artifacts</h3>
                 <button
                   disabled={!selectedStudent || isUploading}
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-1.5 rounded-xl bg-pink-50 px-2.5 py-1.5 text-xs font-bold text-pink-500 hover:bg-pink-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="h-10 w-10 rounded-xl bg-primary/5 text-primary flex items-center justify-center transition-all hover:scale-110 active:scale-95 disabled:opacity-20 border border-primary/10"
                 >
-                  {isUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
-                  Upload
+                  {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-5 w-5" />}
                 </button>
-              </div>
-            </div>
-            <div className="flex flex-1 flex-col gap-2 overflow-y-auto pr-1">
-              {resources.length === 0 ? (
-                <div className="flex items-center justify-center py-8 text-xs text-gray-400">No resources yet</div>
-              ) : (
-                resources.map((res) => {
-                  const style = getFileIcon(res.content_type || '');
-                  return (
-                    <div
-                      key={res.id}
-                      className="group flex cursor-pointer items-center gap-3 rounded-xl border border-white/80 bg-white/60 p-3 transition-all hover:bg-white hover:shadow-sm"
-                      onClick={() => window.open(res.file_url, '_blank')}
-                    >
-                      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border ${style.bg} ${style.color} ${style.border}`}>
-                        <style.icon className="h-4 w-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h4 className="truncate text-xs font-bold text-gray-800">{res.file_name}</h4>
-                        <p className="mt-0.5 text-[9px] font-bold uppercase tracking-tight text-gray-400">
-                          {new Date(res.created_at).toLocaleDateString()} · {formatFileSize(res.file_size)}
-                        </p>
-                      </div>
-                      <a
-                        href={res.file_url}
-                        download={res.file_name}
-                        onClick={(e) => e.stopPropagation()}
-                        className="p-1 rounded hover:bg-pink-50 transition-colors"
-                      >
-                        <Download className="h-4 w-4 text-gray-300 transition-colors group-hover:text-pink-500" />
-                      </a>
-                    </div>
-                  );
-                })
-              )}
-            </div>
+                <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
+             </div>
+
+             <div className="flex-1 space-y-3 overflow-y-auto custom-scrollbar pr-2">
+                {resources.map((res) => {
+                   const style = getFileIcon(res.content_type || '');
+                   return (
+                      <button key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="w-full flex items-center gap-4 p-4 bg-white/40 border border-outline-variant/5 rounded-2xl hover:border-primary/20 hover:bg-white hover:shadow-md transition-all text-left group">
+                         <div className={cn("h-10 w-10 rounded-xl bg-foreground/5 flex items-center justify-center text-foreground/20 group-hover:bg-primary/5 group-hover:text-primary transition-colors", style.color)}>
+                            <style.icon className="w-4 h-4" />
+                         </div>
+                         <div className="min-w-0">
+                            <p className="text-xs font-bold text-foreground truncate">{res.file_name}</p>
+                            <p className="text-[9px] font-bold text-foreground/20 uppercase tracking-widest mt-0.5">{formatFileSize(res.file_size)}</p>
+                         </div>
+                      </button>
+                   );
+                })}
+                {resources.length === 0 && (
+                   <div className="h-40 flex flex-col items-center justify-center opacity-20 bg-foreground/[0.02] border border-dashed border-outline-variant/20 rounded-2xl">
+                      <FolderOpen className="w-6 h-6 mb-2" />
+                      <p className="text-[9px] font-bold uppercase tracking-widest">Registry pristine</p>
+                   </div>
+                )}
+             </div>
           </div>
         </div>
-      </div>
+      </main>
 
-      {/* ASSIGN INSTRUCTOR MODAL */}
+      {/* MODAL: Guide Alignment (Student-style overlay) */}
       {showAssignModal && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-md">
-          <div className="w-full max-w-md rounded-3xl bg-white/95 shadow-2xl overflow-hidden border border-white/40 animate-in fade-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-500">
+          <div className="absolute inset-0 bg-foreground/20 backdrop-blur-md" onClick={() => setShowAssignModal(false)} />
+          <div className="w-full max-w-xl rounded-[2.5rem] bg-white border border-outline-variant/10 shadow-2xl relative z-10 overflow-hidden p-12 space-y-10 animate-in zoom-in-95 duration-500">
+            <header className="space-y-3 text-center">
+              <h3 className="text-3xl font-serif font-bold text-foreground tracking-tight">Align New Guide</h3>
+              <p className="text-sm text-foreground/40 font-medium italic">Resolving cosmic resonance for {selectedStudent?.full_name}</p>
+            </header>
 
-            {/* Header */}
-            <div className="relative flex flex-col p-6 bg-gradient-to-br from-pink-50 via-white to-pink-50/30 border-b border-pink-100/50">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-400 via-rose-400 to-pink-500" />
-              <div className="flex items-start justify-between">
-                <div className="flex gap-4 items-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-pink-100 text-pink-600 shadow-inner">
-                    <UserPlus className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-extrabold text-gray-900 tracking-tight">Assign Instructor</h3>
-                    <p className="text-sm font-medium text-pink-600/80 mt-0.5">for {selectedStudent?.full_name}</p>
-                  </div>
-                </div>
-                <button onClick={() => setShowAssignModal(false)} className="p-2 rounded-full text-gray-400 hover:bg-black/5 hover:text-gray-700 transition-all bg-white border border-gray-100 shadow-sm">
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Body */}
-            <div className="p-6 space-y-4 bg-white/50">
-              <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Select Instructor</label>
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {instructors.map((instructor) => (
-                    <button
-                      key={instructor.id}
-                      onClick={() => setSelectedInstructorId(instructor.id)}
-                      className={`flex w-full items-center gap-3 rounded-xl border p-3 transition-all ${
-                        selectedInstructorId === instructor.id
-                          ? 'border-pink-400 bg-pink-50 shadow-sm'
-                          : 'border-gray-100 bg-white hover:border-pink-200'
-                      }`}
-                    >
-                      {instructor.avatar_url ? (
-                        <img src={instructor.avatar_url} alt="" className="h-9 w-9 rounded-full border border-pink-100 object-cover" />
-                      ) : (
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-pink-400 to-rose-400 text-sm font-bold text-white">
-                          {instructor.full_name?.charAt(0)}
-                        </div>
-                      )}
-                      <div className="flex-1 text-left">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-bold text-gray-800">{instructor.full_name}</p>
-                          {(instructor as any).is_master_instructor && (
-                            <span className="flex items-center gap-0.5 rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold text-amber-700">
-                              <Crown className="h-2.5 w-2.5" /> Master
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-gray-400 truncate">{instructor.email}</p>
+            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-4 custom-scrollbar">
+              {instructors.map((instructor) => (
+                <button
+                  key={instructor.id}
+                  onClick={() => setSelectedInstructorId(instructor.id)}
+                  className={cn(
+                    "w-full flex items-center gap-5 p-5 rounded-2xl transition-all group border",
+                    selectedInstructorId === instructor.id 
+                      ? "bg-foreground text-background border-foreground shadow-lg" 
+                      : "bg-surface-container/50 hover:bg-white text-foreground border-outline-variant/5 shadow-sm"
+                  )}
+                >
+                  <div className="h-12 w-12 rounded-xl overflow-hidden shrink-0 border border-outline-variant/10">
+                    {instructor.avatar_url ? (
+                      <img src={instructor.avatar_url} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="h-full w-full bg-primary/5 flex items-center justify-center text-lg font-bold text-primary">
+                        {instructor.full_name[0]}
                       </div>
-                      {selectedInstructorId === instructor.id && (
-                        <div className="h-5 w-5 rounded-full bg-pink-500 flex items-center justify-center shrink-0">
-                          <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
+                    )}
+                  </div>
+                  <div className="flex-1 text-left min-w-0">
+                    <p className="text-sm font-bold truncate">{instructor.full_name}</p>
+                    <p className={cn("text-[10px] font-bold truncate mt-0.5 opacity-40", selectedInstructorId === instructor.id ? "text-background" : "text-foreground")}>
+                      {instructor.email}
+                    </p>
+                  </div>
+                  <div className={cn("h-6 w-6 rounded-full flex items-center justify-center border-2 transition-all", selectedInstructorId === instructor.id ? "bg-primary border-primary text-white" : "border-outline-variant/20 text-transparent")}>
+                     <CheckCircle className="w-3.5 h-3.5" />
+                  </div>
+                </button>
+              ))}
             </div>
 
-            {/* Footer */}
-            <div className="flex gap-3 justify-end items-center bg-gray-50/80 p-6 border-t border-gray-100">
-              <button onClick={() => setShowAssignModal(false)} className="px-5 py-2.5 font-bold text-gray-500 hover:text-gray-900 hover:bg-gray-200/50 rounded-xl transition-all text-sm">
-                Cancel
+            <div className="flex gap-4 pt-4">
+              <button 
+                onClick={() => setShowAssignModal(false)}
+                className="flex-1 h-14 rounded-2xl text-[10px] font-bold uppercase tracking-widest text-foreground/40 hover:text-foreground transition-all"
+              >
+                Relinquish
               </button>
               <button
                 onClick={handleAssignInstructor}
                 disabled={isAssigning || !selectedInstructorId}
-                className="flex items-center gap-2 px-6 py-2.5 font-bold text-white bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl transition-all shadow-md hover:shadow-lg hover:scale-[1.02] disabled:opacity-70 disabled:hover:scale-100 disabled:cursor-not-allowed text-sm"
+                className="flex-[2] h-14 rounded-2xl bg-foreground text-background text-[10px] font-bold uppercase tracking-widest shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-20 disabled:scale-100"
               >
-                {isAssigning ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserCheck className="h-4 w-4" />}
-                Confirm Assignment
+                {isAssigning ? 'Synchronizing...' : (
+                  <div className="flex items-center justify-center gap-2">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                    Commit Alignment
+                  </div>
+                )}
               </button>
             </div>
           </div>
         </div>
       )}
+
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.05); border-radius: 10px; }
+      `}</style>
     </div>
   );
 }

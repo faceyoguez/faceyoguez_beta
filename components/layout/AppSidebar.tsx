@@ -95,12 +95,12 @@ export function AppSidebar({ user, activePlans = [], unreadNotificationsCount = 
 
   return (
     <SidebarContext.Provider value={{ collapsed, toggle: () => setCollapsed((p) => !p) }}>
-      <div className="flex min-h-[100dvh] bg-background selection:bg-primary-container selection:text-primary">
+      <div className="flex h-[100dvh] overflow-hidden bg-background selection:bg-primary-container selection:text-primary">
         
         {/* Mobile Header (Hamburger Menu) */}
-        <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-surface/80 backdrop-blur-2xl border-b border-outline-variant/10 z-40 flex items-center justify-between px-4 shadow-[0_4px_16px_rgba(0,0,0,0.02)]">
+        <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-surface/80 backdrop-blur-2xl border-b border-outline-variant/10 z-40 flex items-center justify-between px-6 shadow-sm">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-secondary-container text-secondary shadow-sm ring-1 ring-secondary-container/50">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-foreground text-background shadow-sm">
               <Flower2 className="h-4 w-4" />
             </div>
             <span className="text-lg font-bold tracking-tight text-foreground">
@@ -119,26 +119,27 @@ export function AppSidebar({ user, activePlans = [], unreadNotificationsCount = 
         {/* Mobile menu overlay */}
         {mobileMenuOpen && (
           <div 
-            className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm z-40 lg:hidden"
+            className="fixed inset-0 bg-black/5 backdrop-blur-sm z-40 lg:hidden"
             onClick={() => setMobileMenuOpen(false)}
           />
         )}
 
         {/* ── Sidebar ── */}
         <aside
-          className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-surface-container-lowest/80 backdrop-blur-3xl ring-1 ring-outline-variant/10 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-all duration-300 ease-in-out
-            ${collapsed ? 'w-[72px] hidden lg:flex' : 'w-72'} 
+          className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-surface-container-low/50 backdrop-blur-3xl transition-all duration-500 ease-in-out border-r border-outline-variant/10
+            ${collapsed ? 'w-[80px] hidden lg:flex' : 'w-72'} 
             ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+            bg-white/60 backdrop-blur-3xl
           `}
         >
           {/* Logo Handle */}
-          <div className="flex h-[72px] shrink-0 items-center justify-between border-b border-outline-variant/10 px-5">
-            <Link href="/" className="flex items-center gap-3 overflow-hidden">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-secondary-container text-secondary shadow-sm ring-1 ring-secondary-container/50">
-                <Flower2 className="h-5 w-5" />
+          <div className="flex h-[88px] shrink-0 items-center justify-between px-6">
+            <Link href="/" className="flex items-center gap-3 overflow-hidden group px-2">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-lg border border-primary/20 group-hover:scale-110 transition-transform duration-500">
+                <Flower2 className="h-6 w-6" />
               </div>
               {!collapsed && (
-                <span className="text-xl font-bold tracking-tight text-foreground">
+                <span className="text-2xl font-serif font-bold tracking-tight text-primary italic">
                   Faceyoguez
                 </span>
               )}
@@ -184,21 +185,21 @@ export function AppSidebar({ user, activePlans = [], unreadNotificationsCount = 
                       href={isLocked ? '#' : path}
                       onClick={(e) => { if (isLocked) e.preventDefault(); }}
                       title={tooltipTitle}
-                      className={`group flex items-center gap-3.5 rounded-[1.25rem] px-3.5 py-3 text-[13px] font-semibold transition-all duration-200 ${
+                      className={`group flex items-center gap-4 rounded-[1.5rem] px-4 py-3.5 text-[13px] font-bold transition-all duration-500 ${
                         isActive
-                        ? 'bg-primary/10 text-primary shadow-[inset_0_2px_4px_rgba(255,255,255,0.5)] ring-1 ring-primary/20 backdrop-blur-md'
+                        ? 'bg-primary text-white shadow-xl scale-[1.02] shadow-primary/20'
                         : isLocked
-                          ? 'text-foreground/30 cursor-not-allowed bg-surface-container/30'
-                          : 'text-foreground/60 hover:bg-surface-container-high/50 hover:text-foreground'
-                        } ${collapsed ? 'justify-center' : ''}`}
+                          ? 'text-foreground/20 cursor-not-allowed'
+                          : 'text-foreground/50 hover:bg-primary/5 hover:text-primary'
+                        } ${collapsed ? 'justify-center mx-2' : ''}`}
                     >
                       <Icon
-                        className={`h-[18px] w-[18px] shrink-0 transition-all ${
+                        className={`h-[20px] w-[20px] shrink-0 transition-transform duration-500 group-hover:scale-110 ${
                           isActive
-                          ? 'text-primary'
+                          ? 'text-background'
                           : isLocked
-                            ? 'text-foreground/20'
-                            : 'text-foreground/40 group-hover:text-foreground/70'
+                            ? 'text-foreground/10'
+                            : 'text-foreground/30'
                           }`}
                       />
                       {!collapsed && <span className="flex-1">{label}</span>}
@@ -265,7 +266,7 @@ export function AppSidebar({ user, activePlans = [], unreadNotificationsCount = 
 
         {/* ── Main content wrapper ── */}
         <main
-          className={`flex-1 transition-all duration-300 ease-in-out w-full
+          className={`flex-1 overflow-y-auto h-full transition-all duration-300 ease-in-out w-full
             pt-16 lg:pt-0 
             ${collapsed ? 'lg:ml-[72px]' : 'lg:ml-72'}
           `}

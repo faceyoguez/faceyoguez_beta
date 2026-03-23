@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { OneOnOneChat } from '@/components/chat';
-import { PageHeader } from '@/components/layout/PageHeader';
 import { getStudentResources } from '@/lib/actions/resources';
 import { getUpcomingMeetingsForStudent } from '@/lib/actions/meetings';
 import { createClient } from '@/lib/supabase/client';
@@ -24,8 +23,13 @@ import {
   CheckCircle,
   Loader2,
   Image as ImageIcon,
-  PlayCircle
+  PlayCircle,
+  Sparkles,
+  ArrowUpRight,
+  TrendingUp,
+  User
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import type { Profile, StudentResource, MeetingWithDetails } from '@/types/database';
 
 interface Props {
@@ -35,7 +39,7 @@ interface Props {
 }
 
 export function StudentOneOnOneClient({ currentUser, hasSubscription, subscriptionStartDate }: Props) {
-  // Day elapsed since subscription started (clamped to 1–JOURNEY_MAX_DAY)
+  // Day elapsed since subscription started
   const currentDay = subscriptionStartDate
     ? Math.min(
         JOURNEY_MAX_DAY,
@@ -43,10 +47,8 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
       )
     : 1;
 
-  const [sliderValue, setSliderValue] = useState(50);
   const [resources, setResources] = useState<StudentResource[]>([]);
   const [isLoadingResources, setIsLoadingResources] = useState(false);
-
   const [upcomingMeetings, setUpcomingMeetings] = useState<MeetingWithDetails[]>([]);
 
   // Journey logic state
@@ -65,8 +67,6 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
   const beforeImage = day1Log?.photo_url || 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800&sat=-100';
   let afterImage = activeLog?.photo_url || selectedImageBase64 || 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800';
 
-  // Find the latest uploaded photo if the active day has no photo, so the right side is always the current status 
-  // (unless uploading a new one, or viewing a specific old one)
   if (!activeLog?.photo_url && !selectedImageBase64) {
     const logsWithPhotos = [...journeyLogs].filter(l => l.photo_url).sort((a, b) => b.day_number - a.day_number);
     if (logsWithPhotos.length > 0) {
@@ -87,7 +87,6 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
         setJourneyLogs(logsData);
         setUpcomingMeetings(meetingsData || []);
 
-        // Set active day to latest logged milestone, or day 1
         if (logsData.length > 0) {
           const latestDay = [...logsData].sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0].day_number;
           setActiveStepDay(latestDay);
@@ -97,22 +96,13 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
       };
       loadData();
 
-      // Real-time subscription for new resources
       const supabase = createClient();
       const channel = supabase
         .channel(`resources:${currentUser.id}`)
         .on(
           'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'student_resources',
-            filter: `student_id=eq.${currentUser.id}`
-          },
-          (payload) => {
-            console.log('New resource received:', payload.new);
-            setResources((prev) => [payload.new as StudentResource, ...prev]);
-          }
+          { event: 'INSERT', schema: 'public', table: 'student_resources', filter: `student_id=eq.${currentUser.id}` },
+          (payload) => setResources((prev) => [payload.new as StudentResource, ...prev])
         )
         .subscribe();
 
@@ -131,25 +121,22 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
   };
 
   const getFileIcon = (contentType: string) => {
-    if (contentType.includes('pdf')) return { icon: FileText, color: 'text-pink-500', bg: 'bg-pink-50', border: 'border-pink-100' };
-    if (contentType.includes('image')) return { icon: ImageIcon, color: 'text-blue-500', bg: 'bg-blue-50', border: 'border-blue-100' };
-    if (contentType.includes('video')) return { icon: PlayCircle, color: 'text-purple-500', bg: 'bg-purple-50', border: 'border-purple-100' };
-    return { icon: FileText, color: 'text-gray-500', bg: 'bg-gray-50', border: 'border-gray-100' };
+    if (contentType.includes('pdf')) return { icon: FileText, color: 'text-primary', bg: 'bg-primary/5', border: 'border-primary/10' };
+    if (contentType.includes('image')) return { icon: ImageIcon, color: 'text-brand-rose', bg: 'bg-brand-rose/5', border: 'border-brand-rose/10' };
+    if (contentType.includes('video')) return { icon: PlayCircle, color: 'text-brand-emerald', bg: 'bg-brand-emerald/5', border: 'border-brand-emerald/10' };
+    return { icon: FileText, color: 'text-foreground/40', bg: 'bg-foreground/5', border: 'border-outline-variant/10' };
   };
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     if (file.size > 5 * 1024 * 1024) {
       alert('Photo must be less than 5MB');
       return;
     }
-
     const reader = new FileReader();
     reader.onload = (event) => {
       const base64Str = event.target?.result as string;
-      // Extract just the base64 data without the data URL prefix
       const base64Data = base64Str.split(',')[1];
       setSelectedImageBase64(base64Data);
       setSelectedImageMime(file.type);
@@ -159,10 +146,9 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
 
   const handleSaveLog = async () => {
     if (!notesInput.trim() && !selectedImageBase64) {
-      alert('Please add some notes or a photo to save.');
+      alert('Please add some reflections or a photo to preserve this moment.');
       return;
     }
-
     setIsSavingLog(true);
     const { success, error, data } = await saveDailyCheckIn(
       currentUser.id,
@@ -171,7 +157,6 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
       selectedImageBase64,
       selectedImageMime || 'image/jpeg'
     );
-
     if (success && data) {
       setJourneyLogs(prev => {
         const filtered = prev.filter(l => l.day_number !== activeStepDay);
@@ -179,17 +164,16 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
       });
       setSelectedImageBase64(null);
       setSelectedImageMime(null);
-      alert('Journey log saved successfully!');
+      alert('Reflection preserved successfully.');
     } else {
-      alert(error || 'Failed to save log.');
+      alert(error || 'Failed to save reflection.');
     }
     setIsSavingLog(false);
   };
 
-  // Pre-fill notes when switching days
   useEffect(() => {
     setNotesInput(activeLog?.notes || '');
-    setSelectedImageBase64(null); // Clear selected photo on day switch
+    setSelectedImageBase64(null);
   }, [activeStepDay, activeLog]);
 
   const studentMeetings = upcomingMeetings.filter(m => m.meeting_type === 'one_on_one');
@@ -199,267 +183,366 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
 
   useEffect(() => {
     if (!nextMeeting) return;
-
     const checkTime = () => {
       const meetingTime = new Date(nextMeeting.start_time).getTime();
       const now = Date.now();
-      // 5 minutes = 300000 ms
       setIsJoinEnabled(meetingTime - now <= 300000);
     };
-
     checkTime();
-    const interval = setInterval(checkTime, 10000); // Check every 10 seconds
-
+    const interval = setInterval(checkTime, 10000);
     return () => clearInterval(interval);
   }, [nextMeeting]);
 
   return (
-    <div className="p-4 lg:p-6 xl:p-8">
-      <PageHeader
-        title="Your"
-        highlight="1-on-1 Hub"
-        description="Track progress and connect with your instructor"
-      />
+    <div className="p-6 lg:p-10 space-y-12 pb-24 lg:pb-12 h-full overflow-y-auto relative animate-in fade-in duration-1000">
+      
+      {/* ── Header ── */}
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
+        <div className="space-y-4">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-primary/10 text-primary text-[10px] font-bold tracking-[0.2em] uppercase shadow-sm">
+            <User className="w-3.5 h-3.5" />
+            1-on-1 Elite Experience
+          </div>
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-black text-foreground tracking-tight leading-none">
+            Your Dedicated Path
+          </h1>
+          <p className="text-lg text-foreground/50 italic font-medium max-w-xl">
+            A bespoke transformation journey guided by ancient flow and structural renewal.
+          </p>
+        </div>
+      </header>
 
-      {/* ── Top row: Chat + Side panels ── */}
-      <div className="mb-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
-        {/* Chat — ALWAYS visible */}
-        <OneOnOneChat
-          currentUser={currentUser}
-          className="h-[480px]"
-        />
+      {/* ── Main Dashboard Layout ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 xl:gap-10 items-start">
+        
+        {/* ── Left Column: Primary Content ── */}
+        <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-10 relative z-10">
+          
+          {/* Top Row: Next Meeting & Elite Wisdom */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+            {/* Next session card */}
+            {nextMeeting ? (
+              <div className="group relative overflow-hidden rounded-[2rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.08)] border border-white/10 bg-black text-white transition-all duration-700 hover:scale-[1.02] flex flex-col justify-between">
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                  <div className="absolute top-0 right-0 w-48 h-48 bg-primary/20 rounded-full blur-[60px] -translate-y-12 translate-x-12 pointer-events-none transition-transform duration-700 group-hover:scale-150" />
+                  <div className="relative z-10 flex flex-col h-full justify-between gap-8">
+                      <div className="flex items-start justify-between">
+                           <div className="space-y-3">
+                              <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 text-white rounded-full text-[9px] font-bold uppercase tracking-[0.2em] backdrop-blur-md border border-white/10">
+                                  <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                                  Live Ritual Soon
+                              </div>
+                              <h3 className="text-3xl font-serif font-black text-white tracking-tight leading-none">{nextMeeting.topic}</h3>
+                           </div>
+                      </div>
 
-        {/* Side panels */}
-        <div className="flex h-[480px] flex-col gap-4">
-          {/* Next session card */}
-          {nextMeeting ? (
-            <div className="group relative shrink-0 overflow-hidden rounded-2xl shadow-lg shadow-pink-200/30 ring-1 ring-black/5">
-              {/* Top accent bar */}
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-400 via-rose-400 to-pink-500 z-20" />
-              <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800" />
-              <div className="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-pink-500/20 blur-3xl transition-transform duration-700 group-hover:scale-125" />
-              <div className="absolute -left-4 bottom-0 h-24 w-24 rounded-full bg-rose-500/10 blur-2xl" />
-              <div className="relative z-10 p-5 text-white">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <span className="flex h-2 w-2 animate-pulse rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.8)]" />
-                      <p className="text-[9px] font-bold uppercase tracking-widest text-green-400">Upcoming Session</p>
-                    </div>
-                    <h3 className="text-base font-extrabold tracking-tight text-white">{nextMeeting.topic}</h3>
+                      <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 pt-6 border-t border-white/10">
+                          <div className="flex items-center gap-6">
+                               <div className="space-y-1">
+                                  <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-white/40 leading-none">Date</p>
+                                  <p className="text-base font-bold text-white tracking-tight">{new Date(nextMeeting.start_time).toLocaleDateString([], { month: 'short', day: 'numeric' })}</p>
+                               </div>
+                               <div className="w-px h-8 bg-white/10" />
+                               <div className="space-y-1">
+                                  <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-white/40 leading-none">Time</p>
+                                  <p className="text-base font-bold text-white tracking-tight">{new Date(nextMeeting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                               </div>
+                          </div>
+
+                          <button
+                              disabled={!isJoinEnabled}
+                              onClick={() => window.open(nextMeeting.join_url, '_blank')}
+                              className={cn(
+                                  "flex items-center justify-center gap-3 px-6 py-4 rounded-full text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-500 shadow-xl w-full xl:w-auto",
+                                  isJoinEnabled 
+                                      ? "bg-primary text-white hover:bg-primary/90 hover:scale-105 shadow-primary/20" 
+                                      : "bg-white/5 text-white/30 border border-white/10 cursor-not-allowed"
+                              )}
+                          >
+                              {isJoinEnabled ? "Enter Portal" : "Locked"}
+                              <ArrowUpRight className="h-4 w-4 shrink-0" />
+                          </button>
+                      </div>
                   </div>
-                  <div className="rounded-xl border border-white/10 bg-white/10 p-2.5 backdrop-blur-md shadow-inner">
-                    <Video className="h-5 w-5 text-white" />
+              </div>
+            ) : (
+               <div className="flex flex-col items-center justify-center gap-5 p-12 rounded-[2rem] bg-white/40 backdrop-blur-xl border border-white/60 shadow-[0_20px_60px_rgba(0,0,0,0.03)] text-foreground/40 h-full min-h-[220px]">
+                  <div className="h-14 w-14 rounded-full bg-white flex items-center justify-center shadow-sm">
+                      <Video className="w-6 h-6 text-primary/40" />
                   </div>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-center">No live rituals scheduled</p>
+               </div>
+            )}
+
+            {/* Weekly wisdom / Tip */}
+            <div className="p-8 rounded-[2rem] bg-white border border-white shadow-[0_20px_50px_rgba(255,138,117,0.08)] relative overflow-hidden group flex flex-col justify-center h-full min-h-[220px]">
+               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-[40px] -translate-y-8 translate-x-8 group-hover:scale-150 transition-transform duration-1000" />
+              <div className="relative z-10 flex flex-col gap-6 items-start">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:rotate-12 group-hover:scale-110 transition-all duration-500">
+                  <Sparkles className="h-5 w-5" />
                 </div>
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold backdrop-blur-md">
-                      <Calendar className="h-3.5 w-3.5 text-pink-300" /> {new Date(nextMeeting.start_time).toLocaleDateString()}
-                    </div>
-                    <div className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold backdrop-blur-md">
-                      <Clock className="h-3.5 w-3.5 text-pink-300" /> {new Date(nextMeeting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                <div className="space-y-2">
+                  <h4 className="text-[9px] font-black uppercase tracking-[0.2em] text-primary">Elite Wisdom</h4>
+                  <p className="text-sm font-medium leading-relaxed text-foreground/70 italic">
+                    &quot;Your face is the mirror of your history. Honor each movement as a prayer to your own vitality.&quot;
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Transformation Journey ── */}
+          <div className="w-full rounded-[3rem] p-8 lg:p-12 space-y-12 bg-white/60 backdrop-blur-3xl border border-white/60 shadow-[0_40px_100px_rgba(0,0,0,0.06)] relative overflow-hidden group/trans">
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/4 pointer-events-none transition-transform duration-1000 group-hover/trans:scale-125" />
+            
+            <div className="flex flex-col 2xl:flex-row 2xl:items-end justify-between gap-8 relative z-10">
+              <div className="space-y-5">
+                 <div className="inline-flex items-center gap-3 px-5 py-2.5 bg-white/80 backdrop-blur-md rounded-full border border-white shadow-sm text-primary text-[10px] font-black uppercase tracking-[0.3em]">
+                    <TrendingUp className="w-4 h-4" />
+                    Evolution Log
+                 </div>
+                 <h3 className="text-4xl lg:text-6xl font-serif font-black text-foreground tracking-tight leading-none group-hover/trans:text-primary transition-colors duration-500">Transcendence</h3>
+                 <p className="text-sm font-medium text-foreground/50 italic max-w-md leading-relaxed">
+                    A profound mirror of your structural metamorphosis over {JOURNEY_MAX_DAY} sacred days.
+                 </p>
+              </div>
+              <div className="flex gap-4 self-start 2xl:self-end">
+                 <div className="px-8 py-5 bg-white rounded-3xl border border-white shadow-[0_20px_40px_rgba(0,0,0,0.04)] flex flex-col items-center justify-center min-w-[130px] hover:scale-105 transition-transform duration-300">
+                    <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em] mb-2">Current Node</span>
+                    <span className="text-3xl font-serif font-black text-foreground tracking-tight">Day {currentDay}</span>
+                 </div>
+                 <div className="px-8 py-5 bg-black text-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] flex flex-col items-center justify-center min-w-[130px] hover:scale-105 transition-transform duration-300">
+                    <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] mb-2">Culmination</span>
+                    <span className="text-3xl font-serif font-black text-white tracking-tight">{JOURNEY_MAX_DAY} Days</span>
+                 </div>
+              </div>
+            </div>
+
+            {/* Journey path selector */}
+            <div className="relative z-10 p-4 bg-white/40 backdrop-blur-md rounded-[3rem] border border-white shadow-inner overflow-x-auto custom-scrollbar">
+              <JourneyProgress
+                currentDay={currentDay}
+                activeDay={activeStepDay}
+                onSelectDay={setActiveStepDay}
+                completedDays={new Set(journeyLogs.map(l => l.day_number))}
+              />
+            </div>
+
+            {/* Visual Mirror + Daily Reflections */}
+            <div className="grid grid-cols-1 items-stretch gap-12 relative z-10">
+              
+              {/* Comparison Mirror */}
+              <div className="flex flex-col h-full space-y-6">
+                  <div className="flex items-center justify-between px-6">
+                     <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-foreground/30 italic">Ancestral vs Ascendant</h4>
+                     <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent mx-6" />
+                     <span className="text-[9px] font-black text-primary uppercase tracking-[0.3em] bg-white px-5 py-2 rounded-full shadow-sm">Day 1 / Day {activeStepDay}</span>
+                  </div>
+                  
+                  <div className="rounded-[3rem] overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.12)] border-8 border-white bg-white h-[450px] lg:h-[550px] relative group w-full">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none" />
+                    {activeStepDay < 1 && !afterImage ? (
+                      <div className="w-full h-full flex flex-col items-center justify-center space-y-6 bg-foreground/5">
+                        <div className="h-24 w-24 rounded-full bg-white flex items-center justify-center text-foreground/20 shadow-sm">
+                            <ImageIcon className="h-10 w-10" />
+                        </div>
+                        <div className="text-center space-y-2">
+                            <p className="text-[11px] font-bold text-foreground/40 uppercase tracking-[0.3em] leading-relaxed">The Mirror is Empty<br />Awaiting your origin.</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="h-full w-full">
+                        <ImageComparison
+                            beforeImage={beforeImage}
+                            afterImage={afterImage}
+                            disabled={false}
+                            altBefore="Ancestral Baseline"
+                            altAfter={`Unfolding Day ${activeStepDay}`}
+                        />
+                      </div>
+                    )}
+                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0 text-white text-[10px] font-black uppercase tracking-[0.4em] bg-black/60 backdrop-blur-xl px-8 py-3 rounded-full border border-white/20 shadow-2xl">
+                       Drag to witness
                     </div>
                   </div>
+              </div>
+
+              {/* Daily reflections */}
+              <div className="flex flex-col h-full space-y-8 pt-10 border-t border-primary/10">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                  <div className="flex items-center gap-6">
+                    <div className="h-14 w-14 rounded-full bg-black text-white flex items-center justify-center shadow-[0_20px_40px_rgba(0,0,0,0.2)] hover:scale-110 transition-transform duration-500 shrink-0">
+                        <Edit3 className="w-6 h-6" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <h5 className="text-2xl font-serif font-black text-foreground tracking-tight leading-none">Inner Monologue</h5>
+                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60">Node {activeStepDay}</p>
+                    </div>
+                  </div>
+                  {activeLog?.updated_at && (
+                    <div className="px-5 py-2 bg-white text-primary rounded-full text-[10px] font-black uppercase tracking-[0.3em] shadow-sm self-start sm:self-auto border border-primary/5">
+                        Inscribed {new Date(activeLog.updated_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                     </div>
+                  )}
+                </div>
+
+                <div className="min-h-[220px] rounded-[3rem] bg-white/80 p-8 sm:p-12 focus-within:ring-4 focus-within:ring-primary/10 transition-all duration-700 shadow-sm border border-white/60 hover:shadow-md">
+                  <textarea
+                    value={notesInput}
+                    onChange={(e) => setNotesInput(e.target.value)}
+                    className="w-full h-full resize-none bg-transparent text-foreground/80 placeholder:text-foreground/30 text-lg font-medium leading-relaxed outline-none custom-scrollbar italic"
+                    placeholder="Document the subtle energetic shifts. How does your structure feel today?"
+                  />
+                </div>
+
+                {selectedImageBase64 && (
+                  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="flex items-center justify-between p-5 px-8 rounded-full bg-primary text-white shadow-[0_20px_40px_rgba(255,138,117,0.3)]">
+                        <div className="flex items-center gap-5">
+                            <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
+                                <ImageIcon className="w-5 h-5" />
+                            </div>
+                            <p className="text-[11px] font-black uppercase tracking-[0.3em]">Snapshot Captured</p>
+                        </div>
+                        <button onClick={() => { setSelectedImageBase64(null); setSelectedImageMime(null); }} className="h-10 w-10 flex items-center justify-center hover:bg-white/20 rounded-full transition-colors font-black text-sm">
+                            ✕
+                        </button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-6 relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    ref={fileInputRef}
+                    onChange={handlePhotoSelect}
+                  />
                   <button
-                    disabled={!isJoinEnabled}
-                    onClick={() => window.open(nextMeeting.join_url, '_blank')}
-                    className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${isJoinEnabled ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-[0_4px_14px_0_rgba(236,72,153,0.5)] hover:shadow-[0_6px_20px_rgba(236,72,153,0.4)] hover:scale-105 active:scale-95' : 'bg-white/10 text-white/40 cursor-not-allowed border border-white/10'}`}>
-                    {isJoinEnabled ? <><Video className="h-3.5 w-3.5" /> Join Now</> : 'Starts 5 min before'}
-                    {isJoinEnabled && <ExternalLink className="h-3.5 w-3.5" />}
+                    onClick={() => fileInputRef.current?.click()}
+                    className="group flex flex-col items-center justify-center gap-5 p-8 sm:p-10 rounded-[2.5rem] bg-white hover:bg-white/80 border border-white shadow-sm hover:shadow-[0_20px_40px_rgba(0,0,0,0.05)] transition-all duration-500">
+                    <div className="h-16 w-16 flex items-center justify-center rounded-full bg-primary/10 text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-500">
+                      <Camera className="h-6 w-6" />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-foreground/80">Imprint Photo</span>
+                  </button>
+                  
+                  <button
+                    onClick={handleSaveLog}
+                    disabled={isSavingLog}
+                    className="relative group overflow-hidden flex flex-col items-center justify-center gap-5 p-8 sm:p-10 rounded-[2.5rem] bg-foreground text-background shadow-[0_20px_50px_rgba(0,0,0,0.2)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-500 disabled:opacity-50 disabled:hover:scale-100">
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    <div className="h-16 w-16 flex items-center justify-center rounded-full bg-background/10 shadow-sm group-hover:rotate-12 transition-transform duration-500 relative z-10">
+                       {isSavingLog ? <Loader2 className="h-6 w-6 animate-spin" /> : <CheckCircle className="h-6 w-6" />}
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-[0.3em] relative z-10">
+                        {isSavingLog ? 'Inscribing...' : 'Seal the Record'}
+                    </span>
                   </button>
                 </div>
               </div>
             </div>
-          ) : (
-             <div className="group relative shrink-0 overflow-hidden rounded-2xl p-5 text-gray-500 bg-white/70 shadow-sm ring-1 ring-pink-100/40 backdrop-blur-xl flex flex-col items-center justify-center h-[120px]">
-                <Video className="h-8 w-8 text-gray-300 mb-2" />
-                <p className="text-sm font-medium">No upcoming sessions</p>
+          </div>
+        </div>
+
+        {/* ── Right Column: Stacked Chat & Guidelines ── */}
+        <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-8 sticky top-10 h-max z-20">
+           
+           {/* Chat Panel */}
+           <div className="h-[550px] shrink-0 bg-white/60 backdrop-blur-3xl rounded-[2.5rem] border border-white/60 shadow-[0_40px_100px_rgba(0,0,0,0.06)] flex flex-col overflow-hidden transition-all duration-700 hover:shadow-[0_40px_100px_rgba(0,0,0,0.08)] group/chat">
+             <div className="px-8 py-5 border-b border-white/60 bg-white/40 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-4">
+                   <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary border border-primary/10">
+                      <User className="w-4 h-4" />
+                   </div>
+                   <div>
+                       <h3 className="text-sm font-bold text-foreground font-serif leading-tight">Elite Support</h3>
+                       <p className="text-[9px] font-black uppercase tracking-[0.2em] text-primary/80">Direct Line</p>
+                   </div>
+                </div>
+                <div className="flex gap-2 items-center px-3 py-1 bg-primary/5 rounded-full border border-primary/10">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                    <span className="text-[8px] font-black tracking-[0.2em] text-primary uppercase">Active</span>
+                </div>
              </div>
-          )}
+             <div className="flex-1 overflow-hidden flex flex-col bg-white/20">
+                 <OneOnOneChat
+                    currentUser={currentUser}
+                    hideHeader={true}
+                    className="flex-1 h-full w-full border-0 bg-transparent rounded-none"
+                 />
+             </div>
+           </div>
 
-          {/* Guidelines & Resources */}
-          <div className="flex flex-col h-[180px] shrink-0 rounded-2xl bg-white/70 p-5 shadow-sm ring-1 ring-pink-100/40 backdrop-blur-xl">
-            <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-bold text-gray-700">Guidelines & Resources</h3>
-              <div className="rounded bg-pink-50 p-1 text-pink-500">
-                <BookOpen className="h-4 w-4" />
-              </div>
-            </div>
+           {/* Guidelines Panel */}
+           <div className="flex flex-col rounded-[2.5rem] p-8 border border-white/60 shadow-[0_20px_60px_rgba(0,0,0,0.04)] relative overflow-hidden bg-white/50 backdrop-blur-2xl group max-h-[500px]">
+             <div className="absolute inset-0 bg-gradient-to-b from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+             <div className="flex items-center justify-between mb-8 relative z-10 shrink-0">
+               <div className="space-y-1">
+                 <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-primary">Sacred Texts</h3>
+                 <p className="text-2xl font-serif font-black text-foreground tracking-tight">Guidelines</p>
+               </div>
+               <div className="h-10 w-10 rounded-full bg-white flex items-center justify-center shadow-sm text-primary">
+                 <BookOpen className="h-4 w-4" />
+               </div>
+             </div>
 
-            <div className="flex flex-1 flex-col gap-2 overflow-y-auto pr-1">
-              {isLoadingResources ? (
-                <div className="flex flex-1 items-center justify-center">
-                  <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
-                </div>
-              ) : resources.length === 0 ? (
-                <div className="flex flex-1 items-center justify-center text-xs text-gray-400">
-                  No resources available.
-                </div>
-              ) : (
-                resources.map(res => {
-                  const style = getFileIcon(res.content_type || '');
-                  return (
-                    <div key={res.id} className="group flex shrink-0 cursor-pointer items-center gap-3 rounded-xl border border-white/60 bg-white/50 p-2.5 shadow-sm transition-shadow hover:shadow-md">
-                      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border ${style.bg} ${style.color} ${style.border} shadow-sm transition-transform group-hover:scale-105`}>
-                        <style.icon className="h-5 w-5" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h4 className="truncate text-xs font-bold text-gray-800">{res.file_name}</h4>
-                        <div className="mt-0.5 flex items-center gap-2">
-                          <span className="rounded bg-white/60 px-1.5 text-[10px] text-gray-500">{formatFileSize(res.file_size)}</span>
-                          <span className="text-[10px] font-bold text-pink-500">{new Date(res.created_at).toLocaleDateString()}</span>
-                        </div>
-                      </div>
-                      <div className="flex gap-1.5">
-                        <button
-                          onClick={() => window.open(res.file_url, '_blank')}
-                          className="rounded-lg border border-gray-100 bg-white p-1.5 text-gray-600 shadow-sm transition-colors hover:bg-gray-50"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </button>
-                        <a
-                          href={res.file_url}
-                          download={res.file_name}
-                          className="rounded-lg border border-pink-100 bg-pink-50 p-1.5 text-pink-600 shadow-sm transition-colors hover:bg-pink-100"
-                        >
-                          <Download className="h-4 w-4" />
-                        </a>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
+             <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar relative z-10 space-y-4">
+               {isLoadingResources ? (
+                 <div className="flex h-32 items-center justify-center">
+                   <Loader2 className="h-6 w-6 animate-spin text-primary/20" />
+                 </div>
+               ) : resources.length === 0 ? (
+                 <div className="flex h-32 items-center justify-center text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30 italic">
+                   The archive is empty.
+                 </div>
+               ) : (
+                 resources.map(res => {
+                   const style = getFileIcon(res.content_type || '');
+                   return (
+                     <div key={res.id} className="group/item flex items-center gap-4 p-4 rounded-3xl bg-white/80 border border-white/40 shadow-sm hover:shadow-md hover:scale-[1.02] transition-all duration-300">
+                       <div className="h-10 w-10 shrink-0 flex items-center justify-center rounded-2xl bg-primary/5 text-primary transition-transform group-hover/item:scale-110 group-hover/item:rotate-3 shadow-sm border border-primary/5">
+                         <style.icon className="h-4 w-4" />
+                       </div>
+                       <div className="min-w-0 flex-1">
+                         <h4 className="truncate text-[13px] font-bold text-foreground group-hover/item:text-primary transition-colors">{res.file_name}</h4>
+                         <div className="mt-1 flex items-center gap-3">
+                           <span className="text-[8px] font-black text-foreground/40 uppercase tracking-[0.2em]">{formatFileSize(res.file_size)}</span>
+                         </div>
+                       </div>
+                       <div className="flex gap-1.5 opacity-0 group-hover/item:opacity-100 transition-opacity -translate-x-2 group-hover/item:translate-x-0 duration-300">
+                         <button
+                           onClick={() => window.open(res.file_url, '_blank')}
+                           className="h-8 w-8 flex items-center justify-center rounded-full bg-white text-foreground hover:bg-primary hover:text-white transition-colors shadow-sm"
+                         >
+                           <Eye className="h-3.5 w-3.5" />
+                         </button>
+                         <a
+                           href={res.file_url}
+                           download={res.file_name}
+                           className="h-8 w-8 flex items-center justify-center rounded-full bg-foreground text-background hover:scale-110 transition-transform shadow-md"
+                         >
+                           <Download className="h-3.5 w-3.5" />
+                         </a>
+                       </div>
+                     </div>
+                   );
+                 })
+               )}
+             </div>
+           </div>
 
-          {/* Weekly wisdom */}
-          <div className="relative flex flex-1 flex-col justify-center overflow-hidden rounded-2xl bg-white/70 p-4 shadow-sm ring-1 ring-pink-100/40 backdrop-blur-xl">
-            <div className="absolute -right-6 -top-6 pointer-events-none h-24 w-24 rounded-full bg-amber-100 opacity-50 blur-2xl" />
-            <div className="relative z-10 flex items-start gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-amber-100 bg-amber-50 text-amber-500 shadow-sm">
-                <Lightbulb className="h-4 w-4" />
-              </div>
-              <div>
-                <h4 className="mb-1 text-xs font-bold text-gray-700">Weekly Wisdom</h4>
-                <p className="line-clamp-3 text-xs leading-relaxed text-gray-600">
-                  Remember to keep your shoulders relaxed during the jaw exercises. Tension in the
-                  neck can reduce effectiveness of the facial movements.
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
+
       </div>
 
-      {/* ── Transformation Journey ── */}
-      <div className="w-full rounded-2xl bg-white/70 p-6 shadow-sm ring-1 ring-pink-100/40 backdrop-blur-xl">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h3 className="flex items-center gap-2 text-lg font-bold text-gray-800">
-              Transformation Journey
-              <span className="rounded-full bg-pink-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-pink-600">
-                Day {currentDay}
-              </span>
-            </h3>
-            <p className="mt-0.5 text-xs font-medium text-gray-500">
-              Visual progress tracking & daily feedback
-            </p>
-          </div>
-        </div>
-
-        {/* Journey path */}
-        <div className="relative mb-10 w-full">
-          <JourneyProgress
-            currentDay={currentDay}
-            activeDay={activeStepDay}
-            onSelectDay={setActiveStepDay}
-            completedDays={new Set(journeyLogs.map(l => l.day_number))}
-          />
-        </div>
-
-        {/* Before / After + Daily check-in */}
-        <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-2">
-          {/* Slider */}
-          <div className="rounded-2xl overflow-hidden ring-1 ring-black/5 shadow-md bg-white">
-            {activeStepDay < 7 || !afterImage ? (
-              <div className="w-full aspect-[4/3] bg-pink-50/30 flex flex-col items-center justify-center overflow-hidden">
-                {beforeImage ? (
-                  <img src={beforeImage} alt="Day 1 Baseline" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="flex flex-col items-center text-gray-400">
-                    <ImageIcon className="h-10 w-10 mb-2 opacity-50 text-pink-300" />
-                    <span className="text-xs font-medium text-gray-500">No Day 1 photo uploaded</span>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <ImageComparison
-                beforeImage={beforeImage}
-                afterImage={afterImage}
-                disabled={false}
-                altBefore="Day 1 Baseline"
-                altAfter={`Day ${activeStepDay} Progress`}
-              />
-            )}
-          </div>
-
-          {/* Daily check-in */}
-          <div className="flex flex-col">
-            <div className="mb-3 flex items-center justify-between px-1">
-              <h5 className="flex items-center gap-2 text-sm font-bold text-gray-700">
-                <span className="rounded bg-pink-100 p-1 text-pink-500">
-                  <Edit3 className="h-4 w-4" />
-                </span>
-                Day {currentDay} Check-in
-              </h5>
-              {activeLog?.updated_at && (
-                <span className="text-[10px] text-gray-400">Last saved: {new Date(activeLog.updated_at).toLocaleDateString()}</span>
-              )}
-            </div>
-            <div className="mb-4 flex-1 rounded-xl border border-white/50 bg-white/40 p-1 shadow-inner transition-all focus-within:ring-2 focus-within:ring-pink-100">
-              <textarea
-                value={notesInput}
-                onChange={(e) => setNotesInput(e.target.value)}
-                className="h-full min-h-[160px] w-full resize-none rounded-lg border-none bg-transparent p-3 text-sm text-gray-700 placeholder:text-gray-400 outline-none"
-                placeholder="How did your session go today? Record any observations..."
-              />
-            </div>
-
-            {selectedImageBase64 && (
-              <div className="mb-4 text-xs font-semibold text-pink-600 bg-pink-50 p-2 rounded-lg border border-pink-100 flex items-center justify-between">
-                <span>Photo selected! Save log to upload.</span>
-                <button onClick={() => { setSelectedImageBase64(null); setSelectedImageMime(null); }} className="p-1 hover:bg-pink-100 rounded text-pink-700">✕</button>
-              </div>
-            )}
-
-            <div className="flex gap-3 relative">
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                ref={fileInputRef}
-                onChange={handlePhotoSelect}
-              />
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="group flex w-1/3 items-center justify-center rounded-xl border border-dashed border-pink-300 bg-pink-50/50 px-4 py-2.5 transition-all hover:border-pink-400 hover:bg-pink-50">
-                <div className="mr-2 flex h-6 w-6 items-center justify-center rounded-full bg-white text-pink-500 shadow-sm transition-transform group-hover:scale-110">
-                  <Camera className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-xs font-bold text-gray-600">Add Photo</span>
-              </button>
-              <button
-                onClick={handleSaveLog}
-                disabled={isSavingLog}
-                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 py-2.5 text-xs font-bold tracking-wide text-white shadow-md shadow-pink-200/30 transition-all hover:shadow-lg disabled:opacity-50">
-                {isSavingLog ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle className="h-5 w-5" />}
-                {isSavingLog ? 'Saving...' : 'Save Log'}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 138, 117, 0.1); border-radius: 10px; }
+      `}</style>
     </div>
   );
 }
+

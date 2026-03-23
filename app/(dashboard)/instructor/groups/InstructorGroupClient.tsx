@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useRef, useTransition } from 'react';
+import { toast } from 'sonner';
 import {
     Search, Plus, Users,
     Award, Settings, Calendar, Play,
     FileText, Send, Video, Library,
-    BarChart2, X, CheckCircle, Download, Clock, Loader2, ArrowUpRight
+    BarChart2, X, CheckCircle, Download, Clock, Loader2, ArrowUpRight,
+    Sparkles, ArrowRight, ChevronRight, Radio, PlayCircle, ChevronDown, Activity
 } from 'lucide-react';
 import { createAndPopulateBatch, type CreateBatchInput } from '@/lib/actions/batches';
 import { useRouter } from 'next/navigation';
@@ -17,6 +19,7 @@ import { getBatchRecordedSessions } from '@/lib/actions/meetings';
 import { PollCard } from '@/components/ui/poll-card';
 import { createClient } from '@/lib/supabase/client';
 import { useEffect, useMemo } from 'react';
+import { cn } from '@/lib/utils';
 
 interface GroupClientProps {
     currentUser: Profile;
@@ -67,7 +70,6 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
     useEffect(() => {
         if (!selectedBatch?.id) return;
 
-        // Fetch initial messages + polls
         const fetchAll = async () => {
             const [msgs, pollsMap] = await Promise.all([
                 getBatchMessages(selectedBatch.id),
@@ -79,7 +81,6 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
         };
         fetchAll();
 
-        // Subscribe to new chat messages (text + poll)
         const msgChannel = supabase
             .channel(`batch-chat-${selectedBatch.id}`)
             .on(
@@ -100,18 +101,14 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                     const newMsg = { ...payload.new, sender: profile };
                     setMessages(prev => [...prev, newMsg]);
 
-                    // If it's a poll message, fetch the poll data
                     if (payload.new.message_type === 'poll' && payload.new.poll_id) {
                         const pollData = await getPollById(payload.new.poll_id, currentUser.id);
-                        if (pollData) {
-                            setPolls(prev => ({ ...prev, [pollData.id]: pollData }));
-                        }
+                        if (pollData) setPolls(prev => ({ ...prev, [pollData.id]: pollData }));
                     }
                 }
             )
             .subscribe();
 
-        // Subscribe to poll vote changes to update live counts
         const voteChannel = supabase
             .channel(`batch-votes-${selectedBatch.id}`)
             .on(
@@ -120,7 +117,6 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                 async (payload: { new: any }) => {
                     const pollId = payload.new?.poll_id;
                     if (!pollId) return;
-                    // Always refetch — avoids stale closure on `polls` state
                     const updated = await getPollById(pollId, currentUser.id);
                     if (updated) setPolls(prev => ({ ...prev, [pollId]: updated }));
                 }
@@ -131,7 +127,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
             supabase.removeChannel(msgChannel);
             supabase.removeChannel(voteChannel);
         };
-    }, [selectedBatch?.id, supabase]);
+    }, [selectedBatch?.id, supabase, currentUser.id]);
 
     useEffect(() => {
         if (chatContainerRef.current) {
@@ -141,24 +137,17 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
 
     const handleSendMessage = async () => {
         if (!newMessage.trim() || !selectedBatch?.id) return;
-
         const res = await sendBatchMessage(selectedBatch.id, newMessage.trim(), currentUser.id);
-        if (res.success) {
-            setNewMessage('');
-        } else {
-            alert(res.error);
-        }
+        if (res.success) setNewMessage('');
+        else toast.error(res.error);
     };
 
     const handleToggleChat = async () => {
         if (!selectedBatch?.id) return;
         const nextState = !isChatEnabled;
         const res = await toggleBatchChat(selectedBatch.id, nextState);
-        if (res.success) {
-            setIsChatEnabled(nextState);
-        } else {
-            alert(res.error);
-        }
+        if (res.success) setIsChatEnabled(nextState);
+        else toast.error(res.error);
     };
 
     const handleCreatePoll = async () => {
@@ -169,101 +158,56 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
             setShowPollModal(false);
             setPollQuestion('');
             setPollOptions(['', '']);
-        } else {
-            alert(res.error);
-        }
+        } else toast.error(res.error);
         setIsCreatingPoll(false);
     };
 
     const handleClosePoll = async (pollId: string) => {
         const res = await closePoll(pollId);
         if (res.success) {
-            setPolls(prev => ({
-                ...prev,
-                [pollId]: { ...prev[pollId], is_closed: true },
-            }));
-        } else {
-            alert(res.error);
-        }
+            setPolls(prev => ({ ...prev, [pollId]: { ...prev[pollId], is_closed: true } }));
+        } else toast.error(res.error);
     };
 
-    // Form State
     const [formData, setFormData] = useState<Partial<CreateBatchInput>>({
-        name: '',
-        startDate: '',
-        endDate: '',
-        maxStudents: 30,
-        instructorId: currentUser.id
+        name: '', startDate: '', endDate: '', maxStudents: 30, instructorId: currentUser.id
     });
 
     const handleCreateBatch = async () => {
         if (!formData.name || !formData.startDate || !formData.endDate) {
-            alert("Please fill in all required fields.");
-            return;
+            toast.error("Temporal coordinates incomplete."); return;
         }
-
         startTransition(async () => {
             const result = await createAndPopulateBatch({
-                name: formData.name!,
-                startDate: formData.startDate!,
-                endDate: formData.endDate!,
-                maxStudents: formData.maxStudents || 30,
-                instructorId: formData.instructorId || currentUser.id,
+                name: formData.name!, startDate: formData.startDate!, endDate: formData.endDate!,
+                maxStudents: formData.maxStudents || 30, instructorId: formData.instructorId || currentUser.id,
             });
-
             if (result.success) {
                 setIsCreateBatchOpen(false);
                 setFormData({ name: '', startDate: '', endDate: '', maxStudents: 30, instructorId: currentUser.id });
                 router.refresh();
-            } else {
-                alert("Error: " + result.error);
-            }
+            } else alert("Error: " + result.error);
         });
     };
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file || !selectedBatch) return;
-
-        // 10 MB limit
-        if (file.size > 10 * 1024 * 1024) {
-            alert("File size must be less than 10MB.");
-            return;
-        }
-
-        const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png'];
-        if (!allowedTypes.includes(file.type)) {
-            alert("Please upload a PDF, Word document, or Image (JPEG/PNG).");
-            return;
-        }
-
+        if (file.size > 20 * 1024 * 1024) { alert("File size must be less than 20MB."); return; }
         setIsUploading(true);
         try {
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = async () => {
                 const base64 = (reader.result as string).split(',')[1];
-                const res = await uploadBatchResource(
-                    selectedBatch.id,
-                    file.name,
-                    file.type,
-                    file.size,
-                    base64
-                );
-
+                const res = await uploadBatchResource(selectedBatch.id, file.name, file.type, file.size, base64);
                 if (res.success) {
-                    // Update resources list locally
                     const updated = await getBatchResources(selectedBatch.id);
                     setResources(updated);
-                } else {
-                    alert("Upload failed: " + res.error);
-                }
+                } else alert("Upload failed: " + res.error);
                 setIsUploading(false);
             };
-        } catch (err) {
-            console.error(err);
-            setIsUploading(false);
-        }
+        } catch (err) { console.error(err); setIsUploading(false); }
     };
 
     const fetchRecordings = async (batch: any) => {
@@ -281,7 +225,6 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
         fetchRecordings(batch);
     };
 
-    // Zoom scheduling state
     const [showZoomModal, setShowZoomModal] = useState(false);
     const [zoomTopic, setZoomTopic] = useState('');
     const [zoomDate, setZoomDate] = useState('');
@@ -294,31 +237,24 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
 
     useEffect(() => {
         if (!zoomMeeting) { setMeetingCountdown(''); return; }
-
         const update = () => {
             const diff = new Date(zoomMeeting.start_time).getTime() - Date.now();
             setIsJoinEnabled(diff <= 300000 && diff > -zoomMeeting.duration_ms);
-
-            if (diff <= 0) {
-                setMeetingCountdown('Live now');
-            } else {
+            if (diff <= 0) setMeetingCountdown('Live now');
+            else {
                 const totalMins = Math.ceil(diff / 60000);
                 const hrs = Math.floor(totalMins / 60);
                 const mins = totalMins % 60;
                 setMeetingCountdown(hrs > 0 ? `Starts in ${hrs}h ${mins}m` : `Starts in ${mins}m`);
             }
         };
-
         update();
         const interval = setInterval(update, 10000);
         return () => clearInterval(interval);
     }, [zoomMeeting]);
 
     const handleScheduleZoom = async () => {
-        if (!selectedBatch || !zoomTopic || !zoomDate || !zoomTime) {
-            alert('Please fill out all fields');
-            return;
-        }
+        if (!selectedBatch || !zoomTopic || !zoomDate || !zoomTime) { toast.error('Temporal coordinates incomplete.'); return; }
         setIsSchedulingZoom(true);
         try {
             const startDateTime = new Date(`${zoomDate}T${zoomTime}`).toISOString();
@@ -326,729 +262,497 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    topic: zoomTopic,
-                    startTime: startDateTime,
-                    durationMinutes: parseInt(zoomDuration, 10),
-                    meetingType: 'group_session',
-                    batchId: selectedBatch.id,
+                    topic: zoomTopic, startTime: startDateTime, durationMinutes: parseInt(zoomDuration, 10),
+                    meetingType: 'group_session', batchId: selectedBatch.id,
                 }),
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Failed to schedule meeting');
             const meeting = data.meeting;
             setZoomMeeting({
-                join_url: meeting.join_url,
-                start_url: meeting.start_url,
-                topic: meeting.topic || zoomTopic,
-                start_time: meeting.start_time || startDateTime,
-                duration_ms: parseInt(zoomDuration, 10) * 60000,
+                join_url: meeting.join_url, start_url: meeting.start_url, topic: meeting.topic || zoomTopic,
+                start_time: meeting.start_time || startDateTime, duration_ms: parseInt(zoomDuration, 10) * 60000,
             });
-            setShowZoomModal(false);
-            setZoomTopic('');
-            setZoomDate('');
-            setZoomTime('');
-            setZoomDuration('60');
-        } catch (e: any) {
-            alert(e.message);
-        } finally {
-            setIsSchedulingZoom(false);
-        }
+            setShowZoomModal(false); setZoomTopic(''); setZoomDate(''); setZoomTime(''); setZoomDuration('60');
+            toast.success('Temporal ritual scheduled.');
+        } catch (e: any) { toast.error(e.message); } finally { setIsSchedulingZoom(false); }
     };
 
-    // Filter enrolled students
     const [studentSearchQuery, setStudentSearchQuery] = useState('');
     const filteredStudents = useMemo(() => {
         if (!selectedBatch?.batch_enrollments) return [];
         if (!studentSearchQuery) return selectedBatch.batch_enrollments;
         return selectedBatch.batch_enrollments.filter((e: any) => {
             const name = e.student?.full_name?.toLowerCase() || '';
-            const query = studentSearchQuery.toLowerCase();
-            return name.includes(query);
+            return name.includes(studentSearchQuery.toLowerCase());
         });
     }, [selectedBatch?.batch_enrollments, studentSearchQuery]);
 
-    return (
-        <div className="flex h-full flex-col overflow-hidden bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-pink-50 via-gray-50 to-white text-gray-900">
+  return (
+    <div className="flex flex-col h-screen bg-background text-foreground selection:bg-primary/20 overflow-hidden font-sans">
+      
+      {/* Background decoration */}
+      <div className="fixed top-0 right-0 w-[40vw] h-[40vh] bg-primary/2 rounded-full blur-[120px] -z-10" />
 
+      {/* Header: Student-style airy title */}
+      <header className="shrink-0 p-6 lg:p-10 flex items-center justify-between relative z-50">
+        <div className="flex items-center gap-12">
+          <div className="space-y-1">
+            <h1 className="text-4xl font-serif font-bold tracking-tight text-foreground">Group Sessions</h1>
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-foreground/30 italic">Collective Guidance Hub</p>
+          </div>
 
-            <main className="relative z-0 flex-1 overflow-hidden p-4">
-                <div className="mx-auto grid h-full max-w-[1800px] grid-cols-12 gap-4">
+          <div className="hidden lg:flex items-center gap-8 ml-4">
+            <button 
+              onClick={() => setIsCreateBatchOpen(true)}
+              className="h-12 px-6 rounded-xl bg-white/50 backdrop-blur-xl border border-outline-variant/10 shadow-sm flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest hover:border-primary/20 hover:scale-[1.02] transition-all"
+            >
+              <Plus className="w-4 h-4 text-primary" />
+              Manifest Batch
+            </button>
+            <div className="h-6 w-px bg-outline-variant/10" />
+            <div className="flex flex-col">
+              <span className="text-[9px] font-bold uppercase tracking-widest text-foreground/20">Waiting Queue</span>
+              <span className="text-sm font-serif font-bold text-primary italic">{waitingQueue.length} Souls</span>
+            </div>
+          </div>
+        </div>
 
-                    {/* Left Navigation col */}
-                    <div className="col-span-12 flex h-full flex-col gap-4 lg:col-span-2">
-                        <nav className="flex h-full flex-col gap-1 rounded-xl border border-white/60 bg-white/65 p-3 shadow-sm backdrop-blur-md">
-                            <p className="mb-1 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-500 opacity-70">Management</p>
-                            <button
-                                onClick={() => setIsCreateBatchOpen(true)}
-                                className="mb-2 flex items-center gap-3 rounded-lg bg-pink-500 px-3 py-2.5 text-sm font-bold text-white shadow-md transition-all hover:bg-pink-600"
-                            >
-                                <Plus className="h-5 w-5" />
-                                New Batch
-                            </button>
+        <div className="flex items-center gap-4">
+          <div className="relative group">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/20 group-focus-within:text-primary transition-colors" />
+            <input
+              type="text"
+              placeholder="Search batches..."
+              className="h-12 w-64 pl-12 pr-6 rounded-xl bg-white/50 backdrop-blur-xl border border-outline-variant/10 focus:ring-2 focus:ring-primary/10 text-[12px] font-medium placeholder:text-foreground/20 transition-all shadow-sm"
+              value={studentSearchQuery}
+              onChange={(e) => setStudentSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+      </header>
 
-                            {/* Quick links placeholder */}
-                            <div className="mt-auto border-t border-pink-100/50 pt-4 space-y-3 overflow-y-auto max-h-[40vh] custom-scrollbar">
-                                <p className="px-2 text-[9px] font-bold text-gray-400 uppercase">My Batches</p>
-                                {batches.map((batch) => (
-                                    <div
-                                        key={batch.id}
-                                        onClick={() => handleBatchChange(batch)}
-                                        className={`cursor-pointer rounded-lg border p-3 transition-all ${selectedBatch?.id === batch.id ? 'border-pink-300 bg-pink-50 shadow-sm' : 'border-pink-100/50 bg-white/40 hover:bg-white/60'}`}
-                                    >
-                                        <div className="mb-2 flex items-center justify-between">
-                                            <Award className={`h-4 w-4 ${selectedBatch?.id === batch.id ? 'text-pink-600' : 'text-pink-400'}`} />
-                                            <span className={`rounded-full border px-1.5 py-0.5 text-[10px] font-bold ${batch.status === 'active' ? 'border-green-200 bg-white/60 text-green-600' : 'border-gray-200 bg-gray-50 text-gray-500'}`}>
-                                                {batch.status === 'active' ? 'Live' : batch.status}
-                                            </span>
-                                        </div>
-                                        <h4 className="text-xs font-bold text-gray-900">{batch.name}</h4>
-                                        <p className="line-clamp-1 text-[10px] text-gray-500">{new Date(batch.start_date).toLocaleDateString()} - {new Date(batch.end_date).toLocaleDateString()}</p>
-                                    </div>
-                                ))}
+      <main className="flex-1 flex overflow-hidden p-6 lg:p-10 gap-4 xl:gap-8 min-w-0">
+        
+        {/* LEFT: Batch & Student Rail */}
+        <div className="w-64 xl:w-80 flex flex-col gap-6 shrink-0 h-full min-w-0">
+          {/* Batches */}
+          <div className="flex-[0.4] bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col min-h-0 overflow-hidden">
+            <div className="p-8 border-b border-outline-variant/5">
+              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30 mb-2">Active Paths</h3>
+              <p className="text-sm font-serif font-bold text-foreground italic">Current Collectives</p>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
+              {batches.map((batch) => (
+                <button
+                  key={batch.id}
+                  onClick={() => handleBatchChange(batch)}
+                  className={cn(
+                    "w-full flex items-center gap-4 p-4 rounded-2xl transition-all text-left group",
+                    selectedBatch?.id === batch.id 
+                      ? "bg-white border border-outline-variant/10 shadow-md scale-[1.02]" 
+                      : "bg-transparent border border-transparent hover:bg-white/40 hover:border-outline-variant/5"
+                  )}
+                >
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">{batch.name}</h4>
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-foreground/20 mt-0.5">{batch.status === 'active' ? 'Operational' : 'Concluded'}</p>
+                  </div>
+                  <ChevronRight className="w-3 h-3 text-foreground/10 group-hover:text-primary transition-colors" />
+                </button>
+              ))}
+            </div>
+          </div>
 
-                                {batches.length === 0 && (
-                                    <div className="p-4 text-center">
-                                        <p className="text-[10px] text-gray-400">No batches created yet.</p>
-                                    </div>
-                                )}
-                            </div>
-                        </nav>
-                    </div>
-
-                    {/* Center Main col */}
-                    <div className={`col-span-12 flex h-full flex-col gap-4 overflow-hidden transition-all lg:col-span-7 ${isCreateBatchOpen ? 'blur-[2px] opacity-50 pointer-events-none' : ''}`}>
-                        {/* Session Thumbnail */}
-                        <div className="group relative h-48 w-full shrink-0 overflow-hidden rounded-xl border border-white/20 shadow-sm">
-                            <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/80 via-black/40 to-transparent"></div>
-                            <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2420&auto=format&fit=crop" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Yoga Studio" />
-                            <div className="absolute inset-0 z-20 flex flex-row items-center justify-between gap-4 p-5">
-                                <div className="max-w-md">
-                                    <div className="mb-1.5 flex items-center gap-2">
-                                        <span className={`flex h-2 w-2 rounded-full ${selectedBatch?.status === 'active' ? 'animate-pulse bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]' : 'bg-gray-400'}`}></span>
-                                        <span className={`text-xs font-bold uppercase tracking-wider ${selectedBatch?.status === 'active' ? 'text-red-400' : 'text-gray-400'}`}>
-                                            {selectedBatch?.status === 'active' ? 'Session Live' : 'Session Offline'}
-                                        </span>
-                                    </div>
-                                    <h2 className="mb-2 text-2xl font-bold tracking-tight text-white">{selectedBatch?.name || 'Select a Batch'}</h2>
-                                    <div className="flex gap-3">
-                                        <div className="flex items-center gap-2 rounded-md border border-white/10 bg-black/30 px-3 py-1 backdrop-blur-md">
-                                            <Calendar className="h-3.5 w-3.5 text-white/70" />
-                                            <span className="text-xs font-medium text-white">{selectedBatch ? `${new Date(selectedBatch.start_date).toLocaleDateString()} - ${new Date(selectedBatch.end_date).toLocaleDateString()}` : '--'}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="flex shrink-0 flex-col items-end gap-2 min-w-[200px]">
-                                    {zoomMeeting ? (
-                                        <div className="w-full rounded-xl border border-white/20 bg-black/40 backdrop-blur-md p-3 space-y-2">
-                                            <div className="flex items-center gap-2">
-                                                <span className={`h-2 w-2 rounded-full ${isJoinEnabled ? 'animate-pulse bg-green-400' : 'bg-pink-400'}`} />
-                                                <p className="text-[10px] font-bold uppercase tracking-wider text-white/80">Zoom Scheduled</p>
-                                            </div>
-                                            <p className="text-xs font-bold text-white truncate">{zoomMeeting.topic}</p>
-                                            <p className="text-[10px] text-white/60">{new Date(zoomMeeting.start_time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</p>
-                                            <div className={`text-center rounded-lg px-3 py-1 text-[11px] font-bold ${isJoinEnabled ? 'bg-green-500/20 text-green-300' : 'bg-white/10 text-white/60'}`}>
-                                                {isJoinEnabled ? '🟢 Join Now' : meetingCountdown}
-                                            </div>
-                                            <button
-                                                disabled={!isJoinEnabled}
-                                                onClick={() => window.open(zoomMeeting.start_url, '_blank')}
-                                                className={`flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all ${isJoinEnabled ? 'bg-green-500 text-white hover:bg-green-600 shadow-lg shadow-green-500/30' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}
-                                            >
-                                                {isJoinEnabled ? 'Start Zoom' : 'Waiting...'} <ArrowUpRight className="h-3.5 w-3.5" />
-                                            </button>
-                                            <button
-                                                onClick={() => setShowZoomModal(true)}
-                                                className="w-full text-center text-[10px] text-white/40 hover:text-white/70 transition-colors"
-                                            >
-                                                + Schedule another
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <button
-                                            disabled={!selectedBatch}
-                                            onClick={() => setShowZoomModal(true)}
-                                            className="flex w-full items-center justify-center gap-2 rounded-lg bg-pink-600 px-6 py-2.5 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-pink-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <Video className="h-5 w-5" />
-                                            Schedule Zoom
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Resources & Status Row */}
-                        <div className="grid min-h-[160px] grid-cols-12 gap-4">
-                            <div className="col-span-12 flex flex-col justify-between rounded-xl border border-white/60 bg-white/65 p-4 shadow-sm backdrop-blur-md md:col-span-12 lg:col-span-7">
-                                <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                                    <div className="flex items-start gap-3">
-                                        <div className="flex bg-pink-100 text-pink-600 p-2.5 rounded-xl shrink-0">
-                                            <Library className="h-5 w-5" />
-                                        </div>
-                                        <div>
-                                            <h4 className="text-sm font-bold text-gray-900">
-                                                Resources
-                                            </h4>
-                                            <p className="mt-0.5 text-[10px] text-gray-500">Share handouts or guides with the current batch instantly.</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-2 shrink-0 self-end sm:self-auto">
-                                        <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 rounded-lg bg-pink-500 px-3 py-1.5 text-[11px] font-bold text-white shadow-sm transition-colors hover:bg-pink-600" title="Upload Resource">
-                                            <Plus className="h-3.5 w-3.5" /> Upload File
-                                        </button>
-                                    </div>
-                                </div>
-                                {/* Upload Button */}
-                                <input
-                                    type="file"
-                                    ref={fileInputRef}
-                                    onChange={handleFileUpload}
-                                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                                    className="hidden"
-                                />
-
-                                <div className="flex-1 space-y-2 overflow-y-auto max-h-[300px] custom-scrollbar mt-2">
-                                    {isUploading && (
-                                        <div className="flex items-center gap-3 p-3 text-sm text-gray-500 justify-center border border-dashed border-pink-200 rounded-lg">
-                                            Uploading file...
-                                        </div>
-                                    )}
-                                    {resources.map((res: any) => (
-                                        <div key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="group flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-pink-100 bg-white/60 p-2.5 transition-all hover:border-pink-300 hover:shadow-sm">
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex h-8 w-8 items-center justify-center rounded border border-red-100 bg-red-50 text-red-500 shadow-sm">
-                                                    <FileText className="h-4 w-4" />
-                                                </div>
-                                                <div>
-                                                    <h4 className="text-xs font-bold text-gray-900 line-clamp-1">{res.title || res.file_name}</h4>
-                                                    <p className="text-[9px] text-gray-500">{new Date(res.created_at).toLocaleDateString()}</p>
-                                                </div>
-                                            </div>
-                                            <button
-                                                onClick={(e) => { e.stopPropagation(); window.open(res.file_url, '_blank'); }}
-                                                className="rounded p-1 text-gray-400 transition-colors hover:bg-pink-50 hover:text-pink-600"
-                                            >
-                                                <Download className="h-4 w-4" />
-                                            </button>
-                                        </div>
-                                    ))}
-                                    {resources.length === 0 && !isUploading && (
-                                        <p className="text-center text-[10px] text-gray-400 py-4">No resources shared yet.</p>
-                                    )}
-                                </div>
-
-                            </div>
-
-                            <div className="col-span-12 flex flex-col justify-between rounded-xl border border-white/60 bg-white/65 p-4 shadow-sm backdrop-blur-md md:col-span-12 lg:col-span-5">
-                                <div className="mb-1 flex items-center justify-between">
-                                    <h4 className="text-sm font-bold text-gray-900">Batch Status</h4>
-                                    <span className={`flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold ${selectedBatch?.status === 'active' ? 'border-green-200 bg-green-100 text-green-700' : 'border-gray-200 bg-gray-100 text-gray-700'}`}>
-                                        <span className={`h-1.5 w-1.5 rounded-full ${selectedBatch?.status === 'active' ? 'animate-pulse bg-green-600' : 'bg-gray-400'}`}></span> {selectedBatch?.status || 'N/A'}
-                                    </span>
-                                </div>
-                                <div className="my-2 flex items-end gap-2">
-                                    <span className="text-3xl font-bold text-gray-900">{selectedBatch?.current_students || 0}</span>
-                                    <span className="mb-1 text-sm font-medium text-gray-500">/ {selectedBatch?.max_students || 0} Enrolled</span>
-                                </div>
-                                <div className="mb-3 h-1.5 w-full overflow-hidden rounded-full bg-gray-200">
-                                    <div
-                                        className="h-1.5 rounded-full bg-pink-500 transition-all duration-500"
-                                        style={{ width: selectedBatch ? `${(selectedBatch.current_students / selectedBatch.max_students) * 100}%` : '0%' }}
-                                    ></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Recorded Archives Scroller */}
-                        <div className="flex flex-1 flex-col overflow-hidden rounded-xl border border-white/60 bg-white/65 shadow-sm backdrop-blur-md">
-                            <div className="flex items-center justify-between border-b border-pink-50 bg-white/40 p-3">
-                                <h3 className="flex items-center gap-2 text-sm font-bold text-gray-900">
-                                    <Library className="h-4 w-4 text-pink-500" />
-                                    Recorded Sessions
-                                </h3>
-                                <span className="text-[10px] text-gray-400">Zoom cloud recordings</span>
-                            </div>
-                            <div className="flex-1 overflow-x-auto p-4 custom-scrollbar min-h-[80px]">
-                                {isLoadingRecordings ? (
-                                    <div className="flex h-full items-center justify-center">
-                                        <Loader2 className="h-5 w-5 animate-spin text-pink-400" />
-                                    </div>
-                                ) : recordings.length === 0 ? (
-                                    <div className="flex h-full items-center justify-center">
-                                        <p className="text-[10px] text-gray-400">No recorded sessions yet for this batch.</p>
-                                    </div>
-                                ) : (
-                                    <div className="flex h-full items-start gap-4">
-                                        {recordings.map((rec) => {
-                                            const date = new Date(rec.start_time);
-                                            const h = Math.floor(rec.duration_minutes / 60);
-                                            const m = rec.duration_minutes % 60;
-                                            const durationLabel = h > 0 ? `${h}h ${m}m` : `${m}m`;
-                                            return (
-                                                <div key={rec.id} className="group flex h-[155px] w-[200px] min-w-[200px] flex-col rounded-lg border border-pink-100 bg-white/60 shadow-sm transition-all hover:border-pink-300">
-                                                    <div className="relative h-28 w-full shrink-0 overflow-hidden rounded-t-lg bg-gradient-to-br from-pink-100 via-rose-100 to-pink-200">
-                                                        <div className="absolute inset-0 z-10 flex items-center justify-center">
-                                                            {rec.is_available ? (
-                                                                <button
-                                                                    onClick={() => window.open(rec.play_url!, '_blank')}
-                                                                    className="flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-bold text-pink-600 shadow-md transition-all hover:bg-white hover:scale-105"
-                                                                >
-                                                                    <Play className="h-3 w-3" /> Watch
-                                                                </button>
-                                                            ) : (
-                                                                <span className="rounded-full bg-black/40 px-2.5 py-1 text-[9px] font-bold text-white">Processing…</span>
-                                                            )}
-                                                        </div>
-                                                        <div className="absolute bottom-2 right-2 z-20 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white">{durationLabel}</div>
-                                                    </div>
-                                                    <div className="flex flex-1 flex-col p-3">
-                                                        <div className="mb-1 flex items-start justify-between">
-                                                            <span className="rounded bg-pink-50 px-1.5 text-[10px] font-medium text-pink-500">Recording</span>
-                                                            <span className="text-[10px] text-gray-500">{date.toLocaleDateString()}</span>
-                                                        </div>
-                                                        <h4 className="line-clamp-2 text-xs font-bold text-gray-900">{rec.topic}</h4>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Right Chat & Student List col */}
-                    <div className={`col-span-12 h-[600px] lg:sticky lg:top-6 lg:col-span-3 lg:h-[calc(100vh-6rem)] flex flex-col gap-4 transition-all ${isCreateBatchOpen ? 'blur-[2px] opacity-50 pointer-events-none' : ''}`}>
-
-                        {/* Student List Section */}
-                        <div className="flex h-[280px] flex-col overflow-hidden rounded-xl border border-white/60 bg-white/65 shadow-sm backdrop-blur-md">
-                            <div className="border-b border-pink-50 bg-white/40 p-3">
-                                <div className="flex items-center justify-between mb-2">
-                                    <h3 className="text-xs font-bold text-gray-900 flex items-center gap-2">
-                                        <Users className="h-4 w-4 text-pink-500" />
-                                        Enrolled Students
-                                    </h3>
-                                    <span className="text-[10px] font-bold text-pink-500">
-                                        {filteredStudents.length + (studentSearchQuery ? 0 : waitingQueue.length)} Students
-                                    </span>
-                                </div>
-                                <div className="relative">
-                                    <Search className="absolute left-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-gray-400" />
-                                    <input
-                                        type="text"
-                                        placeholder="Search students..."
-                                        value={studentSearchQuery}
-                                        onChange={(e) => setStudentSearchQuery(e.target.value)}
-                                        className="w-full rounded-lg border border-pink-100 bg-white py-1.5 pl-8 pr-3 text-xs focus:border-pink-500 focus:ring-1 focus:ring-pink-500"
-                                    />
-                                </div>
-                            </div>
-                            <div className="flex-1 overflow-y-auto p-2 custom-scrollbar space-y-1">
-                                {filteredStudents.map((enrollment: any) => (
-                                    <div key={enrollment.student_id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/60 transition-colors border border-transparent hover:border-pink-50">
-                                        {enrollment.student?.avatar_url ? (
-                                            <img src={enrollment.student.avatar_url} className="h-8 w-8 rounded-full border border-white object-cover shadow-sm" />
-                                        ) : (
-                                            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-pink-400 to-rose-400 flex items-center justify-center text-[10px] font-bold text-white shadow-sm">
-                                                {enrollment.student?.full_name?.charAt(0) || 'S'}
-                                            </div>
-                                        )}
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-1.5">
-                                                <p className="text-xs font-bold text-gray-800 line-clamp-1">{enrollment.student?.full_name}</p>
-                                                {enrollment.is_trial_access && (
-                                                    <span className="shrink-0 rounded border border-amber-200 bg-amber-50 px-1 text-[8px] font-bold text-amber-600">TRIAL</span>
-                                                )}
-                                            </div>
-                                            <p className="text-[9px] text-gray-400 line-clamp-1">Enrolled in {selectedBatch?.name}</p>
-                                        </div>
-                                    </div>
-                                ))}
-                                {(!filteredStudents || filteredStudents.length === 0) && (!waitingQueue || waitingQueue.length === 0) && (
-                                    <div className="flex flex-col items-center justify-center h-full text-center">
-                                        <p className="text-[10px] text-gray-400">No students found.</p>
-                                    </div>
-                                )}
-
-                                {/* Waiting Queue Students */}
-                                {!studentSearchQuery && waitingQueue && waitingQueue.length > 0 && (
-                                    <>
-                                        <div className="py-2 px-1">
-                                            <div className="h-px bg-pink-100/50 w-full mb-2"></div>
-                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-1">Waiting List ({waitingQueue.length})</p>
-                                        </div>
-                                        {waitingQueue.map((entry: any) => (
-                                            <div key={entry.student_id} className="flex items-center gap-3 p-2 rounded-lg bg-pink-50/30 border border-pink-100/50 opacity-80">
-                                                {entry.student?.avatar_url ? (
-                                                    <img src={entry.student.avatar_url} className="h-8 w-8 rounded-full border border-white object-cover shadow-sm bg-white" />
-                                                ) : (
-                                                    <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-400 shadow-sm border border-white">
-                                                        {entry.student?.full_name?.charAt(0) || 'W'}
-                                                    </div>
-                                                )}
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <p className="text-xs font-bold text-gray-500 line-clamp-1">{entry.student?.full_name}</p>
-                                                        <span className="shrink-0 rounded border border-pink-200 bg-pink-50 px-1 text-[8px] font-bold text-pink-400">QUEUED</span>
-                                                    </div>
-                                                    <p className="text-[9px] text-gray-400 line-clamp-1">Awaiting batch assignment</p>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Batch Chat Section */}
-                        <div className="flex-1 flex flex-col overflow-hidden rounded-xl border border-white/60 bg-white/65 shadow-sm backdrop-blur-md">
-                            <div className="flex items-center justify-between border-b border-pink-50 bg-white/40 px-3 py-3 backdrop-blur-sm">
-                                <div>
-                                    <h3 className="flex items-center gap-2 text-sm font-bold text-gray-900">
-                                        Batch Chat
-                                        <span className="rounded border border-pink-100 bg-pink-50 px-1.5 text-[9px] font-bold text-pink-500">ADMIN</span>
-                                    </h3>
-                                    <p className="text-[10px] text-gray-500">{selectedBatch?.current_students || 0} Students • {isChatEnabled ? 'Live' : 'Moderated'}</p>
-                                </div>
-                                <div className="flex gap-1">
-                                    <button
-                                        onClick={handleToggleChat}
-                                        title={isChatEnabled ? "Disable Student Chat" : "Enable Student Chat"}
-                                        className={`rounded-lg p-1.5 transition-colors ${isChatEnabled ? 'text-green-500 hover:bg-green-50' : 'text-red-500 hover:bg-red-50'}`}
-                                    >
-                                        <Settings className="h-4 w-4" />
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div ref={chatContainerRef} className="flex-1 space-y-3 overflow-y-auto bg-gradient-to-b from-white/30 to-white/10 p-3 custom-scrollbar">
-                                {messages.map((msg) => {
-                                    const senderProfile = msg.sender || msg.profiles || msg.senderProfile || {};
-                                    const isPoll = msg.message_type === 'poll' && msg.poll_id;
-                                    const poll = isPoll ? polls[msg.poll_id] : null;
-
-                                    return (
-                                        <div key={msg.id} className={`flex gap-2 ${msg.sender_id === currentUser.id ? 'flex-row-reverse' : ''}`}>
-                                            <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-pink-200">
-                                                {senderProfile?.avatar_url ? (
-                                                    <img src={senderProfile.avatar_url} alt="" className="h-full w-full object-cover" />
-                                                ) : (
-                                                    <div className="flex h-full w-full items-center justify-center text-[10px] font-bold text-pink-600">
-                                                        {(senderProfile?.full_name || 'U').charAt(0)}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className={`flex max-w-[90%] flex-col ${msg.sender_id === currentUser.id ? 'items-end' : ''}`}>
-                                                <div className="mb-0.5 flex items-center gap-2">
-                                                    <span className="text-[10px] font-bold text-gray-900">{senderProfile?.full_name || 'User'}</span>
-                                                    <span className="text-[9px] text-gray-500">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                                    {senderProfile?.role === 'instructor' ? (
-                                                        <span className="flex items-center gap-0.5 rounded border border-pink-200 bg-pink-50 px-1 text-[9px] font-bold text-pink-500">{msg.sender_id === currentUser.id ? 'YOU' : 'Instructor'} <CheckCircle className="h-2 w-2" /></span>
-                                                    ) : senderProfile?.role === 'student' && msg.sender_id !== currentUser.id ? (
-                                                        <span className="flex items-center gap-0.5 rounded border border-gray-200 bg-gray-50 px-1 text-[8px] font-bold text-gray-500">Student</span>
-                                                    ) : null}
-                                                </div>
-                                                {isPoll ? (
-                                                    poll ? (
-                                                        <PollCard
-                                                            poll={poll}
-                                                            isAdmin
-                                                            onClose={() => handleClosePoll(poll.id)}
-                                                        />
-                                                    ) : (
-                                                        <div className="rounded-xl border border-pink-100 bg-pink-50 px-3 py-2 text-xs text-gray-400">Loading poll…</div>
-                                                    )
-                                                ) : (
-                                                    <div className={`rounded-2xl px-3 py-2 text-xs leading-relaxed shadow-sm ${msg.sender_id === currentUser.id ? 'rounded-tr-none bg-pink-500 text-white' : senderProfile?.role === 'instructor' ? 'rounded-tl-none border border-pink-300 bg-pink-50 text-gray-900 shadow-pink-100' : 'rounded-tl-none border border-white/50 bg-white text-gray-900'}`}>
-                                                        <p>{msg.content}</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                            <div className="border-t border-pink-50 bg-white/60 p-3">
-                                <div className="relative flex items-center gap-2">
-                                    <button
-                                        onClick={() => setShowPollModal(true)}
-                                        title="Create Poll"
-                                        className="absolute left-1 z-10 rounded-full p-1.5 text-gray-400 transition-colors hover:bg-white hover:text-pink-500"
-                                    >
-                                        <BarChart2 className="h-4 w-4" />
-                                    </button>
-                                    <input
-                                        type="text"
-                                        value={newMessage}
-                                        onChange={(e) => setNewMessage(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                                        placeholder="Message batch as Admin..."
-                                        className="w-full rounded-full border-none bg-white p-2.5 pl-9 pr-10 text-xs shadow-inner focus:ring-1 focus:ring-pink-500"
-                                    />
-                                    <button
-                                        onClick={handleSendMessage}
-                                        className="absolute right-1 rounded-full p-1.5 text-pink-500 transition-colors hover:bg-pink-100"
-                                    >
-                                        <Send className="h-4 w-4" />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Poll Creation Modal */}
-                    {showPollModal && (
-                        <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-md">
-                            <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white/95 shadow-2xl border border-white/40 animate-in fade-in zoom-in-95 duration-300">
-                                <div className="relative flex items-start justify-between border-b border-pink-100/50 bg-gradient-to-br from-pink-50 via-white to-pink-50/30 p-6">
-                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-400 via-rose-400 to-pink-500" />
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-pink-100 text-pink-600">
-                                            <BarChart2 className="h-5 w-5" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-lg font-extrabold text-gray-900">Create Poll</h3>
-                                            <p className="text-xs text-pink-600/70">{selectedBatch?.name}</p>
-                                        </div>
-                                    </div>
-                                    <button onClick={() => setShowPollModal(false)} className="p-2 rounded-full text-gray-400 hover:bg-black/5 hover:text-gray-700 transition-all bg-white border border-gray-100 shadow-sm">
-                                        <X className="h-4 w-4" />
-                                    </button>
-                                </div>
-
-                                <div className="space-y-4 p-6">
-                                    <div>
-                                        <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Question</label>
-                                        <input
-                                            value={pollQuestion}
-                                            onChange={(e) => setPollQuestion(e.target.value)}
-                                            placeholder="e.g. How are you finding today's session?"
-                                            className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 placeholder-gray-400 shadow-sm focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 outline-none"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">Options</label>
-                                        <div className="space-y-2">
-                                            {pollOptions.map((opt, i) => (
-                                                <div key={i} className="flex items-center gap-2">
-                                                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-pink-100 text-[10px] font-bold text-pink-600">
-                                                        {String.fromCharCode(65 + i)}
-                                                    </span>
-                                                    <input
-                                                        value={opt}
-                                                        onChange={(e) => {
-                                                            const next = [...pollOptions];
-                                                            next[i] = e.target.value;
-                                                            setPollOptions(next);
-                                                        }}
-                                                        placeholder={`Option ${i + 1}`}
-                                                        className="flex-1 rounded-lg border border-gray-200 bg-white/80 px-3 py-2 text-sm placeholder-gray-400 shadow-sm focus:border-pink-500 focus:ring-1 focus:ring-pink-500/20 outline-none"
-                                                    />
-                                                    {pollOptions.length > 2 && (
-                                                        <button
-                                                            onClick={() => setPollOptions(pollOptions.filter((_, j) => j !== i))}
-                                                            className="rounded-full p-1 text-gray-300 hover:text-red-400 transition-colors"
-                                                        >
-                                                            <X className="h-3.5 w-3.5" />
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                        {pollOptions.length < 6 && (
-                                            <button
-                                                onClick={() => setPollOptions([...pollOptions, ''])}
-                                                className="mt-2 text-xs font-semibold text-pink-500 hover:text-pink-700 transition-colors"
-                                            >
-                                                + Add option
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-3 items-center justify-end border-t border-gray-100 bg-gray-50/80 px-6 py-4">
-                                    <button onClick={() => setShowPollModal(false)} className="px-4 py-2 text-sm font-bold text-gray-500 hover:text-gray-900 hover:bg-gray-200/50 rounded-xl transition-all">Cancel</button>
-                                    <button
-                                        onClick={handleCreatePoll}
-                                        disabled={isCreatingPoll || !pollQuestion.trim() || pollOptions.filter(Boolean).length < 2}
-                                        className="flex items-center gap-2 px-5 py-2 text-sm font-bold text-white bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all"
-                                    >
-                                        {isCreatingPoll ? <Loader2 className="h-4 w-4 animate-spin" /> : <BarChart2 className="h-4 w-4" />}
-                                        Send Poll
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+          {/* Enrolled Students */}
+          <div className="flex-[0.6] bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col min-h-0 overflow-hidden">
+            <div className="p-8 border-b border-outline-variant/5">
+              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30 mb-2">Enrolled Souls</h3>
+              <p className="text-sm font-serif font-bold text-foreground italic">Inhabiting Space</p>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
+              {filteredStudents.map((enrollment: any) => (
+                <div key={enrollment.student_id} className="flex items-center gap-4 p-3 rounded-2xl bg-white/40 border border-transparent hover:border-outline-variant/5 transition-all group">
+                  <div className="h-9 w-9 rounded-xl overflow-hidden shadow-sm shrink-0 border border-primary/5">
+                    {enrollment.student?.avatar_url ? (
+                      <img src={enrollment.student.avatar_url} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center text-[10px] font-bold text-foreground/20 bg-primary/5 uppercase">
+                        {enrollment.student?.full_name?.charAt(0)}
+                      </div>
                     )}
-
-                    {/* Schedule Zoom Modal */}
-                    {showZoomModal && (
-                        <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-md">
-                            <div className="w-full max-w-lg rounded-3xl bg-white/95 shadow-2xl overflow-hidden border border-white/40 animate-in fade-in zoom-in-95 duration-300">
-                                <div className="relative flex flex-col p-6 bg-gradient-to-br from-pink-50 via-white to-pink-50/30 border-b border-pink-100/50">
-                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-400 via-rose-400 to-pink-500" />
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex gap-4 items-center">
-                                            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-pink-100 text-pink-600 shadow-inner">
-                                                <Video className="h-6 w-6" />
-                                            </div>
-                                            <div>
-                                                <h3 className="text-xl font-extrabold text-gray-900 tracking-tight">Schedule Group Zoom</h3>
-                                                <p className="text-sm font-medium text-pink-600/80 mt-0.5">{selectedBatch?.name}</p>
-                                            </div>
-                                        </div>
-                                        <button onClick={() => setShowZoomModal(false)} className="p-2 rounded-full text-gray-400 hover:bg-black/5 hover:text-gray-700 transition-all bg-white border border-gray-100 shadow-sm">
-                                            <X className="h-4 w-4" />
-                                        </button>
-                                    </div>
-                                </div>
-                                <div className="p-6 space-y-5 bg-white/50">
-                                    <div>
-                                        <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Meeting Topic</label>
-                                        <input value={zoomTopic} onChange={(e) => setZoomTopic(e.target.value)} type="text" className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 placeholder-gray-400 shadow-sm focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 outline-none transition-all" placeholder="e.g. Group Face Yoga – Week 2 Session" />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-5">
-                                        <div>
-                                            <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Date</label>
-                                            <input value={zoomDate} onChange={(e) => setZoomDate(e.target.value)} type="date" className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 outline-none transition-all" />
-                                        </div>
-                                        <div>
-                                            <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Time</label>
-                                            <input value={zoomTime} onChange={(e) => setZoomTime(e.target.value)} type="time" className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 outline-none transition-all" />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2">Duration</label>
-                                        <div className="relative">
-                                            <select value={zoomDuration} onChange={(e) => setZoomDuration(e.target.value)} className="w-full appearance-none rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 outline-none transition-all">
-                                                <option value="30">30 Minutes</option>
-                                                <option value="45">45 Minutes</option>
-                                                <option value="60">1 Hour</option>
-                                                <option value="90">1.5 Hours</option>
-                                                <option value="120">2 Hours</option>
-                                            </select>
-                                            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
-                                                <Clock className="h-4 w-4" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="flex gap-3 justify-end items-center bg-gray-50/80 p-6 border-t border-gray-100">
-                                    <button onClick={() => setShowZoomModal(false)} className="px-5 py-2.5 font-bold text-gray-500 hover:text-gray-900 hover:bg-gray-200/50 rounded-xl transition-all text-sm">Cancel</button>
-                                    <button onClick={handleScheduleZoom} disabled={isSchedulingZoom} className="flex items-center gap-2 px-6 py-2.5 font-bold text-white bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl shadow-md hover:shadow-lg hover:scale-[1.02] disabled:opacity-70 disabled:hover:scale-100 disabled:cursor-not-allowed text-sm transition-all">
-                                        {isSchedulingZoom ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
-                                        Generate Zoom Link
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Create Batch Modal Overlay */}
-                    {isCreateBatchOpen && (
-                        <div className="absolute inset-0 z-50 flex justify-end">
-                            <div
-                                className="absolute inset-0 cursor-pointer bg-black/20 backdrop-blur-sm"
-                                onClick={() => setIsCreateBatchOpen(false)}
-                            ></div>
-                            <div className="relative flex h-full w-full max-w-lg animate-in slide-in-from-right flex-col border-l border-white/60 bg-white/80 shadow-2xl backdrop-blur-2xl duration-300">
-                                <div className="flex items-center justify-between border-b border-pink-100 bg-white/50 p-5 backdrop-blur-xl">
-                                    <div>
-                                        <h3 className="text-xl font-bold text-gray-900">Create New Batch</h3>
-                                        <p className="text-xs text-gray-500">Set up a new group session schedule</p>
-                                    </div>
-                                    <button
-                                        onClick={() => setIsCreateBatchOpen(false)}
-                                        className="rounded-full p-2 text-gray-500 transition-colors hover:bg-red-50 hover:text-red-500"
-                                    >
-                                        <X className="h-5 w-5" />
-                                    </button>
-                                </div>
-
-                                <div className="flex-1 space-y-6 overflow-y-auto bg-white/30 p-6 custom-scrollbar">
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold uppercase tracking-wide text-gray-900">Batch Name</label>
-                                        <input
-                                            type="text"
-                                            placeholder="e.g. Morning Glow - Nov 2026"
-                                            value={formData.name}
-                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                            className="w-full rounded-lg border-pink-200 bg-white/60 px-4 py-2.5 text-sm shadow-sm transition-all focus:border-pink-500 focus:ring-pink-500"
-                                        />
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold uppercase tracking-wide text-gray-900">Start Date</label>
-                                            <input
-                                                type="date"
-                                                value={formData.startDate}
-                                                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                                                className="w-full rounded-lg border-pink-200 bg-white/60 px-4 py-2.5 text-sm text-gray-700 shadow-sm focus:border-pink-500 focus:ring-pink-500"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold uppercase tracking-wide text-gray-900">End Date</label>
-                                            <input
-                                                type="date"
-                                                value={formData.endDate}
-                                                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                                                className="w-full rounded-lg border-pink-200 bg-white/60 px-4 py-2.5 text-sm text-gray-700 shadow-sm focus:border-pink-500 focus:ring-pink-500"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold uppercase tracking-wide text-gray-900">Max Students</label>
-                                        <input
-                                            type="number"
-                                            value={formData.maxStudents}
-                                            onChange={(e) => setFormData({ ...formData, maxStudents: parseInt(e.target.value) })}
-                                            className="w-full rounded-lg border-pink-200 bg-white/60 px-4 py-2.5 text-sm shadow-sm focus:border-pink-500 focus:ring-pink-500"
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold uppercase tracking-wide text-gray-900">Assign Instructor</label>
-                                        <select
-                                            value={formData.instructorId || currentUser.id}
-                                            onChange={(e) => setFormData({ ...formData, instructorId: e.target.value })}
-                                            className="w-full rounded-lg border-pink-200 bg-white/60 px-4 py-2.5 text-sm shadow-sm focus:border-pink-500 focus:ring-pink-500"
-                                        >
-                                            {instructors.map((inst) => (
-                                                <option key={inst.id} value={inst.id}>
-                                                    {inst.full_name}{inst.is_master_instructor ? ' (Master)' : ''}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                </div>
-
-                                <div className="flex justify-end gap-3 border-t border-pink-100 bg-white/60 p-5 backdrop-blur-xl">
-                                    <button
-                                        onClick={() => setIsCreateBatchOpen(false)}
-                                        disabled={isPending}
-                                        className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-black/5 disabled:opacity-50"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        onClick={handleCreateBatch}
-                                        disabled={isPending}
-                                        className="rounded-lg bg-pink-500 px-6 py-2 text-sm font-bold text-white shadow-lg shadow-pink-500/30 transition-all hover:-translate-y-0.5 hover:bg-pink-600 disabled:opacity-50"
-                                    >
-                                        {isPending ? 'Creating...' : 'Create Batch'}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-bold text-foreground truncate">{enrollment.student?.full_name}</p>
+                    <p className="text-[8px] font-bold uppercase tracking-widest text-foreground/20 italic">{enrollment.is_trial_access ? 'Discovery' : 'Committed'}</p>
+                  </div>
                 </div>
-            </main >
-        </div >
-    );
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* CENTER: Session Unfolding */}
+        <div className="flex-1 flex flex-col gap-8 overflow-hidden min-w-0">
+          {/* Active Session Card */}
+          <div className="shrink-0 group relative h-72 w-full overflow-hidden rounded-[2rem] border border-outline-variant/10 shadow-xl bg-foreground">
+            <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+            <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2420&auto=format&fit=crop" className="h-full w-full object-cover opacity-60 grayscale transition-transform duration-[2000ms] group-hover:scale-110" alt="" />
+            
+            <div className="absolute inset-0 z-20 flex flex-col justify-center p-12">
+              <div className="max-w-md space-y-5">
+                <div className="flex items-center gap-3">
+                  <div className={cn("h-1.5 w-1.5 rounded-full", selectedBatch?.status === 'active' ? "bg-primary animate-pulse" : "bg-white/20")} />
+                  <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/60">
+                    {selectedBatch?.status === 'active' ? 'Path Active' : 'Session Resting'}
+                  </span>
+                </div>
+                <h2 className="text-3xl md:text-5xl font-serif font-bold text-white tracking-tight italic">
+                  {selectedBatch?.name || 'Sanctuary Waiting'}
+                </h2>
+                <div className="pt-6 flex items-center gap-4">
+                  <button
+                    onClick={() => setShowZoomModal(true)}
+                    className="h-12 px-8 rounded-xl bg-primary text-white text-[10px] font-bold uppercase tracking-widest hover:bg-primary/90 transition-all flex items-center gap-3 shadow-xl shadow-primary/20"
+                  >
+                    <Radio className="w-4 h-4" />
+                    Initiate Session
+                  </button>
+                  <button className="h-12 px-6 rounded-xl bg-white/10 backdrop-blur-md text-white border border-white/10 text-[10px] font-bold uppercase tracking-widest hover:bg-white/20 transition-all">
+                    Calibration
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex-1 flex flex-col bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm overflow-hidden overflow-y-auto custom-scrollbar p-10">
+            <div className="grid grid-cols-3 gap-8 mb-12">
+              {[
+                { label: 'Attendance', value: '94%', icon: Users, trend: '+2%' },
+                { label: 'Engagement', value: 'High', icon: Activity, trend: 'Stable' },
+                { label: 'Current Souls', value: `${selectedBatch?.current_students || 0} / ${selectedBatch?.max_students || 30}`, icon: Users, trend: '90%' }
+              ].map((stat, i) => (
+                <div key={i} className="bg-white/40 p-6 rounded-2xl border border-outline-variant/5 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center">
+                      <stat.icon className="w-5 h-5 text-primary" />
+                    </div>
+                    <span className="text-[8px] font-bold text-emerald-500 bg-emerald-500/5 px-2 py-0.5 rounded-full">{stat.trend}</span>
+                  </div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/20 mb-1">{stat.label}</p>
+                  <p className="text-2xl font-serif font-bold text-foreground">{stat.value}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-2 gap-8 flex-1">
+              {/* Registry */}
+              <div className="flex flex-col gap-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Registry Artifacts</h3>
+                  <button
+                    disabled={!selectedBatch || isUploading}
+                    onClick={() => fileInputRef.current?.click()}
+                    className="h-10 w-10 rounded-xl bg-primary/5 text-primary flex items-center justify-center hover:scale-110 active:scale-95 transition-all border border-primary/10"
+                  >
+                    {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-5 w-5" />}
+                  </button>
+                </div>
+                <div className="flex-1 space-y-3 overflow-y-auto pr-2 custom-scrollbar">
+                  {resources.map((res: any) => (
+                    <button key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="w-full flex items-center gap-4 p-4 bg-white/40 border border-outline-variant/5 rounded-2xl hover:border-primary/20 hover:bg-white hover:shadow-md transition-all text-left">
+                      <div className="h-10 w-10 rounded-xl bg-foreground/5 flex items-center justify-center text-foreground/20">
+                        <FileText className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-foreground truncate">{res.title || res.file_name}</p>
+                        <p className="text-[9px] font-bold text-foreground/20 uppercase tracking-widest mt-0.5">Artifact</p>
+                      </div>
+                    </button>
+                  ))}
+                  {resources.length === 0 && (
+                    <div className="h-40 flex flex-col items-center justify-center opacity-10 grayscale">
+                      <Library className="w-8 h-8 mb-2" />
+                      <p className="text-[9px] font-bold uppercase tracking-widest">Pristine State</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Chronicles */}
+              <div className="flex flex-col gap-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Ritual Chronicles</h3>
+                  <PlayCircle className="w-4 h-4 text-foreground/10" />
+                </div>
+                <div className="flex-1 space-y-3 overflow-y-auto pr-2 custom-scrollbar">
+                  {recordings.map((rec) => (
+                    <button key={rec.id} onClick={() => window.open(rec.play_url!, '_blank')} className="w-full flex items-center gap-4 p-4 bg-white/40 border border-outline-variant/5 rounded-2xl hover:border-primary/20 hover:bg-white hover:shadow-md transition-all text-left group">
+                      <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                        <Play className="w-4 h-4 fill-primary" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-foreground truncate">{rec.topic}</p>
+                        <p className="text-[9px] font-bold text-foreground/20 uppercase tracking-widest mt-0.5">{new Date(rec.start_time).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</p>
+                      </div>
+                    </button>
+                  ))}
+                  {recordings.length === 0 && (
+                    <div className="h-40 flex flex-col items-center justify-center opacity-10 grayscale">
+                      <Video className="w-8 h-8 mb-2" />
+                      <p className="text-[9px] font-bold uppercase tracking-widest">No Archives</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT: Communion & Pulse */}
+        <div className="w-72 xl:w-96 flex flex-col gap-8 shrink-0 h-full min-w-0">
+          {/* Chat Window */}
+          <div className="flex-1 bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col overflow-hidden">
+            <div className="p-8 border-b border-outline-variant/5 flex items-center justify-between">
+              <div className="space-y-1">
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Collective Resonance</h3>
+                <p className="text-sm font-serif font-bold text-foreground italic">Batch Dialogue</p>
+              </div>
+              <button onClick={handleToggleChat} className={cn("h-10 w-10 rounded-xl flex items-center justify-center transition-all border", isChatEnabled ? "bg-primary text-white border-transparent" : "bg-primary/5 text-primary border-primary/10")}>
+                <Settings className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div ref={chatContainerRef} className="flex-1 space-y-6 overflow-y-auto p-8 custom-scrollbar">
+              {messages.map((msg) => {
+                const senderProfile = msg.sender || msg.profiles || msg.senderProfile || {};
+                const isPoll = msg.message_type === 'poll' && msg.poll_id;
+                const poll = isPoll ? polls[msg.poll_id] : null;
+                const isMe = msg.sender_id === currentUser.id;
+
+                return (
+                  <div key={msg.id} className={cn("flex flex-col gap-2", isMe ? "items-end" : "items-start")}>
+                    <div className="flex items-center gap-2 px-1">
+                      <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20">{isMe ? 'Internal' : (senderProfile?.full_name || 'Manifestor')}</span>
+                      <span className="text-[8px] text-foreground/10 italic">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                    {isPoll ? (
+                      poll ? <div className="w-full scale-95 origin-top"><PollCard poll={poll} isAdmin onClose={() => handleClosePoll(poll.id)} /></div> : null
+                    ) : (
+                      <div className={cn("px-5 py-4 rounded-2xl text-xs font-medium leading-relaxed max-w-[90%] shadow-sm", isMe ? "bg-foreground text-background rounded-tr-none" : "bg-white text-foreground rounded-tl-none border border-outline-variant/5")}>
+                        {msg.content}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="p-6 bg-white/40 border-t border-outline-variant/5">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setShowPollModal(true)}
+                  className="h-12 w-12 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform border border-primary/10"
+                >
+                  <BarChart2 className="w-5 h-5" />
+                </button>
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                    placeholder="Direct the collective..."
+                    className="w-full h-12 rounded-xl bg-white border border-outline-variant/10 pl-5 pr-12 text-xs font-medium outline-none focus:ring-2 focus:ring-primary/10 transition-all shadow-sm"
+                  />
+                  <button onClick={handleSendMessage} className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 rounded-lg bg-foreground text-background flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
+                    <Send className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* MODALS */}
+      {showPollModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-500">
+          <div className="absolute inset-0 bg-foreground/20 backdrop-blur-md" onClick={() => setShowPollModal(false)} />
+          <div className="w-full max-w-xl rounded-[2.5rem] bg-white border border-outline-variant/10 shadow-2xl relative z-10 overflow-hidden p-12 space-y-10 animate-in zoom-in-95 duration-500">
+            <header className="space-y-3 text-center">
+              <h3 className="text-3xl font-serif font-bold text-foreground tracking-tight">Initiate Inquiry</h3>
+              <p className="text-sm text-foreground/40 font-medium italic">Sampling orchestration in {selectedBatch?.name}</p>
+            </header>
+
+            <div className="space-y-8">
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 ml-1">Inquiry Focus</label>
+                <input
+                  value={pollQuestion}
+                  onChange={(e) => setPollQuestion(e.target.value)}
+                  placeholder="How does your resonance feel today?"
+                  className="w-full h-14 rounded-xl bg-foreground/5 border-none px-6 text-sm font-bold text-foreground placeholder:text-foreground/20 outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+
+              <div className="space-y-4">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 ml-1">Potential Paths</label>
+                <div className="grid grid-cols-1 gap-3">
+                  {pollOptions.map((opt, i) => (
+                    <div key={i} className="relative group">
+                      <input
+                        value={opt}
+                        onChange={(e) => {
+                          const next = [...pollOptions];
+                          next[i] = e.target.value;
+                          setPollOptions(next);
+                        }}
+                        placeholder={`Option ${i + 1}`}
+                        className="w-full h-12 rounded-xl bg-foreground/5 border-none pl-6 pr-12 text-xs font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/20"
+                      />
+                      {pollOptions.length > 2 && (
+                        <button onClick={() => setPollOptions(pollOptions.filter((_, j) => j !== i))} className="absolute right-4 top-1/2 -translate-y-1/2 text-foreground/20 hover:text-primary"><X className="w-4 h-4" /></button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                {pollOptions.length < 6 && (
+                  <button onClick={() => setPollOptions([...pollOptions, ''])} className="text-[9px] font-bold uppercase tracking-widest text-primary hover:opacity-70 transition-all">+ Add Potential Path</button>
+                )}
+              </div>
+            </div>
+
+            <button
+              onClick={handleCreatePoll}
+              disabled={isCreatingPoll || !pollQuestion.trim() || pollOptions.filter(Boolean).length < 2}
+              className="w-full h-16 rounded-2xl bg-foreground text-background text-[10px] font-bold uppercase tracking-widest shadow-xl hover:scale-[1.02] transition-all disabled:opacity-20"
+            >
+              {isCreatingPoll ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Release Inquiry'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showZoomModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-500">
+          <div className="absolute inset-0 bg-foreground/20 backdrop-blur-md" onClick={() => setShowZoomModal(false)} />
+          <div className="w-full max-w-xl rounded-[2.5rem] bg-white border border-outline-variant/10 shadow-2xl relative z-10 overflow-hidden p-12 space-y-10 animate-in zoom-in-95 duration-500">
+            <header className="space-y-3 text-center">
+              <h3 className="text-3xl font-serif font-bold text-foreground tracking-tight">Manifest Space</h3>
+              <p className="text-sm text-foreground/40 font-medium italic">Direct calibration for {selectedBatch?.name}</p>
+            </header>
+
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 ml-1">Session Topic</label>
+                <input
+                  type="text"
+                  value={zoomTopic}
+                  onChange={(e) => setZoomTopic(e.target.value)}
+                  placeholder="e.g. Masterclass: Resonance Refinement"
+                  className="w-full h-14 rounded-xl bg-foreground/5 border-none px-6 text-sm font-bold text-foreground placeholder:text-foreground/20 outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 ml-1">Date</label>
+                  <input
+                    type="date"
+                    value={zoomDate}
+                    onChange={(e) => setZoomDate(e.target.value)}
+                    className="w-full h-14 rounded-xl bg-foreground/5 border-none px-6 text-sm font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 ml-1">Time</label>
+                  <input
+                    type="time"
+                    value={zoomTime}
+                    onChange={(e) => setZoomTime(e.target.value)}
+                    className="w-full h-14 rounded-xl bg-foreground/5 border-none px-6 text-sm font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={handleScheduleZoom}
+              disabled={isSchedulingZoom || !zoomTopic || !zoomDate || !zoomTime}
+              className="w-full h-16 rounded-2xl bg-foreground text-background text-[10px] font-bold uppercase tracking-widest shadow-xl hover:scale-[1.02] transition-all disabled:opacity-20"
+            >
+              {isSchedulingZoom ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : (
+                <div className="flex items-center justify-center gap-2">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  Initiate Resonance
+                </div>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {isCreateBatchOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-500">
+          <div className="absolute inset-0 bg-foreground/20 backdrop-blur-md" onClick={() => setIsCreateBatchOpen(false)} />
+          <div className="w-full max-w-xl rounded-[2.5rem] bg-white border border-outline-variant/10 shadow-2xl relative z-10 overflow-hidden p-12 space-y-10 animate-in zoom-in-95 duration-500">
+            <header className="space-y-3 text-center">
+              <h3 className="text-3xl font-serif font-bold text-foreground tracking-tight">Manifest Path</h3>
+              <p className="text-sm text-foreground/40 font-medium italic">Create a new collective journey</p>
+            </header>
+
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 ml-1">Batch Name</label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="e.g. Genesis Phase April"
+                  className="w-full h-14 rounded-xl bg-foreground/5 border-none px-6 text-sm font-bold text-foreground placeholder:text-foreground/20 outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 ml-1">Start Date</label>
+                  <input
+                    type="date"
+                    value={formData.startDate}
+                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                    className="w-full h-14 rounded-xl bg-foreground/5 border-none px-6 text-sm font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 ml-1">End Date</label>
+                  <input
+                    type="date"
+                    value={formData.endDate}
+                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                    className="w-full h-14 rounded-xl bg-foreground/5 border-none px-6 text-sm font-bold text-foreground outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={handleCreateBatch}
+              disabled={isPending}
+              className="w-full h-16 rounded-2xl bg-foreground text-background text-[10px] font-bold uppercase tracking-widest shadow-xl hover:scale-[1.02] transition-all disabled:opacity-20"
+            >
+              {isPending ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Commit Path'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.05); border-radius: 10px; }
+      `}</style>
+    </div>
+  );
 }
