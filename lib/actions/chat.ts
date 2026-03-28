@@ -55,7 +55,27 @@ export async function sendMessageToBatch(conversationId: string, content: string
 }
 
 export async function getChatMessages(conversationId: string, limit = 50) {
+  const supabase = await createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) return [];
+
   const admin = createAdminClient();
+
+  // Auth Check: Ensure user is a participant
+  const { data: isParticipant } = await admin
+      .from('conversation_participants')
+      .select('id')
+      .eq('conversation_id', conversationId)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+  if (!isParticipant) {
+      const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single();
+      if (!['admin', 'staff', 'client_management'].includes(profile?.role || '')) {
+          return [];
+      }
+  }
 
   const { data, error } = await admin
     .from('chat_messages')
@@ -77,8 +97,17 @@ export async function getChatMessages(conversationId: string, limit = 50) {
 
 export async function toggleChatStatus(conversationId: string, isEnabled: boolean) {
   const supabase = await createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  const { error } = await supabase
+  if (!user) return { success: false, error: 'Unauthorized' };
+
+  const admin = createAdminClient();
+  const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single();
+  if (!['admin', 'staff', 'instructor', 'client_management'].includes(profile?.role || '')) {
+      return { success: false, error: 'Forbidden' };
+  }
+
+  const { error } = await admin
     .from('conversations')
     .update({ is_chat_enabled: isEnabled })
     .eq('id', conversationId);
@@ -473,6 +502,21 @@ export async function sendChatMessage(
     }
   }
 
+  // Auth Check: Ensure user is a participant
+  const { data: isParticipant } = await admin
+      .from('conversation_participants')
+      .select('id')
+      .eq('conversation_id', conversationId)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+  if (!isParticipant) {
+      const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single();
+      if (!['admin', 'staff', 'client_management'].includes(profile?.role || '')) {
+          throw new Error('Forbidden. You do not have access to this conversation.');
+      }
+  }
+
   const { error } = await admin
     .from('chat_messages')
     .insert({
@@ -656,6 +700,18 @@ export async function getBatchMessages(batchId: string, limit = 50) {
 
 export async function sendBatchMessage(batchId: string, content: string, senderId: string) {
   const supabase = await createServerSupabaseClient();
+  const admin = createAdminClient();
+
+  // Verify user is part of batch, or is staff/instructor
+  const { data: senderProfile } = await admin.from('profiles').select('role').eq('id', senderId).single();
+  const role = senderProfile?.role || '';
+
+  if (!['admin', 'staff', 'instructor', 'client_management'].includes(role)) {
+     const { data: enrolled } = await admin.from('batch_students').select('id').eq('batch_id', batchId).eq('student_id', senderId).maybeSingle();
+     if (!enrolled) {
+         return { success: false, error: 'Forbidden. Not enrolled in this batch.' };
+     }
+  }
 
   // Verify if chat is enabled on the batch
   const { data: batch } = await supabase

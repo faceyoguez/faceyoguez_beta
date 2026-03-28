@@ -1,24 +1,40 @@
-import { createAdminClient } from '@/lib/supabase/server';
+import { createAdminClient, createServerSupabaseClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { rateLimit } from '@/lib/rate-limit';
+
+const signupSchema = z.object({
+  planType: z.enum(['one_on_one', 'group_session', 'lms']),
+  fullName: z.string().min(2).optional(),
+  phone: z.string().optional(),
+});
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, planType, fullName, phone } = await request.json();
+    const rl = rateLimit(request, 10, 60000); // 10 requests per minute
+    if (!rl.success) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    }
 
-    if (!userId || !planType) {
+    const supabase = await createServerSupabaseClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const result = signupSchema.safeParse(body);
+
+    if (!result.success) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Invalid input data', details: result.error.format() },
         { status: 400 }
       );
     }
 
-    const validPlans = ['one_on_one', 'group_session', 'lms'];
-    if (!validPlans.includes(planType)) {
-      return NextResponse.json(
-        { error: 'Invalid plan type' },
-        { status: 400 }
-      );
-    }
+    const { planType, phone } = result.data;
+    const userId = user.id;
 
     const admin = createAdminClient();
 

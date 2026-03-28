@@ -26,6 +26,21 @@ export async function POST(request: NextRequest) {
 
         const admin = createAdminClient();
 
+        // ── Auth Check: Ensure user is a participant ──
+        const { data: isParticipant } = await admin
+            .from('conversation_participants')
+            .select('id')
+            .eq('conversation_id', conversationId)
+            .eq('user_id', user.id)
+            .maybeSingle();
+
+        if (!isParticipant) {
+            const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single();
+            if (!['admin', 'staff', 'client_management'].includes(profile?.role || '')) {
+                return NextResponse.json({ error: 'Forbidden. You do not have access to this conversation.' }, { status: 403 });
+            }
+        }
+
         const { data, error } = await admin
             .from('chat_messages')
             .insert({

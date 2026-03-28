@@ -1,9 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { razorpay } from '@/lib/razorpay';
+import { z } from 'zod';
+import { rateLimit } from '@/lib/rate-limit';
+
+const orderSchema = z.object({
+  planType: z.enum(['one_on_one', 'group_session', 'lms']),
+  planVariant: z.string().min(1),
+  amount: z.number().positive(),
+});
 
 export async function POST(request: NextRequest) {
   try {
+    const rl = rateLimit(request, 15, 60000);
+    if (!rl.success) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    }
+
     const supabase = await createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -12,19 +25,16 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { planType, planVariant, amount } = body;
+    const result = orderSchema.safeParse(body);
 
-    if (!planType || !planVariant || !amount) {
+    if (!result.success) {
       return NextResponse.json(
-        { error: 'Missing planType, planVariant, or amount' },
+        { error: 'Invalid input data', details: result.error.format() },
         { status: 400 }
       );
     }
 
-    const validPlans = ['one_on_one', 'group_session', 'lms'];
-    if (!validPlans.includes(planType)) {
-      return NextResponse.json({ error: 'Invalid plan type' }, { status: 400 });
-    }
+    const { planType, planVariant, amount } = result.data;
 
     // Amount must be in paise (INR × 100)
     const amountInPaise = Math.round(amount * 100);

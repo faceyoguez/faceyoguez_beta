@@ -5,6 +5,14 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Flower2, Loader2, ArrowRight, Sparkles, TrendingUp, Users } from 'lucide-react';
+import { z } from 'zod';
+
+const formSchema = z.object({
+  fullName: z.string().trim().min(2, 'Full Name must be at least 2 characters'),
+  email: z.string().trim().email('Please enter a valid email address'),
+  phone: z.string().trim().optional(),
+  password: z.string().min(6, 'Password must be at least 6 characters')
+});
 
 export default function SignUpForm() {
   const [fullName, setFullName] = useState('');
@@ -17,12 +25,10 @@ export default function SignUpForm() {
   const supabase = createClient();
 
   async function handleComplete() {
-    if (!fullName.trim() || !email.trim() || !password.trim()) {
-      setError('Please fill in all required fields');
-      return;
-    }
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+    const result = formSchema.safeParse({ fullName, email, phone, password });
+    
+    if (!result.success) {
+      setError(result.error.issues[0].message);
       return;
     }
 
