@@ -37,9 +37,11 @@ export async function GET(
         if (!isParticipant) {
             // Also allow staff/admin to view any conversation if needed
             const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single();
-            if (!['admin', 'staff', 'client_management'].includes(profile?.role || '')) {
+            if (!['admin', 'staff', 'instructor', 'client_management'].includes(profile?.role || '')) {
+                console.error(`[CHAT API] Access denied for user=${user.email} role=${profile?.role} conv=${conversationId}`);
                 return NextResponse.json({ error: 'Forbidden. You do not have access to this conversation.' }, { status: 403 });
             }
+            console.log(`[CHAT API] Admin bypass granted for user=${user.email} role=${profile?.role} conv=${conversationId}`);
         }
 
         const searchParams = request.nextUrl.searchParams;

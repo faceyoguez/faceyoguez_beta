@@ -53,14 +53,13 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
 
   // Journey logic state
   const [journeyLogs, setJourneyLogs] = useState<JourneyLog[]>([]);
-  const [activeStepDay, setActiveStepDay] = useState<number>(1);
   const [notesInput, setNotesInput] = useState('');
   const [isSavingLog, setIsSavingLog] = useState(false);
   const [selectedImageBase64, setSelectedImageBase64] = useState<string | null>(null);
   const [selectedImageMime, setSelectedImageMime] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const activeLog = journeyLogs.find(l => l.day_number === activeStepDay);
+  const activeLog = journeyLogs.find(l => l.day_number === currentDay);
   const day1Log = journeyLogs.find(l => l.day_number === 1);
 
   // Set default view images
@@ -86,11 +85,6 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
         setResources(resData);
         setJourneyLogs(logsData);
         setUpcomingMeetings(meetingsData || []);
-
-        if (logsData.length > 0) {
-          const latestDay = [...logsData].sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0].day_number;
-          setActiveStepDay(latestDay);
-        }
 
         setIsLoadingResources(false);
       };
@@ -152,14 +146,14 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
     setIsSavingLog(true);
     const { success, error, data } = await saveDailyCheckIn(
       currentUser.id,
-      activeStepDay,
+      currentDay,
       notesInput.trim() || null,
       selectedImageBase64,
       selectedImageMime || 'image/jpeg'
     );
     if (success && data) {
       setJourneyLogs(prev => {
-        const filtered = prev.filter(l => l.day_number !== activeStepDay);
+        const filtered = prev.filter(l => l.day_number !== currentDay);
         return [...filtered, data];
       });
       setSelectedImageBase64(null);
@@ -174,7 +168,11 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
   useEffect(() => {
     setNotesInput(activeLog?.notes || '');
     setSelectedImageBase64(null);
-  }, [activeStepDay, activeLog]);
+  }, [currentDay, activeLog]);
+
+  const PHOTO_UPLOAD_DAYS = [1, 7, 14, 21, 25];
+  const isPhotoDay = PHOTO_UPLOAD_DAYS.includes(currentDay);
+  const isSliderActive = currentDay >= 7;
 
   const studentMeetings = upcomingMeetings.filter(m => m.meeting_type === 'one_on_one');
   const nextMeeting = studentMeetings.length > 0 ? studentMeetings[0] : null;
@@ -320,8 +318,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
             <div className="relative z-10 p-4 bg-[#FFFAF7]/40 rounded-[3rem] border border-[#FF8A75]/10 overflow-x-auto custom-scrollbar">
               <JourneyProgress
                 currentDay={currentDay}
-                activeDay={activeStepDay}
-                onSelectDay={setActiveStepDay}
+                activeDay={currentDay}
                 completedDays={new Set(journeyLogs.map(l => l.day_number))}
               />
             </div>
@@ -334,12 +331,12 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                   <div className="flex items-center justify-between px-6">
                      <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-[#6B7280] italic">Ancestral vs Ascendant</h4>
                      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#FF8A75]/20 to-transparent mx-6" />
-                     <span className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.3em] bg-white border border-[#FF8A75]/10 px-5 py-2 rounded-full">Day 1 / Day {activeStepDay}</span>
+                     <span className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.3em] bg-white border border-[#FF8A75]/10 px-5 py-2 rounded-full">Day 1 / Day {currentDay}</span>
                   </div>
                   
                   <div className="rounded-[3rem] overflow-hidden border border-[#FF8A75]/10 bg-white h-[450px] lg:h-[550px] relative group w-full">
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none" />
-                    {activeStepDay < 1 && !afterImage ? (
+                    {currentDay < 1 && !afterImage ? (
                       <div className="w-full h-full flex flex-col items-center justify-center space-y-6 bg-[#FFFAF7]/40">
                         <div className="h-24 w-24 rounded-full bg-white border border-[#FF8A75]/10 flex items-center justify-center text-[#FF8A75]/40">
                             <ImageIcon className="h-10 w-10" />
@@ -353,15 +350,17 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                         <ImageComparison
                             beforeImage={beforeImage}
                             afterImage={afterImage}
-                            disabled={false}
+                            disabled={!isSliderActive}
                             altBefore="Ancestral Baseline"
-                            altAfter={`Unfolding Day ${activeStepDay}`}
+                            altAfter={`Unfolding Day ${currentDay}`}
                         />
                       </div>
                     )}
-                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0 text-[#1a1a1a] text-[10px] font-black uppercase tracking-[0.4em] bg-white/90 backdrop-blur-md px-8 py-3 rounded-full border border-[#FF8A75]/20 shadow-lg">
-                       Drag to witness
-                    </div>
+                    {isSliderActive && (
+                      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0 text-[#1a1a1a] text-[10px] font-black uppercase tracking-[0.4em] bg-white/90 backdrop-blur-md px-8 py-3 rounded-full border border-[#FF8A75]/20 shadow-lg">
+                         Drag to witness
+                      </div>
+                    )}
                   </div>
               </div>
 
@@ -374,7 +373,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                     </div>
                     <div className="space-y-1.5">
                       <h5 className="text-2xl font-serif italic font-bold text-[#1a1a1a] tracking-tight leading-none">Inner Monologue</h5>
-                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">Node {activeStepDay}</p>
+                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">Node {currentDay}</p>
                     </div>
                   </div>
                   {activeLog?.updated_at && (
@@ -417,19 +416,24 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                     ref={fileInputRef}
                     onChange={handlePhotoSelect}
                   />
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="group flex flex-col items-center justify-center gap-5 p-8 sm:p-10 rounded-[2.5rem] bg-white hover:bg-[#FFFAF7]/60 border border-[#FF8A75]/10 transition-all duration-500">
-                    <div className="h-16 w-16 flex items-center justify-center rounded-full bg-[#FF8A75]/10 text-[#FF8A75] group-hover:scale-110 group-hover:bg-[#FF8A75] group-hover:text-white transition-all duration-500">
-                      <Camera className="h-6 w-6" />
-                    </div>
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#6B7280]">Imprint Photo</span>
-                  </button>
+                  {isPhotoDay && (
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="group flex flex-col items-center justify-center gap-5 p-8 sm:p-10 rounded-[2.5rem] bg-white hover:bg-[#FFFAF7]/60 border border-[#FF8A75]/10 transition-all duration-500">
+                      <div className="h-16 w-16 flex items-center justify-center rounded-full bg-[#FF8A75]/10 text-[#FF8A75] group-hover:scale-110 group-hover:bg-[#FF8A75] group-hover:text-white transition-all duration-500">
+                        <Camera className="h-6 w-6" />
+                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#6B7280]">Imprint Photo</span>
+                    </button>
+                  )}
                   
                   <button
                     onClick={handleSaveLog}
                     disabled={isSavingLog}
-                    className="relative group overflow-hidden flex flex-col items-center justify-center gap-5 p-8 sm:p-10 rounded-[2.5rem] bg-[#FF8A75] text-white hover:bg-[#ff4081] transition-all duration-500 disabled:opacity-50 disabled:hover:scale-100">
+                    className={cn(
+                      "relative group overflow-hidden flex flex-col items-center justify-center gap-5 p-8 sm:p-10 rounded-[2.5rem] bg-[#FF8A75] text-white hover:bg-[#ff4081] transition-all duration-500 disabled:opacity-50 disabled:hover:scale-100",
+                      !isPhotoDay && "col-span-2"
+                    )}>
                     <div className="relative z-10 h-16 w-16 flex items-center justify-center rounded-full bg-white/20 transition-transform duration-500">
                        {isSavingLog ? <Loader2 className="h-6 w-6 animate-spin" /> : <CheckCircle className="h-6 w-6" />}
                     </div>

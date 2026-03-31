@@ -3,21 +3,21 @@
 import { BroadcastClient } from '@/components/broadcast/BroadcastClient';
 import type { Profile, Batch } from '@/types/database';
 
-interface InstructorBroadcastClientProps {
+interface StaffBroadcastClientProps {
     currentUser: Profile;
     batches: Partial<Batch>[];
     initialBroadcasts: any[];
 }
 
-export function InstructorBroadcastClient({ currentUser, batches, initialBroadcasts }: InstructorBroadcastClientProps) {
+export function StaffBroadcastClient({ currentUser, batches, initialBroadcasts }: StaffBroadcastClientProps) {
     return (
         <BroadcastClient
             currentUser={currentUser}
             batches={batches}
             initialBroadcasts={initialBroadcasts}
-            title="Master Broadcast"
-            subtitle="Channel master-level wisdom across the entire collective."
-            badge="Master Portal Connection"
+            title="Universal Broadcast"
+            subtitle="Orchestrate wisdom across the entire platform collective."
+            badge="Staff Command Center"
         />
     );
 }

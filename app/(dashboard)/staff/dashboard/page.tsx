@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
 import { getLiveGrowthMetrics } from '@/lib/actions/subscription';
 import { checkExpiringSubscriptions } from '@/lib/actions/batches';
-import { TrendingUp, Users, Calendar, Sparkles, ArrowRight, ShieldCheck, MessageSquare, Crown, BookOpen } from 'lucide-react';
+import { TrendingUp, Users, Calendar, Sparkles, ArrowRight, ShieldCheck, MessageSquare, Crown, BookOpen, Radio } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
@@ -91,9 +91,9 @@ export default async function StaffDashboardPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
               { label: 'Client Registry', icon: Users, href: '/staff/one-on-one' },
+              { label: 'Universal Broadcast', icon: Radio, href: '/staff/broadcast' },
               { label: 'Wisdom Repository', icon: BookOpen, href: '/staff/lms' },
               { label: 'Collective Hub', icon: Users, href: '/staff/groups' },
-              { label: 'Command Center', icon: ShieldCheck, href: '/staff/dashboard' }
             ].map((link, i) => (
               <a key={i} href={link.href} className="group p-5 rounded-2xl bg-white/40 border border-primary/5 hover:bg-white hover:shadow-md transition-all flex items-center gap-4">
                 <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary/40 group-hover:text-primary group-hover:bg-primary/10 transition-all">

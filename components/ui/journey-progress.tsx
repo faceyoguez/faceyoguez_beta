@@ -46,10 +46,9 @@ export function JourneyProgress({
             const isReached = day <= clampedDay
 
             return (
-              <button
+              <div
                 key={day}
-                onClick={() => onSelectDay?.(day)}
-                className="group relative flex flex-col items-center transition-transform hover:scale-110 active:scale-95"
+                className="group relative flex flex-col items-center"
                 title={`Ritual Day ${day}`}
               >
                 {/* Dot */}
@@ -57,7 +56,7 @@ export function JourneyProgress({
                   className={cn(
                     "relative z-10 flex h-10 w-10 items-center justify-center rounded-2xl border transition-all duration-500 shadow-xl",
                     isActive
-                      ? "scale-125 border-foreground bg-foreground text-background"
+                      ? "scale-105 border-foreground bg-foreground text-background"
                       : isCompleted
                         ? "border-primary/40 bg-primary/10 text-primary"
                         : isReached
@@ -92,7 +91,7 @@ export function JourneyProgress({
                 >
                   Day {day}
                 </span>
-              </button>
+              </div>
             )
           })}
         </div>

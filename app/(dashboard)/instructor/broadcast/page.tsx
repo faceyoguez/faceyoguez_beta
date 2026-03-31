@@ -17,16 +17,22 @@ export default async function InstructorBroadcastPage() {
     .eq('id', user.id)
     .single();
 
-  if (profile?.role !== 'instructor') {
-    redirect('/dashboard');
+  if (profile?.role !== 'instructor' && profile?.role !== 'admin') {
+    redirect('/auth/login');
   }
 
   // Fetch active batches for the dropdown
-  const { data: batches } = await supabase
+  // If admin, they see everything. If instructor, only their own.
+  let batchesQuery = supabase
     .from('batches')
     .select('id, name')
-    .eq('instructor_id', user.id)
     .in('status', ['active', 'upcoming']);
+
+  if (profile?.role === 'instructor') {
+    batchesQuery = batchesQuery.eq('instructor_id', user.id);
+  }
+
+  const { data: batches } = await batchesQuery;
 
   // Fetch broadcast history
   const broadcasts = await getInstructorBroadcasts();

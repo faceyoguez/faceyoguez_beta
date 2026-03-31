@@ -72,7 +72,7 @@ export async function getChatMessages(conversationId: string, limit = 50) {
 
   if (!isParticipant) {
       const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single();
-      if (!['admin', 'staff', 'client_management'].includes(profile?.role || '')) {
+      if (!['admin', 'staff', 'instructor', 'client_management'].includes(profile?.role || '')) {
           return [];
       }
   }
@@ -327,80 +327,71 @@ export async function getOrCreateSharedChat(studentId: string, assignedInstructo
 
   const admin = createAdminClient();
 
-  // The canonical conversation is anchored to the student ↔ assigned instructor pair.
-  // If there is no assigned instructor yet, fall back to the current user as instructor.
-  const instructorId = assignedInstructorId || user.id;
-
-  // 1. Find a direct conversation where BOTH student AND instructor are participants.
-  const { data: parts } = await admin
+  // 1. Find a direct conversation where the student is a participant.
+  const { data: studentParts } = await admin
     .from('conversation_participants')
-    .select('conversation_id, user_id')
-    .in('user_id', [instructorId, studentId]);
+    .select('conversation_id')
+    .eq('user_id', studentId);
 
   let sharedConvId: string | null = null;
 
-  if (parts && parts.length > 0) {
-    const convCounts: Record<string, number> = {};
-    parts.forEach(p => {
-      convCounts[p.conversation_id] = (convCounts[p.conversation_id] || 0) + 1;
-    });
-    const potentialIds = Object.keys(convCounts).filter(id => convCounts[id] >= 2);
+  if (studentParts && studentParts.length > 0) {
+    const convIds = studentParts.map(p => p.conversation_id);
+    const { data: convs } = await admin
+      .from('conversations')
+      .select('id, type')
+      .in('id', convIds)
+      .eq('type', 'direct')
+      .order('created_at', { ascending: true })
+      .limit(1);
 
-    if (potentialIds.length > 0) {
-      const { data: convs } = await admin
-        .from('conversations')
-        .select('id, type')
-        .in('id', potentialIds)
-        .eq('type', 'direct');
-
-      if (convs && convs.length > 0) {
-        sharedConvId = convs[0].id;
-      }
+    if (convs && convs.length > 0) {
+      sharedConvId = convs[0].id;
     }
-  }
-
-  if (sharedConvId) {
-    // Conversation already exists — add current user as participant if they aren't one yet.
-    if (user.id !== instructorId && user.id !== studentId) {
-      const { data: existing } = await admin
-        .from('conversation_participants')
-        .select('id')
-        .eq('conversation_id', sharedConvId)
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (!existing) {
-        await admin.from('conversation_participants').insert({
-          conversation_id: sharedConvId,
-          user_id: user.id,
-        });
-      }
-    }
-    return { conversationId: sharedConvId };
   }
 
   // 2. No shared conversation yet — create one with all relevant participants.
-  const { data: newConv, error: convError } = await admin
-    .from('conversations')
-    .insert({ type: 'direct' })
-    .select()
-    .single();
+  if (!sharedConvId) {
+    let targetInstructorId = assignedInstructorId;
+    if (!targetInstructorId) {
+      const { data: instructors } = await admin.from('profiles').select('id').eq('role', 'instructor').limit(1);
+      targetInstructorId = instructors && instructors.length > 0 ? instructors[0].id : user.id;
+    }
 
-  if (convError) throw convError;
+    const { data: newConv, error: convError } = await admin
+      .from('conversations')
+      .insert({ type: 'direct' })
+      .select()
+      .single();
 
-  const participantRows: { conversation_id: string; user_id: string }[] = [
-    { conversation_id: newConv.id, user_id: studentId },
-    { conversation_id: newConv.id, user_id: instructorId },
-  ];
+    if (convError) throw convError;
+    sharedConvId = newConv.id;
 
-  // Include the current user (staff) if they are a third party.
-  if (user.id !== instructorId && user.id !== studentId) {
-    participantRows.push({ conversation_id: newConv.id, user_id: user.id });
+    const participantRows: { conversation_id: string; user_id: string }[] = [
+      { conversation_id: newConv.id, user_id: studentId },
+      { conversation_id: newConv.id, user_id: targetInstructorId },
+    ];
+    await admin.from('conversation_participants').insert(participantRows);
   }
 
-  await admin.from('conversation_participants').insert(participantRows);
+  // 3. Ensure the current staff/instructor is a participant so they can use it
+  if (sharedConvId) {
+    const { data: existing } = await admin
+      .from('conversation_participants')
+      .select('id')
+      .eq('conversation_id', sharedConvId)
+      .eq('user_id', user.id)
+      .maybeSingle();
 
-  return { conversationId: newConv.id };
+    if (!existing) {
+      await admin.from('conversation_participants').insert({
+        conversation_id: sharedConvId,
+        user_id: user.id,
+      });
+    }
+  }
+
+  return { conversationId: sharedConvId };
 }
 
 export async function getOrCreateDirectChatBetween(userId1: string, userId2: string) {
@@ -512,7 +503,7 @@ export async function sendChatMessage(
 
   if (!isParticipant) {
       const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single();
-      if (!['admin', 'staff', 'client_management'].includes(profile?.role || '')) {
+      if (!['admin', 'staff', 'instructor', 'client_management'].includes(profile?.role || '')) {
           throw new Error('Forbidden. You do not have access to this conversation.');
       }
   }
@@ -644,27 +635,14 @@ export async function fetchActiveOneOnOneStudents(instructorId: string) {
   const directConvIds = new Set(conversations?.map(c => c.id) || []);
 
   // 4. Match students to conversations.
-  //    Staff & master instructor: use the student's assigned instructor to locate
-  //    the shared canonical conversation.
-  //    Regular instructor: use their own ID (they ARE the instructor).
+  // We want the primary direct conversation for the student.
   const result = uniqueStudentsWithSubs.map((student: any) => {
-    const effectiveInstructorId = useAssignedMatching
-      ? (student.assignedInstructorId || instructorId) // fall back to self for unassigned
-      : instructorId;
-
-    if (!effectiveInstructorId) {
-      return { ...student, conversationId: null };
-    }
-
-    const instructorConvs = allParticipants
-      .filter((p: any) => p.user_id === effectiveInstructorId)
-      .map((p: any) => p.conversation_id);
-
     const studentConvs = allParticipants
       .filter((p: any) => p.user_id === student.id)
       .map((p: any) => p.conversation_id);
 
-    const commonConvId = instructorConvs.find((id: string) => studentConvs.includes(id) && directConvIds.has(id));
+    // find a direct conversation that the student is part of
+    const commonConvId = studentConvs.find((id: string) => directConvIds.has(id));
 
     return {
       ...student,
@@ -750,6 +728,14 @@ export async function sendBatchMessage(batchId: string, content: string, senderI
 
 export async function toggleBatchChat(batchId: string, isEnabled: boolean) {
   const supabase = await createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: 'Unauthorized' };
+
+  const admin = createAdminClient();
+  const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single();
+  if (!['admin', 'staff', 'instructor', 'client_management'].includes(profile?.role || '')) {
+      return { success: false, error: 'Forbidden' };
+  }
 
   const { error } = await supabase
     .from('batches')

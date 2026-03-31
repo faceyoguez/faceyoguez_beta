@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 
         if (!isParticipant) {
             const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single();
-            if (!['admin', 'staff', 'client_management'].includes(profile?.role || '')) {
+            if (!['admin', 'staff', 'instructor', 'client_management'].includes(profile?.role || '')) {
                 return NextResponse.json({ error: 'Forbidden. You do not have access to this conversation.' }, { status: 403 });
             }
         }

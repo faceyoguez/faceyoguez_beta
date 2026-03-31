@@ -298,33 +298,42 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
       <header className="shrink-0 p-6 lg:p-10 flex items-center justify-between relative z-50">
         <div className="flex items-center gap-12">
           <div className="space-y-1">
-            <h1 className="text-4xl font-serif font-bold tracking-tight text-foreground">Group Sessions</h1>
-            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-foreground/30 italic">Collective Guidance Hub</p>
+            <h1 className="text-3xl font-serif font-bold tracking-tight text-foreground">Group Sessions</h1>
+            <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-foreground/30 italic">Collective Guidance Hub</p>
           </div>
 
           <div className="hidden lg:flex items-center gap-8 ml-4">
             <button 
               onClick={() => setIsCreateBatchOpen(true)}
-              className="h-12 px-6 rounded-xl bg-white/50 backdrop-blur-xl border border-outline-variant/10 shadow-sm flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest hover:border-primary/20 hover:scale-[1.02] transition-all"
+              className="h-10 px-5 rounded-xl bg-white/50 backdrop-blur-xl border border-outline-variant/10 shadow-sm flex items-center gap-2.5 text-[9px] font-bold uppercase tracking-widest hover:border-primary/20 hover:bg-white transition-all"
             >
-              <Plus className="w-4 h-4 text-primary" />
+              <Plus className="w-3.5 h-3.5 text-primary" />
               Manifest Batch
             </button>
             <div className="h-6 w-px bg-outline-variant/10" />
-            <div className="flex flex-col">
-              <span className="text-[9px] font-bold uppercase tracking-widest text-foreground/20">Waiting Queue</span>
-              <span className="text-sm font-serif font-bold text-primary italic">{waitingQueue.length} Souls</span>
+            <div className="flex items-center gap-6">
+              <div className="flex flex-col">
+                <span className="text-[9px] font-black uppercase tracking-widest text-foreground/20">Active Souls</span>
+                <span className="text-sm font-serif font-bold text-primary italic">
+                  {selectedBatch?.batch_enrollments?.filter((e: any) => e.status === 'active').length || 0} Enrolled
+                </span>
+              </div>
+              <div className="h-4 w-px bg-outline-variant/10" />
+              <div className="flex flex-col">
+                <span className="text-[9px] font-black uppercase tracking-widest text-foreground/20">Waiting Queue</span>
+                <span className="text-sm font-serif font-bold text-primary italic">{waitingQueue.length} Pending</span>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <div className="relative group">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/20 group-focus-within:text-primary transition-colors" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-foreground/20 group-focus-within:text-primary transition-colors" />
             <input
               type="text"
               placeholder="Search batches..."
-              className="h-12 w-64 pl-12 pr-6 rounded-xl bg-white/50 backdrop-blur-xl border border-outline-variant/10 focus:ring-2 focus:ring-primary/10 text-[12px] font-medium placeholder:text-foreground/20 transition-all shadow-sm"
+              className="h-10 w-56 pl-10 pr-4 rounded-xl bg-white/50 backdrop-blur-xl border border-outline-variant/10 focus:ring-2 focus:ring-primary/5 text-[11px] font-medium placeholder:text-foreground/20 transition-all shadow-sm"
               value={studentSearchQuery}
               onChange={(e) => setStudentSearchQuery(e.target.value)}
             />
@@ -332,31 +341,34 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
         </div>
       </header>
 
-      <main className="flex-1 flex overflow-hidden p-6 lg:p-10 gap-4 xl:gap-8 min-w-0">
+      <main className="flex-1 flex overflow-hidden p-6 lg:p-10 lg:pt-2 gap-4 xl:gap-6 min-w-0">
         
         {/* LEFT: Batch & Student Rail */}
         <div className="w-64 xl:w-80 flex flex-col gap-6 shrink-0 h-full min-w-0">
           {/* Batches */}
-          <div className="flex-[0.4] bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col min-h-0 overflow-hidden">
-            <div className="p-8 border-b border-outline-variant/5">
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30 mb-2">Active Paths</h3>
-              <p className="text-sm font-serif font-bold text-foreground italic">Current Collectives</p>
+          <div className="flex-[0.35] bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col min-h-0 overflow-hidden">
+            <div className="p-6 border-b border-outline-variant/5">
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/30">Active Paths</h3>
+                <span className="text-[10px] font-bold text-primary italic pr-1">{batches.length}</span>
+              </div>
+              <p className="text-xs font-serif font-bold text-foreground italic">Current Collectives</p>
             </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-3 space-y-1.5 custom-scrollbar">
               {batches.map((batch) => (
                 <button
                   key={batch.id}
                   onClick={() => handleBatchChange(batch)}
                   className={cn(
-                    "w-full flex items-center gap-4 p-4 rounded-2xl transition-all text-left group",
+                    "w-full flex items-center gap-3 p-3 rounded-xl transition-all text-left group",
                     selectedBatch?.id === batch.id 
-                      ? "bg-white border border-outline-variant/10 shadow-md scale-[1.02]" 
+                      ? "bg-white border border-outline-variant/10 shadow-sm" 
                       : "bg-transparent border border-transparent hover:bg-white/40 hover:border-outline-variant/5"
                   )}
                 >
                   <div className="min-w-0 flex-1">
-                    <h4 className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">{batch.name}</h4>
-                    <p className="text-[9px] font-bold uppercase tracking-widest text-foreground/20 mt-0.5">{batch.status === 'active' ? 'Operational' : 'Concluded'}</p>
+                    <h4 className="text-[13px] font-bold text-foreground truncate group-hover:text-primary transition-colors">{batch.name}</h4>
+                    <p className="text-[8px] font-bold uppercase tracking-widest text-foreground/20 mt-0.5">{batch.status === 'active' ? 'Operational' : 'Concluded'}</p>
                   </div>
                   <ChevronRight className="w-3 h-3 text-foreground/10 group-hover:text-primary transition-colors" />
                 </button>
@@ -365,15 +377,31 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
           </div>
 
           {/* Enrolled Students */}
-          <div className="flex-[0.6] bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col min-h-0 overflow-hidden">
-            <div className="p-8 border-b border-outline-variant/5">
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30 mb-2">Enrolled Souls</h3>
-              <p className="text-sm font-serif font-bold text-foreground italic">Inhabiting Space</p>
+          <div className="flex-[0.65] bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col min-h-0 overflow-hidden">
+            <div className="p-6 border-b border-outline-variant/5">
+              <div className="flex items-center justify-between mb-4">
+                <div className="space-y-0.5">
+                  <h3 className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/30">Enrolled Souls</h3>
+                  <p className="text-xs font-serif font-bold text-foreground italic leading-none">Inhabiting Space</p>
+                </div>
+                <span className="text-[10px] font-bold text-primary italic bg-primary/5 px-2 py-1 rounded-lg">{filteredStudents.length}</span>
+              </div>
+              
+              <div className="relative group">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-foreground/20 group-focus-within:text-primary transition-colors" />
+                <input
+                  type="text"
+                  value={studentSearchQuery}
+                  onChange={(e) => setStudentSearchQuery(e.target.value)}
+                  placeholder="Identify soul..."
+                  className="w-full h-8 pl-8 pr-4 rounded-lg bg-foreground/5 border border-transparent focus:bg-white focus:border-outline-variant/10 text-[10px] font-bold placeholder:text-foreground/20 outline-none transition-all"
+                />
+              </div>
             </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-3 space-y-1.5 custom-scrollbar">
               {filteredStudents.map((enrollment: any) => (
-                <div key={enrollment.student_id} className="flex items-center gap-4 p-3 rounded-2xl bg-white/40 border border-transparent hover:border-outline-variant/5 transition-all group">
-                  <div className="h-9 w-9 rounded-xl overflow-hidden shadow-sm shrink-0 border border-primary/5">
+                <div key={enrollment.student_id} className="flex items-center gap-3 p-2.5 rounded-xl bg-white/40 border border-transparent hover:border-outline-variant/5 transition-all group">
+                  <div className="h-8 w-8 rounded-lg overflow-hidden shadow-sm shrink-0 border border-primary/5">
                     {enrollment.student?.avatar_url ? (
                       <img src={enrollment.student.avatar_url} alt="" className="h-full w-full object-cover" />
                     ) : (
@@ -383,7 +411,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold text-foreground truncate">{enrollment.student?.full_name}</p>
+                    <p className="text-[12px] font-bold text-foreground truncate">{enrollment.student?.full_name}</p>
                     <p className="text-[8px] font-bold uppercase tracking-widest text-foreground/20 italic">{enrollment.is_trial_access ? 'Discovery' : 'Committed'}</p>
                   </div>
                 </div>
@@ -393,32 +421,32 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
         </div>
 
         {/* CENTER: Session Unfolding */}
-        <div className="flex-1 flex flex-col gap-8 overflow-hidden min-w-0">
+        <div className="flex-1 flex flex-col gap-6 overflow-hidden min-w-0">
           {/* Active Session Card */}
-          <div className="shrink-0 group relative h-72 w-full overflow-hidden rounded-[2rem] border border-outline-variant/10 shadow-xl bg-foreground">
+          <div className="shrink-0 group relative h-40 w-full overflow-hidden rounded-[2rem] border border-outline-variant/10 shadow-sm bg-foreground flex items-center">
             <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
-            <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2420&auto=format&fit=crop" className="h-full w-full object-cover opacity-60 grayscale transition-transform duration-[2000ms] group-hover:scale-110" alt="" />
+            <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2420&auto=format&fit=crop" className="absolute inset-0 h-full w-full object-cover opacity-60 grayscale transition-transform duration-[2000ms] group-hover:scale-105" alt="" />
             
-            <div className="absolute inset-0 z-20 flex flex-col justify-center p-12">
-              <div className="max-w-md space-y-5">
-                <div className="flex items-center gap-3">
+            <div className="relative z-20 flex flex-col justify-center p-8 w-full max-w-xl">
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 mb-1">
                   <div className={cn("h-1.5 w-1.5 rounded-full", selectedBatch?.status === 'active' ? "bg-primary animate-pulse" : "bg-white/20")} />
                   <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/60">
                     {selectedBatch?.status === 'active' ? 'Path Active' : 'Session Resting'}
                   </span>
                 </div>
-                <h2 className="text-3xl md:text-5xl font-serif font-bold text-white tracking-tight italic">
+                <h2 className="text-3xl font-serif font-bold text-white tracking-tight italic truncate">
                   {selectedBatch?.name || 'Sanctuary Waiting'}
                 </h2>
-                <div className="pt-6 flex items-center gap-4">
+                <div className="flex items-center gap-3 pt-2">
                   <button
                     onClick={() => setShowZoomModal(true)}
-                    className="h-12 px-8 rounded-xl bg-primary text-white text-[10px] font-bold uppercase tracking-widest hover:bg-primary/90 transition-all flex items-center gap-3 shadow-xl shadow-primary/20"
+                    className="h-9 px-6 rounded-xl bg-primary text-white text-[9px] font-bold uppercase tracking-widest hover:bg-primary/90 transition-all flex items-center gap-2 shadow-md hover:-translate-y-0.5"
                   >
-                    <Radio className="w-4 h-4" />
+                    <Radio className="w-3.5 h-3.5" />
                     Initiate Session
                   </button>
-                  <button className="h-12 px-6 rounded-xl bg-white/10 backdrop-blur-md text-white border border-white/10 text-[10px] font-bold uppercase tracking-widest hover:bg-white/20 transition-all">
+                  <button className="h-9 px-5 rounded-xl bg-white/10 backdrop-blur-md text-white border border-white/10 text-[9px] font-bold uppercase tracking-widest hover:bg-white/20 transition-all">
                     Calibration
                   </button>
                 </div>
@@ -426,54 +454,40 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm overflow-hidden overflow-y-auto custom-scrollbar p-10">
-            <div className="grid grid-cols-3 gap-8 mb-12">
-              {[
-                { label: 'Attendance', value: '94%', icon: Users, trend: '+2%' },
-                { label: 'Engagement', value: 'High', icon: Activity, trend: 'Stable' },
-                { label: 'Current Souls', value: `${selectedBatch?.current_students || 0} / ${selectedBatch?.max_students || 30}`, icon: Users, trend: '90%' }
-              ].map((stat, i) => (
-                <div key={i} className="bg-white/40 p-6 rounded-2xl border border-outline-variant/5 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center">
-                      <stat.icon className="w-5 h-5 text-primary" />
-                    </div>
-                    <span className="text-[8px] font-bold text-emerald-500 bg-emerald-500/5 px-2 py-0.5 rounded-full">{stat.trend}</span>
-                  </div>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/20 mb-1">{stat.label}</p>
-                  <p className="text-2xl font-serif font-bold text-foreground">{stat.value}</p>
-                </div>
-              ))}
-            </div>
+          <div className="flex-1 flex flex-col bg-white/50 backdrop-blur-xl rounded-[2rem] border border-outline-variant/10 shadow-sm overflow-hidden overflow-y-auto custom-scrollbar p-6 xl:p-8">
 
-            <div className="grid grid-cols-2 gap-8 flex-1">
+
+            <div className="flex flex-col gap-6 flex-1">
               {/* Registry */}
-              <div className="flex flex-col gap-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Registry Artifacts</h3>
+              <div className="flex flex-col bg-white/30 rounded-2xl border border-outline-variant/5 min-h-[180px] h-[50%]">
+                <div className="p-4 border-b border-outline-variant/5 flex items-center justify-between shrink-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Registry Artifacts</h3>
+                    <span className="text-[10px] font-bold text-primary opacity-40 italic">{resources.length}</span>
+                  </div>
                   <button
                     disabled={!selectedBatch || isUploading}
                     onClick={() => fileInputRef.current?.click()}
-                    className="h-10 w-10 rounded-xl bg-primary/5 text-primary flex items-center justify-center hover:scale-110 active:scale-95 transition-all border border-primary/10"
+                    className="h-8 w-8 rounded-lg bg-primary/5 text-primary flex items-center justify-center hover:bg-primary/10 transition-colors border border-primary/10"
                   >
-                    {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-5 w-5" />}
+                    {isUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-4 w-4" />}
                   </button>
                 </div>
-                <div className="flex-1 space-y-3 overflow-y-auto pr-2 custom-scrollbar">
+                <div className="flex-1 p-3 overflow-y-auto space-y-2 custom-scrollbar">
                   {resources.map((res: any) => (
-                    <button key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="w-full flex items-center gap-4 p-4 bg-white/40 border border-outline-variant/5 rounded-2xl hover:border-primary/20 hover:bg-white hover:shadow-md transition-all text-left">
-                      <div className="h-10 w-10 rounded-xl bg-foreground/5 flex items-center justify-center text-foreground/20">
-                        <FileText className="w-4 h-4" />
+                    <button key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="w-full flex items-center gap-3 p-3 bg-white hover:bg-white/80 border border-outline-variant/5 rounded-xl transition-all text-left shadow-sm">
+                      <div className="h-8 w-8 rounded-lg bg-foreground/5 flex items-center justify-center text-foreground/30 shrink-0">
+                        <FileText className="w-3.5 h-3.5" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold text-foreground truncate">{res.title || res.file_name}</p>
-                        <p className="text-[9px] font-bold text-foreground/20 uppercase tracking-widest mt-0.5">Artifact</p>
+                        <p className="text-[11px] font-bold text-foreground truncate">{res.title || res.file_name}</p>
+                        <p className="text-[8px] font-bold text-foreground/20 uppercase tracking-widest mt-0.5">Artifact</p>
                       </div>
                     </button>
                   ))}
                   {resources.length === 0 && (
-                    <div className="h-40 flex flex-col items-center justify-center opacity-10 grayscale">
-                      <Library className="w-8 h-8 mb-2" />
+                    <div className="h-full min-h-[80px] flex flex-col items-center justify-center opacity-20 py-4">
+                      <Library className="w-6 h-6 mb-2" />
                       <p className="text-[9px] font-bold uppercase tracking-widest">Pristine State</p>
                     </div>
                   )}
@@ -481,26 +495,29 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
               </div>
 
               {/* Chronicles */}
-              <div className="flex flex-col gap-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Ritual Chronicles</h3>
+              <div className="flex flex-col bg-white/30 rounded-2xl border border-outline-variant/5 min-h-[180px] h-[50%]">
+                <div className="p-4 border-b border-outline-variant/5 flex items-center justify-between shrink-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Ritual Chronicles</h3>
+                    <span className="text-[10px] font-bold text-primary opacity-40 italic">{recordings.length}</span>
+                  </div>
                   <PlayCircle className="w-4 h-4 text-foreground/10" />
                 </div>
-                <div className="flex-1 space-y-3 overflow-y-auto pr-2 custom-scrollbar">
+                <div className="flex-1 p-3 overflow-y-auto space-y-2 custom-scrollbar">
                   {recordings.map((rec) => (
-                    <button key={rec.id} onClick={() => window.open(rec.play_url!, '_blank')} className="w-full flex items-center gap-4 p-4 bg-white/40 border border-outline-variant/5 rounded-2xl hover:border-primary/20 hover:bg-white hover:shadow-md transition-all text-left group">
-                      <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                        <Play className="w-4 h-4 fill-primary" />
+                    <button key={rec.id} onClick={() => window.open(rec.play_url!, '_blank')} className="w-full flex items-center gap-3 p-3 bg-white hover:bg-white/80 border border-outline-variant/5 rounded-xl transition-all text-left shadow-sm group">
+                      <div className="h-8 w-8 rounded-lg bg-primary/5 flex items-center justify-center text-primary shrink-0 group-hover:scale-105 transition-transform">
+                        <Play className="w-3.5 h-3.5 fill-primary" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold text-foreground truncate">{rec.topic}</p>
-                        <p className="text-[9px] font-bold text-foreground/20 uppercase tracking-widest mt-0.5">{new Date(rec.start_time).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</p>
+                        <p className="text-[11px] font-bold text-foreground truncate">{rec.topic}</p>
+                        <p className="text-[8px] font-bold text-foreground/20 uppercase tracking-widest mt-0.5">{new Date(rec.start_time).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</p>
                       </div>
                     </button>
                   ))}
                   {recordings.length === 0 && (
-                    <div className="h-40 flex flex-col items-center justify-center opacity-10 grayscale">
-                      <Video className="w-8 h-8 mb-2" />
+                    <div className="h-full min-h-[80px] flex flex-col items-center justify-center opacity-20 py-4">
+                      <Video className="w-6 h-6 mb-2" />
                       <p className="text-[9px] font-bold uppercase tracking-widest">No Archives</p>
                     </div>
                   )}
@@ -511,20 +528,23 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
         </div>
 
         {/* RIGHT: Communion & Pulse */}
-        <div className="w-72 xl:w-96 flex flex-col gap-8 shrink-0 h-full min-w-0">
+        <div className="w-72 xl:w-96 flex flex-col gap-6 shrink-0 h-full min-w-0">
           {/* Chat Window */}
           <div className="flex-1 bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col overflow-hidden">
-            <div className="p-8 border-b border-outline-variant/5 flex items-center justify-between">
-              <div className="space-y-1">
-                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Collective Resonance</h3>
-                <p className="text-sm font-serif font-bold text-foreground italic">Batch Dialogue</p>
+            <div className="p-6 border-b border-outline-variant/5 flex items-center justify-between bg-white/10">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/30">Collective Resonance</h3>
+                  <span className="text-[9px] font-bold text-primary opacity-40 italic">{messages.length}</span>
+                </div>
+                <p className="text-xs font-serif font-bold text-foreground italic">Batch Dialogue</p>
               </div>
-              <button onClick={handleToggleChat} className={cn("h-10 w-10 rounded-xl flex items-center justify-center transition-all border", isChatEnabled ? "bg-primary text-white border-transparent" : "bg-primary/5 text-primary border-primary/10")}>
-                <Settings className="w-4 h-4" />
+              <button onClick={handleToggleChat} className={cn("h-8 w-8 rounded-lg flex items-center justify-center transition-all border", isChatEnabled ? "bg-primary text-white border-transparent shadow-sm" : "bg-primary/5 text-primary border-primary/10")}>
+                <Settings className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            <div ref={chatContainerRef} className="flex-1 space-y-6 overflow-y-auto p-8 custom-scrollbar">
+            <div ref={chatContainerRef} className="flex-1 space-y-4 overflow-y-auto p-6 custom-scrollbar">
               {messages.map((msg) => {
                 const senderProfile = msg.sender || msg.profiles || msg.senderProfile || {};
                 const isPoll = msg.message_type === 'poll' && msg.poll_id;
@@ -532,15 +552,15 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                 const isMe = msg.sender_id === currentUser.id;
 
                 return (
-                  <div key={msg.id} className={cn("flex flex-col gap-2", isMe ? "items-end" : "items-start")}>
+                  <div key={msg.id} className={cn("flex flex-col gap-1.5", isMe ? "items-end" : "items-start")}>
                     <div className="flex items-center gap-2 px-1">
-                      <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20">{isMe ? 'Internal' : (senderProfile?.full_name || 'Manifestor')}</span>
-                      <span className="text-[8px] text-foreground/10 italic">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      <span className="text-[7px] font-bold uppercase tracking-widest text-foreground/20">{isMe ? 'Internal' : (senderProfile?.full_name || 'Manifestor')}</span>
+                      <span className="text-[7px] text-foreground/10 italic">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
                     {isPoll ? (
-                      poll ? <div className="w-full scale-95 origin-top"><PollCard poll={poll} isAdmin onClose={() => handleClosePoll(poll.id)} /></div> : null
+                      poll ? <div className="w-full scale-90 origin-top"><PollCard poll={poll} isAdmin onClose={() => handleClosePoll(poll.id)} /></div> : null
                     ) : (
-                      <div className={cn("px-5 py-4 rounded-2xl text-xs font-medium leading-relaxed max-w-[90%] shadow-sm", isMe ? "bg-foreground text-background rounded-tr-none" : "bg-white text-foreground rounded-tl-none border border-outline-variant/5")}>
+                      <div className={cn("px-4 py-3 rounded-xl text-[11px] font-medium leading-relaxed max-w-[90%] shadow-sm", isMe ? "bg-foreground text-background rounded-tr-none" : "bg-white text-foreground rounded-tl-none border border-outline-variant/5")}>
                         {msg.content}
                       </div>
                     )}
@@ -549,13 +569,13 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
               })}
             </div>
 
-            <div className="p-6 bg-white/40 border-t border-outline-variant/5">
-              <div className="flex items-center gap-4">
+            <div className="p-4 bg-white/40 border-t border-outline-variant/5">
+              <div className="flex items-center gap-3">
                 <button
                   onClick={() => setShowPollModal(true)}
-                  className="h-12 w-12 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform border border-primary/10"
+                  className="h-10 w-10 rounded-lg bg-primary/5 flex items-center justify-center text-primary hover:bg-primary/10 transition-colors border border-primary/10 shrink-0"
                 >
-                  <BarChart2 className="w-5 h-5" />
+                  <BarChart2 className="w-4 h-4" />
                 </button>
                 <div className="flex-1 relative">
                   <input
@@ -564,10 +584,10 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                     placeholder="Direct the collective..."
-                    className="w-full h-12 rounded-xl bg-white border border-outline-variant/10 pl-5 pr-12 text-xs font-medium outline-none focus:ring-2 focus:ring-primary/10 transition-all shadow-sm"
+                    className="w-full h-10 rounded-lg bg-white border border-outline-variant/10 pl-4 pr-10 text-[11px] font-medium outline-none focus:ring-2 focus:ring-primary/10 transition-all shadow-sm"
                   />
-                  <button onClick={handleSendMessage} className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 rounded-lg bg-foreground text-background flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
-                    <Send className="w-4 h-4" />
+                  <button onClick={handleSendMessage} className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-md bg-foreground text-background flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
+                    <Send className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>

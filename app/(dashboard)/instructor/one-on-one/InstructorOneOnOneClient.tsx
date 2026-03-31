@@ -166,12 +166,10 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
         setResources(resData);
         setJourneyLogs(logsData);
 
-        if (logsData.length > 0) {
-          const latestDay = [...logsData].sort((a, b) => b.day_number - a.day_number)[0].day_number;
-          setActiveStepDay(latestDay);
-        } else {
-          setActiveStepDay(1);
-        }
+        const actualCurrentDay = selectedStudent.startDate
+          ? Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate).getTime()) / 86400000) + 1))
+          : 1;
+        setActiveStepDay(actualCurrentDay);
 
         setIsLoadingResources(false);
         setIsLoadingJourney(false);
@@ -366,33 +364,38 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
-              {filtered.map((student) => (
-                <button
-                  key={student.id}
-                  onClick={() => setSelectedStudent(student)}
-                  className={cn(
-                    "w-full flex items-center gap-4 p-4 rounded-2xl transition-all text-left group",
-                    selectedStudent?.id === student.id 
-                      ? "bg-white border border-outline-variant/10 shadow-md scale-[1.02]" 
-                      : "bg-transparent border border-transparent hover:bg-white/40 hover:border-outline-variant/5"
-                  )}
-                >
-                  <div className="relative shrink-0">
-                    {student.avatar_url ? (
-                      <img src={student.avatar_url} alt="" className="w-10 h-10 rounded-xl object-cover" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center text-sm font-bold text-primary">
-                        {student.full_name[0]}
-                      </div>
+              {filtered.map((student) => {
+                const elapsedDays = student.startDate ? Math.floor((Date.now() - new Date(student.startDate).getTime()) / 86400000) + 1 : 1;
+                const isEmergency = elapsedDays >= 25;
+
+                return (
+                  <button
+                    key={student.id}
+                    onClick={() => setSelectedStudent(student)}
+                    className={cn(
+                      "w-full flex items-center gap-4 p-4 rounded-2xl transition-all text-left group",
+                      selectedStudent?.id === student.id 
+                        ? (isEmergency ? "bg-red-50/50 border border-red-500/20 shadow-md scale-[1.02]" : "bg-white border border-outline-variant/10 shadow-md scale-[1.02]") 
+                        : "bg-transparent border border-transparent hover:bg-white/40 hover:border-outline-variant/5"
                     )}
-                    <div className={cn("absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white", student.isTrial ? "bg-primary animate-pulse" : "bg-brand-emerald")} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h4 className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">{student.full_name}</h4>
-                    <p className="text-[9px] font-bold uppercase tracking-widest text-foreground/20 mt-0.5">{student.isTrial ? "Discovery" : "Aligned"}</p>
-                  </div>
-                </button>
-              ))}
+                  >
+                    <div className="relative shrink-0">
+                      {student.avatar_url ? (
+                        <img src={student.avatar_url} alt="" className="w-10 h-10 rounded-xl object-cover" />
+                      ) : (
+                        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold", isEmergency ? "bg-red-500/10 text-red-600" : "bg-primary/5 text-primary")}>
+                          {student.full_name[0]}
+                        </div>
+                      )}
+                      <div className={cn("absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white", isEmergency ? "bg-red-500 animate-pulse" : (student.isTrial ? "bg-primary animate-pulse" : "bg-brand-emerald"))} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className={cn("text-sm font-bold truncate transition-colors", isEmergency ? "text-red-600 group-hover:text-red-700" : "text-foreground group-hover:text-primary")}>{student.full_name}</h4>
+                      <p className={cn("text-[9px] font-bold uppercase tracking-widest mt-0.5", isEmergency ? "text-red-500/70" : "text-foreground/20")}>{isEmergency ? `Day ${elapsedDays}: Ending Soon` : (student.isTrial ? "Discovery" : "Aligned")}</p>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -446,6 +449,70 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                   )}
                 </div>
 
+                {/* Photo Download Tools */}
+                <div className="flex gap-4">
+                    <button 
+                      disabled={!journeyLogs.find(l => l.day_number === 1)?.photo_url}
+                      onClick={() => {
+                         const url = journeyLogs.find(l => l.day_number === 1)?.photo_url;
+                         if (url) window.open(url, '_blank');
+                      }}
+                      className="flex-1 h-14 rounded-[1.5rem] bg-white/40 backdrop-blur-md border border-outline-variant/10 shadow-sm flex items-center justify-center gap-2 text-[9px] font-bold uppercase tracking-widest hover:border-primary/20 hover:bg-white transition-all disabled:opacity-30 disabled:hover:bg-white/40 group"
+                    >
+                      <Download className="w-3.5 h-3.5 text-primary group-hover:-translate-y-0.5 transition-transform" />
+                      Extract Day 1
+                    </button>
+                    <button 
+                      disabled={!journeyLogs.find(l => l.day_number === 25)?.photo_url}
+                      onClick={() => {
+                         const url = journeyLogs.find(l => l.day_number === 25)?.photo_url;
+                         if (url) window.open(url, '_blank');
+                      }}
+                      className="flex-1 h-14 rounded-[1.5rem] bg-white/40 backdrop-blur-md border border-outline-variant/10 shadow-sm flex items-center justify-center gap-2 text-[9px] font-bold uppercase tracking-widest hover:border-primary/20 hover:bg-white transition-all disabled:opacity-30 disabled:hover:bg-white/40 group"
+                    >
+                      <Download className="w-3.5 h-3.5 text-primary group-hover:-translate-y-0.5 transition-transform" />
+                      Extract Day 25
+                    </button>
+                </div>
+
+                {/* Moved Registry Artifacts (Update PDF) Section */}
+                <div className="bg-white/40 backdrop-blur-md p-8 rounded-[2.5rem] border border-outline-variant/10 shadow-lg flex flex-col -mt-6">
+                  <div className="flex items-center justify-between mb-8">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Registry Artifacts</h3>
+                    <button
+                      disabled={!selectedStudent || isUploading}
+                      onClick={() => fileInputRef.current?.click()}
+                      className="h-10 w-10 rounded-xl bg-primary/5 text-primary flex items-center justify-center transition-all hover:scale-110 active:scale-95 disabled:opacity-20 border border-primary/10"
+                    >
+                      {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-5 w-5" />}
+                    </button>
+                    <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
+                  </div>
+
+                  <div className="space-y-3 overflow-y-auto max-h-[300px] pr-2 custom-scrollbar">
+                    {resources.map((res) => {
+                       const style = getFileIcon(res.content_type || '');
+                       return (
+                          <button key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="w-full flex items-center gap-4 p-4 bg-white border border-outline-variant/5 rounded-2xl hover:border-primary/20 hover:shadow-md transition-all text-left">
+                             <div className={cn("h-10 w-10 rounded-xl bg-foreground/5 flex items-center justify-center text-foreground/20", style.color)}>
+                                <style.icon className="w-4 h-4" />
+                             </div>
+                             <div className="min-w-0">
+                                <p className="text-xs font-bold text-foreground truncate">{res.file_name}</p>
+                                <p className="text-[9px] font-bold text-foreground/20 uppercase tracking-widest mt-0.5">{formatFileSize(res.file_size)}</p>
+                             </div>
+                          </button>
+                       );
+                    })}
+                    {resources.length === 0 && (
+                       <div className="h-40 flex flex-col items-center justify-center opacity-10 grayscale">
+                          <FolderOpen className="w-8 h-8 mb-2" />
+                          <p className="text-[9px] font-bold uppercase tracking-widest">Pristine State</p>
+                       </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="rounded-3xl bg-primary/[0.02] p-8 border border-primary/5 italic text-xl font-serif text-foreground/60 leading-relaxed text-center px-20">
                   {activeLog?.notes ? `"${activeLog.notes}"` : 'Soul reflection for this stage is currently unmanifested.'}
                 </div>
@@ -463,7 +530,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
         <div className="w-72 xl:w-96 flex flex-col gap-8 shrink-0 h-full min-w-0">
           
           {/* Interaction Box (Chat) */}
-          <div className="h-[500px] bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col overflow-hidden">
+          <div className="flex-1 bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col overflow-hidden">
             <div className="p-8 border-b border-outline-variant/5 flex items-center justify-between">
               <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Communion</h3>
               <MessageSquare className="w-4 h-4 text-foreground/10" />
@@ -480,6 +547,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                   otherParticipant={{ id: selectedStudent.id, full_name: selectedStudent.full_name, avatar_url: selectedStudent.avatar_url, email: selectedStudent.email } as Profile}
                   className="h-full"
                   hideHeader={true}
+                  isMultiParty={true}
                 />
               ) : selectedStudent ? (
                 <div className="h-full flex flex-col items-center justify-center p-10 text-center space-y-6">
@@ -504,43 +572,6 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
             </div>
           </div>
 
-          {/* Registry Artifacts */}
-          <div className="flex-1 bg-white/50 backdrop-blur-xl p-8 rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col min-h-0 overflow-hidden">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Registry Artifacts</h3>
-              <button
-                disabled={!selectedStudent || isUploading}
-                onClick={() => fileInputRef.current?.click()}
-                className="h-10 w-10 rounded-xl bg-primary/5 text-primary flex items-center justify-center transition-all hover:scale-110 active:scale-95 disabled:opacity-20 border border-primary/10"
-              >
-                {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-5 w-5" />}
-              </button>
-              <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
-            </div>
-
-            <div className="flex-1 space-y-3 overflow-y-auto pr-2 custom-scrollbar">
-              {resources.map((res) => {
-                 const style = getFileIcon(res.content_type || '');
-                 return (
-                    <button key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="w-full flex items-center gap-4 p-4 bg-white/40 border border-outline-variant/5 rounded-2xl hover:border-primary/20 hover:bg-white hover:shadow-md transition-all text-left">
-                       <div className={cn("h-10 w-10 rounded-xl bg-foreground/5 flex items-center justify-center text-foreground/20", style.color)}>
-                          <style.icon className="w-4 h-4" />
-                       </div>
-                       <div className="min-w-0">
-                          <p className="text-xs font-bold text-foreground truncate">{res.file_name}</p>
-                          <p className="text-[9px] font-bold text-foreground/20 uppercase tracking-widest mt-0.5">{formatFileSize(res.file_size)}</p>
-                       </div>
-                    </button>
-                 );
-              })}
-              {resources.length === 0 && (
-                 <div className="h-40 flex flex-col items-center justify-center opacity-10 grayscale">
-                    <FolderOpen className="w-8 h-8 mb-2" />
-                    <p className="text-[9px] font-bold uppercase tracking-widest">Pristine State</p>
-                 </div>
-              )}
-            </div>
-          </div>
         </div>
       </main>
 
