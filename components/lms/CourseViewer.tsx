@@ -137,7 +137,7 @@ export function CourseViewer({
           },
           onError: (e: any) => {
             console.error('YT Player Error:', e.data);
-            toast.error('Failed to load ritual video.');
+            toast.error('Failed to load video.');
           }
         },
       });
@@ -209,7 +209,7 @@ export function CourseViewer({
   const handleAutoMarkComplete = async () => {
     if (!activeModule || completedIds.has(activeModule.id)) return;
     
-    toast.success('Ritual complete. Your energy is flowing. 🧘‍♂️');
+    toast.success('Module complete! Great job. 🧘‍♂️');
     
     const result = await markModuleAsComplete(activeModule.id, studentId);
     if (result.success) {
@@ -261,7 +261,7 @@ export function CourseViewer({
              <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center border border-white/30 shadow-2xl">
                 <Play className="w-8 h-8 text-white fill-current translate-x-1" />
              </div>
-             <p className="mt-6 text-white/60 text-[10px] font-bold uppercase tracking-[0.4em]">Ritual Paused</p>
+             <p className="mt-6 text-white/60 text-[10px] font-bold uppercase tracking-[0.4em]">Paused</p>
           </div>
 
           {/* Custom Controls */}

@@ -155,9 +155,9 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
 
                         <div className="space-y-3">
                             {[
-                                { id: 'one_on_one', label: '1-on-1 Sanctuary', color: 'bg-indigo-500' },
-                                { id: 'group_session', label: 'Collective Path', color: 'bg-rose-500' },
-                                { id: 'all', label: 'Global Essence', color: 'bg-foreground' }
+                                { id: 'one_on_one', label: '1-on-1 Students', color: 'bg-indigo-500' },
+                                { id: 'group_session', label: 'Group Students', color: 'bg-rose-500' },
+                                { id: 'all', label: 'All Students', color: 'bg-foreground' }
                             ].map((audience) => (
                                 <button
                                     key={audience.id}
@@ -316,7 +316,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                     <div className="flex-1 rounded-3xl bg-white/60 border border-primary/5 shadow-sm flex flex-col overflow-hidden relative">
                         <div className="p-6 border-b border-primary/5 shrink-0 flex items-center justify-between">
                             <div>
-                                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/30">Past Rituals</h3>
+                                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/30">Past Broadcasts</h3>
                                 <p className="text-lg font-serif font-bold text-foreground italic">Chronicles</p>
                             </div>
                             <History className="h-5 w-5 text-primary/20" />

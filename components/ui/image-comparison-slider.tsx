@@ -52,8 +52,8 @@ export const ImageComparison = ({ beforeImage, afterImage, altBefore = 'Baseline
                 style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
             >
                 <img
-                    src={afterImage}
-                    alt={altAfter}
+                    src={beforeImage}
+                    alt={altBefore}
                     className="h-full w-full object-cover grayscale-[0.2] contrast-[1.05]"
                     draggable="false"
                 />
@@ -63,15 +63,15 @@ export const ImageComparison = ({ beforeImage, afterImage, altBefore = 'Baseline
                 </div>
             </div>
 
-            {/* Before Image (Bottom Layer) */}
+            {/* Evolution Image (Bottom Layer) */}
             <img
-                src={beforeImage}
-                alt={altBefore}
+                src={afterImage}
+                alt={altAfter}
                 className="block h-full w-full object-cover contrast-[1.1]"
                 draggable="false"
             />
             <div className="absolute right-6 top-6 z-30 px-4 py-2 rounded-2xl bg-white/60 backdrop-blur-xl border border-primary/5 shadow-2xl">
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-foreground/60">Unfolding Now</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-foreground/60">Evolution</span>
             </div>
 
             {/* Slider Handle */}

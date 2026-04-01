@@ -17,8 +17,26 @@ const playfair = Playfair_Display({
 import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
-  title: 'Faceyoguez',
-  description: 'Face Yoga & Wellness Platform',
+  title: {
+    default: 'Faceyoguez — Face Yoga Classes Online for Women',
+    template: '%s | Faceyoguez',
+  },
+  description: 'Join expert-led face yoga classes online. Natural face lifting, toning & glowing skin exercises for women. Live 1-on-1 classes, group batches & video courses. Start free!',
+  keywords: ['face yoga', 'face yoga online', 'face yoga classes', 'face yoga for women', 'face yoga India', 'natural face lift', 'face yoga exercises', 'face toning', 'glowing skin yoga', 'face yoga course'],
+  authors: [{ name: 'Faceyoguez' }],
+  openGraph: {
+    type: 'website',
+    locale: 'en_IN',
+    url: 'https://faceyoguez.com',
+    siteName: 'Faceyoguez',
+    title: 'Faceyoguez — Face Yoga Classes Online for Women',
+    description: 'Expert-led face yoga classes online. Natural face lifting, toning & glowing skin. Live 1-on-1, group classes & video courses.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Faceyoguez — Face Yoga Classes Online for Women',
+    description: 'Expert-led face yoga classes online. Natural face lifting, toning & glowing skin.',
+  },
 };
 
 export default function RootLayout({
@@ -33,7 +51,7 @@ export default function RootLayout({
           <div className="aura-glow-alt"></div>
         </div>
         
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false} disableTransitionOnChange>
           <div className="relative z-10">
             {children}
           </div>

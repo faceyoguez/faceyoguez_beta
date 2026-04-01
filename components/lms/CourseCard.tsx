@@ -97,7 +97,7 @@ export function CourseCard({
                {isUnlocked && progress !== undefined && progress > 0 && (
                   <div className="space-y-3">
                      <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-[0.2em]">
-                        <span className="text-foreground/40">Journey</span>
+                        <span className="text-foreground/40">Progress</span>
                         <span className="text-primary">{progress}%</span>
                      </div>
                      <div className="h-1.5 w-full bg-foreground/5 rounded-full overflow-hidden shrink-0">
@@ -117,7 +117,7 @@ export function CourseCard({
                   isUnlocked ? "bg-black text-white group-hover:scale-[1.02] shadow-[0_10px_30px_rgba(0,0,0,0.1)]" :
                   "bg-white/5 border border-white/20 text-foreground/30"
                )}>
-                  {isCompleted ? 'Review Path' : isUnlocked ? 'Step Forward' : 'Locked'}
+                  {isCompleted ? 'Review Course' : isUnlocked ? 'Continue' : 'Locked'}
                   {isUnlocked && !isCompleted && <ArrowRight className="w-4 h-4 shrink-0 transition-transform group-hover:translate-x-1" />}
                </div>
             </div>

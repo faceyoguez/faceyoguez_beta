@@ -4,18 +4,18 @@ import { Users, Zap, Sparkles } from 'lucide-react';
 
 const features = [
   {
-    title: 'Structural Metamorphosis',
-    description: 'Rebuild facial symmetry and tone through targeted, expert-guided resistance training and natural lifting techniques.',
+    title: 'Face Toning & Lifting',
+    description: 'Tone your face naturally with expert-guided exercises for a lifted, sculpted look.',
     icon: Sparkles,
   },
   {
-    title: 'Daily Journey Tracking',
-    description: 'Document your transformation with integrated daily logs, visual progression tools, and milestone markers.',
+    title: 'Track Your Progress',
+    description: 'See your results with daily photo logs, before-after comparisons & milestone tracking.',
     icon: Zap,
   },
   {
-    title: 'Live Guided Sessions',
-    description: 'Connect directly with master instructors for personalized one-on-one rituals and interactive group classes.',
+    title: 'Live Classes with Experts',
+    description: 'Join live 1-on-1 or group face yoga classes with certified instructors.',
     icon: Users,
   },
 ];

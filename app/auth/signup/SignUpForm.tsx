@@ -106,7 +106,7 @@ export default function SignUpForm() {
               Begin your journey
             </h1>
             <p className="text-slate-500 font-light">
-              Create your account and start your transformation today.
+              Create your account and start practising face yoga today.
             </p>
           </div>
 
@@ -119,7 +119,7 @@ export default function SignUpForm() {
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="Emma Thompson"
+                placeholder="Priya Sharma"
                 className="w-full bg-white border border-slate-200 rounded-2xl px-5 py-4 text-sm text-slate-900 placeholder:text-slate-300 outline-none transition-all focus:border-[#FF8A75] focus:ring-4 focus:ring-[#FF8A75]/10 shadow-sm"
               />
             </div>
@@ -178,7 +178,7 @@ export default function SignUpForm() {
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
                 <>
-                  Start Your Transformation
+                  Create Account
                   <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
                 </>
               )}
@@ -210,11 +210,11 @@ export default function SignUpForm() {
               Faceyoguez Community
             </div>
             <h2 className="text-4xl font-serif font-bold text-white leading-tight">
-              Transform your face,{' '}
-              <span className="text-[#FF8A75] italic font-light">transform your life.</span>
+              Start your face yoga{' '}
+              <span className="text-[#FF8A75] italic font-light">journey today.</span>
             </h2>
             <p className="text-slate-400 font-light leading-relaxed">
-              Join thousands of students on a journey of structural metamorphosis through the ancient science of face yoga.
+              Join thousands of women learning face yoga with expert instructors — online, from home.
             </p>
           </div>
 
@@ -231,7 +231,7 @@ export default function SignUpForm() {
 
           <div className="pt-4 border-t border-white/10">
             <p className="text-xs text-slate-500 font-light italic">
-              &ldquo;Your face is the mirror of your history. Honor each movement as a prayer to your own vitality.&rdquo;
+              &ldquo;Every small effort adds up. Your face will thank you.&rdquo;
             </p>
           </div>
         </div>

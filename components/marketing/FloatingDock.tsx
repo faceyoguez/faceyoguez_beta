@@ -17,8 +17,8 @@ export function FloatingDock() {
   }, []);
 
   const navItems = [
-    { icon: Home, label: 'Ritual', href: '#' },
-    { icon: Sparkles, label: 'Mentors', href: '#' },
+    { icon: Home, label: 'Programs', href: '#' },
+    { icon: Sparkles, label: 'Our Experts', href: '#' },
     { icon: Users, label: 'Community', href: '#' },
   ];
 

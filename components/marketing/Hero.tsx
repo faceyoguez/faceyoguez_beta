@@ -14,16 +14,16 @@ export function Hero() {
       <div className="max-w-4xl w-full text-center space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 z-10">
         <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/60 border border-white/80 shadow-sm text-[#FF8A75] text-xs font-bold tracking-widest uppercase backdrop-blur-xl">
           <Sparkles className="w-4 h-4" />
-          The Faceyoguez Sanctuary
+          Faceyoguez — Face Yoga for Women
         </div>
         
         <div className="space-y-6">
           <h1 className="text-6xl md:text-8xl lg:text-9xl font-serif font-bold tracking-tight text-slate-900 leading-[1.05]">
-            Master the <br className="hidden md:block" />
-            <span className="text-[#FF8A75] italic font-light">Art</span> of Face Yoga.
+            Natural <br className="hidden md:block" />
+            <span className="text-[#FF8A75] italic font-light">Face Yoga</span> for a Younger, Glowing You
           </h1>
           <p className="max-w-2xl mx-auto text-lg md:text-xl text-slate-600 font-light leading-relaxed">
-            A digital sanctuary dedicated to facial wellness and structural metamorphosis. Elevate your practice with our master instructors, live interactive sessions, and visual journey tracking.
+            Expert-led face yoga classes online — lift, tone & glow naturally. No surgery, no filters, just results.
           </p>
         </div>
 
@@ -32,14 +32,14 @@ export function Hero() {
             href="/auth/signup"
             className="group relative px-12 py-5 rounded-full bg-[#FF8A75] text-white font-bold tracking-wide text-sm shadow-xl shadow-[#FF8A75]/20 transition-all hover:scale-[1.02] active:scale-[0.98] hover:shadow-2xl hover:shadow-[#FF8A75]/30"
           >
-            Start Your Transformation
+            Start Your Free Trial
             <div className="absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
           </Link>
           <Link
             href="#discover"
             className="group flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-[#FF8A75] transition-colors"
           >
-            Discover the Methodology
+            See How It Works
             <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>

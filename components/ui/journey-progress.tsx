@@ -49,7 +49,7 @@ export function JourneyProgress({
               <div
                 key={day}
                 className="group relative flex flex-col items-center"
-                title={`Ritual Day ${day}`}
+                title={`Day ${day}`}
               >
                 {/* Dot */}
                 <div

@@ -274,7 +274,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                 start_time: meeting.start_time || startDateTime, duration_ms: parseInt(zoomDuration, 10) * 60000,
             });
             setShowZoomModal(false); setZoomTopic(''); setZoomDate(''); setZoomTime(''); setZoomDuration('60');
-            toast.success('Temporal ritual scheduled.');
+            toast.success('Session scheduled.');
         } catch (e: any) { toast.error(e.message); } finally { setIsSchedulingZoom(false); }
     };
 
@@ -313,7 +313,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
             <div className="h-6 w-px bg-outline-variant/10" />
             <div className="flex items-center gap-6">
               <div className="flex flex-col">
-                <span className="text-[9px] font-black uppercase tracking-widest text-foreground/20">Active Souls</span>
+                <span className="text-[9px] font-black uppercase tracking-widest text-foreground/20">Active Students</span>
                 <span className="text-sm font-serif font-bold text-primary italic">
                   {selectedBatch?.batch_enrollments?.filter((e: any) => e.status === 'active').length || 0} Enrolled
                 </span>
@@ -381,7 +381,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
             <div className="p-6 border-b border-outline-variant/5">
               <div className="flex items-center justify-between mb-4">
                 <div className="space-y-0.5">
-                  <h3 className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/30">Enrolled Souls</h3>
+                  <h3 className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/30">Enrolled Students</h3>
                   <p className="text-xs font-serif font-bold text-foreground italic leading-none">Inhabiting Space</p>
                 </div>
                 <span className="text-[10px] font-bold text-primary italic bg-primary/5 px-2 py-1 rounded-lg">{filteredStudents.length}</span>
@@ -436,7 +436,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                   </span>
                 </div>
                 <h2 className="text-3xl font-serif font-bold text-white tracking-tight italic truncate">
-                  {selectedBatch?.name || 'Sanctuary Waiting'}
+                  {selectedBatch?.name || 'Select a Batch'}
                 </h2>
                 <div className="flex items-center gap-3 pt-2">
                   <button
@@ -498,7 +498,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
               <div className="flex flex-col bg-white/30 rounded-2xl border border-outline-variant/5 min-h-[180px] h-[50%]">
                 <div className="p-4 border-b border-outline-variant/5 flex items-center justify-between shrink-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Ritual Chronicles</h3>
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Session History</h3>
                     <span className="text-[10px] font-bold text-primary opacity-40 italic">{recordings.length}</span>
                   </div>
                   <PlayCircle className="w-4 h-4 text-foreground/10" />
@@ -534,7 +534,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
             <div className="p-6 border-b border-outline-variant/5 flex items-center justify-between bg-white/10">
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/30">Collective Resonance</h3>
+                  <h3 className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/30">Group Chat</h3>
                   <span className="text-[9px] font-bold text-primary opacity-40 italic">{messages.length}</span>
                 </div>
                 <p className="text-xs font-serif font-bold text-foreground italic">Batch Dialogue</p>
@@ -612,7 +612,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                 <input
                   value={pollQuestion}
                   onChange={(e) => setPollQuestion(e.target.value)}
-                  placeholder="How does your resonance feel today?"
+                  placeholder="Share an update with the group..."
                   className="w-full h-14 rounded-xl bg-foreground/5 border-none px-6 text-sm font-bold text-foreground placeholder:text-foreground/20 outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
@@ -671,7 +671,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                   type="text"
                   value={zoomTopic}
                   onChange={(e) => setZoomTopic(e.target.value)}
-                  placeholder="e.g. Masterclass: Resonance Refinement"
+                  placeholder="e.g. Evening Face Yoga Class"
                   className="w-full h-14 rounded-xl bg-foreground/5 border-none px-6 text-sm font-bold text-foreground placeholder:text-foreground/20 outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
@@ -706,7 +706,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
               {isSchedulingZoom ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : (
                 <div className="flex items-center justify-center gap-2">
                   <Sparkles className="w-4 h-4 text-primary" />
-                  Initiate Resonance
+                  Schedule Session
                 </div>
               )}
             </button>

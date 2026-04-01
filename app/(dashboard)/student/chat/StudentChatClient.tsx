@@ -34,9 +34,9 @@ export function StudentChatClient({ currentUser, planType }: Props) {
           <div className="h-16 w-16 bg-foreground/5 rounded-2xl flex items-center justify-center mx-auto text-foreground/20">
              <MessageSquare className="w-8 h-8" />
           </div>
-          <h2 className="text-2xl font-serif font-bold text-foreground">Sanctuary of Silence</h2>
+          <h2 className="text-2xl font-serif font-bold text-foreground">Chat</h2>
           <p className="text-sm text-foreground/40 font-medium italic">
-            Your current path is one of self-study. Transition to a Mentorship plan to enable direct communion.
+            You're on a self-paced plan. Upgrade to a 1-on-1 plan to chat with your instructor.
           </p>
         </div>
       </div>
@@ -61,7 +61,7 @@ export function StudentChatClient({ currentUser, planType }: Props) {
           <div className="max-w-md text-center space-y-4">
              <Sparkles className="h-10 w-10 text-primary/20 mx-auto animate-pulse" />
              <h2 className="text-xl font-serif font-bold text-foreground">Transmitting Connection</h2>
-             <p className="text-[10px] text-foreground/40 font-bold uppercase tracking-widest italic">Your guide will initiate the frequency shortly.</p>
+             <p className="text-[10px] text-foreground/40 font-bold uppercase tracking-widest italic">Your instructor will start the conversation soon.</p>
           </div>
         </div>
       );
@@ -94,7 +94,7 @@ export function StudentChatClient({ currentUser, planType }: Props) {
       {/* Conversation Sidebar */}
       <div className="w-80 flex flex-col border-r border-outline-variant/5 bg-white/50 backdrop-blur-2xl">
         <div className="p-8 border-b border-outline-variant/5 space-y-1">
-          <h2 className="text-xl font-serif font-bold text-foreground">Communion</h2>
+          <h2 className="text-xl font-serif font-bold text-foreground">Messages</h2>
           <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 italic">Active Batches</p>
         </div>
         
@@ -114,7 +114,7 @@ export function StudentChatClient({ currentUser, planType }: Props) {
               >
                 <div className="min-w-0">
                    <p className="text-sm font-bold truncate">{conv.title || conv.batch?.name || 'Group Soul'}</p>
-                   <p className={cn("text-[9px] font-bold uppercase tracking-widest italic mt-1", isActive ? "text-background/40" : "text-foreground/20")}>Frequency Stream</p>
+                   <p className={cn("text-[9px] font-bold uppercase tracking-widest italic mt-1", isActive ? "text-background/40" : "text-foreground/20")}>Active Chat</p>
                 </div>
                 <ChevronRight className={cn("w-3.5 h-3.5 transition-transform group-hover:translate-x-1", isActive ? "text-background/20" : "text-foreground/10")} />
               </button>
@@ -137,7 +137,7 @@ export function StudentChatClient({ currentUser, planType }: Props) {
             conversationId={selectedConv.id}
             currentUser={currentUser}
             conversationType="group"
-            title={selectedConv.title || selectedConv.batch?.name || 'Collective Resonance'}
+            title={selectedConv.title || selectedConv.batch?.name || 'Group Chat'}
             className="h-full rounded-3xl border border-outline-variant/10 shadow-sm overflow-hidden bg-white/50 backdrop-blur-xl"
           />
         ) : (
@@ -146,7 +146,7 @@ export function StudentChatClient({ currentUser, planType }: Props) {
                 <div className="h-20 w-20 rounded-full border border-dashed border-foreground/20 flex items-center justify-center mx-auto">
                     <MessageSquare className="w-8 h-8" />
                 </div>
-                <p className="text-[10px] font-bold uppercase tracking-widest">Select a resonance to begin</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest">Select a conversation to begin</p>
              </div>
           </div>
         )}

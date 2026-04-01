@@ -154,7 +154,7 @@ export default async function InstructorDashboardPage() {
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold tracking-widest uppercase border border-primary/10">
             <TrendingUp className="w-3 h-3" />
-            Instructor Portal
+            Instructor Dashboard
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-foreground tracking-tight">
             Greetings, {firstName}
@@ -225,7 +225,7 @@ export default async function InstructorDashboardPage() {
                   <Calendar className="w-8 h-8" />
                 </div>
                 <p className="text-xl font-bold text-foreground/30 tracking-tight">No sessions hosted today</p>
-                <p className="text-foreground/10 font-bold mt-1 uppercase text-[9px] tracking-widest">A moment for deep preparation</p>
+                <p className="text-foreground/10 font-bold mt-1 uppercase text-[9px] tracking-widest">Take the time to prepare for upcoming sessions</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -288,7 +288,7 @@ export default async function InstructorDashboardPage() {
             <section className="bg-white/60 backdrop-blur-2xl rounded-3xl p-8 md:p-12 border border-primary/5 shadow-sm transition-all duration-500 hover:shadow-md">
               <div className="flex items-center justify-between mb-10">
                 <div className="space-y-1">
-                  <h2 className="text-3xl font-serif font-bold text-foreground">Instructor Ecosystem</h2>
+                  <h2 className="text-3xl font-serif font-bold text-foreground">Your Students</h2>
                   <div className="h-1 w-10 bg-primary/30 rounded-full" />
                 </div>
                 <Link href="/staff/groups" className="text-[10px] font-bold text-primary uppercase tracking-widest hover:underline italic">
@@ -332,7 +332,7 @@ export default async function InstructorDashboardPage() {
 
                 {/* 1-on-1 Portfolio */}
                 <div className="space-y-6">
-                  <h3 className="text-[9px] font-bold text-primary/40 uppercase tracking-widest ml-2 italic">1-on-1 Portfolios</h3>
+                  <h3 className="text-[9px] font-bold text-primary/40 uppercase tracking-widest ml-2 italic">1-on-1 Students</h3>
                   {instructorAllocations.length > 0 ? (
                     <div className="space-y-3">
                       {instructorAllocations.map((alloc, idx) => (
@@ -372,7 +372,7 @@ export default async function InstructorDashboardPage() {
         <div className="lg:col-span-4">
           <section className="rounded-3xl p-8 border border-primary/5 h-full flex flex-col bg-white/60 backdrop-blur-xl shadow-sm">
             <div className="space-y-1 mb-10">
-              <h2 className="text-2xl font-serif font-bold text-foreground">New Arrivals</h2>
+              <h2 className="text-2xl font-serif font-bold text-foreground">New Students</h2>
               <div className="h-1 w-10 bg-primary/30 rounded-full" />
             </div>
 

@@ -1,29 +1,26 @@
 import { redirect } from 'next/navigation';
-import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
+import { getServerUser, getServerProfile } from '@/lib/data/auth';
 import { CourseCard } from '@/components/lms/CourseCard';
 import { BookOpen, Sparkles } from 'lucide-react';
 
 export default async function StudentLmsPage() {
-  const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getServerUser();
   if (!user) redirect('/auth/login');
 
   const admin = createAdminClient();
-  
-  // 1. Fetch Profile & Subscription
-  const { data: profile } = await admin
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
+
+  // 1. Fetch Profile & Subscription in parallel
+  const [profile, { data: subscriptions }] = await Promise.all([
+    getServerProfile(user.id),
+    admin
+      .from('subscriptions')
+      .select('plan_variant, status')
+      .eq('student_id', user.id)
+      .eq('status', 'active'),
+  ]);
 
   const isAdmin = ['admin', 'instructor', 'staff', 'client_management'].includes(profile?.role || '');
-
-  const { data: subscriptions } = await admin
-    .from('subscriptions')
-    .select('plan_variant, status')
-    .eq('student_id', user.id)
-    .eq('status', 'active');
 
   const hasActiveSub = (subscriptions && subscriptions.length > 0) || isAdmin;
   
@@ -31,20 +28,17 @@ export default async function StudentLmsPage() {
   const hasLevel2 = subscriptions?.some(s => s.plan_variant?.includes('Level 2')) || isAdmin;
   const planVariant = subscriptions?.map(s => s.plan_variant).join(',') || '';
 
-  // 2. Fetch Courses and their module counts
-  const { data: courses } = await admin
-    .from('lms_courses')
-    .select(`
-      *,
-      modules:lms_modules(id)
-    `)
-    .order('level', { ascending: true });
-
-  // 3. Fetch Student Progress (completed modules)
-  const { data: progress } = await admin
-    .from('student_lms_progress')
-    .select('module_id')
-    .eq('student_id', user.id);
+  // 2. Fetch courses + progress in parallel
+  const [{ data: courses }, { data: progress }] = await Promise.all([
+    admin
+      .from('lms_courses')
+      .select(`*, modules:lms_modules(id)`)
+      .order('level', { ascending: true }),
+    admin
+      .from('student_lms_progress')
+      .select('module_id')
+      .eq('student_id', user.id),
+  ]);
 
   const completedModuleIds = new Set(progress?.map(p => p.module_id) || []);
 
@@ -71,13 +65,13 @@ export default async function StudentLmsPage() {
       <header className="flex flex-col items-center text-center space-y-4 relative z-10 py-12 md:py-16 animate-in fade-in slide-in-from-bottom-8 duration-1000">
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-primary/10 text-primary text-[10px] font-bold tracking-[0.2em] uppercase shadow-sm">
           <BookOpen className="w-3.5 h-3.5" />
-          Learning Path
+          Video Courses
         </div>
         <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-black text-foreground tracking-tight leading-none max-w-3xl">
-          The Curriculum
+          Your Courses
         </h1>
         <p className="text-lg text-foreground/50 italic font-medium max-w-xl">
-          Follow your sequential path to master structural renewal and the art of Face Yoga.
+          Learn face yoga step by step — complete each level to unlock the next.
         </p>
       </header>
 
@@ -115,9 +109,9 @@ export default async function StudentLmsPage() {
               <Sparkles className="w-6 h-6" />
             </div>
             <div className="space-y-3">
-              <h4 className="font-serif font-black text-2xl text-foreground tracking-tight">Next Level Awaits</h4>
+              <h4 className="font-serif font-black text-2xl text-foreground tracking-tight">Level 2 — Locked</h4>
               <p className="text-[10px] text-foreground/40 font-bold uppercase tracking-[0.2em] leading-relaxed max-w-[200px] mx-auto">
-                Master Level 1 entirely to reveal the secrets of Level 2
+                Complete all Level 1 modules to unlock Level 2
               </p>
             </div>
           </div>
@@ -129,8 +123,8 @@ export default async function StudentLmsPage() {
             <div className="h-20 w-20 rounded-full bg-white flex items-center justify-center text-primary shadow-sm border border-black/5 mb-4">
               <BookOpen className="w-8 h-8" />
             </div>
-            <p className="text-2xl font-serif font-black tracking-tight text-foreground">No courses available.</p>
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-foreground/50">The path is being prepared for you</p>
+            <p className="text-2xl font-serif font-black tracking-tight text-foreground">No courses available yet.</p>
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-foreground/50">Check back soon!</p>
          </div>
       )}
     </div>

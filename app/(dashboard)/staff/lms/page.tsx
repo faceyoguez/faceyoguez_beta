@@ -27,13 +27,13 @@ export default async function StaffLMSPage() {
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-rose/10 text-brand-rose text-[10px] font-black tracking-widest uppercase">
             <ShieldCheck className="w-3 h-3" />
-            Ethereal Repository
+            Course Manager
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-gradient-zen tracking-tight">
-            LMS Orchestrator
+            Manage Courses
           </h1>
           <p className="text-lg text-foreground/60 italic font-medium max-w-lg">
-            Curate sequential level paths and broadcast wisdom through the repository.
+            Add, edit, and organise course content for students.
           </p>
         </div>
 

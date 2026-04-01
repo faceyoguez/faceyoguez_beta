@@ -35,7 +35,7 @@ export default async function StaffDashboardPage() {
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold tracking-widest uppercase border border-primary/10">
             <ShieldCheck className="w-3 h-3" />
-            Administration Hub
+            Admin Dashboard
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-foreground tracking-tight">
             Platform Insights
@@ -58,10 +58,10 @@ export default async function StaffDashboardPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
         {[
-          { icon: Users, label: 'Total Souls', value: '428', change: '+12.5%', color: 'text-primary' },
-          { icon: MessageSquare, label: 'Active Sequences', value: '84', change: '+3', color: 'text-primary' },
-          { icon: Sparkles, label: 'Manifested Success', value: '94%', change: '+2%', color: 'text-primary' },
-          { icon: Crown, label: 'Elite Guidance', value: '12', change: 'Stable', color: 'text-primary' }
+          { icon: Users, label: 'Total Students', value: '428', change: '+12.5%', color: 'text-primary' },
+          { icon: MessageSquare, label: 'Active Plans', value: '84', change: '+3', color: 'text-primary' },
+          { icon: Sparkles, label: 'Completed Plans', value: '94%', change: '+2%', color: 'text-primary' },
+          { icon: Crown, label: 'Active 1-on-1s', value: '12', change: 'Stable', color: 'text-primary' }
         ].map((stat, i) => (
           <div key={i} className="p-8 rounded-3xl bg-white/60 backdrop-blur-xl border border-primary/5 shadow-sm flex flex-col gap-4 transition-all hover:bg-white/80 hover:shadow-lg hover:shadow-primary/5 group">
             <div className="flex items-center justify-between">
@@ -82,18 +82,18 @@ export default async function StaffDashboardPage() {
         <div className="p-10 rounded-3xl bg-white/60 backdrop-blur-xl border border-primary/5 shadow-sm space-y-8">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-foreground/20">Management Gateways</h3>
-              <p className="text-xl font-serif font-bold text-foreground italic">Operational Hub</p>
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-foreground/20">Quick Links</h3>
+              <p className="text-xl font-serif font-bold text-foreground italic">Manage</p>
             </div>
             <ArrowRight className="w-5 h-5 text-foreground/10" />
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
-              { label: 'Client Registry', icon: Users, href: '/staff/one-on-one' },
-              { label: 'Universal Broadcast', icon: Radio, href: '/staff/broadcast' },
-              { label: 'Wisdom Repository', icon: BookOpen, href: '/staff/lms' },
-              { label: 'Collective Hub', icon: Users, href: '/staff/groups' },
+              { label: '1-on-1 Students', icon: Users, href: '/staff/one-on-one' },
+              { label: 'Broadcasts', icon: Radio, href: '/staff/broadcast' },
+              { label: 'Course Manager', icon: BookOpen, href: '/staff/lms' },
+              { label: 'Group Batches', icon: Users, href: '/staff/groups' },
             ].map((link, i) => (
               <a key={i} href={link.href} className="group p-5 rounded-2xl bg-white/40 border border-primary/5 hover:bg-white hover:shadow-md transition-all flex items-center gap-4">
                 <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary/40 group-hover:text-primary group-hover:bg-primary/10 transition-all">
@@ -108,7 +108,7 @@ export default async function StaffDashboardPage() {
         <div className="p-10 rounded-3xl bg-white/60 backdrop-blur-xl border border-primary/5 shadow-sm space-y-8">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-foreground/20">Platform Vitality</h3>
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-foreground/20">Platform Overview</h3>
               <p className="text-xl font-serif font-bold text-foreground italic">Live Metrics</p>
             </div>
             <TrendingUp className="w-5 h-5 text-foreground/10" />
@@ -116,9 +116,9 @@ export default async function StaffDashboardPage() {
 
           <div className="space-y-6">
             {[
-              { label: 'Ritual Participation', val: 0.85 },
-              { label: 'Renewal Alignment', val: 0.92 },
-              { label: 'Resource Manifestation', val: 0.78 }
+              { label: 'Class Attendance', val: 0.85 },
+              { label: 'Plan Renewals', val: 0.92 },
+              { label: 'Content Usage', val: 0.78 }
             ].map((metric, i) => (
               <div key={i} className="space-y-2">
                 <div className="flex justify-between text-[9px] font-bold uppercase tracking-widest text-foreground/30">

@@ -260,7 +260,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
 
                         <div className="pt-6 border-t border-outline-variant/5 flex items-center gap-2">
                            <div className="h-2 w-2 rounded-full bg-brand-emerald shadow-[0_0_8px_rgba(16,185,129,0.3)]" />
-                           <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">{activeBatch?.current_students || 1} Souls Breathing</span>
+                           <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">{activeBatch?.current_students || 1} Students Active</span>
                         </div>
                     </div>
 
@@ -298,7 +298,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                             <div className="absolute top-8 left-8 z-20">
                                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 text-white text-[10px] font-bold uppercase tracking-widest">
                                   <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                                  Frequency Upcoming
+                                  Session Upcoming
                                </div>
                             </div>
 
@@ -338,7 +338,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                     {/* Journey Rail */}
                     <div className="surface-container p-8 rounded-3xl border border-outline-variant/10 flex flex-col gap-10 overflow-hidden bg-white/50 backdrop-blur-xl shadow-sm">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-2xl font-serif font-bold text-foreground tracking-tight">Ethereal Journey – Day {currentDay}</h3>
+                            <h3 className="text-2xl font-serif font-bold text-foreground tracking-tight">Your Journey – Day {currentDay}</h3>
                             <JourneyProgress 
                                 currentDay={currentDay}
                                 activeDay={activeStepDay}
@@ -363,7 +363,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                             
                             <div className="space-y-6">
                                <div className="space-y-2">
-                                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">Ritual Snapshot</h4>
+                                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">Daily Snapshot</h4>
                                   <p className="text-sm text-foreground/40 font-medium leading-relaxed italic">Capture your essence at critical nodes of transcendence. Required on Day 1 and 25.</p>
                                </div>
 
@@ -428,7 +428,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                     <div className="surface-container rounded-3xl border border-outline-variant/10 h-full flex flex-col overflow-hidden bg-white/50 backdrop-blur-xl shadow-sm">
                         <div className="p-8 border-b border-outline-variant/5 flex flex-col gap-1.5">
                            <div className="flex items-center justify-between">
-                              <h3 className="text-2xl font-serif font-bold tracking-tight text-foreground">Communion</h3>
+                              <h3 className="text-2xl font-serif font-bold tracking-tight text-foreground">Group Chat</h3>
                               <div className="h-2 w-2 rounded-full bg-primary/40" />
                            </div>
                            <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 italic">Collective Energy Stream</p>

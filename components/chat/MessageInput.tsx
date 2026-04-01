@@ -63,7 +63,7 @@ export function MessageInput({ onSendText, onSendFile }: MessageInputProps) {
                 onClick={() => fileInputRef.current?.click()}
                 className="h-10 w-10 flex items-center justify-center rounded-2xl text-foreground/40 hover:text-primary hover:bg-primary/10 transition-all duration-300 shrink-0"
                 disabled={isSending}
-                title="Attach Ritual"
+                title="Attach File"
             >
                 <Plus className="h-5 w-5" />
             </button>

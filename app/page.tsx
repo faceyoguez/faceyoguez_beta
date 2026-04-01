@@ -41,10 +41,10 @@ export default async function Home() {
       <footer className="py-32 px-4 border-t border-[#FF8A75]/10 bg-white text-center">
         <div className="max-w-xl mx-auto space-y-10">
           <h2 className="text-4xl md:text-5xl font-serif font-bold tracking-tight text-slate-900">
-            Ready for your <span className="italic font-light text-[#FF8A75]">transformation?</span>
+            Ready to start <span className="italic font-light text-[#FF8A75]">face yoga?</span>
           </h2>
           <p className="text-slate-600 text-lg font-light">
-            Join the collective of thousands finding their sanctuary through face yoga.
+            Join thousands of women practising face yoga online with expert instructors.
           </p>
           <div className="pt-4">
             <Link

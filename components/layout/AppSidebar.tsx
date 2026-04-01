@@ -19,7 +19,6 @@ import {
   X
 } from 'lucide-react';
 import type { Profile } from '@/types/database';
-import { ThemeToggle } from '@/components/theme-toggle';
 
 // ── Context for sidebar state ──
 const SidebarContext = createContext({ collapsed: false, toggle: () => { } });
@@ -29,8 +28,8 @@ export const useSidebar = () => useContext(SidebarContext);
 const navConfig = {
   student: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/student/dashboard' },
-    { label: 'Subscription Plans', icon: CreditCard, path: '/student/plans' },
-    { label: '1-on-1 Plan', icon: User, path: '/student/one-on-one' },
+    { label: 'Plans & Pricing', icon: CreditCard, path: '/student/plans' },
+    { label: '1-on-1 Classes', icon: User, path: '/student/one-on-one' },
     { label: 'Group Session', icon: Users, path: '/student/group-session' },
     { label: 'Broadcasts', icon: Megaphone, path: '/student/broadcasts' },
     { label: 'LMS', icon: BookOpen, path: '/student/lms' },
@@ -218,8 +217,7 @@ export function AppSidebar({ user, activePlans = [], unreadNotificationsCount = 
             </ul>
           </nav>
 
-          <div className="shrink-0 px-4 pb-2">
-            <ThemeToggle collapsed={collapsed} />
+          <div className="shrink-0 pt-4 px-4 pb-0">
           </div>
 
           {/* User Profile */}

@@ -44,13 +44,13 @@ export default function LoginPage() {
           <div className="rounded-[2.5rem] bg-white/60 backdrop-blur-3xl border border-white/80 shadow-2xl p-8 transform -rotate-3 hover:rotate-0 transition-transform duration-700">
             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF8A75] mb-3">Day 21 — Transformation</p>
             <p className="text-2xl font-serif font-bold text-slate-900 leading-snug">
-              &ldquo;The face reveals what the soul chooses to speak.&rdquo;
+              &ldquo;Your face tells your story — let&rsquo;s make it a beautiful one.&rdquo;
             </p>
           </div>
           <div className="rounded-[2.5rem] bg-white/40 backdrop-blur-3xl border border-white/60 shadow-xl p-6 ml-8 transform rotate-1 hover:rotate-0 transition-transform duration-700">
             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-2">Your Journey Awaits</p>
             <p className="text-sm font-medium text-slate-700 leading-relaxed italic">
-              Structural metamorphosis through the art of face yoga
+              Natural face yoga for a younger, healthier you
             </p>
           </div>
         </div>
@@ -80,7 +80,7 @@ export default function LoginPage() {
               Welcome back
             </h1>
             <p className="text-slate-500 font-light">
-              Enter your ritual space to continue your practice.
+              Sign in to continue your face yoga practice.
             </p>
           </div>
 

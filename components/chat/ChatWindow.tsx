@@ -106,7 +106,7 @@ export function ChatWindow({
                 <h3 className="text-base font-bold tracking-tight text-foreground">{title}</h3>
                 <div className="flex items-center gap-2">
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/40">
-                        {conversationType === 'group' ? 'Sacred Circle' : 'Direct Passage'}
+                        {conversationType === 'group' ? 'Group Chat' : 'Direct Message'}
                     </p>
                     {!isChatEnabled && conversationType === 'group' && (
                         <span className="rounded-full bg-amber-100/50 text-amber-700 text-[8px] font-black uppercase tracking-widest px-2 py-0.5">

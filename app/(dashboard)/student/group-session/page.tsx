@@ -1,4 +1,5 @@
-import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
+import { getServerUser, getServerProfile } from '@/lib/data/auth';
 import { redirect } from 'next/navigation';
 import { StudentGroupHub } from './StudentGroupHub';
 import { getBatchResources } from '@/lib/actions/resources';
@@ -7,22 +8,11 @@ import type { Profile, Batch } from '@/types/database';
 import { Clock, Bell, Sparkles, ChevronRight } from 'lucide-react';
 
 export default async function StudentGroupPage() {
-    const supabase = await createServerSupabaseClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getServerUser();
+    if (!user) redirect('/auth/login');
 
-    if (!user) {
-        redirect('/auth/login');
-    }
-
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-    if (profile?.role !== 'student') {
-        redirect('/auth/login');
-    }
+    const profile = await getServerProfile(user.id);
+    if (profile?.role !== 'student') redirect('/auth/login');
 
     const admin = createAdminClient();
 
@@ -104,21 +94,21 @@ export default async function StudentGroupPage() {
 
                     <div className="space-y-4">
                         <h2 className="text-3xl font-serif font-bold text-foreground tracking-tight">
-                            {waitingStatus ? "Awaiting Resonance" : "Communion Active"}
+                            {waitingStatus ? "Waiting for Batch" : "Your Batch is Active"}
                         </h2>
                         <p className="text-sm text-foreground/40 font-medium italic leading-relaxed max-w-sm mx-auto">
-                            {waitingStatus 
-                                ? "A batch is presently in flow. You will be automatically aligned with the next frequency when it manifests."
-                                : "Your frequency is active! We are currently assigning you to a batch node. You will be notified the moment of alignment."
+                            {waitingStatus
+                                ? "A batch is currently running. You'll be added to the next one automatically."
+                                : "You're enrolled! We're assigning you to a batch. You'll be notified as soon as it's ready."
                             }
                             <br /><br />
-                            Your cycle officially begins on the first day of your collective practice.
+                            Your plan starts from the first day of your batch.
                         </p>
                     </div>
 
                     <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-primary/5 text-primary text-[10px] font-black uppercase tracking-widest border border-primary/10">
                         <Bell className="h-3.5 w-3.5 animate-pulse" />
-                        Transmission Pending
+                        Batch Starting Soon
                     </div>
                 </div>
             </div>
@@ -134,9 +124,9 @@ export default async function StudentGroupPage() {
                 </div>
 
                 <div className="space-y-4">
-                    <h2 className="text-3xl font-serif font-bold text-foreground tracking-tight">Sacred Collective</h2>
+                    <h2 className="text-3xl font-serif font-bold text-foreground tracking-tight">Group Classes</h2>
                     <p className="text-sm text-foreground/40 font-medium italic leading-relaxed max-w-sm mx-auto">
-                        You have not yet joined a group frequency. Embark on a collective journey of transformation by selecting a resonance.
+                        You haven&apos;t joined a group class yet. Pick a plan to start practising with a batch.
                     </p>
                 </div>
 
@@ -144,7 +134,7 @@ export default async function StudentGroupPage() {
                     href="/student/plans"
                     className="inline-flex h-14 items-center gap-3 rounded-2xl bg-foreground px-10 text-[10px] font-black uppercase tracking-[0.2em] text-background shadow-xl hover:scale-105 active:scale-95 transition-all"
                 >
-                    Explore Resonances
+                    View Plans
                     <ChevronRight className="h-4 w-4" />
                 </a>
             </div>

@@ -532,7 +532,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
           {/* Interaction Box (Chat) */}
           <div className="flex-1 bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col overflow-hidden">
             <div className="p-8 border-b border-outline-variant/5 flex items-center justify-between">
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Communion</h3>
+              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Chat</h3>
               <MessageSquare className="w-4 h-4 text-foreground/10" />
             </div>
             
@@ -592,7 +592,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                   type="text"
                   value={meetingTopic}
                   onChange={(e) => setMeetingTopic(e.target.value)}
-                  placeholder="e.g. Morning Ritual Calibration"
+                  placeholder="e.g. Morning Face Yoga Session"
                   className="w-full h-14 rounded-xl bg-foreground/5 border-none px-6 text-sm font-bold text-foreground placeholder:text-foreground/20 outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>

@@ -236,7 +236,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
           {/* Quick Metrics (Student Hub Style) */}
           <div className="hidden lg:flex items-center gap-6 ml-4">
             {[
-              { label: 'New Souls', value: metrics.newJoineesThisMonth || 0, icon: Sparkles, bg: 'bg-primary/5', color: 'text-primary' },
+              { label: 'New Students', value: metrics.newJoineesThisMonth || 0, icon: Sparkles, bg: 'bg-primary/5', color: 'text-primary' },
               { label: 'Alignments', value: metrics.renewalsThisMonth || 0, icon: Activity, bg: 'bg-brand-emerald/5', color: 'text-brand-emerald' },
               { label: 'Total Active', value: metrics.totalActiveStudents || 0, icon: Users, bg: 'bg-foreground/5', color: 'text-foreground/60' }
             ].map((stat, i) => (
@@ -263,7 +263,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
             <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/20 group-focus-within:text-primary transition-colors" />
             <input
               type="text"
-              placeholder="Search souls..."
+              placeholder="Search students..."
               className="h-12 w-64 pl-12 pr-6 rounded-xl bg-white/50 backdrop-blur-xl border border-outline-variant/10 focus:ring-2 focus:ring-primary/10 text-[12px] font-medium placeholder:text-foreground/20 transition-all shadow-sm"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -413,7 +413,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                       <div className="space-y-6">
                         <div className="flex items-center justify-between">
-                          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Visual Resonance</h3>
+                          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Photo Progress</h3>
                           <div className="flex items-center gap-2">
                              <div className="h-1.5 w-1.5 rounded-full bg-brand-emerald animate-pulse" />
                              <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20 italic text-right">Manifestation comparison</span>
@@ -471,7 +471,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                                   <div className="flex -space-x-2">
                                      {[1,2,3].map(i => <div key={i} className="h-6 w-6 rounded-full border-2 border-white bg-primary/10" />)}
                                   </div>
-                                  <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20">Frequency stable</span>
+                                  <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20">On track</span>
                                </div>
                              </div>
                            ) : (
@@ -539,7 +539,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
           <div className="flex-1 bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col overflow-hidden">
             <div className="p-8 border-b border-outline-variant/5 flex items-center justify-between shrink-0 bg-white/20">
               <div className="space-y-1">
-                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Communion</h3>
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Chat</h3>
                 <p className="text-sm font-serif font-bold text-foreground italic">Direct Sequence</p>
               </div>
               <div className={cn("h-2.5 w-2.5 rounded-full border-2 border-white", selectedStudent ? "bg-brand-emerald animate-pulse" : "bg-foreground/10")} />
@@ -587,7 +587,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
           <div className="w-full max-w-xl rounded-[2.5rem] bg-white border border-outline-variant/10 shadow-2xl relative z-10 overflow-hidden p-12 space-y-10 animate-in zoom-in-95 duration-500">
             <header className="space-y-3 text-center">
               <h3 className="text-3xl font-serif font-bold text-foreground tracking-tight">Align New Guide</h3>
-              <p className="text-sm text-foreground/40 font-medium italic">Resolving cosmic resonance for {selectedStudent?.full_name}</p>
+              <p className="text-sm text-foreground/40 font-medium italic">Loading chat for {selectedStudent?.full_name}</p>
             </header>
 
             <div className="space-y-3 max-h-[400px] overflow-y-auto pr-4 custom-scrollbar">

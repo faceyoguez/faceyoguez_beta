@@ -22,13 +22,13 @@ export function StudentBroadcastClient({ currentUser, notifications }: StudentBr
                 <div className="space-y-2">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black tracking-widest uppercase">
                         <Megaphone className="w-3 h-3" />
-                        Ethereal Frequency
+                        Announcements
                     </div>
                     <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-gradient-zen tracking-tight">
                         Instructor Broadcasts
                     </h1>
                     <p className="text-lg text-foreground/60 italic font-medium max-w-lg">
-                        Direct transmissions and sacred announcements from your guides.
+                        Updates and announcements from your instructors.
                     </p>
                 </div>
 
@@ -42,7 +42,7 @@ export function StudentBroadcastClient({ currentUser, notifications }: StudentBr
                     <div className="flex h-[400px] flex-col items-center justify-center rounded-[3rem] liquid-glass border border-outline-variant/10 shadow-sm bg-white/40">
                         <Sparkles className="mb-6 h-16 w-16 text-primary/10 animate-pulse" />
                         <h3 className="text-xl font-serif font-bold text-foreground">Perfect Stillness</h3>
-                        <p className="mt-2 text-sm text-foreground/40 font-medium italic">No new transmissions have reached your frequency yet.</p>
+                        <p className="mt-2 text-sm text-foreground/40 font-medium italic">No new announcements yet.</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
@@ -114,7 +114,7 @@ export function StudentBroadcastClient({ currentUser, notifications }: StudentBr
                                                         <Download className="h-4 w-4" />
                                                     </div>
                                                     <div className="min-w-0">
-                                                        <p className="truncate text-[10px] font-black uppercase tracking-tight text-foreground">{broadcast.file_name || 'Sacred Artifact'}</p>
+                                                        <p className="truncate text-[10px] font-black uppercase tracking-tight text-foreground">{broadcast.file_name || 'Attachment'}</p>
                                                         <p className="text-[8px] font-black text-foreground/20 uppercase tracking-widest italic mt-0.5">Manifest to view</p>
                                                     </div>
                                                 </div>

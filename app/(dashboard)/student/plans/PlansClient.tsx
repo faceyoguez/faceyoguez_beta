@@ -61,7 +61,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser }
 
     const handlePay = async (isTrial: boolean = false) => {
         if (isTrial) {
-            toast.info('Zen Experience Trial is coming soon! Please confirm your ritual with a full plan for now.');
+            toast.info('Free trial is coming soon! Please subscribe to a full plan for now.');
             return;
         }
 
@@ -91,7 +91,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser }
                     amount,
                     currency,
                     order_id: orderId,
-                    name: 'FaceYoguez',
+                    name: 'Faceyoguez',
                     description: `${currentPlan.title} — ${currentTier.label}`,
                     prefill: {
                         name: currentUser?.full_name ?? '',
@@ -118,7 +118,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser }
                             const verifyData = await verifyRes.json();
                             if (!verifyRes.ok) throw new Error(verifyData.error || 'Verification failed');
 
-                            toast.success('🎉 Ritual confirmed! Your transformation begins.');
+                            toast.success('🎉 Payment successful! Your plan is now active.');
                             resolve();
                             router.push('/student/dashboard');
                         } catch (e: any) {
@@ -137,7 +137,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser }
 
         } catch (err: any) {
             if (err.message !== 'dismissed') {
-                toast.error(err.message || 'Ritual confirmation failed. Please try again.');
+                toast.error(err.message || 'Payment failed. Please try again.');
             }
         } finally {
             setLoading(false);
@@ -146,43 +146,43 @@ export default function PlansClient({ currentSubscription, userId, currentUser }
 
     const planContent = {
         one_on_one: {
-            hook: "Because Your Face Deserves a Plan Made Only for You",
-            problem: "Group programs often ignore your unique facial architecture and bone density.",
-            solution: "A bespoke ritual that adjusts to fit you—your structure, your lifestyle, your goals.",
+            hook: "A Face Yoga Plan Made Just for You",
+            problem: "Group programs can't address your unique facial structure and skin concerns.",
+            solution: "A personalised routine designed around your face, your goals, and your schedule.",
             workOn: ["Sagging & Firmness", "Jawline Definition", "Double Chin", "Deep Wrinkles", "Asymmetry", "Eye Area"],
             journey: [
-                { icon: Star, title: "Enrol", desc: "Instant Ritual Access" },
-                { icon: ImageIcon, title: "Photo", desc: "Expert assessment" },
-                { icon: Video, title: "1-1 Call", desc: "Private consultation" },
-                { icon: BookOpen, title: "Ritual Path", desc: "Custom videos ready" }
+                { icon: Star, title: "Enrol", desc: "Instant Access" },
+                { icon: ImageIcon, title: "Photo Assessment", desc: "Expert skin assessment" },
+                { icon: Video, title: "1-on-1 Call", desc: "Private video call" },
+                { icon: BookOpen, title: "Your Routine", desc: "Your custom videos" }
             ],
-            dashboard: ["Journey Progress Hub", "Direct Instructor Chat", "1-Click Ritual Link", "Daily Reflections"]
+            dashboard: ["Progress Tracker", "Chat with Instructor", "Quick Session Link", "Daily Practice Log"]
         },
         group_session: {
-            hook: "The Glow-Up Your Skin Has Been Waiting For",
-            problem: "Surface treatments aren't enough for structural renewal and lasting lift.",
-            solution: "21 Days to a version of yourself that radiates health and confidence.",
-            workOn: ["Facial Sculpting", "Natural Facelift", "Neck Toning", "Complexion Radiance"],
+            hook: "21 Days to a Visibly Lifted, Glowing Face",
+            problem: "Surface treatments alone can't give you lasting results.",
+            solution: "21 days of guided group classes to help you look and feel your best.",
+            workOn: ["Facial Sculpting", "Natural Facelift", "Neck Toning", "Complexion Glow"],
             journey: [
-                { icon: Calendar, title: "New Batch", desc: "Starting very soon" },
-                { icon: Clock, title: "7:30 PM", desc: "Daily live rituals" },
-                { icon: Users, title: "Sacred Tribe", desc: "Stay accountable" },
-                { icon: Zap, title: "Recordings", desc: "12-day or Lifetime" }
+                { icon: Calendar, title: "Batch Starts", desc: "Starting soon" },
+                { icon: Clock, title: "Daily Class", desc: "Live class every evening" },
+                { icon: Users, title: "Your Batch", desc: "Practise with your group" },
+                { icon: Zap, title: "Recordings", desc: "Access recordings anytime" }
             ],
-            dashboard: ["Live Portal Access", "Sacred Recording Vault", "Tribe Progress", "Zen Support"]
+            dashboard: ["Join Live Class", "Class Recordings", "Batch Progress", "Get Help"]
         },
         lms: {
-            hook: "Your Transformation. Your Pace. Your Time.",
-            problem: "Busy schedules shouldn't prevent you from honoring your face and spirit.",
-            solution: "Expert-designed modules that live in your Zen Dashboard. Forever.",
+            hook: "Learn Face Yoga at Your Own Pace",
+            problem: "Busy schedule? No problem — learn whenever it suits you.",
+            solution: "Expert-designed video modules with lifetime access. Learn once, practise forever.",
             workOn: ["Foundation Basics", "L-Systems Practice", "Advanced Sculpts", "Daily Integration"],
             journey: [
-                { icon: Star, title: "Instant", desc: "Lifetime access" },
-                { icon: Activity, title: "Growth", desc: "Visual tracking" },
-                { icon: Check, title: "Unfold", desc: "Linear modules" },
-                { icon: Heart, title: "Glow", desc: "Result focus" }
+                { icon: Star, title: "Start Now", desc: "Instant lifetime access" },
+                { icon: Activity, title: "Track Progress", desc: "Photo progress tracker" },
+                { icon: Check, title: "Learn Step-by-Step", desc: "Step-by-step modules" },
+                { icon: Heart, title: "See Results", desc: "Focus on your results" }
             ],
-            dashboard: ["Photo Progress Vault", "Module Unlock Path", "Quick Support box", "Glow Resources"]
+            dashboard: ["Photo Progress", "Course Modules", "Quick Support", "Bonus Resources"]
         }
     };
 
@@ -197,8 +197,8 @@ export default function PlansClient({ currentSubscription, userId, currentUser }
                 {/* Panel 1: Ritual Selector */}
                 <div className="col-span-3 flex flex-col gap-6 h-full overflow-hidden">
                     <div className="flex-shrink-0">
-                         <h1 className="text-4xl font-semibold italic font-serif leading-none tracking-tight text-[#1a1a1a]">Ritual Selection</h1>
-                         <p className="mt-3 text-[9px] font-black uppercase tracking-[0.4em] text-[#FF8A75]">Modern Wisdom · Ancient Flow</p>
+                         <h1 className="text-4xl font-semibold italic font-serif leading-none tracking-tight text-[#1a1a1a]">Choose Your Plan</h1>
+                         <p className="mt-3 text-[9px] font-black uppercase tracking-[0.4em] text-[#FF8A75]">Face yoga plans for every goal</p>
                     </div>
 
                     {/* Active sub banner */}
@@ -207,9 +207,9 @@ export default function PlansClient({ currentSubscription, userId, currentUser }
                             <div className="flex gap-3">
                                 <CreditCard className="w-5 h-5 text-[#FF8A75] mt-0.5" />
                                 <div>
-                                    <h4 className="text-[10px] font-black text-[#FF8A75] uppercase tracking-widest">Active Path</h4>
+                                    <h4 className="text-[10px] font-black text-[#FF8A75] uppercase tracking-widest">Your Active Plan</h4>
                                     <p className="text-[11px] font-bold text-[#1a1a1a] mt-1 leading-tight">
-                                        You are currently on the {currentSubscription[0].plan_type.replace(/_/g, ' ')} ritual.
+                                        You are currently on the {currentSubscription[0].plan_type.replace(/_/g, ' ')} plan.
                                     </p>
                                 </div>
                             </div>
@@ -248,7 +248,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser }
                         <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100">
                              <ShieldCheck className="w-5 h-5" />
                         </div>
-                        <div className="text-[10px] font-bold leading-tight">Secure Ritual Enrollment</div>
+                        <div className="text-[10px] font-bold leading-tight">Secure Checkout</div>
                     </div>
                 </div>
 
@@ -256,14 +256,14 @@ export default function PlansClient({ currentSubscription, userId, currentUser }
                 <div className="col-span-6 grid grid-cols-2 gap-6 h-full overflow-hidden pb-10">
                     <div className={`col-span-2 p-10 rounded-[3rem] flex flex-col gap-8 relative overflow-hidden ${cardBg}`}>
                         <div className="space-y-4">
-                            <span className="text-[10px] font-black text-[#FF8A75] uppercase tracking-[0.4em]">The Sacred Routine</span>
+                            <span className="text-[10px] font-black text-[#FF8A75] uppercase tracking-[0.4em]">What's Included</span>
                             <h2 className="text-4xl font-serif italic text-[#1a1a1a] leading-tight">{currentMeta?.hook}</h2>
                             <p className="text-sm font-medium leading-relaxed max-w-lg opacity-80">{currentMeta?.problem}</p>
                         </div>
 
                         <div className="grid grid-cols-2 gap-10">
                              <div className="space-y-6">
-                                 <h4 className="text-[10px] font-black text-[#FF8A75] uppercase tracking-[0.3em]">Ritual Focus</h4>
+                                 <h4 className="text-[10px] font-black text-[#FF8A75] uppercase tracking-[0.3em]">Focus Areas</h4>
                                  <div className="space-y-3">
                                      {currentMeta?.workOn.map((f, i) => (
                                          <div key={i} className="flex items-center gap-3 text-[11px] font-bold text-[#374151] uppercase tracking-wider">
@@ -274,7 +274,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser }
                                  </div>
                              </div>
                              <div className="space-y-6">
-                                 <h4 className="text-[10px] font-black text-[#FF8A75] uppercase tracking-[0.3em]">Transformation</h4>
+                                 <h4 className="text-[10px] font-black text-[#FF8A75] uppercase tracking-[0.3em]">Why This Plan</h4>
                                  <p className="text-xs font-medium italic leading-relaxed">{currentMeta?.solution}</p>
                              </div>
                         </div>
@@ -295,7 +295,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser }
                     </div>
 
                     <div className={`col-span-2 p-7 rounded-3xl flex flex-col gap-5 ${cardBg} bg-[#FFFAF7]/60`}>
-                         <h4 className="text-[10px] font-black text-[#FF8A75] uppercase tracking-[0.3em]">Dashboard Rituals</h4>
+                         <h4 className="text-[10px] font-black text-[#FF8A75] uppercase tracking-[0.3em]">What You Get</h4>
                          <div className="flex items-center justify-between gap-4">
                              {currentMeta?.dashboard.map((d: string, i: number) => (
                                  <div key={i} className="flex flex-col items-center gap-3 text-center p-4 rounded-3xl bg-white border border-[#FF8A75]/10 flex-1">
@@ -348,7 +348,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser }
                     <div className={`p-8 rounded-[2.5rem] border border-[#FF8A75]/20 bg-white space-y-6`}>
                         <div className="flex items-center justify-between">
                             <div>
-                                <div className="text-[8px] font-black text-[#FF8A75] uppercase tracking-[0.3em] mb-1">Ritual Value</div>
+                                <div className="text-[8px] font-black text-[#FF8A75] uppercase tracking-[0.3em] mb-1">Plan Price</div>
                                 <div className="text-4xl font-serif italic font-bold text-[#1a1a1a]">₹{currentTier.discountedPrice}</div>
                             </div>
                             <div className="p-4 rounded-2xl bg-[#FF8A75]/5 text-[#FF8A75] border border-[#FF8A75]/10">
@@ -362,12 +362,12 @@ export default function PlansClient({ currentSubscription, userId, currentUser }
                         >
                             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                                 <>
-                                    Confirm Ritual <MoveRight className="w-4 h-4" />
+                                    Subscribe Now <MoveRight className="w-4 h-4" />
                                 </>
                             )}
                         </button>
                         <p className="text-[9px] text-[#6B7280] text-center font-bold px-6 italic leading-relaxed">
-                            Natural transformation, lasting peace. No needles. Just the glow of wisdom.
+                            Natural results, no needles. Just face yoga that works.
                         </p>
                     </div>
                 </div>
@@ -376,7 +376,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser }
             {/* Mobile Professional Layout */}
             <div className="lg:hidden flex flex-col h-screen overflow-hidden bg-white">
                 <header className={`p-6 pt-14 flex-shrink-0 border-b bg-white`}>
-                     <h1 className="text-3xl font-semibold italic font-serif leading-none tracking-tight text-[#1a1a1a]">Ritual Selection</h1>
+                     <h1 className="text-3xl font-semibold italic font-serif leading-none tracking-tight text-[#1a1a1a]">Choose Your Plan</h1>
                      <div className="flex gap-2 mt-5 overflow-x-auto pb-2 scrollbar-hide">
                          {PLANS_DATA.map((plan) => (
                              <button
@@ -401,13 +401,13 @@ export default function PlansClient({ currentSubscription, userId, currentUser }
                             onClick={() => setMobileTab('data')}
                             className={`flex-1 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${mobileTab === 'data' ? 'bg-[#FF8A75]/5 text-[#FF8A75]' : 'text-[#6B7280]'}`}
                          >
-                             Deep Dive
+                             Details
                          </button>
                          <button 
                             onClick={() => setMobileTab('pricing')}
                             className={`flex-1 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${mobileTab === 'pricing' ? 'bg-[#FF8A75]/5 text-[#FF8A75]' : 'text-[#6B7280]'}`}
                          >
-                             Membership
+                             Plans
                          </button>
                      </div>
 
@@ -420,7 +420,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser }
                              </div>
                              <div className="grid grid-cols-2 gap-4">
                                  <div className={`p-6 rounded-[2rem] space-y-5 bg-[#FF8A75] text-white border border-[#FF8A75]/20`}>
-                                     <h4 className="text-[10px] font-black uppercase tracking-widest text-white/80">Journey</h4>
+                                     <h4 className="text-[10px] font-black uppercase tracking-widest text-white/80">How It Works</h4>
                                      <div className="space-y-4">
                                          {currentMeta?.journey.map((step: any, i: number) => (
                                              <div key={i} className="flex flex-col gap-1">
@@ -475,7 +475,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser }
                         className="w-full py-5 bg-[#FF8A75] text-white rounded-2xl flex items-center justify-between px-8 active:scale-95 transition-all disabled:opacity-50"
                     >
                         <div className="text-left">
-                            <span className="text-[9px] font-black text-white/70 uppercase block leading-none mb-1 tracking-widest">Confirm Ritual</span>
+                            <span className="text-[9px] font-black text-white/70 uppercase block leading-none mb-1 tracking-widest">Subscribe Now</span>
                             <span className="text-2xl font-serif italic font-bold">₹{currentTier.discountedPrice}</span>
                         </div>
                         <div className="bg-white/20 p-2.5 rounded-full">
@@ -486,7 +486,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser }
                         onClick={() => handlePay(true)}
                         className="text-[10px] font-black text-[#FF8A75] uppercase tracking-[0.3em] text-center italic"
                     >
-                        Experience Zen (2-Day Free) →
+                        Start 2-Day Free Trial →
                     </button>
                 </div>
             </div>

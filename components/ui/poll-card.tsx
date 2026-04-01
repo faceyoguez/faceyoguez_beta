@@ -118,7 +118,7 @@ export function PollCard({
       {/* Footer */}
       <div className="flex items-center justify-between border-t border-outline-variant/5 bg-white/40 px-6 py-3">
         <span className="text-[9px] font-black uppercase tracking-[0.2em] text-foreground/20 italic">
-          {poll.total_votes} {poll.total_votes === 1 ? 'Resonance' : 'Resonances'}
+          {poll.total_votes} {poll.total_votes === 1 ? 'Vote' : 'Votes'}
           {hasVoted && !isAdmin && ' • Committed'}
         </span>
         {isAdmin && !poll.is_closed && onClose && (

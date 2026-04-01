@@ -1,24 +1,16 @@
 import { redirect } from 'next/navigation';
-import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/server';
+import { getServerUser, getServerProfile } from '@/lib/data/auth';
 import { StudentOneOnOneClient } from './StudentOneOnOneClient';
 
 export default async function StudentOneOnOnePage() {
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getServerUser();
   if (!user) redirect('/auth/login');
 
-  const admin = createAdminClient();
-
-  const { data: profile } = await admin
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single();
-
+  const profile = await getServerProfile(user.id);
   if (!profile) redirect('/auth/login');
+
+  const admin = createAdminClient();
 
   // Get active subscription
   const { data: subscription } = await admin
