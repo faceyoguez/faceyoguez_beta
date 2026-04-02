@@ -28,6 +28,7 @@ interface StudentDashboardClientProps {
   latestPhoto: any;
   joinedDate: Date | null;
   lastRenewed: Date | null;
+  isTrial?: boolean;
 }
 
 export function StudentDashboardClient({
@@ -39,6 +40,7 @@ export function StudentDashboardClient({
   latestPhoto,
   joinedDate,
   lastRenewed,
+  isTrial = false,
 }: StudentDashboardClientProps) {
   const firstName = profile.full_name?.split(' ')[0] || 'there';
 
@@ -49,9 +51,16 @@ export function StudentDashboardClient({
       <header className="shrink-0 px-6 lg:px-10 py-6 flex items-center justify-between animate-in fade-in duration-1000">
         <div className="flex items-center gap-6">
           <div className="space-y-0.5">
-            <h1 className="text-3xl lg:text-4xl font-bold text-[#1a1a1a] tracking-tight">
-              {firstName}&apos;s Dashboard
-            </h1>
+            <div className="flex items-center gap-4">
+              <h1 className="text-3xl lg:text-4xl font-bold text-[#1a1a1a] tracking-tight">
+                {firstName}&apos;s Dashboard
+              </h1>
+              {isTrial && (
+                <span className="text-[10px] font-black uppercase text-white bg-red-500 px-2.5 py-0.5 rounded-full shadow-sm animate-pulse whitespace-nowrap">
+                  Trial
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FF8A75]/10 text-[#FF8A75] text-[10px] font-black uppercase tracking-[0.2em] border border-[#FF8A75]/10">
                 <Sparkles className="w-3 h-3" />
@@ -99,6 +108,26 @@ export function StudentDashboardClient({
           </div>
         </div>
       </header>
+      {/* ── Trial Expiry Prompt (Kind Words) ── */}
+      {isTrial && (
+        <div className="mx-6 lg:mx-10 mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex items-center justify-between animate-in slide-in-from-top-4 duration-700">
+          <div className="flex items-center gap-4">
+            <div className="h-10 w-10 rounded-full bg-red-500 flex items-center justify-center text-white shadow-lg animate-pulse shrink-0">
+              <Heart className="w-5 h-5 fill-current" />
+            </div>
+            <div className="space-y-0.5">
+              <p className="text-sm font-bold text-red-600">Your 3-Day Free Trial is Active</p>
+              <p className="text-[11px] font-medium text-red-500/80">
+                Since you liked our sessions, feel free to continue with a plan. We have interesting offers just for you!
+              </p>
+            </div>
+          </div>
+          <Link href="/student/plans" className="h-10 px-6 rounded-xl bg-red-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-all shadow-md flex items-center justify-center gap-2 whitespace-nowrap">
+            Continue Journey
+            <ArrowUpRight className="w-3 h-3" />
+          </Link>
+        </div>
+      )}
 
       {/* ── Main Canvas (Zero Scroll Grid) ── */}
       <main className="flex-1 px-6 lg:px-10 pb-6 grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-0">

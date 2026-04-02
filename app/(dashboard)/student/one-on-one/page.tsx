@@ -15,7 +15,7 @@ export default async function StudentOneOnOnePage() {
   // Get active subscription
   const { data: subscription } = await admin
     .from('subscriptions')
-    .select('*')
+    .select('*, is_trial')
     .eq('student_id', user.id)
     .eq('status', 'active')
     .eq('plan_type', 'one_on_one')
@@ -26,6 +26,7 @@ export default async function StudentOneOnOnePage() {
       currentUser={profile}
       hasSubscription={!!subscription}
       subscriptionStartDate={subscription?.start_date ?? null}
+      isTrial={subscription?.is_trial ?? false}
     />
   );
 }

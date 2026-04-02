@@ -116,6 +116,7 @@ export default async function StudentDashboardPage() {
       latestPhoto={latestPhoto}
       joinedDate={joinedDate}
       lastRenewed={lastRenewed}
+      isTrial={activeSubs.some(s => s.is_trial)}
     />
   );
 }

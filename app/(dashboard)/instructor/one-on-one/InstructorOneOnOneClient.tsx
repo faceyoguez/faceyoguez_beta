@@ -396,7 +396,9 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                           {student.full_name}
                         </h4>
                         {student.isTrial && (
-                          <span className="text-[8px] font-black uppercase text-red-500 bg-red-50 px-1 py-0.5 rounded border border-red-100 leading-none">Trial</span>
+                          <span className="text-[8px] font-black uppercase text-white bg-red-500 px-1.5 py-0.5 rounded shadow-sm leading-none whitespace-nowrap">
+                            Trial
+                          </span>
                         )}
                       </div>
                       <p className={cn("text-[9px] font-bold uppercase tracking-widest mt-0.5", isEmergency ? "text-red-500/70" : "text-foreground/20")}>{isEmergency ? `Day ${elapsedDays}: Ending Soon` : "Aligned"}</p>
@@ -416,9 +418,16 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                 <div className="inline-flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.4em] text-primary leading-none">
                   Transformation Landscape
                 </div>
-                <h3 className="text-xl font-bold text-[#1a1a1a] tracking-tight leading-none group-hover:text-[#FF8A75] transition-colors">
-                  {selectedStudent?.full_name}
-                </h3>
+                <div className="flex items-center gap-3">
+                  <h3 className="text-xl font-bold text-[#1a1a1a] tracking-tight leading-none group-hover:text-[#FF8A75] transition-colors">
+                    {selectedStudent?.full_name}
+                  </h3>
+                  {selectedStudent?.isTrial && (
+                    <span className="text-[10px] font-black uppercase text-white bg-red-500 px-2 py-0.5 rounded-full shadow-sm animate-pulse whitespace-nowrap">
+                      Trial
+                    </span>
+                  )}
+                </div>
               </div>
               {selectedStudent?.startDate && (
                 <div className="flex flex-col items-end text-right">

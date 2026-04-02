@@ -28,11 +28,11 @@ export const useSidebar = () => useContext(SidebarContext);
 const navConfig = {
   student: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/student/dashboard' },
-    { label: 'Plans & Pricing', icon: CreditCard, path: '/student/plans' },
     { label: '1-on-1 Classes', icon: User, path: '/student/one-on-one' },
     { label: 'Group Session', icon: Users, path: '/student/group-session' },
-    { label: 'Broadcasts', icon: Megaphone, path: '/student/broadcasts' },
     { label: 'LMS', icon: BookOpen, path: '/student/lms' },
+    { label: 'Plans & Pricing', icon: CreditCard, path: '/student/plans' },
+    { label: 'Broadcasts', icon: Megaphone, path: '/student/broadcasts' },
   ],
   instructor: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/instructor/dashboard' },

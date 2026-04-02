@@ -228,7 +228,16 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                            <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary border border-primary/10">
                               <Users className="w-5 h-5" />
                            </div>
-                           <h2 className="text-2xl font-bold text-foreground tracking-tight">{activeBatch?.name || 'Your Batch'}</h2>
+                           <div className="flex items-center gap-3">
+                              <h2 className="text-2xl font-bold text-foreground tracking-tight">
+                                {activeBatch?.name || 'Your Batch'}
+                              </h2>
+                              {isTrialAccess && (
+                                <span className="text-[10px] font-black uppercase text-white bg-red-500 px-1.5 py-0.5 rounded shadow-sm leading-none whitespace-nowrap">
+                                  Trial
+                                </span>
+                              )}
+                           </div>
                            <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">Collective Growth</p>
                         </div>
 

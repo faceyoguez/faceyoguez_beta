@@ -31,7 +31,7 @@ export default async function DashboardLayout({
       .eq('is_read', false),
     admin
       .from('subscriptions')
-      .select('plan_type, status, is_trial, expires_at')
+      .select('plan_type, status, is_trial, end_date')
       .eq('student_id', user.id)
       .order('created_at', { ascending: false }),
   ]);
@@ -43,7 +43,7 @@ export default async function DashboardLayout({
   isTrial = activeSubscriptions.some(sub => sub.is_trial);
 
   // Check if there's an expired trial to show the "kind words" prompt
-  const hasExpiredTrial = subscriptions?.some(s => s.is_trial && (s.status === 'expired' || (s.expires_at && new Date(s.expires_at) < new Date()))) || false;
+  const hasExpiredTrial = subscriptions?.some(s => s.is_trial && (s.status === 'expired' || (s.end_date && new Date(s.end_date) < new Date()))) || false;
   const showTrialPrompt = hasExpiredTrial && activeSubscriptions.length === 0;
 
   return (

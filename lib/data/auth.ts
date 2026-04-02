@@ -32,4 +32,21 @@ const _fetchProfile = unstable_cache(
   { revalidate: 60, tags: ['profile'] }
 );
 
-export const getServerProfile = cache(_fetchProfile);
+// We need a unique key per user for unstable_cache
+const getCachedProfile = (userId: string) => unstable_cache(
+  async (id: string) => {
+    const admin = createAdminClient();
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('*')
+      .eq('id', id)
+      .single();
+    return profile ?? null;
+  },
+  ['profile', userId],
+  { revalidate: 60, tags: ['profile', `profile-${userId}`] }
+)(userId);
+
+export const getServerProfile = cache(async (userId: string) => {
+  return getCachedProfile(userId);
+});

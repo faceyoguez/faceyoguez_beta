@@ -36,9 +36,10 @@ interface Props {
   currentUser: Profile;
   hasSubscription: boolean;
   subscriptionStartDate: string | null;
+  isTrial?: boolean;
 }
 
-export function StudentOneOnOneClient({ currentUser, hasSubscription, subscriptionStartDate }: Props) {
+export function StudentOneOnOneClient({ currentUser, hasSubscription, subscriptionStartDate, isTrial = false }: Props) {
   // Day elapsed since subscription started
   const currentDay = subscriptionStartDate
     ? Math.min(
@@ -216,9 +217,16 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
             <span className="ml-2 w-1.5 h-1.5 rounded-full bg-[#FF8A75]" />
             Month {Math.ceil(currentDay / 30)}
           </div>
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#1a1a1a] tracking-tight leading-tight">
-            Your Dedicated Path
-          </h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#1a1a1a] tracking-tight leading-tight">
+              Your Dedicated Path
+            </h1>
+            {isTrial && (
+              <span className="text-[10px] font-black uppercase text-white bg-red-500 px-2.5 py-0.5 rounded-full shadow-sm animate-pulse whitespace-nowrap">
+                Trial
+              </span>
+            )}
+          </div>
           <p className="text-xs font-medium text-[#6B7280] max-w-xl">
             A bespoke transformation journey guided by ancient flow and structural renewal.
           </p>

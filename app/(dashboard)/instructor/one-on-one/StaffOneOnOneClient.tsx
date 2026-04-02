@@ -333,7 +333,16 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                       <div className={cn("absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white", isEmergency ? "bg-red-500 animate-pulse" : (student.isTrial ? "bg-primary animate-pulse" : "bg-brand-emerald"))} />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h4 className={cn("text-sm font-bold truncate transition-colors", isEmergency ? "text-red-600 group-hover:text-red-700" : "text-foreground group-hover:text-primary")}>{student.full_name}</h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className={cn("text-sm font-bold truncate transition-colors", isEmergency ? "text-red-600 group-hover:text-red-700" : "text-foreground group-hover:text-primary")}>
+                          {student.full_name}
+                        </h4>
+                        {student.isTrial && (
+                          <span className="text-[8px] font-black uppercase text-white bg-red-500 px-1.5 py-0.5 rounded shadow-sm leading-none whitespace-nowrap">
+                            Trial
+                          </span>
+                        )}
+                      </div>
                       <p className={cn("text-[8px] font-bold uppercase tracking-widest mt-0.5 truncate", isEmergency ? "text-red-500/70" : "text-foreground/30")}>
                         {isEmergency 
                           ? `Day ${elapsedDays}: Ending Soon` 
@@ -367,7 +376,16 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                       )}
                     </div>
                     <div className="space-y-2">
-                       <h2 className="text-3xl font-bold text-foreground tracking-tight">{selectedStudent.full_name}</h2>
+                       <div className="flex items-center gap-3">
+                         <h2 className="text-3xl font-bold text-foreground tracking-tight">
+                           {selectedStudent.full_name}
+                         </h2>
+                         {selectedStudent.isTrial && (
+                           <span className="text-[10px] font-black uppercase text-white bg-red-500 px-2 py-0.5 rounded-full shadow-sm animate-pulse whitespace-nowrap">
+                             Trial
+                           </span>
+                         )}
+                       </div>
                        <div className="flex items-center gap-6">
                          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-foreground/30">
                             <Clock className="w-3.5 h-3.5" /> Start: {selectedStudent.startDate ? new Date(selectedStudent.startDate).toLocaleDateString() : 'Unmanifested'}
