@@ -40,16 +40,16 @@ export default async function Home() {
       {/* Premium Footer Concept */}
       <footer className="py-32 px-4 border-t border-[#FF8A75]/10 bg-white text-center">
         <div className="max-w-xl mx-auto space-y-10">
-          <h2 className="text-4xl md:text-5xl font-serif font-bold tracking-tight text-slate-900">
-            Ready to start <span className="italic font-light text-[#FF8A75]">face yoga?</span>
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900">
+            Ready to start <span className="font-bold text-[#FF8A75]">face yoga?</span>
           </h2>
-          <p className="text-slate-600 text-lg font-light">
+          <p className="text-slate-600 text-lg font-bold">
             Join thousands of women practising face yoga online with expert instructors.
           </p>
           <div className="pt-4">
             <Link
               href="/auth/signup"
-              className="inline-flex px-10 py-4 rounded-full bg-slate-900 text-white font-medium tracking-wide text-sm shadow-xl transition-transform hover:scale-105"
+              className="inline-flex px-10 py-4 rounded-full bg-slate-900 text-white font-bold tracking-wide text-sm shadow-xl transition-transform hover:scale-105"
             >
               Begin Your Journey
             </Link>

@@ -229,8 +229,8 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
       <header className="shrink-0 p-6 lg:p-10 flex items-center justify-between relative z-50">
         <div className="flex items-center gap-12">
           <div className="space-y-1">
-            <h1 className="text-4xl font-serif font-bold tracking-tight text-foreground">Registry</h1>
-            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-foreground/30 italic">Soul Management Hub</p>
+            <h1 className="text-4xl font-bold tracking-tight text-foreground">Registry</h1>
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-foreground/30">Soul Management Hub</p>
           </div>
 
           {/* Quick Metrics (Student Hub Style) */}
@@ -367,7 +367,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                       )}
                     </div>
                     <div className="space-y-2">
-                       <h2 className="text-3xl font-serif font-bold text-foreground tracking-tight">{selectedStudent.full_name}</h2>
+                       <h2 className="text-3xl font-bold text-foreground tracking-tight">{selectedStudent.full_name}</h2>
                        <div className="flex items-center gap-6">
                          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-foreground/30">
                             <Clock className="w-3.5 h-3.5" /> Start: {selectedStudent.startDate ? new Date(selectedStudent.startDate).toLocaleDateString() : 'Unmanifested'}
@@ -416,7 +416,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                           <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Photo Progress</h3>
                           <div className="flex items-center gap-2">
                              <div className="h-1.5 w-1.5 rounded-full bg-brand-emerald animate-pulse" />
-                             <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20 italic text-right">Manifestation comparison</span>
+                             <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20 text-right">Manifestation comparison</span>
                           </div>
                         </div>
                         <div className="aspect-[4/5] rounded-[2.5rem] overflow-hidden border border-outline-variant/10 shadow-2xl bg-foreground">
@@ -461,10 +461,10 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                            {activeLog ? (
                              <div className="flex-1 flex flex-col">
                                <div className="flex items-center justify-between mb-6">
-                                  <span className="text-[9px] font-bold uppercase tracking-widest text-primary italic">Observation {activeStepDay}</span>
+                                  <span className="text-[9px] font-bold uppercase tracking-widest text-primary">Observation {activeStepDay}</span>
                                   <span className="text-[8px] text-foreground/20">{new Date(activeLog.created_at).toLocaleDateString()}</span>
                                </div>
-                               <p className="text-sm font-medium leading-relaxed text-foreground/70 italic whitespace-pre-wrap flex-1">
+                               <p className="text-sm font-medium leading-relaxed text-foreground/70 whitespace-pre-wrap flex-1">
                                  "{activeLog.notes || 'The silence speaks of unspoken progress.'}"
                                </p>
                                <div className="mt-8 pt-6 border-t border-outline-variant/5 flex items-center justify-between">
@@ -540,7 +540,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
             <div className="p-8 border-b border-outline-variant/5 flex items-center justify-between shrink-0 bg-white/20">
               <div className="space-y-1">
                 <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Chat</h3>
-                <p className="text-sm font-serif font-bold text-foreground italic">Direct Sequence</p>
+                <p className="text-sm font-bold text-foreground">Direct Sequence</p>
               </div>
               <div className={cn("h-2.5 w-2.5 rounded-full border-2 border-white", selectedStudent ? "bg-brand-emerald animate-pulse" : "bg-foreground/10")} />
             </div>
@@ -586,8 +586,8 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
           <div className="absolute inset-0 bg-foreground/20 backdrop-blur-md" onClick={() => setShowAssignModal(false)} />
           <div className="w-full max-w-xl rounded-[2.5rem] bg-white border border-outline-variant/10 shadow-2xl relative z-10 overflow-hidden p-12 space-y-10 animate-in zoom-in-95 duration-500">
             <header className="space-y-3 text-center">
-              <h3 className="text-3xl font-serif font-bold text-foreground tracking-tight">Align New Guide</h3>
-              <p className="text-sm text-foreground/40 font-medium italic">Loading chat for {selectedStudent?.full_name}</p>
+              <h3 className="text-3xl font-bold text-foreground tracking-tight">Align New Guide</h3>
+              <p className="text-sm text-foreground/40 font-medium">Loading chat for {selectedStudent?.full_name}</p>
             </header>
 
             <div className="space-y-3 max-h-[400px] overflow-y-auto pr-4 custom-scrollbar">

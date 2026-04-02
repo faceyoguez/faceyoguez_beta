@@ -78,10 +78,17 @@ interface AppSidebarProps {
   user: Profile;
   activePlans?: string[];
   unreadNotificationsCount?: number;
+  isTrial?: boolean;
   children: React.ReactNode;
 }
 
-export function AppSidebar({ user, activePlans = [], unreadNotificationsCount = 0, children }: AppSidebarProps) {
+export function AppSidebar({ 
+  user, 
+  activePlans = [], 
+  unreadNotificationsCount = 0, 
+  isTrial = false,
+  children 
+}: AppSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
@@ -242,9 +249,16 @@ export function AppSidebar({ user, activePlans = [], unreadNotificationsCount = 
                   <p className="truncate text-[13px] font-extrabold text-foreground">
                     {user.full_name}
                   </p>
-                  <p className="text-[11px] font-medium capitalize text-foreground/50 tracking-wide mt-0.5">
-                    {user.role === 'client_management' ? 'Client Management' : user.role.replace(/_/g, ' ')}
-                  </p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <p className="text-[11px] font-medium capitalize text-foreground/50 tracking-wide">
+                      {user.role === 'client_management' ? 'Client Management' : user.role.replace(/_/g, ' ')}
+                    </p>
+                    {isTrial && (
+                      <span className="text-[9px] font-black uppercase text-red-500 bg-red-50 px-1.5 py-0.5 rounded border border-red-100 leading-none">
+                        Trial
+                      </span>
+                    )}
+                  </div>
                 </div>
               )}
               {!collapsed && (

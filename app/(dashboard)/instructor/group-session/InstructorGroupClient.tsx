@@ -204,7 +204,7 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                             <User className="h-5 w-5 group-hover:scale-110 transition-transform" />
                             <span className="text-sm font-medium">1-on-1</span>
                         </a>
-                        <a className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-pink-600 border-l-4 border-pink-500 font-semibold shadow-sm bg-white/50" href="#">
+                        <a className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-pink-600 border-l-4 border-pink-500 font-bold shadow-sm bg-white/50" href="#">
                             <Users className="h-5 w-5" />
                             <span className="text-sm">Group Session</span>
                         </a>
@@ -298,7 +298,7 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                                     }
                                     return null;
                                 })()}
-                                <button onClick={() => setShowScheduleModal(true)} disabled={!activeBatch} className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-4 py-2 rounded-lg font-medium flex items-center justify-center gap-2 backdrop-blur-sm transition-all text-xs w-full disabled:opacity-50 disabled:cursor-not-allowed">
+                                <button onClick={() => setShowScheduleModal(true)} disabled={!activeBatch} className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-4 py-2 rounded-lg font-bold flex items-center justify-center gap-2 backdrop-blur-sm transition-all text-xs w-full disabled:opacity-50 disabled:cursor-not-allowed">
                                     <CalendarPlus className="h-4 w-4" />
                                     Schedule Next Session
                                 </button>
@@ -355,7 +355,7 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                                 </div>
                                 <div className="flex items-end gap-2 my-2">
                                     <span className="text-3xl font-bold text-gray-900">24</span>
-                                    <span className="text-sm text-gray-500 font-medium mb-1">/ 42 Online</span>
+                                    <span className="text-sm text-gray-500 font-bold mb-1">/ 42 Online</span>
                                 </div>
                                 <div className="w-full bg-gray-200 rounded-full h-1.5 mb-3 overflow-hidden">
                                     <div className="bg-pink-500 h-1.5 rounded-full" style={{ width: '57%' }}></div>
@@ -381,7 +381,7 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                                 Recorded Daily Archives
                             </h3>
                             <div className="flex items-center gap-2">
-                                <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wider mr-2">Sort by Date</span>
+                                <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mr-2">Sort by Date</span>
                                 <div className="flex gap-1">
                                     <button className="p-1 rounded-md hover:bg-white text-gray-500 transition-colors"><ChevronLeft className="h-4 w-4" /></button>
                                     <button className="p-1 rounded-md hover:bg-white text-gray-500 transition-colors"><ChevronRight className="h-4 w-4" /></button>
@@ -400,7 +400,7 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                                     </div>
                                     <div className="p-3 flex flex-col flex-1">
                                         <div className="flex justify-between items-start mb-1">
-                                            <span className="text-[10px] text-pink-600 font-medium bg-pink-50 px-1.5 rounded">Day {12 - i}</span>
+                                            <span className="text-[10px] text-pink-600 font-bold bg-pink-50 px-1.5 rounded">Day {12 - i}</span>
                                             <span className="text-[10px] text-gray-500">Oct {25 - i}</span>
                                         </div>
                                         <h4 className="font-bold text-gray-900 text-xs line-clamp-2">Face Yoga Session</h4>
@@ -421,7 +421,7 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                                     Batch Chat
                                     <span className="bg-pink-100 text-pink-600 text-[9px] font-bold px-1.5 rounded border border-pink-200">ADMIN</span>
                                 </h3>
-                                <p className="text-[10px] text-gray-500">24 Online • Mod Mode Active</p>
+                                <p className="text-[10px] text-gray-500 font-medium">24 Online • Mod Mode Active</p>
                             </div>
                             <div className="flex gap-1">
                                 <button className="p-1.5 rounded-lg hover:bg-white text-gray-500 transition-colors"><SettingsIcon className="h-4 w-4" /></button>
@@ -433,7 +433,7 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                         <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-gradient-to-b from-white/30 to-white/60">
                             {/* System message/pin */}
                             <div className="flex justify-center mb-2">
-                                <div className="bg-pink-50 border border-pink-100 rounded-full pl-3 pr-1 py-1 text-[10px] font-medium text-pink-600 flex items-center gap-2">
+                                <div className="bg-pink-50 border border-pink-100 rounded-full pl-3 pr-1 py-1 text-[10px] font-bold text-pink-600 flex items-center gap-2">
                                     <Pin className="h-3 w-3" />
                                     You pinned a message
                                     <span className="bg-white/80 rounded-full p-0.5 hover:text-red-500 cursor-pointer"><X className="h-3 w-3" /></span>
@@ -571,8 +571,8 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                     <CalendarPlus className="h-6 w-6" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-extrabold text-gray-900 tracking-tight">Schedule Group Session</h3>
-                    <p className="text-sm font-medium text-indigo-600/80 mt-0.5 flex items-center gap-1.5">
+                    <h3 className="text-xl font-bold text-gray-900 tracking-tight">Schedule Group Session</h3>
+                    <p className="text-sm font-bold text-indigo-600/80 mt-0.5 flex items-center gap-1.5">
                       <Users className="h-3.5 w-3.5" /> Auto-generate Zoom for '{activeBatch?.name}'
                     </p>
                   </div>
@@ -599,7 +599,7 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
               <div className="group">
                   <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-indigo-500 transition-colors">Topic</label>
                   <div className="relative">
-                    <input value={meetingTopic} onChange={(e) => setMeetingTopic(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all" placeholder={`e.g. Day 1: ${activeBatch?.name}`} type="text" />
+                    <input value={meetingTopic} onChange={(e) => setMeetingTopic(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-bold text-gray-900 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all" placeholder={`e.g. Day 1: ${activeBatch?.name}`} type="text" />
                   </div>
               </div>
 
@@ -610,7 +610,7 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                   </div>
                   <div className="group">
                       <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-indigo-500 transition-colors">Start Time</label>
-                      <input value={meetingTime} onChange={(e) => setMeetingTime(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all" type="time" />
+                      <input value={meetingTime} onChange={(e) => setMeetingTime(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-bold text-gray-900 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all" type="time" />
                   </div>
               </div>
 

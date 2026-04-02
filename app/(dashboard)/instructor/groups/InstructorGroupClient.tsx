@@ -298,8 +298,8 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
       <header className="shrink-0 p-6 lg:p-10 flex items-center justify-between relative z-50">
         <div className="flex items-center gap-12">
           <div className="space-y-1">
-            <h1 className="text-3xl font-serif font-bold tracking-tight text-foreground">Group Sessions</h1>
-            <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-foreground/30 italic">Collective Guidance Hub</p>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">Group Sessions</h1>
+            <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-foreground/30">Collective Guidance Hub</p>
           </div>
 
           <div className="hidden lg:flex items-center gap-8 ml-4">
@@ -314,14 +314,14 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
             <div className="flex items-center gap-6">
               <div className="flex flex-col">
                 <span className="text-[9px] font-black uppercase tracking-widest text-foreground/20">Active Students</span>
-                <span className="text-sm font-serif font-bold text-primary italic">
+                <span className="text-sm font-bold text-primary">
                   {selectedBatch?.batch_enrollments?.filter((e: any) => e.status === 'active').length || 0} Enrolled
                 </span>
               </div>
               <div className="h-4 w-px bg-outline-variant/10" />
               <div className="flex flex-col">
                 <span className="text-[9px] font-black uppercase tracking-widest text-foreground/20">Waiting Queue</span>
-                <span className="text-sm font-serif font-bold text-primary italic">{waitingQueue.length} Pending</span>
+                <span className="text-sm font-bold text-primary">{waitingQueue.length} Pending</span>
               </div>
             </div>
           </div>
@@ -350,9 +350,8 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
             <div className="p-6 border-b border-outline-variant/5">
               <div className="flex items-center justify-between mb-1">
                 <h3 className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/30">Active Paths</h3>
-                <span className="text-[10px] font-bold text-primary italic pr-1">{batches.length}</span>
               </div>
-              <p className="text-xs font-serif font-bold text-foreground italic">Current Collectives</p>
+              <p className="text-xs font-bold text-foreground">Current Collectives</p>
             </div>
             <div className="flex-1 overflow-y-auto p-3 space-y-1.5 custom-scrollbar">
               {batches.map((batch) => (
@@ -382,9 +381,9 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
               <div className="flex items-center justify-between mb-4">
                 <div className="space-y-0.5">
                   <h3 className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/30">Enrolled Students</h3>
-                  <p className="text-xs font-serif font-bold text-foreground italic leading-none">Inhabiting Space</p>
+                  <p className="text-xs font-bold text-foreground leading-none">Inhabiting Space</p>
                 </div>
-                <span className="text-[10px] font-bold text-primary italic bg-primary/5 px-2 py-1 rounded-lg">{filteredStudents.length}</span>
+                <span className="text-[10px] font-bold text-primary bg-primary/5 px-2 py-1 rounded-lg">{filteredStudents.length}</span>
               </div>
               
               <div className="relative group">
@@ -412,7 +411,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-[12px] font-bold text-foreground truncate">{enrollment.student?.full_name}</p>
-                    <p className="text-[8px] font-bold uppercase tracking-widest text-foreground/20 italic">{enrollment.is_trial_access ? 'Discovery' : 'Committed'}</p>
+                    <p className="text-[8px] font-bold uppercase tracking-widest text-foreground/20">{enrollment.is_trial_access ? 'Discovery' : 'Committed'}</p>
                   </div>
                 </div>
               ))}
@@ -435,7 +434,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                     {selectedBatch?.status === 'active' ? 'Path Active' : 'Session Resting'}
                   </span>
                 </div>
-                <h2 className="text-3xl font-serif font-bold text-white tracking-tight italic truncate">
+                <h2 className="text-3xl font-bold text-white tracking-tight truncate">
                   {selectedBatch?.name || 'Select a Batch'}
                 </h2>
                 <div className="flex items-center gap-3 pt-2">
@@ -463,7 +462,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                 <div className="p-4 border-b border-outline-variant/5 flex items-center justify-between shrink-0">
                   <div className="flex items-center gap-2">
                     <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Registry Artifacts</h3>
-                    <span className="text-[10px] font-bold text-primary opacity-40 italic">{resources.length}</span>
+                    <span className="text-[10px] font-bold text-primary opacity-40">{resources.length}</span>
                   </div>
                   <button
                     disabled={!selectedBatch || isUploading}
@@ -499,7 +498,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                 <div className="p-4 border-b border-outline-variant/5 flex items-center justify-between shrink-0">
                   <div className="flex items-center gap-2">
                     <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Session History</h3>
-                    <span className="text-[10px] font-bold text-primary opacity-40 italic">{recordings.length}</span>
+                    <span className="text-[10px] font-bold text-primary opacity-40">{recordings.length}</span>
                   </div>
                   <PlayCircle className="w-4 h-4 text-foreground/10" />
                 </div>
@@ -535,9 +534,9 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2">
                   <h3 className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/30">Group Chat</h3>
-                  <span className="text-[9px] font-bold text-primary opacity-40 italic">{messages.length}</span>
+                  <span className="text-[9px] font-bold text-primary opacity-40">{messages.length}</span>
                 </div>
-                <p className="text-xs font-serif font-bold text-foreground italic">Batch Dialogue</p>
+                <p className="text-xs font-bold text-foreground">Batch Dialogue</p>
               </div>
               <button onClick={handleToggleChat} className={cn("h-8 w-8 rounded-lg flex items-center justify-center transition-all border", isChatEnabled ? "bg-primary text-white border-transparent shadow-sm" : "bg-primary/5 text-primary border-primary/10")}>
                 <Settings className="w-3.5 h-3.5" />
@@ -555,7 +554,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                   <div key={msg.id} className={cn("flex flex-col gap-1.5", isMe ? "items-end" : "items-start")}>
                     <div className="flex items-center gap-2 px-1">
                       <span className="text-[7px] font-bold uppercase tracking-widest text-foreground/20">{isMe ? 'Internal' : (senderProfile?.full_name || 'Manifestor')}</span>
-                      <span className="text-[7px] text-foreground/10 italic">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                      <span className="text-[7px] text-foreground/10">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
                     {isPoll ? (
                       poll ? <div className="w-full scale-90 origin-top"><PollCard poll={poll} isAdmin onClose={() => handleClosePoll(poll.id)} /></div> : null
@@ -602,8 +601,8 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
           <div className="absolute inset-0 bg-foreground/20 backdrop-blur-md" onClick={() => setShowPollModal(false)} />
           <div className="w-full max-w-xl rounded-[2.5rem] bg-white border border-outline-variant/10 shadow-2xl relative z-10 overflow-hidden p-12 space-y-10 animate-in zoom-in-95 duration-500">
             <header className="space-y-3 text-center">
-              <h3 className="text-3xl font-serif font-bold text-foreground tracking-tight">Initiate Inquiry</h3>
-              <p className="text-sm text-foreground/40 font-medium italic">Sampling orchestration in {selectedBatch?.name}</p>
+              <h3 className="text-3xl font-bold text-foreground tracking-tight">Initiate Inquiry</h3>
+              <p className="text-sm text-foreground/40 font-medium">Sampling orchestration in {selectedBatch?.name}</p>
             </header>
 
             <div className="space-y-8">
@@ -660,8 +659,8 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
           <div className="absolute inset-0 bg-foreground/20 backdrop-blur-md" onClick={() => setShowZoomModal(false)} />
           <div className="w-full max-w-xl rounded-[2.5rem] bg-white border border-outline-variant/10 shadow-2xl relative z-10 overflow-hidden p-12 space-y-10 animate-in zoom-in-95 duration-500">
             <header className="space-y-3 text-center">
-              <h3 className="text-3xl font-serif font-bold text-foreground tracking-tight">Manifest Space</h3>
-              <p className="text-sm text-foreground/40 font-medium italic">Direct calibration for {selectedBatch?.name}</p>
+              <h3 className="text-3xl font-bold text-foreground tracking-tight">Manifest Space</h3>
+              <p className="text-sm text-foreground/40 font-medium">Direct calibration for {selectedBatch?.name}</p>
             </header>
 
             <div className="space-y-6">
@@ -719,8 +718,8 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
           <div className="absolute inset-0 bg-foreground/20 backdrop-blur-md" onClick={() => setIsCreateBatchOpen(false)} />
           <div className="w-full max-w-xl rounded-[2.5rem] bg-white border border-outline-variant/10 shadow-2xl relative z-10 overflow-hidden p-12 space-y-10 animate-in zoom-in-95 duration-500">
             <header className="space-y-3 text-center">
-              <h3 className="text-3xl font-serif font-bold text-foreground tracking-tight">Manifest Path</h3>
-              <p className="text-sm text-foreground/40 font-medium italic">Create a new collective journey</p>
+              <h3 className="text-3xl font-bold text-foreground tracking-tight">Manifest Path</h3>
+              <p className="text-sm text-foreground/40 font-medium">Create a new collective journey</p>
             </header>
 
             <div className="space-y-6">

@@ -67,10 +67,10 @@ export default async function StudentLmsPage() {
           <BookOpen className="w-3.5 h-3.5" />
           Video Courses
         </div>
-        <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-black text-foreground tracking-tight leading-none max-w-3xl">
+        <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground tracking-tight leading-none max-w-3xl">
           Your Courses
         </h1>
-        <p className="text-lg text-foreground/50 italic font-medium max-w-xl">
+        <p className="text-lg text-foreground/50 font-medium max-w-xl">
           Learn face yoga step by step — complete each level to unlock the next.
         </p>
       </header>
@@ -109,7 +109,7 @@ export default async function StudentLmsPage() {
               <Sparkles className="w-6 h-6" />
             </div>
             <div className="space-y-3">
-              <h4 className="font-serif font-black text-2xl text-foreground tracking-tight">Level 2 — Locked</h4>
+              <h4 className="font-bold text-2xl text-foreground tracking-tight">Level 2 — Locked</h4>
               <p className="text-[10px] text-foreground/40 font-bold uppercase tracking-[0.2em] leading-relaxed max-w-[200px] mx-auto">
                 Complete all Level 1 modules to unlock Level 2
               </p>
@@ -123,7 +123,7 @@ export default async function StudentLmsPage() {
             <div className="h-20 w-20 rounded-full bg-white flex items-center justify-center text-primary shadow-sm border border-black/5 mb-4">
               <BookOpen className="w-8 h-8" />
             </div>
-            <p className="text-2xl font-serif font-black tracking-tight text-foreground">No courses available yet.</p>
+            <p className="text-2xl font-bold tracking-tight text-foreground">No courses available yet.</p>
             <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-foreground/50">Check back soon!</p>
          </div>
       )}

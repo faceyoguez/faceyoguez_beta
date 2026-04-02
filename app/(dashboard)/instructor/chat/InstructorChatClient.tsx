@@ -50,7 +50,7 @@ export function InstructorChatClient({ currentUser }: Props) {
                 </svg>
             </div>
             <div className="space-y-2">
-                <p className="text-xl font-serif font-bold text-foreground tracking-tight">Focus on Presence</p>
+                <p className="text-xl font-bold text-foreground tracking-tight">Focus on Presence</p>
                 <p className="text-sm font-bold text-foreground/20 uppercase tracking-widest leading-relaxed">Select a conversation to begin.</p>
             </div>
           </div>

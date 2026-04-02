@@ -93,10 +93,10 @@ export default async function StudentGroupPage() {
                     </div>
 
                     <div className="space-y-4">
-                        <h2 className="text-3xl font-serif font-bold text-foreground tracking-tight">
+                        <h2 className="text-3xl font-bold text-foreground tracking-tight">
                             {waitingStatus ? "Waiting for Batch" : "Your Batch is Active"}
                         </h2>
-                        <p className="text-sm text-foreground/40 font-medium italic leading-relaxed max-w-sm mx-auto">
+                        <p className="text-sm text-foreground/40 font-medium leading-relaxed max-w-sm mx-auto">
                             {waitingStatus
                                 ? "A batch is currently running. You'll be added to the next one automatically."
                                 : "You're enrolled! We're assigning you to a batch. You'll be notified as soon as it's ready."
@@ -124,8 +124,8 @@ export default async function StudentGroupPage() {
                 </div>
 
                 <div className="space-y-4">
-                    <h2 className="text-3xl font-serif font-bold text-foreground tracking-tight">Group Classes</h2>
-                    <p className="text-sm text-foreground/40 font-medium italic leading-relaxed max-w-sm mx-auto">
+                    <h2 className="text-3xl font-bold text-foreground tracking-tight">Group Classes</h2>
+                    <p className="text-sm text-foreground/40 font-medium leading-relaxed max-w-sm mx-auto">
                         You haven&apos;t joined a group class yet. Pick a plan to start practising with a batch.
                     </p>
                 </div>

@@ -51,7 +51,7 @@ export function CourseCreator({ userId }: CourseCreatorProps) {
               </div>
               <div>
                  <div className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-primary leading-none mb-1">Content Management</div>
-                 <h2 className="text-2xl font-serif font-bold text-foreground">Create New Course</h2>
+                 <h2 className="text-2xl font-bold text-foreground">Create New Course</h2>
               </div>
             </div>
             <Sparkles className="w-6 h-6 text-foreground/5" />

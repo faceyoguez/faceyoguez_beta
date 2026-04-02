@@ -82,7 +82,8 @@ export default async function InstructorDashboardPage() {
         id,
         full_name,
         avatar_url
-      )
+      ),
+      is_trial
     `)
     .eq('assigned_instructor_id', user.id)
     .eq('plan_type', 'one_on_one')
@@ -156,10 +157,10 @@ export default async function InstructorDashboardPage() {
             <TrendingUp className="w-3 h-3" />
             Instructor Dashboard
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-foreground tracking-tight">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground tracking-tight">
             Greetings, {firstName}
           </h1>
-          <p className="text-lg text-foreground/40 italic font-medium max-w-lg">
+          <p className="text-lg text-foreground/40 font-medium max-w-lg">
             &quot;Empowering transformations, one face at a time.&quot;
           </p>
         </div>
@@ -209,7 +210,7 @@ export default async function InstructorDashboardPage() {
           <section className="rounded-3xl p-8 md:p-12 border border-primary/5 bg-white/60 backdrop-blur-xl shadow-sm">
             <div className="flex items-center justify-between mb-10">
               <div className="space-y-1">
-                <h2 className="text-3xl font-serif font-bold text-foreground">Today&apos;s Sessions</h2>
+                <h2 className="text-3xl font-bold text-foreground">Today&apos;s Sessions</h2>
                 <div className="h-1 w-10 bg-primary/30 rounded-full" />
               </div>
               <div className="px-4 py-2 bg-white/80 backdrop-blur-md rounded-2xl border border-primary/5 shadow-sm">
@@ -288,10 +289,10 @@ export default async function InstructorDashboardPage() {
             <section className="bg-white/60 backdrop-blur-2xl rounded-3xl p-8 md:p-12 border border-primary/5 shadow-sm transition-all duration-500 hover:shadow-md">
               <div className="flex items-center justify-between mb-10">
                 <div className="space-y-1">
-                  <h2 className="text-3xl font-serif font-bold text-foreground">Your Students</h2>
+                  <h2 className="text-3xl font-bold text-foreground">Your Students</h2>
                   <div className="h-1 w-10 bg-primary/30 rounded-full" />
                 </div>
-                <Link href="/staff/groups" className="text-[10px] font-bold text-primary uppercase tracking-widest hover:underline italic">
+                <Link href="/staff/groups" className="text-[10px] font-bold text-primary uppercase tracking-widest hover:underline">
                   Advanced Controls
                 </Link>
               </div>
@@ -299,7 +300,7 @@ export default async function InstructorDashboardPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Group Classes */}
                 <div className="space-y-6">
-                  <h3 className="text-[9px] font-bold text-primary/40 uppercase tracking-widest ml-2 italic">Active Batches</h3>
+                  <h3 className="text-[9px] font-bold text-primary/40 uppercase tracking-widest ml-2">Active Batches</h3>
                   {activeBatches.length > 0 ? (
                     <div className="space-y-3">
                       {activeBatches.map(batch => (
@@ -316,7 +317,7 @@ export default async function InstructorDashboardPage() {
                              </div>
                              <div className="min-w-0">
                                <p className="text-sm font-bold text-foreground truncate">{batch.instructor?.full_name || 'Unknown'}</p>
-                               <p className="text-[9px] text-foreground/40 font-bold uppercase tracking-widest truncate italic">{batch.name}</p>
+                               <p className="text-[9px] text-foreground/40 font-bold uppercase tracking-widest truncate">{batch.name}</p>
                              </div>
                           </div>
                           <div className="px-3 py-1 bg-primary/10 text-primary text-[9px] font-bold uppercase tracking-widest rounded-lg border border-primary/10">
@@ -326,13 +327,13 @@ export default async function InstructorDashboardPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-[10px] text-foreground/20 font-bold italic ml-2 uppercase tracking-widest">No active group sessions.</p>
+                    <p className="text-[10px] text-foreground/20 font-bold ml-2 uppercase tracking-widest">No active group sessions.</p>
                   )}
                 </div>
 
                 {/* 1-on-1 Portfolio */}
                 <div className="space-y-6">
-                  <h3 className="text-[9px] font-bold text-primary/40 uppercase tracking-widest ml-2 italic">1-on-1 Students</h3>
+                  <h3 className="text-[9px] font-bold text-primary/40 uppercase tracking-widest ml-2">1-on-1 Students</h3>
                   {instructorAllocations.length > 0 ? (
                     <div className="space-y-3">
                       {instructorAllocations.map((alloc, idx) => (
@@ -349,7 +350,7 @@ export default async function InstructorDashboardPage() {
                              </div>
                              <div className="min-w-0">
                                <p className="text-sm font-bold text-foreground truncate">{alloc.instructor?.full_name || 'Unknown'}</p>
-                               <p className="text-[9px] text-foreground/40 font-bold uppercase tracking-widest italic">Private Coaching</p>
+                               <p className="text-[9px] text-foreground/40 font-bold uppercase tracking-widest">Private Coaching</p>
                              </div>
                           </div>
                           <div className="px-3 py-1 bg-primary/10 text-primary text-[9px] font-bold uppercase tracking-widest rounded-lg border border-primary/10">
@@ -359,7 +360,7 @@ export default async function InstructorDashboardPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-[10px] text-foreground/20 font-bold italic ml-2 uppercase tracking-widest">No assigned 1-on-1s.</p>
+                    <p className="text-[10px] text-foreground/20 font-bold ml-2 uppercase tracking-widest">No assigned 1-on-1s.</p>
                   )}
                 </div>
               </div>
@@ -372,7 +373,7 @@ export default async function InstructorDashboardPage() {
         <div className="lg:col-span-4">
           <section className="rounded-3xl p-8 border border-primary/5 h-full flex flex-col bg-white/60 backdrop-blur-xl shadow-sm">
             <div className="space-y-1 mb-10">
-              <h2 className="text-2xl font-serif font-bold text-foreground">New Students</h2>
+              <h2 className="text-2xl font-bold text-foreground">New Students</h2>
               <div className="h-1 w-10 bg-primary/30 rounded-full" />
             </div>
 
@@ -398,8 +399,13 @@ export default async function InstructorDashboardPage() {
                             </div>
                          </div>
                          <div>
-                           <p className="text-sm font-bold text-foreground">{student?.full_name || 'Anonymous'}</p>
-                           <p className="text-[9px] font-bold text-primary uppercase tracking-widest italic">
+                           <p className="text-sm font-bold text-foreground">
+                             {student?.full_name || 'Anonymous'}
+                             {alloc.is_trial && (
+                               <span className="ml-2 text-[8px] font-black uppercase text-red-500 bg-red-50 px-1.5 py-0.5 rounded border border-red-100 leading-none inline-block align-middle">Trial</span>
+                             )}
+                           </p>
+                           <p className="text-[9px] font-bold text-primary uppercase tracking-widest">
                              Starts {alloc.start_date ? format(new Date(alloc.start_date), 'MMM d') : '—'}
                            </p>
                          </div>

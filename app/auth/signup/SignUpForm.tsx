@@ -98,14 +98,14 @@ export default function SignUpForm() {
             <div className="h-11 w-11 flex items-center justify-center rounded-2xl bg-[#FF8A75]/10 text-[#FF8A75]">
               <Flower2 className="h-5 w-5" strokeWidth={1.5} />
             </div>
-            <span className="text-xl font-serif font-bold text-slate-900 italic">Faceyoguez</span>
+            <span className="text-xl font-bold text-slate-900">Faceyoguez</span>
           </div>
 
           <div className="space-y-2">
-            <h1 className="text-4xl font-serif font-bold tracking-tight text-slate-900">
+            <h1 className="text-4xl font-bold tracking-tight text-slate-900">
               Begin your journey
             </h1>
-            <p className="text-slate-500 font-light">
+            <p className="text-slate-500 font-bold">
               Create your account and start practising face yoga today.
             </p>
           </div>
@@ -209,11 +209,10 @@ export default function SignUpForm() {
               <Sparkles className="w-3.5 h-3.5" />
               Faceyoguez Community
             </div>
-            <h2 className="text-4xl font-serif font-bold text-white leading-tight">
-              Start your face yoga{' '}
-              <span className="text-[#FF8A75] italic font-light">journey today.</span>
+            <h2 className="text-4xl font-bold text-white leading-tight">
+              Start your face yoga <span className="text-[#FF8A75] font-bold">journey today.</span>
             </h2>
-            <p className="text-slate-400 font-light leading-relaxed">
+            <p className="text-slate-400 font-bold leading-relaxed">
               Join thousands of women learning face yoga with expert instructors — online, from home.
             </p>
           </div>
@@ -230,7 +229,7 @@ export default function SignUpForm() {
           </div>
 
           <div className="pt-4 border-t border-white/10">
-            <p className="text-xs text-slate-500 font-light italic">
+            <p className="text-xs text-slate-500 font-bold">
               &ldquo;Every small effort adds up. Your face will thank you.&rdquo;
             </p>
           </div>

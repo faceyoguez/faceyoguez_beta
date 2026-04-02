@@ -37,10 +37,10 @@ export default async function StaffDashboardPage() {
             <ShieldCheck className="w-3 h-3" />
             Admin Dashboard
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-foreground tracking-tight">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground tracking-tight">
             Platform Insights
           </h1>
-          <p className="text-lg text-foreground/40 italic font-medium max-w-lg">
+          <p className="text-lg text-foreground/40 font-medium max-w-lg">
             Monitor platform growth and student lifecycle at a glance.
           </p>
         </div>
@@ -72,7 +72,7 @@ export default async function StaffDashboardPage() {
             </div>
             <div>
               <p className="text-[9px] font-bold uppercase tracking-widest text-foreground/30">{stat.label}</p>
-              <p className="text-3xl font-serif font-black text-foreground tracking-tighter mt-1">{stat.value}</p>
+              <p className="text-3xl font-bold font-black text-foreground tracking-tighter mt-1">{stat.value}</p>
             </div>
           </div>
         ))}
@@ -83,7 +83,7 @@ export default async function StaffDashboardPage() {
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-foreground/20">Quick Links</h3>
-              <p className="text-xl font-serif font-bold text-foreground italic">Manage</p>
+              <p className="text-xl font-bold text-foreground">Manage</p>
             </div>
             <ArrowRight className="w-5 h-5 text-foreground/10" />
           </div>
@@ -109,7 +109,7 @@ export default async function StaffDashboardPage() {
           <div className="flex items-center justify-between">
             <div className="space-y-1">
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-foreground/20">Platform Overview</h3>
-              <p className="text-xl font-serif font-bold text-foreground italic">Live Metrics</p>
+              <p className="text-xl font-bold text-foreground">Live Metrics</p>
             </div>
             <TrendingUp className="w-5 h-5 text-foreground/10" />
           </div>

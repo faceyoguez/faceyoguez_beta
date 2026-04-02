@@ -18,9 +18,9 @@ export function Hero() {
         </div>
         
         <div className="space-y-6">
-          <h1 className="text-6xl md:text-8xl lg:text-9xl font-serif font-bold tracking-tight text-slate-900 leading-[1.05]">
+          <h1 className="text-6xl md:text-8xl lg:text-9xl font-bold tracking-tight text-slate-900 leading-[1.05]">
             Natural <br className="hidden md:block" />
-            <span className="text-[#FF8A75] italic font-light">Face Yoga</span> for a Younger, Glowing You
+            <span className="text-[#FF8A75] font-bold">Face Yoga</span> for a Younger, Glowing You
           </h1>
           <p className="max-w-2xl mx-auto text-lg md:text-xl text-slate-600 font-light leading-relaxed">
             Expert-led face yoga classes online — lift, tone & glow naturally. No surgery, no filters, just results.

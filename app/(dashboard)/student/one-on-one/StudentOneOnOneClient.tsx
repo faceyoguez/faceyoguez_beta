@@ -216,10 +216,10 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
             <span className="ml-2 w-1.5 h-1.5 rounded-full bg-[#FF8A75]" />
             Month {Math.ceil(currentDay / 30)}
           </div>
-          <h1 className="text-2xl md:text-3xl lg:text-4xl font-serif italic text-[#1a1a1a] tracking-tight leading-tight">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#1a1a1a] tracking-tight leading-tight">
             Your Dedicated Path
           </h1>
-          <p className="text-xs font-medium text-[#6B7280] italic max-w-xl">
+          <p className="text-xs font-medium text-[#6B7280] max-w-xl">
             A bespoke transformation journey guided by ancient flow and structural renewal.
           </p>
         </div>
@@ -243,7 +243,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                                   <div className="h-1 w-1 rounded-full bg-[#FF8A75] animate-pulse" />
                                   Live Session Soon
                               </div>
-                              <h3 className="text-xl font-serif italic font-bold text-[#1a1a1a] tracking-tight leading-tight">{nextMeeting.topic}</h3>
+                              <h3 className="text-xl font-bold text-[#1a1a1a] tracking-tight leading-tight">{nextMeeting.topic}</h3>
                            </div>
                       </div>
 
@@ -294,7 +294,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                 </div>
                 <div className="space-y-1">
                   <h4 className="text-[8px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">Elite Wisdom</h4>
-                  <p className="text-xs font-medium leading-relaxed text-[#6B7280] italic">
+                  <p className="text-xs font-medium leading-relaxed text-[#6B7280]">
                     &quot;Your face is the mirror of your history. Honor each movement as a prayer to your own vitality.&quot;
                   </p>
                 </div>
@@ -312,8 +312,8 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                     <TrendingUp className="w-3 h-3" />
                     Evolution Log
                  </div>
-                 <h3 className="text-2xl lg:text-3xl font-serif italic font-bold text-[#1a1a1a] tracking-tight leading-none transition-colors duration-500">Transcendence</h3>
-                 <p className="text-xs font-medium text-[#6B7280] italic max-w-md leading-relaxed">
+                 <h3 className="text-2xl lg:text-3xl font-bold text-[#1a1a1a] tracking-tight leading-none transition-colors duration-500">Transcendence</h3>
+                 <p className="text-xs font-medium text-[#6B7280] max-w-md leading-relaxed">
                     Track your structure over {JOURNEY_MAX_DAY} cycles. Select a node to reflect.
                  </p>
               </div>
@@ -322,11 +322,11 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                     <span className="text-[8px] font-black text-[#FF8A75] uppercase tracking-[0.3em] mb-0.5">
                       {currentDay > 30 ? `Month ${Math.ceil(currentDay / 30)}` : 'Current'}
                     </span>
-                    <span className="text-lg font-serif italic font-bold text-[#1a1a1a] tracking-tight">Day {currentDay}</span>
+                    <span className="text-lg font-bold text-[#1a1a1a] tracking-tight">Day {currentDay}</span>
                  </div>
                  <div className="px-4 py-2 bg-white border border-[#FF8A75]/20 rounded-xl flex flex-col items-center justify-center min-w-[90px] hover:scale-105 transition-transform duration-300">
                     <span className="text-[8px] font-black text-[#6B7280] uppercase tracking-[0.3em] mb-0.5">Package</span>
-                    <span className="text-lg font-serif italic text-[#1a1a1a] tracking-tight">30 Days</span>
+                    <span className="text-lg text-[#1a1a1a] tracking-tight">30 Days</span>
                  </div>
               </div>
             </div>
@@ -350,7 +350,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
               {/* Comparison Mirror */}
               <div className="flex flex-col h-full space-y-4">
                   <div className="flex items-center justify-between px-2">
-                     <h4 className="text-[9px] font-black uppercase tracking-[0.3em] text-[#6B7280] italic">Ancestral vs Ascendant</h4>
+                     <h4 className="text-[9px] font-black uppercase tracking-[0.3em] text-[#6B7280]">Ancestral vs Ascendant</h4>
                      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-[#FF8A75]/20 to-transparent mx-4" />
                      <span className="text-[8px] font-black text-[#FF8A75] uppercase tracking-[0.3em] bg-white border border-[#FF8A75]/10 px-4 py-1.5 rounded-full">Day 1 / Day {activeDay}</span>
                   </div>
@@ -362,7 +362,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                          <div className="h-16 w-16 rounded-full bg-white border border-[#FF8A75]/10 flex items-center justify-center text-[#FF8A75]/40 animate-pulse">
                              <Camera className="h-8 w-8" />
                          </div>
-                         <p className="text-[10px] font-bold text-[#6B7280] uppercase tracking-[0.3em] text-center">Capture your Baseline<br />Upload your Day 1 photo below.</p>
+                         <p className="text-[9px] font-bold text-primary uppercase tracking-widest text-center">Capture your Baseline<br />Upload your Day 1 photo below.</p>
                        </div>
                     ) : (
                       <div className="h-full w-full overflow-hidden">
@@ -391,7 +391,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                         <Edit3 className="w-5 h-5" />
                     </div>
                     <div className="space-y-1">
-                      <h5 className="text-xl font-serif italic font-bold text-[#1a1a1a] tracking-tight leading-none">Daily Log & Doings</h5>
+                      <h5 className="text-xl font-bold text-[#1a1a1a] tracking-tight leading-none">Daily Log & Doings</h5>
                       <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">Focus Node {activeDay}</p>
                     </div>
                   </div>
@@ -406,7 +406,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                   <textarea
                     value={notesInput}
                     onChange={(e) => setNotesInput(e.target.value)}
-                    className="w-full h-full resize-none bg-transparent text-[#374151] placeholder:text-[#6B7280]/50 text-base font-medium leading-relaxed outline-none custom-scrollbar italic"
+                    className="w-full h-full resize-none bg-transparent text-[#374151] placeholder:text-[#6B7280]/50 text-base font-medium leading-relaxed outline-none custom-scrollbar"
                     placeholder="Document the subtle energetic shifts. How does your structure feel today?"
                   />
                 </div>
@@ -418,7 +418,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                             <div className="h-7 w-7 rounded-full bg-[#FF8A75]/10 flex items-center justify-center text-[#FF8A75]">
                                 <ImageIcon className="w-3.5 h-3.5" />
                             </div>
-                            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">Snapshot Captured</p>
+                            <p className="text-[8px] font-black text-foreground/20 uppercase tracking-widest mt-0.5">Manifest to view</p>
                         </div>
                         <button onClick={() => { setSelectedImageBase64(null); setSelectedImageMime(null); }} className="h-7 w-7 flex items-center justify-center hover:bg-[#FF8A75]/5 rounded-full transition-colors font-black text-xs">
                             ✕
@@ -476,7 +476,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                   <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto pr-2 scrollbar-hide">
                     {journeyLogs.length === 0 ? (
                       <div className="text-center py-8 bg-[#FFFAF7]/40 rounded-xl border border-dashed border-[#FF8A75]/10">
-                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#6B7280]/40 italic">The archive is empty.</p>
+                        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#6B7280]/40">The archive is empty.</p>
                       </div>
                     ) : (
                       [...journeyLogs]
@@ -536,7 +536,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                       <User className="w-4 h-4" />
                    </div>
                    <div>
-                       <h3 className="text-xs font-bold text-[#1a1a1a] font-serif leading-tight">Elite Support</h3>
+                       <h3 className="text-xs font-bold text-[#1a1a1a] leading-tight">Elite Support</h3>
                        <p className="text-[8px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">Direct Line</p>
                    </div>
                 </div>
@@ -559,7 +559,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
              <div className="flex items-center justify-between mb-4 relative z-10 shrink-0">
                <div className="space-y-1">
                  <h3 className="text-[8px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">Resources</h3>
-                 <p className="text-lg font-serif italic font-bold text-[#1a1a1a] tracking-tight">Guidelines</p>
+                 <p className="text-lg font-bold text-[#1a1a1a] tracking-tight">Guidelines</p>
                </div>
                <div className="h-8 w-8 rounded-full bg-[#FFFAF7] border border-[#FF8A75]/10 flex items-center justify-center text-[#FF8A75]">
                  <BookOpen className="h-3.5 w-3.5" />
@@ -572,7 +572,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                    <Loader2 className="h-6 w-6 animate-spin text-[#FF8A75]/50" />
                  </div>
                ) : resources.length === 0 ? (
-                 <div className="flex h-24 items-center justify-center text-[10px] font-bold uppercase tracking-[0.2em] text-[#6B7280] italic">
+                 <div className="flex h-24 items-center justify-center text-[10px] font-bold uppercase tracking-[0.2em] text-[#6B7280]">
                    The archive is empty.
                  </div>
                ) : (

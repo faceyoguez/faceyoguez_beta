@@ -34,8 +34,8 @@ export function StudentChatClient({ currentUser, planType }: Props) {
           <div className="h-16 w-16 bg-foreground/5 rounded-2xl flex items-center justify-center mx-auto text-foreground/20">
              <MessageSquare className="w-8 h-8" />
           </div>
-          <h2 className="text-2xl font-serif font-bold text-foreground">Chat</h2>
-          <p className="text-sm text-foreground/40 font-medium italic">
+          <h2 className="text-2xl font-bold text-foreground">Chat</h2>
+          <p className="text-sm text-foreground/40 font-medium">
             You're on a self-paced plan. Upgrade to a 1-on-1 plan to chat with your instructor.
           </p>
         </div>
@@ -60,8 +60,8 @@ export function StudentChatClient({ currentUser, planType }: Props) {
         <div className="flex h-[80vh] items-center justify-center p-8">
           <div className="max-w-md text-center space-y-4">
              <Sparkles className="h-10 w-10 text-primary/20 mx-auto animate-pulse" />
-             <h2 className="text-xl font-serif font-bold text-foreground">Transmitting Connection</h2>
-             <p className="text-[10px] text-foreground/40 font-bold uppercase tracking-widest italic">Your instructor will start the conversation soon.</p>
+             <h2 className="text-xl font-bold text-foreground">Transmitting Connection</h2>
+             <p className="text-[10px] text-foreground/40 font-bold uppercase tracking-widest">Your instructor will start the conversation soon.</p>
           </div>
         </div>
       );
@@ -94,8 +94,8 @@ export function StudentChatClient({ currentUser, planType }: Props) {
       {/* Conversation Sidebar */}
       <div className="w-80 flex flex-col border-r border-outline-variant/5 bg-white/50 backdrop-blur-2xl">
         <div className="p-8 border-b border-outline-variant/5 space-y-1">
-          <h2 className="text-xl font-serif font-bold text-foreground">Messages</h2>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 italic">Active Batches</p>
+          <h2 className="text-xl font-bold text-foreground">Messages</h2>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">Active Batches</p>
         </div>
         
         <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
@@ -114,7 +114,7 @@ export function StudentChatClient({ currentUser, planType }: Props) {
               >
                 <div className="min-w-0">
                    <p className="text-sm font-bold truncate">{conv.title || conv.batch?.name || 'Group Soul'}</p>
-                   <p className={cn("text-[9px] font-bold uppercase tracking-widest italic mt-1", isActive ? "text-background/40" : "text-foreground/20")}>Active Chat</p>
+                   <p className={cn("text-[9px] font-bold uppercase tracking-widest mt-1", isActive ? "text-background/40" : "text-foreground/20")}>Active Chat</p>
                 </div>
                 <ChevronRight className={cn("w-3.5 h-3.5 transition-transform group-hover:translate-x-1", isActive ? "text-background/20" : "text-foreground/10")} />
               </button>
@@ -123,7 +123,7 @@ export function StudentChatClient({ currentUser, planType }: Props) {
           {conversations.length === 0 && (
              <div className="flex flex-col items-center justify-center py-20 opacity-20">
                 <Sparkles className="w-8 h-8 mb-4" />
-                <p className="text-[10px] text-center font-bold uppercase tracking-widest italic">No active group streams</p>
+                <p className="text-[10px] text-center font-bold uppercase tracking-widest">No active group streams</p>
              </div>
           )}
         </div>

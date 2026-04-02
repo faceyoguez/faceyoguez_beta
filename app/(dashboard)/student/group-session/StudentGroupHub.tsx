@@ -228,8 +228,8 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                            <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary border border-primary/10">
                               <Users className="w-5 h-5" />
                            </div>
-                           <h2 className="text-2xl font-serif font-bold text-foreground tracking-tight">{activeBatch?.name || 'Your Batch'}</h2>
-                           <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 italic">Collective Growth</p>
+                           <h2 className="text-2xl font-bold text-foreground tracking-tight">{activeBatch?.name || 'Your Batch'}</h2>
+                           <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">Collective Growth</p>
                         </div>
 
                         <div className="space-y-6">
@@ -304,7 +304,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
 
                             <div className="absolute inset-x-8 bottom-8 z-20 flex items-end justify-between gap-10">
                                <div className="space-y-3 max-w-xl">
-                                  <h2 className="text-4xl font-serif font-bold text-white tracking-tight leading-tight">{nextBatchMeeting.topic}</h2>
+                                  <h2 className="text-4xl font-bold text-white tracking-tight leading-tight">{nextBatchMeeting.topic}</h2>
                                   <div className="flex gap-4">
                                      <div className="flex items-center gap-2 text-white/50 text-[10px] font-bold uppercase tracking-widest">
                                         <Calendar className="w-3.5 h-3.5" /> {new Date(nextBatchMeeting.start_time).toLocaleDateString()}
@@ -338,7 +338,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                     {/* Journey Rail */}
                     <div className="surface-container p-8 rounded-3xl border border-outline-variant/10 flex flex-col gap-10 overflow-hidden bg-white/50 backdrop-blur-xl shadow-sm">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-2xl font-serif font-bold text-foreground tracking-tight">Your Journey – Day {currentDay}</h3>
+                            <h3 className="text-2xl font-bold text-foreground tracking-tight">Your Journey – Day {currentDay}</h3>
                             <JourneyProgress 
                                 currentDay={currentDay}
                                 activeDay={activeStepDay}
@@ -364,7 +364,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                             <div className="space-y-6">
                                <div className="space-y-2">
                                   <h4 className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">Daily Snapshot</h4>
-                                  <p className="text-sm text-foreground/40 font-medium leading-relaxed italic">Capture your essence at critical nodes of transcendence. Required on Day 1 and 25.</p>
+                                  <p className="text-sm text-foreground/40 font-medium leading-relaxed">Capture your essence at critical nodes of transcendence. Required on Day 1 and 25.</p>
                                </div>
 
                                {(activeStepDay === 1 || activeStepDay === 25) ? (
@@ -428,10 +428,10 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                     <div className="surface-container rounded-3xl border border-outline-variant/10 h-full flex flex-col overflow-hidden bg-white/50 backdrop-blur-xl shadow-sm">
                         <div className="p-8 border-b border-outline-variant/5 flex flex-col gap-1.5">
                            <div className="flex items-center justify-between">
-                              <h3 className="text-2xl font-serif font-bold tracking-tight text-foreground">Group Chat</h3>
+                              <h3 className="text-2xl font-bold tracking-tight text-foreground">Group Chat</h3>
                               <div className="h-2 w-2 rounded-full bg-primary/40" />
                            </div>
-                           <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 italic">Collective Energy Stream</p>
+                           <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">Collective Energy Stream</p>
                         </div>
 
                         <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar">

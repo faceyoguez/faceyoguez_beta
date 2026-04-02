@@ -19,19 +19,21 @@ export default async function PlansPage() {
         .eq('id', user.id)
         .single();
 
-    // Get current subscription to see if they are already on a plan
-    const { data: subscription } = await supabase
+    // Get all subscriptions to see if they ever used a trial
+    const { data: allSubscriptions } = await supabase
         .from('subscriptions')
-        .select('*')
-        .eq('student_id', user.id)
-        .in('status', ['active', 'pending'])
-        .order('created_at', { ascending: false });
+        .select('plan_type, status, is_trial')
+        .eq('student_id', user.id);
+
+    const activeSubscription = allSubscriptions?.filter(s => ['active', 'pending'].includes(s.status)) || [];
+    const hasUsedTrial = allSubscriptions?.some(s => s.is_trial) || false;
 
     return (
         <PlansClient
-            currentSubscription={subscription}
+            currentSubscription={activeSubscription}
             userId={user.id}
             currentUser={profile}
+            hasUsedTrial={hasUsedTrial}
         />
     );
 }

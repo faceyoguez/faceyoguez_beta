@@ -49,7 +49,7 @@ export function StudentDashboardClient({
       <header className="shrink-0 px-6 lg:px-10 py-6 flex items-center justify-between animate-in fade-in duration-1000">
         <div className="flex items-center gap-6">
           <div className="space-y-0.5">
-            <h1 className="text-3xl lg:text-4xl font-serif italic font-bold text-[#1a1a1a] tracking-tight">
+            <h1 className="text-3xl lg:text-4xl font-bold text-[#1a1a1a] tracking-tight">
               {firstName}&apos;s Dashboard
             </h1>
             <div className="flex items-center gap-3">
@@ -57,7 +57,7 @@ export function StudentDashboardClient({
                 <Sparkles className="w-3 h-3" />
                 {firstName}
               </div>
-              <p className="text-[11px] font-medium text-[#6B7280] italic">
+              <p className="text-[11px] font-medium text-[#6B7280]">
                 {format(new Date(), 'EEEE, MMMM do')}
               </p>
             </div>
@@ -110,7 +110,7 @@ export function StudentDashboardClient({
              
              <div className="shrink-0 flex items-center justify-between mb-6">
                 <div className="space-y-0.5">
-                   <h2 className="text-xl font-serif italic font-bold text-[#1a1a1a] tracking-tight">Synchronicity</h2>
+                   <h2 className="text-xl font-bold text-[#1a1a1a] tracking-tight">Synchronicity</h2>
                    <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">Today&apos;s Sessions</p>
                 </div>
                 <div className="h-8 w-8 rounded-full bg-[#FF8A75]/10 flex items-center justify-center text-[#FF8A75]">
@@ -124,8 +124,10 @@ export function StudentDashboardClient({
                     <div className="h-16 w-16 rounded-full bg-white border border-[#FF8A75]/10 flex items-center justify-center mb-4 text-[#FF8A75]/40">
                       <Clock className="w-7 h-7" />
                     </div>
-                    <p className="text-sm italic font-medium text-[#374151]">Peace. Your calendar is clear.</p>
-                    <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#6B7280] mt-2">Practice on your own rhythm</p>
+                    <p className="text-sm font-medium text-[#374151]">Peace. Your calendar is clear.</p>
+                    <p className="text-[11px] font-medium text-[#6B7280] max-w-[200px] mt-2 leading-relaxed">
+                      Practice on your own rhythm.
+                    </p>
                   </div>
                 ) : (
                   todaysMeetings.map((meeting, i) => {
@@ -169,7 +171,7 @@ export function StudentDashboardClient({
            <div className="flex-1 bg-white/40 backdrop-blur-3xl rounded-[2.5rem] border border-[#FF8A75]/10 p-7 flex flex-col shadow-sm">
               <div className="shrink-0 flex items-center justify-between mb-6">
                 <div className="space-y-0.5">
-                   <h2 className="text-xl font-serif italic font-bold text-[#1a1a1a] tracking-tight">Transformation Mirror</h2>
+                   <h2 className="text-xl font-bold text-[#1a1a1a] tracking-tight">Transformation Mirror</h2>
                    <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">Witness your evolution</p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -192,8 +194,8 @@ export function StudentDashboardClient({
                       <div className="h-20 w-20 rounded-full bg-white border border-[#FF8A75]/10 flex items-center justify-center mb-6 shadow-sm">
                         <Sparkles className="w-8 h-8 text-[#FF8A75]/40" />
                       </div>
-                      <h4 className="text-lg font-serif italic font-bold text-[#1a1a1a]">Evolution Pending</h4>
-                      <p className="text-[11px] font-medium text-[#6B7280] max-w-[200px] mt-2 leading-relaxed">
+                      <h4 className="text-lg font-bold text-[#1a1a1a]">Evolution Pending</h4>
+                      <p className="text-[10px] text-[#6B7280] text-center font-bold px-6 leading-relaxed">
                         Complete your session snapshots to see your transformation milestones here.
                       </p>
                    </div>
@@ -209,7 +211,7 @@ export function StudentDashboardClient({
           <div className="flex-1 bg-white/40 backdrop-blur-3xl rounded-[2.5rem] border border-[#FF8A75]/10 p-7 flex flex-col shadow-sm relative overflow-hidden">
              <div className="shrink-0 flex items-center justify-between mb-6">
                 <div className="space-y-0.5">
-                   <h2 className="text-xl font-serif italic font-bold text-[#1a1a1a] tracking-tight">Vitality</h2>
+                   <h2 className="text-xl font-bold text-[#1a1a1a] tracking-tight">Vitality</h2>
                    <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">Elite Status</p>
                 </div>
                 <Activity className="w-5 h-5 text-[#FF8A75]/30" />
@@ -220,7 +222,7 @@ export function StudentDashboardClient({
                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[#6B7280]">Daily Consistency</span>
                    <div className="flex items-end justify-between">
                      <div className="flex flex-col">
-                       <span className="text-2xl font-serif italic font-bold text-[#1a1a1a] leading-none">
+                       <span className="text-2xl font-bold text-[#1a1a1a] leading-none">
                          {activePlanTypes.length > 0 ? 'Active' : 'Standby'}
                        </span>
                        <div className="flex flex-wrap gap-1 mt-1.5">
@@ -238,7 +240,7 @@ export function StudentDashboardClient({
                 <div className="p-4 rounded-3xl bg-white border border-[#FF8A75]/5 shadow-sm space-y-1">
                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[#6B7280]">Last Practice</span>
                    <div className="flex items-end justify-between">
-                     <span className="text-2xl font-serif italic font-bold text-[#1a1a1a] leading-none">
+                     <span className="text-2xl font-bold text-[#1a1a1a] leading-none">
                        {lastRenewed ? format(lastRenewed, 'MMM d') : '—'}
                      </span>
                      <Clock className="w-5 h-5 text-[#FF8A75]/40" />
@@ -267,7 +269,7 @@ export function StudentDashboardClient({
                 </div>
                 <div>
                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#FF8A75] mb-1">Aura Note</p>
-                   <p className="text-[11px] font-medium text-[#374151] leading-relaxed italic">
+                   <p className="text-[11px] font-medium text-[#374151] leading-relaxed">
                      &ldquo;The structure you build today is the radiance you wear tomorrow.&rdquo;
                    </p>
                 </div>

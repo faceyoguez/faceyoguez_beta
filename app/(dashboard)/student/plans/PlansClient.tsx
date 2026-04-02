@@ -7,9 +7,12 @@ import { toast } from 'sonner';
 import { 
     Check, Loader2, Sparkles, 
     ShieldCheck, MoveRight, Star, Heart, Zap, 
-    Calendar, Image as ImageIcon, BookOpen, Clock, Activity, Users, CreditCard
+    Calendar, Image as ImageIcon, BookOpen, Clock, Activity, Users, CreditCard,
+    XCircle, CheckCircle2, Tag
 } from 'lucide-react';
+import { activateTrial } from '@/app/actions/plans';
 import type { Profile } from '@/types/database';
+import { toast as sonnerToast } from 'sonner';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPERS
@@ -42,9 +45,12 @@ interface Props {
   currentSubscription: any[] | null;
   userId: string;
   currentUser?: Profile | null;
+  hasUsedTrial?: boolean;
 }
 
-export default function PlansClient({ currentSubscription, userId, currentUser }: Props) {
+export default function PlansClient({ currentSubscription, userId, currentUser, hasUsedTrial: initialHasUsedTrial }: Props) {
+    const [isStartingTrial, setIsStartingTrial] = useState(false);
+    const [hasUsedTrial, setHasUsedTrial] = useState(initialHasUsedTrial);
     const router = useRouter();
     const [selectedPlanId, setSelectedPlanId] = useState<string>(PLANS_DATA[0].id);
     const [selectedTierId, setSelectedTierId] = useState<string>(PLANS_DATA[0].tiers[0].id);
@@ -59,89 +65,100 @@ export default function PlansClient({ currentSubscription, userId, currentUser }
         setSelectedTierId(popular.id);
     }, [selectedPlanId]);
 
+    const handleStartTrial = async () => {
+        setIsStartingTrial(true);
+        try {
+            const res = await activateTrial(userId);
+            if (res.success) {
+                sonnerToast.success('Trial activated! You have 3 days of full access. 🧘‍♂️');
+                setHasUsedTrial(true);
+                router.push('/student/dashboard');
+            } else {
+                sonnerToast.error(res.error || 'Failed to start trial');
+            }
+        } catch (err) {
+            sonnerToast.error('Something went wrong');
+        } finally {
+            setIsStartingTrial(false);
+        }
+    };
+
+    const [showCheckout, setShowCheckout] = useState(false);
+    const [selectedBumps, setSelectedBumps] = useState<string[]>([]);
+    const [couponCode, setCouponCode] = useState('');
+    const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+    const [verifyingCoupon, setVerifyingCoupon] = useState(false);
+
+    const bumps = {
+        group_session: [
+            { id: 'bump_recorded', title: 'Recorded Plan (Level 1+2)', desc: 'Get 32 lifetime recorded sessions to practise between live sessions.', originalPrice: 3999, discountedPrice: 2799, icon: BookOpen },
+            { id: 'bump_1_1', title: '1-1 Personal Plan', desc: 'Get a fully customised face yoga plan built around your face.', originalPrice: 5499, discountedPrice: 4399, icon: Star }
+        ],
+        lms: [
+            selectedTierId === 'level_1' ? { id: 'bump_upgrade_l12', title: 'Complete Plan (Level 1 + Level 2)', desc: 'Level 2 is where the real transformation happens.', originalPrice: 3999, discountedPrice: 2999, icon: Sparkles } : 
+            { id: 'bump_group', title: '21-Day Live Group Transformation', desc: 'Pair your recorded plan with live group energy.', originalPrice: 3499, discountedPrice: 2799, icon: Users }
+        ],
+        one_on_one: [
+            { id: 'bump_recorded_1_1', title: 'Recorded Plan (Level 1+2)', desc: 'Extra practice and deeper technique on days between consultations.', originalPrice: 3999, discountedPrice: 2999, icon: BookOpen },
+            { id: 'bump_group_1_1', title: '21-Day Live Group Sessions', desc: 'Stay motivated and accountable with the energy of a live group.', originalPrice: 1499, discountedPrice: 999, icon: Users }
+        ]
+    };
+
+    const currentBumps = bumps[selectedPlanId as keyof typeof bumps] || [];
+
+    const calculateTotal = () => {
+        let total = currentTier.discountedPrice;
+        selectedBumps.forEach(bumpId => {
+            const bump = currentBumps.find(b => b.id === bumpId);
+            if (bump) total += bump.discountedPrice;
+        });
+
+        if (appliedCoupon) {
+            if (appliedCoupon.discount_type === 'percentage') {
+                total = total * (1 - appliedCoupon.discount_value / 100);
+            } else {
+                total = Math.max(0, total - appliedCoupon.discount_value);
+            }
+        }
+        return Math.round(total);
+    };
+
+    const applyCoupon = async () => {
+        if (!couponCode) return;
+        setVerifyingCoupon(true);
+        const { data, error } = await fetch(`/api/coupons/verify?code=${couponCode.toUpperCase()}`).then(res => res.json());
+        
+        if (error || !data) {
+            toast.error(error || 'Invalid or expired coupon');
+            setAppliedCoupon(null);
+        } else {
+            setAppliedCoupon(data);
+            toast.success('🎉 Coupon applied successfully!');
+        }
+        setVerifyingCoupon(false);
+    };
+
+    const handleProceed = async () => {
+        setLoading(true);
+        // Simulate purchase for now as requested
+        setTimeout(() => {
+            const params = new URLSearchParams({
+                planId: selectedPlanId,
+                tierId: selectedTierId,
+                amount: calculateTotal().toString(),
+                bumps: selectedBumps.join(',')
+            });
+            router.push(`/student/purchase-success?${params.toString()}`);
+            setLoading(false);
+        }, 1500);
+    };
+
     const handlePay = async (isTrial: boolean = false) => {
         if (isTrial) {
-            toast.info('Free trial is coming soon! Please subscribe to a full plan for now.');
+            toast.info('Free trial is coming soon!');
             return;
         }
-
-        setLoading(true);
-        try {
-            const loaded = await loadRazorpayScript();
-            if (!loaded) throw new Error('Failed to load payment gateway. Please check your connection.');
-
-            const orderRes = await fetch('/api/razorpay/create-order', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    planType: selectedPlanId,
-                    planVariant: selectedTierId,
-                    amount: currentTier.discountedPrice,
-                }),
-            });
-
-            const orderData = await orderRes.json();
-            if (!orderRes.ok) throw new Error(orderData.error || 'Failed to create order');
-
-            const { orderId, amount, currency, keyId } = orderData;
-
-            await new Promise<void>((resolve, reject) => {
-                const rzp = new window.Razorpay({
-                    key: keyId,
-                    amount,
-                    currency,
-                    order_id: orderId,
-                    name: 'Faceyoguez',
-                    description: `${currentPlan.title} — ${currentTier.label}`,
-                    prefill: {
-                        name: currentUser?.full_name ?? '',
-                        email: currentUser?.email ?? '',
-                        contact: currentUser?.phone ?? '',
-                    },
-                    theme: { color: '#FF8A75' },
-                    handler: async (response: any) => {
-                        try {
-                            const verifyRes = await fetch('/api/razorpay/verify-payment', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    razorpay_order_id: response.razorpay_order_id,
-                                    razorpay_payment_id: response.razorpay_payment_id,
-                                    razorpay_signature: response.razorpay_signature,
-                                    planType: selectedPlanId,
-                                    planVariant: selectedTierId,
-                                    amount: currentTier.discountedPrice,
-                                    durationMonths: durationFromTierId(selectedTierId),
-                                }),
-                            });
-
-                            const verifyData = await verifyRes.json();
-                            if (!verifyRes.ok) throw new Error(verifyData.error || 'Verification failed');
-
-                            toast.success('🎉 Payment successful! Your plan is now active.');
-                            resolve();
-                            router.push('/student/dashboard');
-                        } catch (e: any) {
-                            reject(e);
-                        }
-                    },
-                    modal: { ondismiss: () => reject(new Error('dismissed')) },
-                });
-
-                rzp.on('payment.failed', (resp: any) => {
-                    reject(new Error(resp.error?.description || 'Payment failed'));
-                });
-
-                rzp.open();
-            });
-
-        } catch (err: any) {
-            if (err.message !== 'dismissed') {
-                toast.error(err.message || 'Payment failed. Please try again.');
-            }
-        } finally {
-            setLoading(false);
-        }
+        setShowCheckout(true);
     };
 
     const planContent = {
@@ -149,7 +166,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser }
             hook: "A Face Yoga Plan Made Just for You",
             problem: "Group programs can't address your unique facial structure and skin concerns.",
             solution: "A personalised routine designed around your face, your goals, and your schedule.",
-            workOn: ["Sagging & Firmness", "Jawline Definition", "Double Chin", "Deep Wrinkles", "Asymmetry", "Eye Area"],
+            workOn: ["Sagging & Firmness", "Jawline Definition", "Double Chin", "Deep Wrinkles", "Eye Area"],
             journey: [
                 { icon: Star, title: "Enrol", desc: "Instant Access" },
                 { icon: ImageIcon, title: "Photo Assessment", desc: "Expert skin assessment" },
@@ -188,118 +205,115 @@ export default function PlansClient({ currentSubscription, userId, currentUser }
 
     const currentMeta = planContent[selectedPlanId as keyof typeof planContent];
     const cardBg = "bg-white border border-[#FF8A75]/10";
-    const cardBgActive = "bg-white border-2 border-[#FF8A75]";
 
     return (
         <div className="min-h-screen relative font-sans text-[#374151] selection:bg-[#FF8A75]/20 overflow-hidden bg-[#FFFAF7]/40">
             {/* Desktop Professional Layout */}
-            <div className="hidden lg:grid grid-cols-12 gap-8 p-12 h-screen max-w-[1600px] mx-auto overflow-hidden">
+            <div className="hidden lg:grid grid-cols-12 gap-5 p-8 h-screen max-w-[1500px] mx-auto overflow-hidden">
                 {/* Panel 1: Ritual Selector */}
-                <div className="col-span-3 flex flex-col gap-6 h-full overflow-hidden">
+                <div className="col-span-3 flex flex-col gap-5 h-full overflow-hidden">
                     <div className="flex-shrink-0">
-                         <h1 className="text-4xl font-semibold italic font-serif leading-none tracking-tight text-[#1a1a1a]">Choose Your Plan</h1>
-                         <p className="mt-3 text-[9px] font-black uppercase tracking-[0.4em] text-[#FF8A75]">Face yoga plans for every goal</p>
+                         <h1 className="text-3xl font-bold leading-none tracking-tight text-[#1a1a1a]">Choose Your Plan</h1>
+                         <p className="mt-2 text-[8px] font-black uppercase tracking-[0.4em] text-[#FF8A75]">Face yoga plans for every goal</p>
                     </div>
 
-                    {/* Active sub banner */}
-                    {currentSubscription && currentSubscription.length > 0 && (
-                        <div className="p-5 rounded-3xl bg-[#FF8A75]/5 border border-[#FF8A75]/10">
-                            <div className="flex gap-3">
-                                <CreditCard className="w-5 h-5 text-[#FF8A75] mt-0.5" />
-                                <div>
-                                    <h4 className="text-[10px] font-black text-[#FF8A75] uppercase tracking-widest">Your Active Plan</h4>
-                                    <p className="text-[11px] font-bold text-[#1a1a1a] mt-1 leading-tight">
-                                        You are currently on the {currentSubscription[0].plan_type.replace(/_/g, ' ')} plan.
-                                    </p>
-                                </div>
+                    {/* Active sub banner - NOW DYNAMIC */}
+                    <div className="p-4 rounded-2xl bg-[#FF8A75]/5 border border-[#FF8A75]/10 flex-shrink-0">
+                        <div className="flex gap-2.5">
+                            <CreditCard className="w-5 h-5 text-[#FF8A75] mt-0.5" />
+                            <div>
+                                <h4 className="text-[9px] font-black text-[#FF8A75] uppercase tracking-widest">Plan Selection</h4>
+                                <p className="text-[10px] font-bold text-[#1a1a1a] mt-1 leading-tight">
+                                    You are viewing the {selectedPlanId.replace(/_/g, ' ')} plan.
+                                </p>
                             </div>
                         </div>
-                    )}
+                    </div>
                     
-                    <div className="flex-1 space-y-3 overflow-y-auto pr-2 scrollbar-hide py-2">
+                    <div className="flex-1 space-y-2.5 overflow-y-auto pr-2 scrollbar-hide py-1">
                         {PLANS_DATA.map((plan) => (
                             <button
                                 key={plan.id}
                                 onClick={() => setSelectedPlanId(plan.id)}
                                 className={`
-                                    w-full p-6 py-7 rounded-3xl text-left transition-all relative group border
+                                    w-full p-4 rounded-2xl text-left transition-all relative group border
                                     ${selectedPlanId === plan.id 
-                                        ? 'bg-white border-[#FF8A75] ring-1 ring-[#FF8A75]/20' 
+                                        ? 'bg-white border-[#FF8A75] ring-1 ring-[#FF8A75]/20 shadow-sm' 
                                         : 'bg-white/50 border-[#FF8A75]/10 hover:border-[#FF8A75]/30'}
                                 `}
                             >
-                                <div className="flex flex-col gap-3">
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${selectedPlanId === plan.id ? 'bg-[#FF8A75] text-white' : 'bg-[#FF8A75]/8 text-[#FF8A75]'}`}>
-                                        {plan.id === 'one_on_one' ? <Star className="w-5 h-5" /> : plan.id === 'lms' ? <BookOpen className="w-5 h-5" /> : <Users className="w-5 h-5" />}
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all flex-shrink-0 ${selectedPlanId === plan.id ? 'bg-[#FF8A75] text-white' : 'bg-[#FF8A75]/8 text-[#FF8A75]'}`}>
+                                        {plan.id === 'one_on_one' ? <Star className="w-4.5 h-4.5" /> : plan.id === 'lms' ? <BookOpen className="w-4.5 h-4.5" /> : <Users className="w-4.5 h-4.5" />}
                                     </div>
                                     <div>
-                                        <h2 className="text-lg font-bold tracking-tight text-[#1a1a1a]">{plan.title.split(' ')[0]}</h2>
-                                        <p className="text-[9px] font-black uppercase tracking-widest text-[#FF8A75] mt-1">{plan.id.replace('_', ' ')}</p>
+                                        <h2 className="text-base font-bold tracking-tight text-[#1a1a1a]">{plan.title.split(' ')[0]}</h2>
+                                        <p className="text-[8px] font-black uppercase tracking-widest text-[#FF8A75]">{plan.id.replace('_', ' ')}</p>
                                     </div>
                                 </div>
                                 {selectedPlanId === plan.id && (
-                                    <div className="absolute right-6 top-1/2 -translate-y-1/2 w-1.5 h-10 bg-[#FF8A75] rounded-full" />
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 w-1 h-8 bg-[#FF8A75] rounded-full" />
                                 )}
                             </button>
                         ))}
                     </div>
 
-                    <div className={`p-6 rounded-3xl flex items-center gap-4 ${cardBg}`}>
-                        <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100">
-                             <ShieldCheck className="w-5 h-5" />
+                    <div className={`p-3 rounded-xl flex items-center gap-2.5 ${cardBg} flex-shrink-0`}>
+                        <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100">
+                             <ShieldCheck className="w-4 h-4" />
                         </div>
-                        <div className="text-[10px] font-bold leading-tight">Secure Checkout</div>
+                        <div className="text-[8px] font-bold leading-tight">Secure & Verified Checkout</div>
                     </div>
                 </div>
 
                 {/* Panel 2: Deep Dive */}
-                <div className="col-span-6 grid grid-cols-2 gap-6 h-full overflow-hidden pb-10">
-                    <div className={`col-span-2 p-10 rounded-[3rem] flex flex-col gap-8 relative overflow-hidden ${cardBg}`}>
-                        <div className="space-y-4">
-                            <span className="text-[10px] font-black text-[#FF8A75] uppercase tracking-[0.4em]">What's Included</span>
-                            <h2 className="text-4xl font-serif italic text-[#1a1a1a] leading-tight">{currentMeta?.hook}</h2>
-                            <p className="text-sm font-medium leading-relaxed max-w-lg opacity-80">{currentMeta?.problem}</p>
+                <div className="col-span-6 flex flex-col gap-4 h-full overflow-hidden pb-6">
+                    <div className={`flex-1 p-7 rounded-[2rem] flex flex-col gap-5 relative overflow-hidden ${cardBg}`}>
+                        <div className="space-y-1.5">
+                            <span className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.3em]">Details</span>
+                            <h2 className="text-2xl font-bold text-[#1a1a1a] leading-tight">{currentMeta?.hook}</h2>
+                            <p className="text-xs font-medium leading-relaxed max-w-lg opacity-80">{currentMeta?.problem}</p>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-10">
-                             <div className="space-y-6">
-                                 <h4 className="text-[10px] font-black text-[#FF8A75] uppercase tracking-[0.3em]">Focus Areas</h4>
-                                 <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-4">
+                             <div className="space-y-2">
+                                 <h4 className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.2em]">Focus Areas</h4>
+                                 <div className="space-y-1.5">
                                      {currentMeta?.workOn.map((f, i) => (
-                                         <div key={i} className="flex items-center gap-3 text-[11px] font-bold text-[#374151] uppercase tracking-wider">
-                                              <div className="w-1.5 h-1.5 rounded-full bg-[#FF8A75]" />
+                                         <div key={i} className="flex items-center gap-2 text-[10px] font-bold text-[#374151] uppercase tracking-wider">
+                                              <div className="w-1 h-1 rounded-full bg-[#FF8A75]" />
                                               {f}
                                          </div>
                                      ))}
                                  </div>
                              </div>
-                             <div className="space-y-6">
-                                 <h4 className="text-[10px] font-black text-[#FF8A75] uppercase tracking-[0.3em]">Why This Plan</h4>
-                                 <p className="text-xs font-medium italic leading-relaxed">{currentMeta?.solution}</p>
+                             <div className="space-y-2">
+                                 <h4 className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.2em]">Methodology</h4>
+                                 <p className="text-[11px] font-medium leading-relaxed">{currentMeta?.solution}</p>
                              </div>
                         </div>
 
-                        <div className="mt-auto grid grid-cols-2 gap-4">
+                        <div className="mt-auto grid grid-cols-2 gap-3">
                              {currentMeta?.journey.map((step: any, i: number) => (
-                                 <div key={i} className="flex items-start gap-4 p-5 rounded-2xl bg-[#FFFAF7]/40 border border-[#FF8A75]/10">
-                                     <div className="p-2.5 rounded-xl bg-[#FF8A75] text-white">
-                                         <step.icon className="w-3.5 h-3.5" />
+                                 <div key={i} className="flex items-start gap-3 p-4 rounded-xl bg-[#FFFAF7]/40 border border-[#FF8A75]/10">
+                                     <div className="p-2 rounded-lg bg-[#FF8A75] text-white flex-shrink-0">
+                                         <step.icon className="w-3 h-3" />
                                      </div>
                                      <div>
-                                         <div className="text-[11px] font-bold leading-none mb-1">{step.title}</div>
-                                         <div className="text-[8px] text-[#1a1a1a]/70 font-medium italic">{step.desc}</div>
+                                         <div className="text-[10px] font-bold leading-none mb-0.5">{step.title}</div>
+                                         <div className="text-[8px] text-[#1a1a1a]/70 font-medium">{step.desc}</div>
                                      </div>
                                  </div>
                              ))}
                         </div>
                     </div>
 
-                    <div className={`col-span-2 p-7 rounded-3xl flex flex-col gap-5 ${cardBg} bg-[#FFFAF7]/60`}>
-                         <h4 className="text-[10px] font-black text-[#FF8A75] uppercase tracking-[0.3em]">What You Get</h4>
-                         <div className="flex items-center justify-between gap-4">
+                    <div className={`p-5 rounded-2xl flex flex-col gap-3 ${cardBg} bg-[#FFFAF7]/60 flex-shrink-0`}>
+                         <h4 className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.2em]">Dashboard Experience</h4>
+                         <div className="flex items-center justify-between gap-3">
                              {currentMeta?.dashboard.map((d: string, i: number) => (
-                                 <div key={i} className="flex flex-col items-center gap-3 text-center p-4 rounded-3xl bg-white border border-[#FF8A75]/10 flex-1">
-                                     <div className="w-1.5 h-1.5 rounded-full bg-[#FF8A75]" />
+                                 <div key={i} className="flex flex-col items-center gap-2 text-center p-3 rounded-xl bg-white border border-[#FF8A75]/10 flex-1">
+                                     <div className="w-1 h-1 rounded-full bg-[#FF8A75]" />
                                      <span className="text-[8px] font-black leading-tight uppercase text-[#6B7280] tracking-widest">{d}</span>
                                  </div>
                              ))}
@@ -309,81 +323,85 @@ export default function PlansClient({ currentSubscription, userId, currentUser }
 
                 {/* Panel 3: Membership & Checkout */}
                 <div className="col-span-3 flex flex-col gap-4 h-full overflow-hidden">
-                    <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-hide py-2">
-                         <h3 className="text-[10px] font-black text-[#FF8A75] uppercase tracking-[0.3em] px-4 mb-2">Memberships</h3>
+                    <div className="flex-1 overflow-y-auto space-y-2 pr-2 scrollbar-hide py-1">
+                         <h3 className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.2em] px-2 mb-1">Memberships</h3>
                          {currentPlan.tiers.map((tier) => (
                              <button
                                  key={tier.id}
                                  onClick={() => setSelectedTierId(tier.id)}
                                  className={`
-                                     w-full p-6 rounded-[2rem] text-left transition-all border-2 relative
+                                     w-full p-4 rounded-xl text-left transition-all border-2 relative
                                      ${selectedTierId === tier.id 
-                                         ? 'border-[#FF8A75] bg-white ring-4 ring-[#FF8A75]/5' 
+                                         ? 'border-[#FF8A75] bg-white ring-2 ring-[#FF8A75]/5' 
                                          : 'bg-white border-[#FF8A75]/10 hover:border-[#FF8A75]/30'}
                                  `}
                              >
-                                 <div className="flex justify-between items-center">
-                                     <div>
-                                         <h5 className="font-bold text-sm tracking-tight text-[#1a1a1a]">{tier.label}</h5>
+                                 <div className="flex justify-between items-center gap-2">
+                                     <div className="min-w-0">
+                                         <h5 className="font-bold text-xs tracking-tight text-[#1a1a1a] truncate">{tier.label}</h5>
                                          {tier.badge && (
-                                            <span className="text-[8px] font-black text-[#FF8A75] uppercase italic tracking-widest">{tier.badge}</span>
+                                            <span className="text-[7px] font-black text-[#FF8A75] uppercase tracking-widest">{tier.badge}</span>
                                          )}
                                      </div>
-                                     <div className="text-right">
+                                     <div className="text-right flex-shrink-0">
                                          {tier.originalPrice && (
-                                             <span className="text-[9px] text-[#FF8A75]/40 line-through font-bold block mb-1">₹{tier.originalPrice}</span>
+                                             <span className="text-[8px] text-[#FF8A75]/40 line-through font-bold block mb-0.5">₹{tier.originalPrice}</span>
                                          )}
-                                         <span className={`text-xl font-serif italic font-bold ${selectedTierId === tier.id ? 'text-[#FF8A75]' : 'text-[#1a1a1a]'}`}>₹{tier.discountedPrice}</span>
+                                         <span className={`text-lg font-bold ${selectedTierId === tier.id ? 'text-[#FF8A75]' : 'text-[#1a1a1a]'}`}>₹{tier.discountedPrice}</span>
                                      </div>
                                  </div>
-                                 {selectedTierId === tier.id && (
-                                     <div className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#FF8A75] rounded-full flex items-center justify-center text-white">
-                                         <Check className="w-3.5 h-3.5" strokeWidth={3} />
-                                     </div>
-                                 )}
                              </button>
                          ))}
                     </div>
 
-                    <div className={`p-8 rounded-[2.5rem] border border-[#FF8A75]/20 bg-white space-y-6`}>
+                    <div className={`p-6 rounded-2xl border border-[#FF8A75]/20 bg-white space-y-4 flex-shrink-0`}>
                         <div className="flex items-center justify-between">
                             <div>
-                                <div className="text-[8px] font-black text-[#FF8A75] uppercase tracking-[0.3em] mb-1">Plan Price</div>
-                                <div className="text-4xl font-serif italic font-bold text-[#1a1a1a]">₹{currentTier.discountedPrice}</div>
+                                <div className="text-[7px] font-black text-[#FF8A75] uppercase tracking-[0.2em] mb-0.5">Total Price</div>
+                                <div className="text-2xl font-bold text-[#1a1a1a]">₹{currentTier.discountedPrice}</div>
                             </div>
-                            <div className="p-4 rounded-2xl bg-[#FF8A75]/5 text-[#FF8A75] border border-[#FF8A75]/10">
-                                <Heart className="w-6 h-6 fill-current" />
+                            <div className="p-3 rounded-xl bg-[#FF8A75]/5 text-[#FF8A75] border border-[#FF8A75]/10">
+                                <Heart className="w-4 h-4 fill-current" />
                             </div>
                         </div>
-                        <button
-                            onClick={() => handlePay(false)}
-                            disabled={loading}
-                            className="w-full py-5 bg-[#FF8A75] hover:bg-[#ff4081] text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
-                        >
-                            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
-                                <>
-                                    Subscribe Now <MoveRight className="w-4 h-4" />
-                                </>
+                        <div className="space-y-2">
+                            <button
+                                onClick={() => handlePay(false)}
+                                disabled={loading}
+                                className="w-full py-3.5 bg-[#FF8A75] hover:bg-[#ff4081] text-white rounded-xl font-black text-[10px] uppercase tracking-[0.1em] transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-[#FF8A75]/20"
+                            >
+                                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+                                    <>Subscribe Now <MoveRight className="w-4 h-4" /></>
+                                )}
+                            </button>
+
+                            {!hasUsedTrial && (
+                                <button
+                                    onClick={handleStartTrial}
+                                    disabled={loading || isStartingTrial}
+                                    className="w-full py-3 bg-white border-2 border-[#1a1a1a]/10 hover:border-[#1a1a1a]/30 text-[#1a1a1a] rounded-xl font-black text-[9px] uppercase tracking-[0.1em] transition-all flex items-center justify-center gap-2 group"
+                                >
+                                    {isStartingTrial ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+                                        <>Try it for free <Sparkles className="w-3 h-3 text-[#FF8A75] group-hover:scale-125 transition-transform" /></>
+                                    )}
+                                </button>
                             )}
-                        </button>
-                        <p className="text-[9px] text-[#6B7280] text-center font-bold px-6 italic leading-relaxed">
-                            Natural results, no needles. Just face yoga that works.
-                        </p>
+                        </div>
                     </div>
                 </div>
             </div>
 
             {/* Mobile Professional Layout */}
             <div className="lg:hidden flex flex-col h-screen overflow-hidden bg-white">
-                <header className={`p-6 pt-14 flex-shrink-0 border-b bg-white`}>
-                     <h1 className="text-3xl font-semibold italic font-serif leading-none tracking-tight text-[#1a1a1a]">Choose Your Plan</h1>
-                     <div className="flex gap-2 mt-5 overflow-x-auto pb-2 scrollbar-hide">
+                <header className={`p-5 pt-12 flex-shrink-0 border-b bg-white`}>
+                     <h1 className="text-2xl font-bold leading-none tracking-tight text-[#1a1a1a]">Choose Your Plan</h1>
+                     <div className="flex gap-2 mt-4 overflow-x-auto pb-1 scrollbar-hide">
                          {PLANS_DATA.map((plan) => (
                              <button
                                  key={plan.id}
                                  onClick={() => setSelectedPlanId(plan.id)}
                                  className={`
-                                     px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] whitespace-nowrap transition-all border
+                                     px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-[0.1em] whitespace-nowrap transition-all border
                                      ${selectedPlanId === plan.id 
                                         ? 'bg-[#FF8A75] text-white border-transparent' 
                                         : 'bg-[#FFFAF7] text-[#6B7280] border-[#FF8A75]/10'}
@@ -395,46 +413,46 @@ export default function PlansClient({ currentSubscription, userId, currentUser }
                      </div>
                 </header>
 
-                <div className="flex-1 overflow-y-auto p-4 space-y-5 bg-[#FFFAF7]/60">
-                     <div className={`flex rounded-xl p-1 bg-white border border-[#FF8A75]/10`}>
+                <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#FFFAF7]/60">
+                     <div className={`flex rounded-lg p-0.5 bg-white border border-[#FF8A75]/10`}>
                          <button 
                             onClick={() => setMobileTab('data')}
-                            className={`flex-1 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${mobileTab === 'data' ? 'bg-[#FF8A75]/5 text-[#FF8A75]' : 'text-[#6B7280]'}`}
+                            className={`flex-1 py-2.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all ${mobileTab === 'data' ? 'bg-[#FF8A75]/5 text-[#FF8A75]' : 'text-[#6B7280]'}`}
                          >
                              Details
                          </button>
                          <button 
                             onClick={() => setMobileTab('pricing')}
-                            className={`flex-1 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${mobileTab === 'pricing' ? 'bg-[#FF8A75]/5 text-[#FF8A75]' : 'text-[#6B7280]'}`}
+                            className={`flex-1 py-2.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all ${mobileTab === 'pricing' ? 'bg-[#FF8A75]/5 text-[#FF8A75]' : 'text-[#6B7280]'}`}
                          >
                              Plans
                          </button>
                      </div>
 
                      {mobileTab === 'data' ? (
-                         <div className="space-y-4">
-                             <div className={`p-7 rounded-[2rem] space-y-4 bg-white border border-[#FF8A75]/10`}>
-                                 <h3 className="text-xl font-bold italic leading-none tracking-tight text-[#1a1a1a]">{currentPlan.title}</h3>
-                                 <p className="text-[#FF8A75] text-[10px] font-black uppercase tracking-widest">{currentPlan.subtitle}</p>
-                                 <p className="text-[13px] font-medium text-[#6B7280] italic leading-relaxed">{currentMeta?.solution}</p>
+                         <div className="space-y-3">
+                             <div className={`p-6 rounded-2xl space-y-3 bg-white border border-[#FF8A75]/10`}>
+                                 <h3 className="text-lg font-bold leading-none tracking-tight text-[#1a1a1a]">{currentPlan.title}</h3>
+                                 <p className="text-[#FF8A75] text-[9px] font-black uppercase tracking-widest">{currentPlan.subtitle}</p>
+                                 <p className="text-[12px] font-medium text-[#6B7280] leading-relaxed">{currentMeta?.solution}</p>
                              </div>
-                             <div className="grid grid-cols-2 gap-4">
-                                 <div className={`p-6 rounded-[2rem] space-y-5 bg-[#FF8A75] text-white border border-[#FF8A75]/20`}>
-                                     <h4 className="text-[10px] font-black uppercase tracking-widest text-white/80">How It Works</h4>
-                                     <div className="space-y-4">
+                             <div className="grid grid-cols-2 gap-3">
+                                 <div className={`p-5 rounded-2xl space-y-4 bg-[#FF8A75] text-white border border-[#FF8A75]/20`}>
+                                     <h4 className="text-[9px] font-black uppercase tracking-widest text-white/80">How It Works</h4>
+                                     <div className="space-y-3">
                                          {currentMeta?.journey.map((step: any, i: number) => (
-                                             <div key={i} className="flex flex-col gap-1">
-                                                 <div className="text-[10px] font-bold leading-none">{step.title}</div>
-                                                 <div className="text-[8px] text-white/70 font-medium italic">{step.desc}</div>
+                                             <div key={i} className="flex flex-col gap-0.5">
+                                                 <div className="text-[9px] font-bold leading-none">{step.title}</div>
+                                                 <div className="text-[7px] text-white/70 font-medium">{step.desc}</div>
                                              </div>
                                          ))}
                                      </div>
                                  </div>
-                                 <div className={`p-6 rounded-[2rem] space-y-5 bg-white border border-[#FF8A75]/10`}>
-                                     <h4 className="text-[10px] font-black text-[#FF8A75] uppercase tracking-widest">Focus</h4>
-                                     <div className="space-y-3">
+                                 <div className={`p-5 rounded-2xl space-y-3 bg-white border border-[#FF8A75]/10`}>
+                                     <h4 className="text-[9px] font-black text-[#FF8A75] uppercase tracking-widest">Focus</h4>
+                                     <div className="space-y-2">
                                          {currentMeta?.workOn.slice(0, 4).map((f: string, i: number) => (
-                                             <div key={i} className="flex items-center gap-2 text-[8px] font-black text-[#374151] uppercase">
+                                             <div key={i} className="flex items-center gap-2 text-[7px] font-black text-[#374151] uppercase">
                                                  <div className="w-1 h-1 rounded-full bg-[#FF8A75]" />
                                                  {f}
                                              </div>
@@ -444,23 +462,23 @@ export default function PlansClient({ currentSubscription, userId, currentUser }
                              </div>
                          </div>
                      ) : (
-                         <div className="space-y-3 pb-10">
+                         <div className="space-y-2 pb-20">
                              {currentPlan.tiers.map((tier) => (
                                  <button
                                      key={tier.id}
                                      onClick={() => setSelectedTierId(tier.id)}
                                      className={`
-                                         w-full p-6 rounded-[2rem] text-left transition-all border flex items-center justify-between
-                                         ${selectedTierId === tier.id ? 'border-[#FF8A75] bg-white ring-2 ring-[#FF8A75]/5' : 'bg-white border-[#FF8A75]/10'}
+                                         w-full p-5 rounded-2xl text-left transition-all border flex items-center justify-between
+                                         ${selectedTierId === tier.id ? 'border-[#FF8A75] bg-white ring-1 ring-[#FF8A75]/5' : 'bg-white border-[#FF8A75]/10'}
                                      `}
                                  >
                                      <div className="flex-1">
-                                         <h5 className="font-bold text-xs tracking-tight text-[#1a1a1a]">{tier.label}</h5>
-                                         {tier.badge && <span className="text-[8px] font-black text-[#FF8A75] uppercase italic tracking-widest">{tier.badge}</span>}
+                                         <h5 className="font-bold text-[11px] tracking-tight text-[#1a1a1a]">{tier.label}</h5>
+                                         {tier.badge && <span className="text-[7px] font-black text-[#FF8A75] uppercase tracking-widest">{tier.badge}</span>}
                                      </div>
                                      <div className="text-right">
-                                         {tier.originalPrice && <span className="text-[10px] text-[#FF8A75]/40 line-through font-bold block mb-0.5">₹{tier.originalPrice}</span>}
-                                         <span className="text-xl font-serif italic font-bold text-[#FF8A75]">₹{tier.discountedPrice}</span>
+                                         {tier.originalPrice && <span className="text-[9px] text-[#FF8A75]/40 line-through font-bold block mb-0.5">₹{tier.originalPrice}</span>}
+                                         <span className="text-lg font-bold text-[#FF8A75]">₹{tier.discountedPrice}</span>
                                      </div>
                                  </button>
                              ))}
@@ -468,28 +486,171 @@ export default function PlansClient({ currentSubscription, userId, currentUser }
                      )}
                 </div>
 
-                <div className={`p-6 pb-10 flex-shrink-0 bg-white border-t flex flex-col gap-4`}>
-                    <button
-                        onClick={() => handlePay(false)}
-                        disabled={loading}
-                        className="w-full py-5 bg-[#FF8A75] text-white rounded-2xl flex items-center justify-between px-8 active:scale-95 transition-all disabled:opacity-50"
-                    >
-                        <div className="text-left">
-                            <span className="text-[9px] font-black text-white/70 uppercase block leading-none mb-1 tracking-widest">Subscribe Now</span>
-                            <span className="text-2xl font-serif italic font-bold">₹{currentTier.discountedPrice}</span>
+                {/* Mobile Fixed Bottom Cart */}
+                <div className="mt-auto p-4 border-t bg-white/80 backdrop-blur-xl space-y-2">
+                    <div className="flex items-center justify-between mb-1">
+                        <div>
+                            <span className="text-[7px] font-black text-[#FF8A75] uppercase tracking-widest">Selected Tier</span>
+                            <p className="text-[10px] font-bold text-[#1a1a1a]">{currentTier.label}</p>
                         </div>
-                        <div className="bg-white/20 p-2.5 rounded-full">
-                            <MoveRight className="w-6 h-6" />
+                        <div className="text-right">
+                             <span className="text-[7px] font-black text-[#6B7280] uppercase tracking-widest">Total</span>
+                             <p className="text-lg font-bold text-[#FF8A75]">₹{currentTier.discountedPrice}</p>
                         </div>
-                    </button>
-                    <button 
-                        onClick={() => handlePay(true)}
-                        className="text-[10px] font-black text-[#FF8A75] uppercase tracking-[0.3em] text-center italic"
-                    >
-                        Start 2-Day Free Trial →
-                    </button>
+                    </div>
+                    
+                    <div className="space-y-1.5">
+                        <button 
+                            onClick={() => handlePay(false)}
+                            className="w-full bg-[#FF8A75] text-white py-3.5 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-[#FF8A75]/10"
+                        >
+                            Subscribe Now <MoveRight className="w-3 h-3" />
+                        </button>
+
+                        {!hasUsedTrial && (
+                            <button
+                                onClick={handleStartTrial}
+                                disabled={loading || isStartingTrial}
+                                className="w-full py-2.5 bg-white border border-[#1a1a1a]/10 text-[#1a1a1a] rounded-xl font-black text-[8px] uppercase tracking-widest flex items-center justify-center gap-2"
+                            >
+                                {isStartingTrial ? <Loader2 className="w-3 h-3 animate-spin" /> : (
+                                    <>Try it for free <Sparkles className="w-3 h-3 text-[#FF8A75]" /></>
+                                )}
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
+
+            {/* Checkout Overlay Modal */}
+            {showCheckout && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-md transition-all" onClick={() => setShowCheckout(false)} />
+                    <div className="relative bg-[#FFFAF7] w-full max-w-lg rounded-[3rem] border border-[#FF8A75]/30 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+                        {/* Header */}
+                        <div className="p-8 pb-0 flex justify-between items-start">
+                            <div>
+                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">Your Ritual</span>
+                                <h2 className="text-3xl font-bold text-[#1a1a1a]">Checkout</h2>
+                            </div>
+                            <button onClick={() => setShowCheckout(false)} className="p-2 hover:bg-[#FF8A75]/10 rounded-full transition-colors text-[#6B7280]">
+                                <XCircle className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto scrollbar-hide">
+                            {/* Selected Plan Summary */}
+                            <div className="p-5 rounded-3xl bg-white border border-[#FF8A75]/10 flex justify-between items-center">
+                                <div>
+                                    <p className="text-[10px] font-black uppercase text-[#6B7280] tracking-widest">{currentPlan.title}</p>
+                                    <p className="text-sm font-bold text-[#1a1a1a]">{currentTier.label}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-lg font-bold text-[#FF8A75]">₹{currentTier.discountedPrice}</p>
+                                </div>
+                            </div>
+
+                            {/* Order Bumps Section */}
+                            {currentBumps.length > 0 && (
+                                <div className="space-y-4">
+                                    <h4 className="text-[11px] font-black uppercase tracking-widest text-[#1a1a1a] px-2 flex items-center gap-2">
+                                        <Sparkles className="w-4 h-4 text-[#FF8A75]" /> Exclusive Upgrades
+                                    </h4>
+                                    <div className="space-y-3">
+                                        {currentBumps.map((bump: any) => (
+                                            <button 
+                                                key={bump.id}
+                                                onClick={() => {
+                                                    setSelectedBumps(prev => 
+                                                        prev.includes(bump.id) ? prev.filter(id => id !== bump.id) : [...prev, bump.id]
+                                                    );
+                                                }}
+                                                className={`
+                                                    w-full p-5 rounded-3xl text-left border-2 transition-all relative group
+                                                    ${selectedBumps.includes(bump.id) ? 'bg-[#FF8A75]/5 border-[#FF8A75]' : 'bg-white border-[#FF8A75]/10 hover:border-[#FF8A75]/30'}
+                                                `}
+                                            >
+                                                <div className="flex gap-4">
+                                                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 transition-colors ${selectedBumps.includes(bump.id) ? 'bg-[#FF8A75] text-white' : 'bg-[#FF8A75]/8 text-[#FF8A75]'}`}>
+                                                        <bump.icon className="w-4 h-4" />
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <div className="flex justify-between items-start">
+                                                            <h5 className="text-[11px] font-black uppercase tracking-widest text-[#1a1a1a] mb-1">{bump.title}</h5>
+                                                            {selectedBumps.includes(bump.id) ? <CheckCircle2 className="w-4 h-4 text-[#FF8A75]" /> : <div className="w-4 h-4 border-2 border-[#FF8A75]/30 rounded-full" />}
+                                                        </div>
+                                                        <p className="text-[10px] text-[#6B7280] font-medium leading-relaxed mb-2 line-clamp-2">{bump.desc}</p>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[11px] font-bold text-[#FF8A75]">Add for ₹{bump.discountedPrice}</span>
+                                                            <span className="text-[9px] text-[#FF8A75]/40 line-through">₹{bump.originalPrice}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Coupon Code */}
+                            <div className="space-y-3">
+                                <h4 className="text-[11px] font-black uppercase tracking-widest text-[#1a1a1a] px-2">Apply Promo Code</h4>
+                                <div className="flex gap-2">
+                                    <div className="relative flex-1">
+                                        <Tag className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7280]" />
+                                        <input 
+                                            type="text" 
+                                            placeholder="ENTER CODE" 
+                                            value={couponCode}
+                                            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                            className="w-full bg-white border border-[#FF8A75]/10 rounded-2xl py-4 pl-12 pr-4 text-[10px] font-black tracking-widest focus:outline-none focus:ring-2 focus:ring-[#FF8A75]/20"
+                                        />
+                                    </div>
+                                    <button 
+                                        onClick={applyCoupon}
+                                        disabled={verifyingCoupon || !couponCode}
+                                        className="px-6 py-4 bg-[#1a1a1a] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all disabled:opacity-50"
+                                    >
+                                        {verifyingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Apply'}
+                                    </button>
+                                </div>
+                                {appliedCoupon && (
+                                    <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl text-[10px] font-bold">
+                                        <CheckCircle2 className="w-3 h-3" />
+                                        Code {appliedCoupon.code} applied! (-{appliedCoupon.discount_type === 'percentage' ? `${appliedCoupon.discount_value}%` : `₹${appliedCoupon.discount_value}`})
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Footer / Total */}
+                        <div className="p-8 pt-6 bg-white border-t border-[#FF8A75]/10 space-y-4">
+                            <div className="flex justify-between items-end">
+                                <div>
+                                    <p className="text-[10px] font-black text-[#6B7280] uppercase tracking-widest mb-1">Final Amount</p>
+                                    <h3 className="text-4xl font-bold text-[#1a1a1a]">₹{calculateTotal()}</h3>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Secure Checkout</p>
+                                    <div className="flex items-center gap-1 mt-1">
+                                        <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                                        <span className="text-[8px] font-medium text-[#6B7280]">256-bit Encryption</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button
+                                onClick={handleProceed}
+                                disabled={loading}
+                                className="w-full py-5 bg-[#FF8A75] hover:bg-[#ff705a] text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-lg shadow-[#FF8A75]/20"
+                            >
+                                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                                    <>Complete Payment <MoveRight className="w-5 h-5" /></>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             
             <style jsx global>{`
                 .scrollbar-hide::-webkit-scrollbar {

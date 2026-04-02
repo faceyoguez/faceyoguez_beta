@@ -24,26 +24,6 @@ export const PLANS_DATA = [
         ]
     },
     {
-        id: 'lms',
-        title: 'Self-Paced Video Courses',
-        subtitle: 'Learn face yoga at your own pace — lifetime access',
-        icon: BookOpen,
-        color: 'indigo',
-        note: 'Best for self-learners',
-        hasTrial: true,
-        tiers: [
-            { id: 'level_1', label: 'Level 1', originalPrice: 1999, discountedPrice: 999, note: '50% OFF' },
-            { id: 'level_1_2', label: 'Level 1 + 2', originalPrice: 3999, discountedPrice: 1499, badge: 'MASTER PACK', note: '62.5% OFF' }
-        ],
-        features: [
-            'Lifetime Content Access',
-            'Step-by-Step Video Modules',
-            'Downloadable Face Maps',
-            'Bonus: Lymphatic Drainage Guide',
-            'Community Forum Access'
-        ]
-    },
-    {
         id: 'group_session',
         title: 'Group Face Yoga Classes',
         subtitle: '21-day live group classes — practise daily with your batch',
@@ -63,6 +43,26 @@ export const PLANS_DATA = [
             'Community Accountability',
             'Session Recordings Access',
             'Group Support & Motivation'
+        ]
+    },
+    {
+        id: 'lms',
+        title: 'Self-Paced Video Courses',
+        subtitle: 'Learn face yoga at your own pace — lifetime access',
+        icon: BookOpen,
+        color: 'indigo',
+        note: 'Best for self-learners',
+        hasTrial: true,
+        tiers: [
+            { id: 'level_1', label: 'Level 1', originalPrice: 1999, discountedPrice: 999, note: '50% OFF' },
+            { id: 'level_1_2', label: 'Level 1 + 2', originalPrice: 3999, discountedPrice: 1499, badge: 'MASTER PACK', note: '62.5% OFF' }
+        ],
+        features: [
+            'Lifetime Content Access',
+            'Step-by-Step Video Modules',
+            'Downloadable Face Maps',
+            'Bonus: Lymphatic Drainage Guide',
+            'Community Forum Access'
         ]
     }
 ];

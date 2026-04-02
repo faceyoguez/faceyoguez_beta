@@ -1,17 +1,12 @@
 import type { Metadata } from 'next';
-import { DM_Sans, Playfair_Display } from 'next/font/google';
+import { Rubik } from 'next/font/google';
 import './globals.css';
 
-const dmSans = DM_Sans({
+const rubik = Rubik({
   subsets: ['latin'],
-  variable: '--font-dm-sans',
+  variable: '--font-rubik',
   display: 'swap',
-});
-
-const playfair = Playfair_Display({
-  subsets: ['latin'],
-  variable: '--font-playfair',
-  display: 'swap',
+  weight: ['300', '400', '500', '600', '700', '800', '900'],
 });
 
 import { ThemeProvider } from '@/components/theme-provider';
@@ -43,7 +38,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${dmSans.variable} ${playfair.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${rubik.variable}`}>
       <body className="antialiased font-sans text-foreground bg-background relative overflow-x-hidden">
         {/* Randomized Background Motion (Global) */}
         <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">

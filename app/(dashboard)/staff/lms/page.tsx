@@ -29,10 +29,10 @@ export default async function StaffLMSPage() {
             <ShieldCheck className="w-3 h-3" />
             Course Manager
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-gradient-zen tracking-tight">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gradient-zen tracking-tight">
             Manage Courses
           </h1>
-          <p className="text-lg text-foreground/60 italic font-medium max-w-lg">
+          <p className="text-lg text-foreground/60 font-medium max-w-lg">
             Add, edit, and organise course content for students.
           </p>
         </div>

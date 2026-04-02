@@ -112,14 +112,14 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                     </div>
                     <div>
                         <div className="flex items-center gap-3">
-                            <h1 className="text-2xl font-serif font-black text-foreground tracking-tight italic">
+                            <h1 className="text-2xl font-bold text-foreground tracking-tight">
                                 {title}
                             </h1>
                             <span className="px-3 py-0.5 rounded-full bg-primary/10 text-primary text-[9px] font-black uppercase tracking-widest border border-primary/20">
                                 {badge}
                             </span>
                         </div>
-                        <p className="text-[11px] font-medium text-foreground/40 italic tracking-wide">
+                        <p className="text-[11px] font-medium text-foreground/40 tracking-wide">
                             {subtitle}
                         </p>
                     </div>
@@ -180,7 +180,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
 
                         {targetAudience === 'group_session' && batches.length > 0 && (
                             <div className="pt-4 border-t border-primary/5 animate-in slide-in-from-top-4">
-                                <label className="mb-3 block text-[9px] font-bold uppercase tracking-widest text-primary/40 italic">
+                                <label className="mb-3 block text-[9px] font-bold uppercase tracking-widest text-primary/40">
                                     Specific Collective Path
                                 </label>
                                 <select
@@ -223,7 +223,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                             )}
                             <div className="text-center">
                                 <p className="text-[10px] font-bold text-foreground uppercase tracking-widest">{uploading ? 'Transmitting' : 'Add Resource'}</p>
-                                <p className="text-[8px] font-medium text-foreground/20 italic">PDF, PNG, JPG (50MB)</p>
+                                <p className="text-[8px] font-medium text-foreground/20">PDF, PNG, JPG (50MB)</p>
                             </div>
                         </button>
                     </div>
@@ -242,8 +242,8 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                                     <Zap className="h-7 w-7" />
                                 </div>
                                 <div>
-                                    <h2 className="text-2xl font-serif font-black text-foreground italic">Manifest Intent</h2>
-                                    <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-primary italic">Channeling to {targetAudience.replace('_', ' ')}</p>
+                                    <h2 className="text-2xl font-bold text-foreground">Manifest Intent</h2>
+                                    <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-primary">Channeling to {targetAudience.replace('_', ' ')}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
@@ -259,7 +259,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                                     value={broadcastTitle}
                                     onChange={(e) => setBroadcastTitle(e.target.value)}
                                     placeholder="Enter Wisdom Subject..."
-                                    className="w-full text-4xl font-serif font-black text-foreground placeholder:text-foreground/5 bg-transparent outline-none italic tracking-tight border-b-2 border-transparent focus:border-primary/10 pb-4 transition-all"
+                                    className="w-full text-4xl font-bold text-foreground placeholder:text-foreground/5 bg-transparent outline-none tracking-tight border-b-2 border-transparent focus:border-primary/10 pb-4 transition-all"
                                 />
                             </div>
 
@@ -268,7 +268,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                                     value={content}
                                     onChange={(e) => setContent(e.target.value)}
                                     placeholder="Unfold your message here... The collective is listening."
-                                    className="w-full h-full resize-none text-xl font-medium text-foreground/70 placeholder:text-foreground/5 bg-transparent outline-none italic leading-relaxed custom-scrollbar"
+                                    className="w-full h-full resize-none text-xl font-medium text-foreground/70 placeholder:text-foreground/5 bg-transparent outline-none leading-relaxed custom-scrollbar"
                                 />
                             </div>
 
@@ -281,7 +281,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                                             </div>
                                             <div className="text-[11px] font-bold text-foreground">
                                                 <p className="line-clamp-1">{fileName}</p>
-                                                <p className="text-[9px] text-primary uppercase italic">Resource Bound</p>
+                                                <p className="text-[9px] text-primary uppercase">Resource Bound</p>
                                             </div>
                                         </div>
                                         <button onClick={() => {setFileUrl(''); setFileName('');}} className="h-8 w-8 rounded-full hover:bg-white text-foreground/20 hover:text-rose-500 transition-colors">
@@ -295,7 +295,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                         <div className="px-10 py-10 bg-foreground shrink-0 flex items-center justify-between group/footer">
                             <div className="flex items-center gap-4">
                                 <Sparkles className="h-5 w-5 text-background/20" />
-                                <p className="text-[10px] font-medium text-background/30 italic tracking-widest uppercase">Wisdom will be preserved in student archives.</p>
+                                <p className="text-[10px] font-medium text-background/30 tracking-widest uppercase">Wisdom will be preserved in student archives.</p>
                             </div>
                             <button
                                 onClick={handleSendBroadcast}
@@ -317,7 +317,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                         <div className="p-6 border-b border-primary/5 shrink-0 flex items-center justify-between">
                             <div>
                                 <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/30">Past Broadcasts</h3>
-                                <p className="text-lg font-serif font-bold text-foreground italic">Chronicles</p>
+                                <p className="text-lg font-bold text-foreground">Chronicles</p>
                             </div>
                             <History className="h-5 w-5 text-primary/20" />
                         </div>
@@ -326,18 +326,18 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                             {initialBroadcasts.length === 0 ? (
                                 <div className="h-full flex flex-col items-center justify-center text-center p-10 opacity-20 bg-[radial-gradient(circle_at_center,rgba(0,0,0,0.02)_0,transparent_70%)]">
                                     <History className="h-12 w-12 mb-4" />
-                                    <p className="text-xs font-bold italic">The path is clear...</p>
+                                    <p className="text-xs font-bold">The path is clear...</p>
                                 </div>
                             ) : (
                                 initialBroadcasts.map((bc) => (
                                     <div key={bc.id} className="p-5 rounded-2xl bg-white border border-primary/5 hover:border-primary/20 shadow-sm transition-all hover:-translate-y-1 group/item">
                                         <div className="flex items-start justify-between gap-3 mb-2">
                                             <h4 className="text-[13px] font-black text-foreground leading-tight line-clamp-1 group-hover/item:text-primary transition-colors">{bc.title}</h4>
-                                            <span className="shrink-0 text-[8px] font-black text-primary/30 uppercase italic">
+                                            <span className="shrink-0 text-[8px] font-black text-primary/30 uppercase">
                                                 {new Date(bc.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                                             </span>
                                         </div>
-                                        <p className="text-[11px] text-foreground/40 line-clamp-2 italic mb-4 leading-relaxed">{bc.content}</p>
+                                        <p className="text-[11px] text-foreground/40 line-clamp-2 mb-4 leading-relaxed">{bc.content}</p>
                                         <div className="flex items-center justify-between">
                                             <span className="text-[8px] font-black uppercase tracking-widest text-foreground/20 border border-foreground/5 px-2 py-0.5 rounded-full">
                                                 {bc.target_audience.replace('_', ' ')}

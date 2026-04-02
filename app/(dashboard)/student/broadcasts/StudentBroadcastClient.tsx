@@ -24,10 +24,10 @@ export function StudentBroadcastClient({ currentUser, notifications }: StudentBr
                         <Megaphone className="w-3 h-3" />
                         Announcements
                     </div>
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold text-gradient-zen tracking-tight">
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gradient-zen tracking-tight">
                         Instructor Broadcasts
                     </h1>
-                    <p className="text-lg text-foreground/60 italic font-medium max-w-lg">
+                    <p className="text-lg text-foreground/60 font-medium max-w-lg">
                         Updates and announcements from your instructors.
                     </p>
                 </div>
@@ -41,8 +41,8 @@ export function StudentBroadcastClient({ currentUser, notifications }: StudentBr
                 {notifications.length === 0 ? (
                     <div className="flex h-[400px] flex-col items-center justify-center rounded-[3rem] liquid-glass border border-outline-variant/10 shadow-sm bg-white/40">
                         <Sparkles className="mb-6 h-16 w-16 text-primary/10 animate-pulse" />
-                        <h3 className="text-xl font-serif font-bold text-foreground">Perfect Stillness</h3>
-                        <p className="mt-2 text-sm text-foreground/40 font-medium italic">No new announcements yet.</p>
+                        <h3 className="text-xl font-bold text-foreground">Perfect Stillness</h3>
+                        <p className="mt-2 text-sm text-foreground/40 font-medium">No new announcements yet.</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
@@ -89,17 +89,17 @@ export function StudentBroadcastClient({ currentUser, notifications }: StudentBr
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-[9px] font-black text-foreground/20 uppercase tracking-[0.2em] italic">
+                                                <p className="text-[9px] font-black text-foreground/20 uppercase tracking-[0.2em]">
                                                     {new Date(notif.created_at).toLocaleDateString()}
                                                 </p>
-                                                <p className="text-[9px] font-black text-foreground/10 uppercase tracking-[0.2em] italic mt-1">
+                                                <p className="text-[9px] font-black text-foreground/10 uppercase tracking-[0.2em] mt-1">
                                                     {new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                 </p>
                                             </div>
                                         </div>
 
                                         <div className="space-y-4 mb-8">
-                                            <h3 className="text-xl font-serif font-bold text-foreground leading-tight italic">"{notif.title}"</h3>
+                                            <h3 className="text-xl font-bold text-foreground leading-tight">"{notif.title}"</h3>
                                             <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/60 font-medium font-sans">
                                                 {notif.message}
                                             </p>
@@ -115,7 +115,7 @@ export function StudentBroadcastClient({ currentUser, notifications }: StudentBr
                                                     </div>
                                                     <div className="min-w-0">
                                                         <p className="truncate text-[10px] font-black uppercase tracking-tight text-foreground">{broadcast.file_name || 'Attachment'}</p>
-                                                        <p className="text-[8px] font-black text-foreground/20 uppercase tracking-widest italic mt-0.5">Manifest to view</p>
+                                                        <p className="text-[8px] font-black text-foreground/20 uppercase tracking-widest mt-0.5">Manifest to view</p>
                                                     </div>
                                                 </div>
                                                 <a

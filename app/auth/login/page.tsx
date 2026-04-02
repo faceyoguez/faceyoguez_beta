@@ -43,13 +43,13 @@ export default function LoginPage() {
         <div className="relative w-full max-w-sm space-y-4">
           <div className="rounded-[2.5rem] bg-white/60 backdrop-blur-3xl border border-white/80 shadow-2xl p-8 transform -rotate-3 hover:rotate-0 transition-transform duration-700">
             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF8A75] mb-3">Day 21 — Transformation</p>
-            <p className="text-2xl font-serif font-bold text-slate-900 leading-snug">
+            <p className="text-2xl font-bold text-slate-900 leading-snug">
               &ldquo;Your face tells your story — let&rsquo;s make it a beautiful one.&rdquo;
             </p>
           </div>
           <div className="rounded-[2.5rem] bg-white/40 backdrop-blur-3xl border border-white/60 shadow-xl p-6 ml-8 transform rotate-1 hover:rotate-0 transition-transform duration-700">
             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-2">Your Journey Awaits</p>
-            <p className="text-sm font-medium text-slate-700 leading-relaxed italic">
+            <p className="text-sm font-medium text-slate-700 leading-relaxed">
               Natural face yoga for a younger, healthier you
             </p>
           </div>
@@ -60,7 +60,7 @@ export default function LoginPage() {
           <div className="h-10 w-10 flex items-center justify-center rounded-2xl bg-[#FF8A75]/10 text-[#FF8A75]">
             <Flower2 className="h-5 w-5" strokeWidth={1.5} />
           </div>
-          <span className="text-2xl font-serif font-bold text-slate-900 tracking-tight italic">Faceyoguez</span>
+          <span className="text-2xl font-bold text-slate-900 tracking-tight">Faceyoguez</span>
         </div>
       </div>
 
@@ -72,14 +72,14 @@ export default function LoginPage() {
             <div className="h-12 w-12 flex items-center justify-center rounded-2xl bg-[#FF8A75]/10 text-[#FF8A75]">
               <Flower2 className="h-6 w-6" strokeWidth={1.5} />
             </div>
-            <span className="text-2xl font-serif font-bold text-slate-900 italic">Faceyoguez</span>
+            <span className="text-2xl font-bold text-slate-900">Faceyoguez</span>
           </div>
 
           <div className="space-y-2">
-            <h1 className="text-4xl font-serif font-bold tracking-tight text-slate-900">
+            <h1 className="text-4xl font-bold tracking-tight text-slate-900">
               Welcome back
             </h1>
-            <p className="text-slate-500 font-light">
+            <p className="text-slate-500 font-bold">
               Sign in to continue your face yoga practice.
             </p>
           </div>

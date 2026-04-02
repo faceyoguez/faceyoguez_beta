@@ -324,8 +324,8 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
       <header className="shrink-0 p-6 lg:p-10 flex items-center justify-between relative z-50">
         <div className="flex items-center gap-12">
           <div className="space-y-1">
-            <h1 className="text-4xl font-serif font-bold tracking-tight text-foreground">One-on-One</h1>
-            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-foreground/30 italic">Personal Guidance Hub</p>
+            <h1 className="text-4xl font-bold tracking-tight text-foreground">One-on-One</h1>
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-foreground/30">Personal Guidance Hub</p>
           </div>
 
           <div className="hidden lg:flex items-center gap-8 ml-4">
@@ -359,8 +359,9 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
         <div className="w-64 xl:w-80 flex flex-col gap-6 shrink-0 h-full min-w-0">
           <div className="flex-1 bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col min-h-0 overflow-hidden">
             <div className="p-8 border-b border-outline-variant/5">
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30 mb-2">Soul Registry</h3>
-              <p className="text-sm font-serif font-bold text-foreground italic">Direct Manifestors</p>
+              <h3 className="text-[9px] font-bold uppercase tracking-[0.2em] text-foreground/30">Journey Navigation</h3>
+              <span className="text-[9px] font-bold text-primary opacity-40">Continuum</span>
+              <p className="text-xs font-bold text-foreground leading-none">Space & Time Tracking</p>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
@@ -390,8 +391,15 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                       <div className={cn("absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white", isEmergency ? "bg-red-500 animate-pulse" : (student.isTrial ? "bg-primary animate-pulse" : "bg-brand-emerald"))} />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h4 className={cn("text-sm font-bold truncate transition-colors", isEmergency ? "text-red-600 group-hover:text-red-700" : "text-foreground group-hover:text-primary")}>{student.full_name}</h4>
-                      <p className={cn("text-[9px] font-bold uppercase tracking-widest mt-0.5", isEmergency ? "text-red-500/70" : "text-foreground/20")}>{isEmergency ? `Day ${elapsedDays}: Ending Soon` : (student.isTrial ? "Discovery" : "Aligned")}</p>
+                      <div className="flex items-center gap-2">
+                        <h4 className={cn("text-sm font-bold truncate transition-colors", isEmergency ? "text-red-600 group-hover:text-red-700" : "text-foreground group-hover:text-primary")}>
+                          {student.full_name}
+                        </h4>
+                        {student.isTrial && (
+                          <span className="text-[8px] font-black uppercase text-red-500 bg-red-50 px-1 py-0.5 rounded border border-red-100 leading-none">Trial</span>
+                        )}
+                      </div>
+                      <p className={cn("text-[9px] font-bold uppercase tracking-widest mt-0.5", isEmergency ? "text-red-500/70" : "text-foreground/20")}>{isEmergency ? `Day ${elapsedDays}: Ending Soon` : "Aligned"}</p>
                     </div>
                   </button>
                 );
@@ -408,12 +416,14 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                 <div className="inline-flex items-center gap-3 text-[11px] font-black uppercase tracking-[0.4em] text-primary leading-none">
                   Transformation Landscape
                 </div>
-                <h3 className="text-4xl font-serif font-bold text-foreground tracking-tight">Active Unfolding</h3>
+                <h3 className="text-xl font-bold text-[#1a1a1a] tracking-tight leading-none group-hover:text-[#FF8A75] transition-colors">
+                  {selectedStudent?.full_name}
+                </h3>
               </div>
               {selectedStudent?.startDate && (
                 <div className="flex flex-col items-end text-right">
                   <span className="text-[10px] font-bold text-foreground/20 tracking-[0.3em] uppercase mb-1">Mastery Path</span>
-                  <span className="text-2xl font-serif font-bold text-foreground italic">
+                  <span className="text-2xl font-bold text-foreground">
                     Day <span className="text-primary underline decoration-primary/20 underline-offset-8">{Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate).getTime()) / 86400000) + 1))}</span>
                   </span>
                 </div>
@@ -478,7 +488,9 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                 {/* Moved Registry Artifacts (Update PDF) Section */}
                 <div className="bg-white/40 backdrop-blur-md p-8 rounded-[2.5rem] border border-outline-variant/10 shadow-lg flex flex-col -mt-6">
                   <div className="flex items-center justify-between mb-8">
-                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Registry Artifacts</h3>
+                    <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-[#FF8A75]">
+                        {selectedStudent.daysLeft !== null && selectedStudent.daysLeft !== undefined ? `${selectedStudent.daysLeft} Days Remain` : 'Elite Member'}
+                    </h3>
                     <button
                       disabled={!selectedStudent || isUploading}
                       onClick={() => fileInputRef.current?.click()}
@@ -507,13 +519,15 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                     {resources.length === 0 && (
                        <div className="h-40 flex flex-col items-center justify-center opacity-10 grayscale">
                           <FolderOpen className="w-8 h-8 mb-2" />
-                          <p className="text-[9px] font-bold uppercase tracking-widest">Pristine State</p>
+                          <p className="text-sm font-medium text-[#374151] leading-relaxed">
+                            {activeLog?.notes || 'No reflections shared for this day.'}
+                          </p>
                        </div>
                     )}
                   </div>
                 </div>
 
-                <div className="rounded-3xl bg-primary/[0.02] p-8 border border-primary/5 italic text-xl font-serif text-foreground/60 leading-relaxed text-center px-20">
+                <div className="rounded-3xl bg-primary/[0.02] p-8 border border-primary/5 text-xl font-bold text-foreground/60 leading-relaxed text-center px-20">
                   {activeLog?.notes ? `"${activeLog.notes}"` : 'Soul reflection for this stage is currently unmanifested.'}
                 </div>
               </div>
@@ -554,7 +568,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                   <div className="h-16 w-16 rounded-2xl bg-primary/5 flex items-center justify-center text-primary/20">
                     <MessageSquare className="w-8 h-8" />
                   </div>
-                  <p className="text-xs font-medium text-foreground/30 italic">No dialogue sequence active for this manifestor.</p>
+                  <p className="text-xs font-medium text-foreground/30">No dialogue sequence active for this manifestor.</p>
                   <button
                     onClick={() => handleStartChatWithStudent(selectedStudent.id)}
                     disabled={isStartingChat}
@@ -581,8 +595,14 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
           <div className="absolute inset-0 bg-foreground/20 backdrop-blur-md" onClick={() => setShowScheduleModal(false)} />
           <div className="w-full max-w-xl rounded-[2.5rem] bg-white border border-outline-variant/10 shadow-2xl relative z-10 overflow-hidden p-12 space-y-10 animate-in zoom-in-95 duration-500">
             <header className="space-y-3 text-center">
-              <h3 className="text-3xl font-serif font-bold text-foreground tracking-tight">Temporal Alignment</h3>
-              <p className="text-sm text-foreground/40 font-medium italic">Schedule a calibration with {selectedStudent?.full_name}</p>
+              <p className="text-xs font-bold text-foreground">Awaiting Response</p>
+              <h3 className="text-3xl font-bold text-foreground tracking-tight">Temporal Alignment</h3>
+              <h2 className="text-3xl font-bold text-foreground tracking-tight truncate">
+                {selectedStudent?.full_name}
+              </h2>
+              <div className="flex items-center gap-1.5 opacity-40">
+                <span className="text-[9px] font-bold uppercase tracking-widest">Client Portal</span>
+              </div>
             </header>
 
             <div className="space-y-6">
@@ -599,6 +619,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
 
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
+                  <p className="text-[8px] font-bold uppercase tracking-widest text-foreground/20">Active Path</p>
                   <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 ml-1">Date</label>
                   <input
                     type="date"

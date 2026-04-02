@@ -43,6 +43,7 @@ interface CourseViewerProps {
   modules: Module[];
   completedModuleIds: Set<string>;
   studentId: string;
+  isTrial?: boolean;
 }
 
 export function CourseViewer({
@@ -50,7 +51,8 @@ export function CourseViewer({
   courseTitle,
   modules,
   completedModuleIds: initialCompleted,
-  studentId
+  studentId,
+  isTrial = false
 }: CourseViewerProps) {
   const [completedIds, setCompletedIds] = useState<Set<string>>(initialCompleted);
   const [activeModuleId, setActiveModuleId] = useState<string>(() => {
@@ -392,7 +394,8 @@ export function CourseViewer({
             {modules.map((m, index) => {
               const isCompleted = completedIds.has(m.id);
               const isActive = activeModuleId === m.id;
-              const isUnlocked = index === 0 || completedIds.has(modules[index - 1].id);
+              // Trial users only get the first video. Non-trial users get unlocked sequentially.
+              const isUnlocked = isTrial ? index === 0 : (index === 0 || completedIds.has(modules[index - 1].id));
 
               return (
                 <button
