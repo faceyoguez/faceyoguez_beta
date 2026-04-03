@@ -3,6 +3,7 @@ import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/se
 import { Hero } from '@/components/marketing/Hero';
 import { Features } from '@/components/marketing/Features';
 import { FloatingDock } from '@/components/marketing/FloatingDock';
+import { Header } from '@/components/marketing/Header';
 import Link from 'next/link';
 
 export default async function Home() {

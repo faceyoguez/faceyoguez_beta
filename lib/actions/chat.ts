@@ -369,7 +369,7 @@ export async function getOrCreateSharedChat(studentId: string, assignedInstructo
 
     const participantRows: { conversation_id: string; user_id: string }[] = [
       { conversation_id: newConv.id, user_id: studentId },
-      { conversation_id: newConv.id, user_id: targetInstructorId },
+      { conversation_id: newConv.id, user_id: targetInstructorId! },
     ];
     await admin.from('conversation_participants').insert(participantRows);
   }
