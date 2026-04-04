@@ -157,7 +157,7 @@ export function StudentDashboardClient({
           >
             <div className="h-12 w-1.5 flex bg-[#FF8A75] rounded-full" />
             <div>
-              <h1 className="text-3xl lg:text-4xl font-bold tracking-tight text-black font-serif">
+              <h1 className="text-3xl lg:text-4xl font-bold capitalize tracking-tight text-black font-serif">
                 {firstName}&apos;s <span className="text-[#FF8A75]">Sanctuary</span>
               </h1>
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF8A75] mt-1 opacity-80">
