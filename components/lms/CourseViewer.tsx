@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { markModuleAsComplete } from '@/app/actions/lms';
 import { toast } from 'sonner';
 import { 
@@ -229,13 +230,13 @@ export function CourseViewer({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 min-h-[calc(100vh-160px)] pb-20 animate-in fade-in duration-1000 font-sans">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 min-h-[calc(100vh-200px)] pb-10 animate-in fade-in duration-1000 font-sans relative z-10">
       
       {/* ── VIDEO PLAYER SIDE (8 cols) ── */}
-      <div className="lg:col-span-8 space-y-6">
+      <div className="lg:col-span-8 space-y-8">
         <div 
           id="lms-player-container"
-          className="relative aspect-video rounded-[3rem] overflow-hidden bg-black shadow-[0_40px_100px_rgba(0,0,0,0.1)] border border-white/20 group"
+          className="relative aspect-video rounded-[3rem] overflow-hidden bg-slate-950 shadow-[0_40px_100px_rgba(0,0,0,0.15)] border border-white/20 group zen-glass shadow-[#FF8A75]/5"
         >
           {/* The Actual Video */}
           <div id="lms-player" className="absolute inset-0 w-full h-full border-0 pointer-events-none scale-[1.01]"></div>
@@ -244,26 +245,26 @@ export function CourseViewer({
           <div className="absolute inset-0 z-10 cursor-pointer" onClick={togglePlay}></div>
 
           {/* Masking Overlays */}
-          <div className="absolute top-0 left-0 w-full h-32 z-20 bg-gradient-to-b from-black/40 to-transparent pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-full h-48 z-20 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none" />
+          <div className="absolute top-0 left-0 w-full h-32 z-20 bg-gradient-to-b from-slate-950/40 to-transparent pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-full h-48 z-20 bg-gradient-to-t from-slate-950/60 via-slate-950/20 to-transparent pointer-events-none" />
 
           {/* Status Badge */}
           <div className="absolute top-6 left-8 z-30 pointer-events-none">
-             <div className="bg-white/10 backdrop-blur-xl text-white text-[10px] font-bold px-4 py-1.5 rounded-full uppercase tracking-widest border border-white/10 flex items-center gap-2.5">
-                <Sparkles className="w-3.5 h-3.5 text-primary" />
+             <div className="bg-white/10 backdrop-blur-xl text-white text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-[0.2em] border border-white/10 flex items-center gap-2.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#FF8A75] animate-pulse" />
                 Focus Mode
              </div>
           </div>
 
           {/* Frosted Pause Overlay */}
           <div className={cn(
-            "absolute inset-0 z-20 backdrop-blur-md bg-black/20 flex flex-col items-center justify-center transition-all duration-700 pointer-events-none",
+            "absolute inset-0 z-20 backdrop-blur-md bg-slate-950/20 flex flex-col items-center justify-center transition-all duration-700 pointer-events-none",
             isPlaying ? "opacity-0 scale-105" : "opacity-100 scale-100"
           )}>
-             <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center border border-white/30 shadow-2xl">
-                <Play className="w-8 h-8 text-white fill-current translate-x-1" />
+             <div className="w-24 h-24 rounded-[2.5rem] bg-white/20 flex items-center justify-center border border-white/30 shadow-2xl">
+                <Play className="w-10 h-10 text-white fill-current translate-x-1" />
              </div>
-             <p className="mt-6 text-white/60 text-[10px] font-bold uppercase tracking-[0.4em]">Paused</p>
+             <p className="mt-8 text-white/60 text-[10px] font-black uppercase tracking-[0.5em]">Sanctuary Paused</p>
           </div>
 
           {/* Custom Controls */}
@@ -272,31 +273,31 @@ export function CourseViewer({
             isPlaying ? "opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0" : "opacity-100 translate-y-0"
           )}>
              {/* Progress Bar */}
-             <div className="relative group/progress h-8 flex items-center mb-4">
+             <div className="relative group/progress h-8 flex items-center mb-6">
                 <input 
-                  type="range"
-                  min="0"
-                  max={duration}
-                  value={currentTime}
-                  onChange={handleSeek}
-                  className="absolute inset-x-0 w-full h-1 bg-white/20 rounded-full appearance-none cursor-pointer focus:outline-none accent-white group-hover/progress:h-1.5 transition-all"
+                   type="range"
+                   min="0"
+                   max={duration}
+                   value={currentTime}
+                   onChange={handleSeek}
+                   className="absolute inset-x-0 w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer focus:outline-none accent-[#FF8A75] group-hover/progress:h-2.5 transition-all"
                 />
                 <div 
-                  className="h-1 bg-white rounded-full pointer-events-none transition-all group-hover/progress:h-1.5 shadow-[0_0_12px_rgba(255,255,255,0.5)]"
-                  style={{ width: `${(currentTime / duration) * 100}%` }}
+                   className="h-1.5 bg-[#FF8A75] rounded-full pointer-events-none transition-all group-hover/progress:h-2.5 shadow-[0_0_20px_rgba(255,138,117,0.5)]"
+                   style={{ width: `${(currentTime / duration) * 100}%` }}
                 />
              </div>
 
              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-8">
                    <button 
                      onClick={togglePlay}
-                     className="w-12 h-12 bg-white text-black rounded-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl"
+                     className="w-14 h-14 bg-[#FF8A75] text-white rounded-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl shadow-[#FF8A75]/20 hover:bg-[#FF8A75]/90"
                    >
-                     {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current" />}
+                     {isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current translate-x-0.5" />}
                    </button>
 
-                   <div className="text-white font-medium text-[11px] tabular-nums tracking-tight">
+                   <div className="text-white font-bold text-[12px] tabular-nums tracking-widest bg-white/10 px-4 py-2 rounded-xl backdrop-blur-md border border-white/5">
                       {formatTime(currentTime)} <span className="opacity-30 mx-2">/</span> {formatTime(duration)}
                    </div>
 
@@ -304,14 +305,14 @@ export function CourseViewer({
                      onClick={() => playerRef.current?.seekTo(currentTime - 10, true)}
                      className="text-white/60 hover:text-white transition-colors p-2"
                    >
-                     <RotateCcw className="w-5 h-5" />
+                     <RotateCcw className="w-6 h-6" />
                    </button>
                 </div>
 
-                <div className="flex items-center gap-6">
-                   <div className="flex items-center gap-3 group/vol">
+                <div className="flex items-center gap-8">
+                   <div className="flex items-center gap-4 group/vol">
                       <button onClick={toggleMute} className="text-white/60 hover:text-white transition-colors">
-                        {isMuted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                        {isMuted || volume === 0 ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
                       </button>
                       <input 
                         type="range"
@@ -323,7 +324,7 @@ export function CourseViewer({
                           setVolume(v);
                           playerRef.current?.setVolume(v);
                         }}
-                        className="w-0 group-hover/vol:w-20 overflow-hidden transition-all duration-500 appearance-none bg-white/20 h-1 rounded-full accent-white"
+                        className="w-0 group-hover/vol:w-24 overflow-hidden transition-all duration-500 appearance-none bg-white/20 h-1 rounded-full accent-[#FF8A75]"
                       />
                    </div>
 
@@ -331,7 +332,7 @@ export function CourseViewer({
                      onClick={handleFullscreen}
                      className="text-white/60 hover:text-white transition-colors p-2"
                    >
-                     <Maximize className="w-5 h-5" />
+                     <Maximize className="w-6 h-6" />
                    </button>
                 </div>
              </div>
@@ -339,33 +340,33 @@ export function CourseViewer({
         </div>
 
         {/* Video Info Card */}
-        <div className="surface-container p-8 lg:p-12 rounded-[3rem] border border-white/60 shadow-[0_20px_60px_rgba(0,0,0,0.03)] relative overflow-hidden bg-white/40 backdrop-blur-3xl">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10">
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center gap-3">
-                 <span className="bg-primary/10 text-primary text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-[0.2em] border border-primary/10">Next Lesson</span>
-                 <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/5 border border-black/5">
-                    <Video className="w-3.5 h-3.5 text-foreground/40" />
-                    <p className="text-[10px] text-foreground/40 font-bold uppercase tracking-[0.2em]">Lesson { (modules.findIndex(m => m.id === activeModuleId) + 1) } of {modules.length}</p>
+        <div className="zen-glass p-8 lg:p-12 rounded-[3.5rem] border border-white/80 shadow-[0_40px_80px_rgba(255,138,117,0.05)] relative overflow-hidden bg-white/60 backdrop-blur-3xl">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-10 relative z-10">
+            <div className="space-y-6">
+              <div className="flex flex-wrap items-center gap-4">
+                 <span className="bg-[#FF8A75]/10 text-[#FF8A75] text-[10px] font-black px-5 py-2 rounded-full uppercase tracking-[0.2em] border border-[#FF8A75]/10">Curriculum Pillar</span>
+                 <div className="flex items-center gap-3 px-5 py-2 rounded-full bg-slate-900/5 border border-slate-900/5">
+                    <Video className="w-4 h-4 text-slate-400" />
+                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Step { (modules.findIndex(m => m.id === activeModuleId) + 1) } of {modules.length}</p>
                  </div>
               </div>
-              <h1 className="text-4xl lg:text-5xl font-serif font-black text-foreground tracking-tight leading-tight">
+              <h1 className="text-4xl lg:text-5xl font-serif font-bold text-slate-900 tracking-tight leading-tight">
                 {activeModule?.title || 'Loading content...'}
               </h1>
-              <p className="text-[10px] font-bold text-foreground/30 uppercase tracking-[0.3em] flex items-center gap-2.5">
-                <Layout className="w-4 h-4" />
-                Curriculum Implementation
+              <p className="text-[10px] font-black text-[#FF8A75] uppercase tracking-[0.4em] flex items-center gap-3">
+                <Layout className="w-5 h-5" />
+                Expert Guided Ritual
               </p>
             </div>
 
             {activeModule && completedIds.has(activeModule.id) && (
-              <div className="bg-brand-emerald/10 text-brand-emerald px-8 py-5 rounded-[2rem] flex items-center gap-5 border border-brand-emerald/20 transition-all duration-500 shadow-sm">
-                <div className="w-12 h-12 rounded-full bg-brand-emerald text-white flex items-center justify-center shadow-lg shadow-brand-emerald/20">
-                  <CheckCircle2 className="w-6 h-6" />
+              <div className="bg-[#FF8A75]/10 text-[#FF8A75] px-8 py-6 rounded-[2.5rem] flex items-center gap-6 border border-[#FF8A75]/20 transition-all duration-500 shadow-xl shadow-[#FF8A75]/5">
+                <div className="w-14 h-14 rounded-2xl bg-[#FF8A75] text-white flex items-center justify-center shadow-lg shadow-[#FF8A75]/20">
+                  <CheckCircle2 className="w-7 h-7" />
                 </div>
                 <div>
-                  <span className="font-bold text-xs uppercase tracking-[0.2em] block leading-none">Completed</span>
-                  <span className="text-[10px] font-medium text-brand-emerald/60 mt-2 uppercase tracking-tight">Lesson Mastered</span>
+                  <span className="font-black text-[10px] uppercase tracking-[0.3em] block leading-none">Lesson Mastery</span>
+                  <span className="text-[12px] font-bold text-[#FF8A75]/80 mt-2 block uppercase tracking-tight">Ritual Complete</span>
                 </div>
               </div>
             )}
@@ -375,18 +376,18 @@ export function CourseViewer({
 
       {/* ── PLAYLIST SIDE (4 cols) ── */}
       <div className="lg:col-span-4 h-full">
-        <div className="surface-container rounded-[2.5rem] overflow-hidden flex flex-col h-full max-h-[calc(100vh-160px)] shadow-[0_20px_60px_rgba(0,0,0,0.03)] border border-white/60 bg-white/40 backdrop-blur-3xl sticky top-12">
+        <div className="zen-glass rounded-[3rem] overflow-hidden flex flex-col h-full max-h-[calc(100vh-200px)] shadow-[0_40px_80px_rgba(255,138,117,0.05)] border border-white/80 bg-white/60 backdrop-blur-3xl sticky top-12">
           
-          <div className="p-8 lg:p-10 border-b border-white/60 flex items-center justify-between">
-            <div className="space-y-1.5">
-              <h2 className="font-bold text-foreground/30 uppercase tracking-[0.2em] text-[10px] flex items-center gap-2.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                Course Path
+          <div className="p-8 lg:p-10 border-b border-slate-900/5 flex items-center justify-between">
+            <div className="space-y-2">
+              <h2 className="font-black text-slate-400 uppercase tracking-[0.3em] text-[10px] flex items-center gap-3">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#FF8A75]" />
+                Path Progress
               </h2>
-              <p className="text-2xl font-serif font-bold text-foreground">Curriculum</p>
+              <p className="text-3xl font-serif font-bold text-slate-900 leading-none">Rituals</p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-white flex items-center justify-center shadow-sm">
-                <Award className="w-5 h-5 text-primary/40" />
+            <div className="h-14 w-14 rounded-2xl bg-white flex items-center justify-center shadow-xl shadow-[#FF8A75]/5 border border-[#FF8A75]/10">
+                <Award className="w-7 h-7 text-[#FF8A75]" />
             </div>
           </div>
 
@@ -403,45 +404,45 @@ export function CourseViewer({
                   disabled={!isUnlocked}
                   onClick={() => isUnlocked && setActiveModuleId(m.id)}
                   className={cn(
-                    "w-full flex items-center gap-5 p-5 rounded-3xl transition-all duration-500 text-left relative overflow-hidden border",
+                    "w-full flex items-center gap-6 p-6 rounded-[2.5rem] transition-all duration-700 text-left relative overflow-hidden border",
                     isActive 
-                      ? "bg-black text-white border-black shadow-xl scale-[1.02]" 
+                      ? "bg-slate-900 text-white border-slate-900 shadow-2xl shadow-slate-900/20 scale-[1.02]" 
                       : !isUnlocked 
                         ? "opacity-40 grayscale cursor-not-allowed bg-transparent border-transparent" 
-                        : "bg-white/50 border-white hover:border-white shadow-sm hover:bg-white hover:shadow-md hover:scale-[1.01]"
+                        : "bg-white/60 border-white hover:border-[#FF8A75]/30 shadow-sm hover:bg-white hover:shadow-xl hover:shadow-[#FF8A75]/5 hover:scale-[1.02]"
                   )}
                 >
                   <div className={cn(
-                    "flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 shadow-sm",
-                    isActive ? "bg-white text-black" : isCompleted ? "bg-brand-emerald/10 text-brand-emerald" : "bg-primary/5 text-primary group-hover:bg-primary group-hover:text-white"
+                    "flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-700 shadow-sm",
+                    isActive ? "bg-[#FF8A75] text-white" : isCompleted ? "bg-[#FF8A75]/10 text-[#FF8A75]" : "bg-slate-900/5 text-slate-400 group-hover:bg-[#FF8A75]/10 group-hover:text-[#FF8A75]"
                   )}>
                     {isCompleted ? (
                       <CheckCircle2 className="w-5 h-5" />
                     ) : !isUnlocked ? (
                       <Lock className="w-5 h-5 opacity-40" />
                     ) : (
-                      <Play className={cn("w-5 h-5 px-0.5", isActive ? "fill-black" : "fill-current")} />
+                      <Play className={cn("w-5 h-5", isActive ? "fill-white" : "fill-current translate-x-0.5")} />
                     )}
                   </div>
 
                   <div className="flex-1 min-w-0 pr-2">
                     <p className={cn(
-                      "text-sm font-bold truncate leading-tight transition-colors mb-1 tracking-tight",
-                      isActive ? "text-white" : "text-foreground"
+                      "text-[13px] font-bold truncate leading-tight transition-colors mb-1 tracking-tight",
+                      isActive ? "text-white" : "text-slate-900"
                     )}>
                       {m.title}
                     </p>
                     <div className="flex items-center gap-2">
                        <span className={cn(
                           "text-[9px] font-black uppercase tracking-[0.2em]",
-                          isActive ? "text-white/40" : "text-foreground/30"
-                       )}>Part {index + 1}</span>
+                          isActive ? "text-[#FF8A75]/80" : "text-slate-400"
+                       )}>Phase {index + 1}</span>
                     </div>
                   </div>
 
                   {isActive && (
-                    <div className="absolute -right-4 top-1/2 -translate-y-1/2 opacity-5 pointer-events-none">
-                       <ChevronRight className="w-16 h-16 text-white" />
+                    <div className="absolute -right-4 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none">
+                       <ChevronRight className="w-20 h-20 text-white" />
                     </div>
                   )}
                 </button>
@@ -449,23 +450,28 @@ export function CourseViewer({
             })}
           </div>
 
-          <div className="p-8 lg:p-10 bg-white/40 border-t border-white/60 mt-auto shrink-0">
-             <div className="flex justify-between items-end mb-4">
-                <div className="space-y-0.5">
-                   <span className="text-[10px] font-bold text-foreground/30 uppercase tracking-[0.2em] block leading-none">Overall Progress</span>
-                   <span className="text-3xl font-serif font-black text-primary italic leading-none">{Math.round((completedIds.size / modules.length) * 100)}%</span>
+          <div className="p-10 bg-white/60 border-t border-slate-900/5 mt-auto shrink-0 relative overflow-hidden">
+             {/* Subtle Aura in progress card */}
+             <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-[#FF8A75]/10 rounded-full blur-[40px] pointer-events-none" />
+
+             <div className="flex justify-between items-end mb-5 relative z-10">
+                <div className="space-y-1">
+                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] block leading-none">Total Radiance</span>
+                   <span className="text-4xl font-serif font-bold text-[#FF8A75] leading-none">{Math.round((completedIds.size / modules.length) * 100)}%</span>
                 </div>
-                <div className="text-[9px] font-black text-foreground/80 uppercase bg-white px-3 py-1.5 rounded-full tracking-[0.2em] border border-white shadow-sm">
-                    {completedIds.size} / {modules.length} Done
+                <div className="text-[10px] font-black text-slate-500 uppercase bg-white/80 px-4 py-2 rounded-xl border border-white shadow-sm tracking-[0.2em] leading-none">
+                    {completedIds.size} / {modules.length} Rituals
                 </div>
              </div>
-             <div className="h-2 w-full bg-white rounded-full overflow-hidden shadow-sm border border-black/5">
-                <div 
-                  className="h-full bg-primary rounded-full transition-all duration-1000 ease-out relative" 
-                  style={{ width: `${(completedIds.size / modules.length) * 100}%` }} 
+             <div className="h-2 w-full bg-slate-950/5 rounded-full overflow-hidden shadow-inner border border-white/50">
+                <motion.div 
+                  className="h-full bg-gradient-to-r from-[#FF8A75] to-[#FF8A75]/70 rounded-full relative" 
+                  initial={{ width: 0 }}
+                  animate={{ width: `${(completedIds.size / modules.length) * 100}%` }}
+                  transition={{ duration: 2, ease: 'circOut' }}
                 >
-                    <div className="absolute right-0 top-0 bottom-0 w-4 bg-white/40 blur-[2px]" />
-                </div>
+                    <div className="absolute right-0 top-0 bottom-0 w-8 bg-white/40 blur-[4px]" />
+                </motion.div>
              </div>
           </div>
         </div>
@@ -473,17 +479,17 @@ export function CourseViewer({
 
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
+            width: 5px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
             background: transparent;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(0,0,0,0.05);
+            background: rgba(255,138,117,0.1);
             border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: rgba(0,0,0,0.1);
+            background: rgba(255,138,117,0.2);
         }
       `}</style>
     </div>

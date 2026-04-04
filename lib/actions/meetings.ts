@@ -3,7 +3,7 @@
 import { unstable_noStore as noStore } from 'next/cache';
 import { createServerSupabaseClient, createAdminClient } from '../supabase/server';
 import { MeetingWithDetails, Meeting, type RecordedSession } from '../../types/database';
-import { getZoomMeetingRecordings } from '../zoom';
+import { getZoomMeetingRecordings, createZoomMeeting } from '../zoom';
 
 export async function getUpcomingMeetingsForStudent(): Promise<MeetingWithDetails[]> {
   noStore();
@@ -187,4 +187,71 @@ export async function saveMeetingToDb(payload: CreateMeetingDBPayload): Promise<
   }
 
   return data as Meeting;
+}
+
+export async function scheduleOneOnOne(startTime: string, topic: string = 'One-on-One Session'): Promise<Meeting> {
+  const supabase = await createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error('Not authenticated');
+  }
+
+  const admin = createAdminClient();
+
+  // 1. Find active subscription
+  const { data: sub } = await admin
+    .from('subscriptions')
+    .select('assigned_instructor_id')
+    .eq('student_id', user.id)
+    .eq('plan_type', 'one_on_one')
+    .eq('status', 'active')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  let hostId = sub?.assigned_instructor_id;
+
+  // 2. If no instructor assigned, fallback to master instructor
+  if (!hostId) {
+    const { data: masterInstructor } = await admin
+      .from('profiles')
+      .select('id')
+      .eq('role', 'instructor')
+      .eq('is_master_instructor', true)
+      .limit(1)
+      .maybeSingle();
+    
+    hostId = masterInstructor?.id;
+  }
+
+  if (!hostId) {
+    throw new Error('No instructor available for scheduling. Please reach out to support.');
+  }
+
+  // 3. Create Zoom Meeting
+  const zoomMeeting = await createZoomMeeting({
+    topic: topic,
+    startTime: startTime,
+    durationMinutes: 45,
+  });
+
+  // 4. Save to DB
+  const meeting = await saveMeetingToDb({
+    host_id: hostId,
+    student_id: user.id,
+    zoom_meeting_id: zoomMeeting.id.toString(),
+    topic: zoomMeeting.topic,
+    start_time: zoomMeeting.start_time,
+    duration_minutes: zoomMeeting.duration,
+    join_url: zoomMeeting.join_url,
+    start_url: zoomMeeting.start_url,
+    meeting_type: 'one_on_one'
+  });
+
+  const { revalidatePath } = await import('next/cache');
+  revalidatePath('/student/dashboard');
+  revalidatePath('/student/one-on-one');
+
+  return meeting as Meeting;
 }

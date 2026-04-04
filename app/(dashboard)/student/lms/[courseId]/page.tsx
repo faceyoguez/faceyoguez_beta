@@ -87,28 +87,39 @@ export default async function CourseViewerPage({ params }: PageProps) {
   }
 
   return (
-    <div className="p-6 lg:p-10 space-y-6">
-      <div className="flex items-center gap-4">
-        <Link 
-          href="/student/lms" 
-          className="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-foreground/40 hover:text-brand-primary hover:bg-brand-primary/10 transition-all shadow-sm ring-1 ring-outline-variant/10"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </Link>
-        <div>
-          <h2 className="text-xl font-extrabold text-foreground tracking-tight">{course.title}</h2>
-          <p className="text-xs text-foreground/40 font-bold uppercase tracking-widest">Currently Practicing</p>
-        </div>
+    <div className="relative min-h-screen bg-[#FFFAF7] text-slate-900 font-sans selection:bg-[#FF8A75]/20 overflow-x-hidden pb-32">
+      
+      {/* ── Website Style Auroras ── */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-[radial-gradient(circle_at_center,rgba(255,138,117,0.05)_0%,transparent_60%)] -translate-y-1/3 translate-x-1/4 blur-3xl rounded-full" />
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-[radial-gradient(circle_at_center,rgba(255,138,117,0.04)_0%,transparent_60%)] translate-y-1/4 -translate-x-1/4 blur-3xl rounded-full" />
       </div>
 
-      <CourseViewer
-        courseId={course.id}
-        courseTitle={course.title}
-        modules={sortedModules}
-        completedModuleIds={completedModuleIds}
-        studentId={user.id}
-        isTrial={isTrial}
-      />
+      <div className="relative z-10 p-8 lg:p-12 max-w-[1600px] mx-auto space-y-8">
+        
+        {/* ── Branded Navigation ── */}
+        <div className="flex items-center gap-6 animate-in fade-in slide-in-from-left-8 duration-700">
+          <Link 
+            href="/student/lms" 
+            className="w-12 h-12 rounded-2xl bg-white/60 backdrop-blur-xl border border-[#FF8A75]/20 flex items-center justify-center text-[#FF8A75] hover:bg-[#FF8A75] hover:text-white transition-all shadow-sm hover:shadow-xl hover:shadow-[#FF8A75]/20 group"
+          >
+            <ChevronLeft className="w-6 h-6 transition-transform group-hover:-translate-x-1" />
+          </Link>
+          <div className="space-y-1">
+            <p className="text-[10px] text-[#FF8A75] font-black uppercase tracking-[0.3em] leading-none">Currently Practicing</p>
+            <h2 className="text-2xl font-serif font-bold text-slate-900 tracking-tight leading-none">{course.title}</h2>
+          </div>
+        </div>
+
+        <CourseViewer
+          courseId={course.id}
+          courseTitle={course.title}
+          modules={sortedModules}
+          completedModuleIds={completedModuleIds}
+          studentId={user.id}
+          isTrial={isTrial}
+        />
+      </div>
     </div>
   );
 }
