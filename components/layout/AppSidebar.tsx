@@ -16,7 +16,8 @@ import {
   Flower2,
   CreditCard,
   Menu,
-  X
+  X,
+  Ticket
 } from 'lucide-react';
 import type { Profile } from '@/types/database';
 
@@ -49,6 +50,7 @@ const navConfig = {
     { label: 'Groups', icon: Users, path: '/staff/groups' },
     { label: 'Broadcast', icon: Megaphone, path: '/staff/broadcast' },
     { label: 'LMS', icon: BookOpen, path: '/staff/lms' },
+    { label: 'Coupons', icon: Ticket, path: '/staff/coupons' },
   ],
   staff: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/staff/dashboard' },
@@ -57,6 +59,7 @@ const navConfig = {
     { label: 'Groups', icon: Users, path: '/staff/groups' },
     { label: 'Broadcast', icon: Megaphone, path: '/staff/broadcast' },
     { label: 'LMS', icon: BookOpen, path: '/staff/lms' },
+    { label: 'Coupons', icon: Ticket, path: '/staff/coupons' },
   ],
   client_management: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/staff/dashboard' },
@@ -65,6 +68,7 @@ const navConfig = {
     { label: 'Groups', icon: Users, path: '/staff/groups' },
     { label: 'Broadcast', icon: Megaphone, path: '/staff/broadcast' },
     { label: 'LMS', icon: BookOpen, path: '/staff/lms' },
+    { label: 'Coupons', icon: Ticket, path: '/staff/coupons' },
   ],
   sales_team: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/instructor/dashboard' },

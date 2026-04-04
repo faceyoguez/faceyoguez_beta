@@ -13,6 +13,7 @@ import {
 import { activateTrial } from '@/app/actions/plans';
 import type { Profile } from '@/types/database';
 import { toast as sonnerToast } from 'sonner';
+import { consumeCouponAction } from '@/lib/actions/coupons';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPERS
@@ -46,9 +47,10 @@ interface Props {
   userId: string;
   currentUser?: Profile | null;
   hasUsedTrial?: boolean;
+  hasActiveSubscription?: boolean;
 }
 
-export default function PlansClient({ currentSubscription, userId, currentUser, hasUsedTrial: initialHasUsedTrial }: Props) {
+export default function PlansClient({ currentSubscription, userId, currentUser, hasUsedTrial: initialHasUsedTrial, hasActiveSubscription = false }: Props) {
     const [isStartingTrial, setIsStartingTrial] = useState(false);
     const [hasUsedTrial, setHasUsedTrial] = useState(initialHasUsedTrial);
     const router = useRouter();
@@ -88,6 +90,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
     const [couponCode, setCouponCode] = useState('');
     const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
     const [verifyingCoupon, setVerifyingCoupon] = useState(false);
+    const [couponStatus, setCouponStatus] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
 
     const bumps = {
         group_session: [
@@ -114,11 +117,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
         });
 
         if (appliedCoupon) {
-            if (appliedCoupon.discount_type === 'percentage') {
-                total = total * (1 - appliedCoupon.discount_value / 100);
-            } else {
-                total = Math.max(0, total - appliedCoupon.discount_value);
-            }
+            total = total * (1 - appliedCoupon.discount_percentage / 100);
         }
         return Math.round(total);
     };
@@ -126,31 +125,58 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
     const applyCoupon = async () => {
         if (!couponCode) return;
         setVerifyingCoupon(true);
-        const { data, error } = await fetch(`/api/coupons/verify?code=${couponCode.toUpperCase()}`).then(res => res.json());
-        
-        if (error || !data) {
-            toast.error(error || 'Invalid or expired coupon');
+        setCouponStatus(null);
+        try {
+            const res = await fetch(`/api/coupons/verify?code=${couponCode.toUpperCase()}&planType=${selectedPlanId}`);
+            const result = await res.json();
+            
+            if (!res.ok || result.error) {
+                const errMsg = result.error || 'Invalid coupon code';
+                setCouponStatus({ type: 'error', message: errMsg });
+                setAppliedCoupon(null);
+            } else if (result.data) {
+                setAppliedCoupon(result.data);
+                setCouponStatus({
+                    type: 'success',
+                    message: `"${result.data.code}" applied! You save ${result.data.discount_percentage}% on your order.`
+                });
+            }
+        } catch (error) {
+            setCouponStatus({ type: 'error', message: 'Connection error. Please try again.' });
             setAppliedCoupon(null);
-        } else {
-            setAppliedCoupon(data);
-            toast.success('🎉 Coupon applied successfully!');
+        } finally {
+            setVerifyingCoupon(false);
         }
-        setVerifyingCoupon(false);
     };
 
     const handleProceed = async () => {
         setLoading(true);
-        // Simulate purchase for now as requested
-        setTimeout(() => {
-            const params = new URLSearchParams({
-                planId: selectedPlanId,
-                tierId: selectedTierId,
-                amount: calculateTotal().toString(),
-                bumps: selectedBumps.join(',')
-            });
-            router.push(`/student/purchase-success?${params.toString()}`);
+        try {
+            if (appliedCoupon) {
+                // Consume the coupon securely on the server
+                const res = await consumeCouponAction(appliedCoupon.code, selectedPlanId);
+                if (!res.success) {
+                    toast.error(res.error || 'Failed to apply coupon. Please try again.');
+                    setLoading(false);
+                    return;
+                }
+            }
+            
+            // Simulate purchase for now as requested
+            setTimeout(() => {
+                const params = new URLSearchParams({
+                    planId: selectedPlanId,
+                    tierId: selectedTierId,
+                    amount: calculateTotal().toString(),
+                    bumps: selectedBumps.join(',')
+                });
+                router.push(`/student/purchase-success?${params.toString()}`);
+                setLoading(false);
+            }, 1500);
+        } catch (error) {
+            toast.error('Something went wrong during checkout.');
             setLoading(false);
-        }, 1500);
+        }
     };
 
     const handlePay = async (isTrial: boolean = false) => {
@@ -376,15 +402,23 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                             </button>
 
                             {!hasUsedTrial && (
-                                <button
-                                    onClick={handleStartTrial}
-                                    disabled={loading || isStartingTrial}
-                                    className="w-full py-3 bg-white border-2 border-[#1a1a1a]/10 hover:border-[#1a1a1a]/30 text-[#1a1a1a] rounded-xl font-black text-[9px] uppercase tracking-[0.1em] transition-all flex items-center justify-center gap-2 group"
-                                >
-                                    {isStartingTrial ? <Loader2 className="w-4 h-4 animate-spin" /> : (
-                                        <>Try it for free <Sparkles className="w-3 h-3 text-[#FF8A75] group-hover:scale-125 transition-transform" /></>
-                                    )}
-                                </button>
+                                hasActiveSubscription ? (
+                                    // Student has active paid plan — trial not available
+                                    <div className="w-full py-2.5 flex items-center justify-center gap-2 rounded-xl bg-amber-50 border border-amber-100 text-[9px] font-bold text-amber-600 uppercase tracking-widest">
+                                        <ShieldCheck className="w-3 h-3" />
+                                        Active plan — trial not available
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={handleStartTrial}
+                                        disabled={loading || isStartingTrial}
+                                        className="w-full py-3 bg-white border-2 border-[#1a1a1a]/10 hover:border-[#1a1a1a]/30 text-[#1a1a1a] rounded-xl font-black text-[9px] uppercase tracking-[0.1em] transition-all flex items-center justify-center gap-2 group"
+                                    >
+                                        {isStartingTrial ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+                                            <>Try it for free <Sparkles className="w-3 h-3 text-[#FF8A75] group-hover:scale-125 transition-transform" /></>
+                                        )}
+                                    </button>
+                                )
                             )}
                         </div>
                     </div>
@@ -508,15 +542,23 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                         </button>
 
                         {!hasUsedTrial && (
-                            <button
-                                onClick={handleStartTrial}
-                                disabled={loading || isStartingTrial}
-                                className="w-full py-2.5 bg-white border border-[#1a1a1a]/10 text-[#1a1a1a] rounded-xl font-black text-[8px] uppercase tracking-widest flex items-center justify-center gap-2"
-                            >
-                                {isStartingTrial ? <Loader2 className="w-3 h-3 animate-spin" /> : (
-                                    <>Try it for free <Sparkles className="w-3 h-3 text-[#FF8A75]" /></>
-                                )}
-                            </button>
+                            hasActiveSubscription ? (
+                                // Student has active paid plan — trial not available
+                                <div className="w-full py-2.5 flex items-center justify-center gap-2 rounded-xl bg-amber-50 border border-amber-100 text-[8px] font-bold text-amber-600 uppercase tracking-widest">
+                                    <ShieldCheck className="w-3 h-3" />
+                                    Active plan — trial not available
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={handleStartTrial}
+                                    disabled={loading || isStartingTrial}
+                                    className="w-full py-2.5 bg-white border border-[#1a1a1a]/10 text-[#1a1a1a] rounded-xl font-black text-[8px] uppercase tracking-widest flex items-center justify-center gap-2"
+                                >
+                                    {isStartingTrial ? <Loader2 className="w-3 h-3 animate-spin" /> : (
+                                        <>Try it for free <Sparkles className="w-3 h-3 text-[#FF8A75]" /></>
+                                    )}
+                                </button>
+                            )
                         )}
                     </div>
                 </div>
@@ -597,13 +639,30 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                 <h4 className="text-[11px] font-black uppercase tracking-widest text-[#1a1a1a] px-2">Apply Promo Code</h4>
                                 <div className="flex gap-2">
                                     <div className="relative flex-1">
-                                        <Tag className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7280]" />
+                                        <Tag className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
+                                            couponStatus?.type === 'error' ? 'text-rose-400' :
+                                            couponStatus?.type === 'success' ? 'text-emerald-500' :
+                                            'text-[#6B7280]'
+                                        }`} />
                                         <input 
                                             type="text" 
                                             placeholder="ENTER CODE" 
                                             value={couponCode}
-                                            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                                            className="w-full bg-white border border-[#FF8A75]/10 rounded-2xl py-4 pl-12 pr-4 text-[10px] font-black tracking-widest focus:outline-none focus:ring-2 focus:ring-[#FF8A75]/20"
+                                            onChange={(e) => {
+                                                setCouponCode(e.target.value.toUpperCase());
+                                                // Reset status when user types a new code
+                                                if (couponStatus) {
+                                                    setCouponStatus(null);
+                                                    setAppliedCoupon(null);
+                                                }
+                                            }}
+                                            className={`w-full bg-white border rounded-2xl py-4 pl-12 pr-4 text-[10px] font-black tracking-widest focus:outline-none focus:ring-2 transition-all ${
+                                                couponStatus?.type === 'error'
+                                                    ? 'border-rose-300 focus:ring-rose-200'
+                                                    : couponStatus?.type === 'success'
+                                                    ? 'border-emerald-300 focus:ring-emerald-200'
+                                                    : 'border-[#FF8A75]/10 focus:ring-[#FF8A75]/20'
+                                            }`}
                                         />
                                     </div>
                                     <button 
@@ -614,10 +673,19 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                         {verifyingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Apply'}
                                     </button>
                                 </div>
-                                {appliedCoupon && (
-                                    <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl text-[10px] font-bold">
-                                        <CheckCircle2 className="w-3 h-3" />
-                                        Code {appliedCoupon.code} applied! (-{appliedCoupon.discount_type === 'percentage' ? `${appliedCoupon.discount_value}%` : `₹${appliedCoupon.discount_value}`})
+
+                                {/* Inline coupon status message */}
+                                {couponStatus && (
+                                    <div className={`flex items-start gap-2.5 px-4 py-3 rounded-xl text-[10px] font-bold leading-relaxed transition-all ${
+                                        couponStatus.type === 'success'
+                                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                                            : 'bg-rose-50 text-rose-600 border border-rose-100'
+                                    }`}>
+                                        {couponStatus.type === 'success'
+                                            ? <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                                            : <XCircle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                                        }
+                                        <span>{couponStatus.message}</span>
                                     </div>
                                 )}
                             </div>

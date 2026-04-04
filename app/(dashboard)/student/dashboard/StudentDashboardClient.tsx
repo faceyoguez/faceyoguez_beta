@@ -13,7 +13,9 @@ import {
   User,
   Heart,
   Activity,
-  Zap
+  Zap,
+  AlertTriangle,
+  X
 } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
@@ -24,6 +26,8 @@ interface StudentDashboardClientProps {
   todaysMeetings: any[];
   activePlanTypes: string[];
   daysLeft: number;
+  journeyDay: number;
+  expiryDate: string | null;
   firstPhoto: any;
   latestPhoto: any;
   joinedDate: Date | null;
@@ -36,6 +40,8 @@ export function StudentDashboardClient({
   todaysMeetings,
   activePlanTypes,
   daysLeft,
+  journeyDay,
+  expiryDate,
   firstPhoto,
   latestPhoto,
   joinedDate,
@@ -43,6 +49,34 @@ export function StudentDashboardClient({
   isTrial = false,
 }: StudentDashboardClientProps) {
   const firstName = profile.full_name?.split(' ')[0] || 'there';
+  const [showRenewModal, setShowRenewModal] = React.useState(false);
+
+  // Trigger renew modal on mount if plan is expiring soon (last 5 days)
+  React.useEffect(() => {
+    // Only show for non-trial or if trial is specifically requested (user said "plans")
+    // If daysLeft is between 1 and 5 (last 5 days)
+    if (daysLeft > 0 && daysLeft <= 5) {
+      // Check sessionStorage to show it once per session login to avoid annoyance
+      const hasSeenSession = sessionStorage.getItem('hasSeenRenewModal');
+      if (!hasSeenSession) {
+        setShowRenewModal(true);
+        sessionStorage.setItem('hasSeenRenewModal', 'true');
+      }
+    }
+  }, [daysLeft]);
+
+  // Urgency color based on days remaining
+  // -1 = lifetime plan (no expiry)
+  const expiryColor =
+    daysLeft === -1
+      ? 'text-emerald-600'
+      : daysLeft === 0
+      ? 'text-rose-600'
+      : daysLeft <= 3
+      ? 'text-rose-500'
+      : daysLeft <= 7
+      ? 'text-amber-500'
+      : 'text-emerald-600';
 
   return (
     <div className="h-[100dvh] flex flex-col bg-[#FFFAF7]/40 text-[#374151] font-sans selection:bg-[#FF8A75]/20 overflow-hidden">
@@ -79,15 +113,26 @@ export function StudentDashboardClient({
               <Zap className="w-4 h-4 text-[#FF8A75]" />
               <div className="flex flex-col">
                 <span className="text-[9px] font-black uppercase tracking-[0.1em] text-[#6B7280]">
-                  Month {Math.floor(((latestPhoto?.day_number || 1) - 1) / 30) + 1}
+                  Month {Math.floor((journeyDay - 1) / 30) + 1}
                 </span>
-                <span className="text-xs font-bold text-[#1a1a1a]">Day {latestPhoto?.day_number || 1}</span>
+                <span className="text-xs font-bold text-[#1a1a1a]">Day {journeyDay}</span>
               </div>
             </div>
             <div className="flex items-center gap-2 pl-1">
               <div className="flex flex-col">
                 <span className="text-[9px] font-black uppercase tracking-[0.1em] text-[#6B7280]">Plan Expiry</span>
-                <span className="text-xs font-bold text-[#1a1a1a]">{daysLeft} Days</span>
+                <span className={`text-xs font-bold ${expiryColor}`}>
+                  {daysLeft === -1
+                    ? 'Lifetime'
+                    : daysLeft === 0
+                    ? 'Expired'
+                    : `${daysLeft} Day${daysLeft === 1 ? '' : 's'} left`}
+                </span>
+                {expiryDate && daysLeft > 0 && (
+                  <span className="text-[8px] font-medium text-[#6B7280]">
+                    Until {new Date(`${expiryDate}T12:00:00`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -312,6 +357,60 @@ export function StudentDashboardClient({
       {/* ── Mobile Context Footer (Only for spacing, ensure no scroll) ── */}
       <div className="h-4 lg:hidden shrink-0" />
       
+      {/* ── Plan Expiring Soon Modal ── */}
+      {showRenewModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 sm:p-4">
+          <div 
+            className="absolute inset-0 bg-black/40 backdrop-blur-md animate-in fade-in duration-500" 
+            onClick={() => setShowRenewModal(false)}
+          />
+          <div className="relative bg-[#FFFAF7] w-full max-w-md rounded-[2.5rem] border border-[#FF8A75]/30 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+            {/* Header with gradient icon */}
+            <div className="p-8 pb-4 text-center">
+              <div className="mx-auto w-16 h-16 rounded-2xl bg-amber-50 flex items-center justify-center mb-6 shadow-sm border border-amber-100">
+                <AlertTriangle className="w-8 h-8 text-amber-500 animate-bounce" />
+              </div>
+              <h3 className="text-2xl font-bold text-[#1a1a1a] mb-2">Renewal Reminder</h3>
+              <p className="text-xs text-[#6B7280] font-medium leading-relaxed">
+                Your journey is showing incredible results! <br/>
+                Your current plan will expire in <span className="text-rose-500 font-bold">{daysLeft} days</span>.
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="px-8 pb-8 space-y-3">
+              <Link 
+                href="/student/plans"
+                className="w-full h-12 bg-[#FF8A75] text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#ff7b63] transition-all shadow-lg shadow-[#FF8A75]/20"
+              >
+                Renew Current Plan
+                <ArrowUpRight className="w-4 h-4 text-white/70" />
+              </Link>
+              <Link 
+                href="/student/plans"
+                className="w-full h-12 bg-white border border-[#FF8A75]/20 text-[#1a1a1a] rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white/50 transition-all"
+              >
+                Explore New Plans
+              </Link>
+              <button 
+                onClick={() => setShowRenewModal(false)}
+                className="w-full pt-2 text-[9px] font-bold text-[#6B7280]/60 uppercase tracking-[0.2em] hover:text-[#1a1a1a] transition-colors"
+              >
+                Remind me later
+              </button>
+            </div>
+
+            {/* Close button */}
+            <button 
+              onClick={() => setShowRenewModal(false)}
+              className="absolute top-6 right-6 h-8 w-8 rounded-full flex items-center justify-center bg-white/50 hover:bg-white text-[#1a1a1a] transition-all border border-[#FF8A75]/10"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 5px;

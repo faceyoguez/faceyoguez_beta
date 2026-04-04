@@ -15,7 +15,22 @@ export async function activateTrial(userId: string) {
     .limit(1);
 
   if (existingTrials && existingTrials.length > 0) {
-    return { success: false, error: 'Trial already used' };
+    return { success: false, error: 'You have already used your free trial.' };
+  }
+
+  // 2. Block trial if the student already has an active paid subscription
+  const today = new Date().toISOString().split('T')[0];
+  const { data: activePaidSubs } = await admin
+    .from('subscriptions')
+    .select('id')
+    .eq('student_id', userId)
+    .eq('status', 'active')
+    .eq('is_trial', false)
+    .gte('end_date', today)
+    .limit(1);
+
+  if (activePaidSubs && activePaidSubs.length > 0) {
+    return { success: false, error: 'You already have an active subscription. The free trial is only for new students.' };
   }
 
   // 2. Create a 3-day trial subscription that covers ALL services

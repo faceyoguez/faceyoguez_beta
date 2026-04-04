@@ -30,6 +30,7 @@ import {
   User
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { differenceInDays, startOfDay } from 'date-fns';
 import type { Profile, StudentResource, MeetingWithDetails } from '@/types/database';
 
 interface Props {
@@ -38,13 +39,12 @@ interface Props {
   subscriptionStartDate: string | null;
   isTrial?: boolean;
 }
-
 export function StudentOneOnOneClient({ currentUser, hasSubscription, subscriptionStartDate, isTrial = false }: Props) {
   // Day elapsed since subscription started
   const currentDay = subscriptionStartDate
     ? Math.min(
         JOURNEY_MAX_DAY,
-        Math.max(1, Math.floor((Date.now() - new Date(subscriptionStartDate).getTime()) / 86400000) + 1)
+        Math.max(1, differenceInDays(startOfDay(new Date()), startOfDay(new Date(subscriptionStartDate))) + 1)
       )
     : 1;
 

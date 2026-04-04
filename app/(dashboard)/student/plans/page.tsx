@@ -12,21 +12,29 @@ export default async function PlansPage() {
 
     const admin = createAdminClient();
 
-    // Get current user profile for Razorpay prefill
+    // Get current user profile
     const { data: profile } = await admin
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single();
 
-    // Get all subscriptions to see if they ever used a trial
-    const { data: allSubscriptions } = await supabase
+    // Get all subscriptions
+    const { data: allSubscriptions } = await admin
         .from('subscriptions')
-        .select('plan_type, status, is_trial')
+        .select('plan_type, status, is_trial, end_date')
         .eq('student_id', user.id);
 
-    const activeSubscription = allSubscriptions?.filter(s => ['active', 'pending'].includes(s.status)) || [];
+    const today = new Date().toISOString().split('T')[0];
+
     const hasUsedTrial = allSubscriptions?.some(s => s.is_trial) || false;
+
+    // Active paid subscription = is_active, not a trial, and end_date is today or future
+    const hasActiveSubscription = allSubscriptions?.some(
+        s => s.status === 'active' && !s.is_trial && s.end_date && s.end_date >= today
+    ) || false;
+
+    const activeSubscription = allSubscriptions?.filter(s => ['active', 'pending'].includes(s.status)) || [];
 
     return (
         <PlansClient
@@ -34,6 +42,7 @@ export default async function PlansPage() {
             userId={user.id}
             currentUser={profile}
             hasUsedTrial={hasUsedTrial}
+            hasActiveSubscription={hasActiveSubscription}
         />
     );
 }

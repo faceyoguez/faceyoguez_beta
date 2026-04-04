@@ -1,11 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { createClient } from '@/lib/supabase/client';
 import { 
     Plus, Trash2, Tag, Percent, 
     Calendar, CheckCircle2, XCircle, 
@@ -14,15 +10,16 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { createCouponAction, getStaffCoupons, toggleCouponStatusAction, deleteCouponAction } from '@/lib/actions/coupons';
 
 interface Coupon {
     id: string;
     code: string;
-    discount_type: 'percentage' | 'fixed';
-    discount_value: number;
-    active: boolean;
+    discount_percentage: number;
+    course_type: string;
+    is_active: boolean;
     max_uses: number | null;
-    times_used: number;
+    used_count: number;
     expires_at: string | null;
     created_at: string;
 }
@@ -32,12 +29,13 @@ export default function CouponManagement() {
     const [loading, setLoading] = useState(true);
     const [isCreating, setIsCreating] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Form state
     const [newCoupon, setNewCoupon] = useState({
         code: '',
-        discount_type: 'percentage' as const,
-        discount_value: 10,
+        discount_percentage: 10,
+        course_type: 'all',
         max_uses: null as number | null,
         expires_at: ''
     });
@@ -48,67 +46,75 @@ export default function CouponManagement() {
 
     async function fetchCoupons() {
         setLoading(true);
-        const { data, error } = await supabase
-            .from('coupons')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-        if (error) {
-            toast.error('Failed to fetch coupons');
-        } else {
+        console.log("Fetching coupons...");
+        try {
+            const data = await getStaffCoupons();
+            console.log("Coupons received:", data);
             setCoupons(data || []);
+        } catch (error: any) {
+            console.error("Fetch error:", error);
+            toast.error('Failed to fetch coupons: ' + (error.message || 'Unknown error'));
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     }
 
     async function handleCreateCoupon(e: React.FormEvent) {
         e.preventDefault();
         if (!newCoupon.code) return toast.error('Code is required');
-
-        const { error } = await supabase
-            .from('coupons')
-            .insert({
+        
+        setIsSubmitting(true);
+        try {
+            const result = await createCouponAction({
                 ...newCoupon,
                 code: newCoupon.code.toUpperCase(),
                 expires_at: newCoupon.expires_at || null
             });
 
-        if (error) {
-            toast.error(error.message);
-        } else {
-            toast.success('Coupon created successfully');
-            setIsCreating(false);
-            setNewCoupon({ code: '', discount_type: 'percentage', discount_value: 10, max_uses: null, expires_at: '' });
-            fetchCoupons();
+            if (result.success) {
+                toast.success('🎉 Coupon created successfully!');
+                setIsCreating(false); // Close the window
+                setNewCoupon({ code: '', discount_percentage: 10, course_type: 'all', max_uses: null, expires_at: '' });
+                // Small delay to ensure DB propagation before re-fetching
+                setTimeout(() => fetchCoupons(), 100);
+            } else {
+                toast.error(result.error || 'Failed to create coupon');
+            }
+        } catch (error) {
+            console.error("Creation submission error:", error);
+            toast.error('Something went wrong. Please check console.');
+        } finally {
+            setIsSubmitting(false);
         }
     }
 
     async function toggleCouponStatus(id: string, currentStatus: boolean) {
-        const { error } = await supabase
-            .from('coupons')
-            .update({ active: !currentStatus })
-            .eq('id', id);
-
-        if (error) {
-            toast.error('Update failed');
-        } else {
-            fetchCoupons();
+        try {
+            const result = await toggleCouponStatusAction(id, !currentStatus);
+            if (result.success) {
+                toast.success('Status updated');
+                fetchCoupons();
+            } else {
+                toast.error(result.error || 'Update failed');
+            }
+        } catch (error) {
+            toast.error('Something went wrong');
         }
     }
 
     async function deleteCoupon(id: string) {
         if (!confirm('Are you sure you want to delete this coupon?')) return;
 
-        const { error } = await supabase
-            .from('coupons')
-            .delete()
-            .eq('id', id);
-
-        if (error) {
-            toast.error('Delete failed');
-        } else {
-            toast.success('Coupon deleted');
-            fetchCoupons();
+        try {
+            const result = await deleteCouponAction(id);
+            if (result.success) {
+                toast.success('Coupon deleted');
+                fetchCoupons();
+            } else {
+                toast.error(result.error || 'Delete failed');
+            }
+        } catch (error) {
+            toast.error('Something went wrong');
         }
     }
 
@@ -162,7 +168,7 @@ export default function CouponManagement() {
                             </div>
                             <div>
                                 <p className="text-[10px] font-black uppercase tracking-widest text-[#6B7280]">Active</p>
-                                <p className="text-2xl font-bold">{coupons.filter(c => c.active).length}</p>
+                                <p className="text-2xl font-bold">{coupons.filter(c => c.is_active).length}</p>
                             </div>
                         </div>
                     </div>
@@ -173,7 +179,7 @@ export default function CouponManagement() {
                             </div>
                             <div>
                                 <p className="text-[10px] font-black uppercase tracking-widest text-[#6B7280]">Redemptions</p>
-                                <p className="text-2xl font-bold">{coupons.reduce((acc, current) => acc + current.times_used, 0)}</p>
+                                <p className="text-2xl font-bold">{coupons.reduce((acc, current) => acc + current.used_count, 0)}</p>
                             </div>
                         </div>
                     </div>
@@ -210,7 +216,7 @@ export default function CouponManagement() {
                                 <thead className="bg-[#FFFAF7] border-b border-[#FF8A75]/10">
                                     <tr>
                                         <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-[#6B7280]">Code</th>
-                                        <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-[#6B7280]">Type</th>
+                                        <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-[#6B7280]">Course</th>
                                         <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-[#6B7280]">Discount</th>
                                         <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-[#6B7280]">Usage</th>
                                         <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-[#6B7280]">Status</th>
@@ -237,17 +243,17 @@ export default function CouponManagement() {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full ${coupon.discount_type === 'percentage' ? 'bg-indigo-50 text-indigo-500' : 'bg-emerald-50 text-emerald-500'}`}>
-                                                    {coupon.discount_type}
+                                                <span className="text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full bg-purple-50 text-purple-500">
+                                                    {coupon.course_type.replace('_', ' ')}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 font-bold">
-                                                {coupon.discount_type === 'percentage' ? `${coupon.discount_value}%` : `₹${coupon.discount_value}`}
+                                                {coupon.discount_percentage}%
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="space-y-1">
                                                     <div className="text-[10px] font-bold text-[#374151]">
-                                                        {coupon.times_used} / {coupon.max_uses || '∞'}
+                                                        {coupon.used_count} / {coupon.max_uses || '∞'}
                                                     </div>
                                                     {coupon.expires_at && (
                                                         <div className="text-[8px] font-medium text-[#6B7280] flex items-center gap-1">
@@ -259,10 +265,10 @@ export default function CouponManagement() {
                                             </td>
                                             <td className="px-6 py-4">
                                                 <button 
-                                                    onClick={() => toggleCouponStatus(coupon.id, coupon.active)}
-                                                    className={`flex items-center gap-2 text-[10px] font-bold px-3 py-1 rounded-full transition-all ${coupon.active ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}
+                                                    onClick={() => toggleCouponStatus(coupon.id, coupon.is_active)}
+                                                    className={`flex items-center gap-2 text-[10px] font-bold px-3 py-1 rounded-full transition-all ${coupon.is_active ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}
                                                 >
-                                                    {coupon.active ? (
+                                                    {coupon.is_active ? (
                                                         <><CheckCircle2 className="w-3 h-3" /> Active</>
                                                     ) : (
                                                         <><XCircle className="w-3 h-3" /> Inactive</>
@@ -317,27 +323,31 @@ export default function CouponManagement() {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-[#6B7280]">Type</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-[#6B7280]">Course</label>
                                     <select 
-                                        value={newCoupon.discount_type}
-                                        onChange={(e) => setNewCoupon({ ...newCoupon, discount_type: e.target.value as any })}
+                                        value={newCoupon.course_type}
+                                        onChange={(e) => setNewCoupon({ ...newCoupon, course_type: e.target.value })}
                                         className="w-full bg-white border border-[#FF8A75]/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF8A75]/20"
                                     >
-                                        <option value="percentage">Percentage</option>
-                                        <option value="fixed">Fixed Amount</option>
+                                        <option value="all">All Courses</option>
+                                        <option value="one_on_one">1-on-1</option>
+                                        <option value="group_session">Group Session</option>
+                                        <option value="lms">Self-Paced (LMS)</option>
                                     </select>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-[#6B7280]">Value</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-[#6B7280]">Discount (%)</label>
                                     <div className="relative">
                                         <input 
                                             type="number" 
-                                            value={newCoupon.discount_value}
-                                            onChange={(e) => setNewCoupon({ ...newCoupon, discount_value: parseInt(e.target.value) })}
+                                            min="1"
+                                            max="100"
+                                            value={newCoupon.discount_percentage}
+                                            onChange={(e) => setNewCoupon({ ...newCoupon, discount_percentage: parseInt(e.target.value) })}
                                             className="w-full bg-white border border-[#FF8A75]/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#FF8A75]/20"
                                         />
                                         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6B7280]">
-                                            {newCoupon.discount_type === 'percentage' ? '%' : '₹'}
+                                            %
                                         </span>
                                     </div>
                                 </div>
@@ -374,9 +384,12 @@ export default function CouponManagement() {
                                 </button>
                                 <button 
                                     type="submit" 
-                                    className="flex-1 py-4 bg-[#FF8A75] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#ff705a] transition-all"
+                                    disabled={isSubmitting}
+                                    className="flex-1 py-4 bg-[#FF8A75] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#ff705a] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                                 >
-                                    Create Coupon
+                                    {isSubmitting ? (
+                                        <><Loader2 className="w-4 h-4 animate-spin" /> Creating...</>
+                                    ) : 'Create Coupon'}
                                 </button>
                             </div>
                         </form>

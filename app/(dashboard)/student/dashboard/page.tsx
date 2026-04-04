@@ -75,17 +75,36 @@ export default async function StudentDashboardPage() {
       }, null as Date | null)
     : null;
 
+  const today = new Date();
+  const todayDateStr = today.toISOString().split('T')[0];
+
+  // Check if any active subscription has no end_date (lifetime/unlimited plan)
+  const hasLifetimeSub = activeSubs.some(s => s.end_date === null || s.end_date === undefined);
+
+  // Among subs with an end_date, find the furthest one that is still in the future
   const furthestEndDate = activeSubs.reduce((furthest, sub) => {
-    if (!sub.end_date) return furthest;
-    const d = new Date(sub.end_date);
+    if (!sub.end_date) return furthest; // skip null (handled by hasLifetimeSub)
+    // Only consider subs that haven't expired yet
+    if (sub.end_date < todayDateStr) return furthest;
+    // Parse as end-of-day local time to avoid UTC midnight issues in UTC+ zones
+    const d = new Date(`${sub.end_date}T23:59:59`);
     return !furthest || d > furthest ? d : furthest;
   }, null as Date | null);
 
+  // Priority: real future end_date > lifetime (null) > expired
+  // If a real future end_date exists, always show it — even if some subs have null end_date.
+  // "Lifetime" only shows when every active sub has null end_date.
   const daysLeft = furthestEndDate
-    ? Math.max(0, differenceInDays(furthestEndDate, new Date()))
+    ? Math.max(0, differenceInDays(furthestEndDate, today))
+    : hasLifetimeSub
+    ? -1
     : 0;
 
-  const activePlanTypes = [...new Set(activeSubs.map(s => s.plan_type))];
+  // Only show plan types from truly current (non-expired) subscriptions
+  const currentSubs = activeSubs.filter(
+    s => s.end_date === null || s.end_date >= todayDateStr
+  );
+  const activePlanTypes = [...new Set(currentSubs.map(s => s.plan_type))];
 
   // ─── Group meetings (depends on enrollments from parallel fetch) ──
   const batchIds = (enrollments || []).map(e => e.batch_id);
@@ -106,17 +125,26 @@ export default async function StudentDashboardPage() {
   const todaysMeetings = [...(oneOnOneMeetings || []), ...groupMeetings]
     .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
 
+  const expiryDate = furthestEndDate ? furthestEndDate.toISOString().split('T')[0] : null;
+
+  // Calculate Journey Day (Days since joinedDate)
+  const journeyDay = joinedDate 
+    ? Math.max(1, differenceInDays(new Date(), joinedDate) + 1)
+    : 1;
+
   return (
     <StudentDashboardClient 
       profile={profile}
       todaysMeetings={todaysMeetings}
       activePlanTypes={activePlanTypes}
       daysLeft={daysLeft}
+      journeyDay={journeyDay}
+      expiryDate={expiryDate}
       firstPhoto={firstPhoto}
       latestPhoto={latestPhoto}
       joinedDate={joinedDate}
       lastRenewed={lastRenewed}
-      isTrial={activeSubs.some(s => s.is_trial)}
+      isTrial={activeSubs.some(s => s.is_trial) && !activeSubs.some(s => !s.is_trial)}
     />
   );
 }
