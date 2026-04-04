@@ -8,6 +8,7 @@ import { ArrowRight, Facebook, Instagram } from 'lucide-react';
 import AuthLayout from '@/components/auth/AuthLayout';
 import AuthInput from '@/components/auth/AuthInput';
 import AuthButton from '@/components/auth/AuthButton';
+import { getRoleRedirectPath, fetchUserRole } from '@/lib/utils/auth';
 
 const GoogleIcon = () => (
   <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -50,7 +51,18 @@ export default function LoginPage() {
       return;
     }
 
-    router.push('/student/dashboard');
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setError('User data could not be retrieved. Please try again.');
+      setLoading(false);
+      return;
+    }
+
+    const role = await fetchUserRole(supabase, user.id);
+    const redirectPath = getRoleRedirectPath(role);
+
+    console.log(`Login Success: User ${user.id} logged in as ${role}. Redirecting to ${redirectPath}`);
+    router.push(redirectPath);
     router.refresh();
   };
 

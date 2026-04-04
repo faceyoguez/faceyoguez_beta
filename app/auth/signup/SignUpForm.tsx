@@ -9,6 +9,7 @@ import { z } from 'zod';
 import AuthLayout from '@/components/auth/AuthLayout';
 import AuthInput from '@/components/auth/AuthInput';
 import AuthButton from '@/components/auth/AuthButton';
+import { getRoleRedirectPath } from '@/lib/utils/auth';
 
 const GoogleIcon = () => (
   <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -90,7 +91,8 @@ export default function SignUpForm() {
       return;
     }
 
-    router.push('/student/dashboard');
+    const redirectPath = getRoleRedirectPath('student');
+    router.push(redirectPath);
     router.refresh();
   }
 

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { getRoleRedirectPath, fetchUserRole } from '@/lib/utils/auth';
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -19,10 +20,16 @@ export async function GET(request: Request) {
     if (!exchangeError) {
       // Determine proper role-based redirection
       const { data: { user } } = await supabase.auth.getUser();
-      const role = user?.user_metadata?.role || 'student';
       
-      console.log(`OAuth Success: User ${user?.id} logged in with role ${role}. Redirecting to /${role}/dashboard`);
-      return NextResponse.redirect(`${origin}/${role}/dashboard`);
+      if (!user) {
+        return NextResponse.redirect(`${origin}/auth/login?error=UserNotFound`);
+      }
+
+      const role = await fetchUserRole(supabase, user.id);
+      const redirectPath = getRoleRedirectPath(role);
+      
+      console.log(`OAuth Success: User ${user.id} logged in as ${role}. Redirecting to ${redirectPath}`);
+      return NextResponse.redirect(`${origin}${redirectPath}`);
     } else {
       console.error('OAuth Exchange Code Error:', exchangeError.message);
       return NextResponse.redirect(`${origin}/auth/login?error=ExchangeCodeError`);
