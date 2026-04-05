@@ -17,9 +17,15 @@ import {
   CreditCard,
   Menu,
   X,
-  Ticket
+  Ticket,
+  Sparkles,
+  Zap,
+  ShieldCheck,
+  Heart
 } from 'lucide-react';
 import type { Profile } from '@/types/database';
+import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // ── Context for sidebar state ──
 const SidebarContext = createContext({ collapsed: false, toggle: () => { } });
@@ -28,53 +34,52 @@ export const useSidebar = () => useContext(SidebarContext);
 // ── Nav config per role ──
 const navConfig = {
   student: [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/student/dashboard' },
-    { label: '1-on-1 Classes', icon: User, path: '/student/one-on-one' },
-    { label: 'Group Session', icon: Users, path: '/student/group-session' },
-    { label: 'LMS', icon: BookOpen, path: '/student/lms' },
-    { label: 'Plans & Pricing', icon: CreditCard, path: '/student/plans' },
-    { label: 'Broadcasts', icon: Megaphone, path: '/student/broadcasts' },
+    { label: 'Sanctuary', icon: LayoutDashboard, path: '/student/dashboard' },
+    { label: 'One-on-One', icon: User, path: '/student/one-on-one' },
+    { label: 'Collective', icon: Users, path: '/student/group-session' },
+    { label: 'Academy', icon: BookOpen, path: '/student/lms' },
+    { label: 'Provision', icon: CreditCard, path: '/student/plans' },
+    { label: 'Signals', icon: Megaphone, path: '/student/broadcasts' },
   ],
   instructor: [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/instructor/dashboard' },
-    { label: '1-on-1', icon: User, path: '/instructor/one-on-one' },
-    { label: 'Chat', icon: MessageSquare, path: '/instructor/chat' },
-    { label: 'Groups', icon: Users, path: '/instructor/groups' },
+    { label: 'Sanctuary', icon: LayoutDashboard, path: '/instructor/dashboard' },
+    { label: 'One-on-One', icon: User, path: '/instructor/one-on-one' },
+    { label: 'Collective', icon: Users, path: '/instructor/groups' },
     { label: 'Broadcast', icon: Megaphone, path: '/instructor/broadcast' },
-    { label: 'LMS', icon: BookOpen, path: '/instructor/lms' },
+    { label: 'Academy', icon: BookOpen, path: '/instructor/lms' },
   ],
   admin: [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/staff/dashboard' },
-    { label: '1-on-1', icon: User, path: '/staff/one-on-one' },
-    { label: 'Chat', icon: MessageSquare, path: '/instructor/chat' },
+    { label: 'Sanctuary', icon: LayoutDashboard, path: '/staff/dashboard' },
+    { label: 'One-on-One', icon: User, path: '/staff/one-on-one' },
+    { label: 'Gateway', icon: MessageSquare, path: '/instructor/chat' },
     { label: 'Groups', icon: Users, path: '/staff/groups' },
     { label: 'Broadcast', icon: Megaphone, path: '/staff/broadcast' },
     { label: 'LMS', icon: BookOpen, path: '/staff/lms' },
-    { label: 'Coupons', icon: Ticket, path: '/staff/coupons' },
+    { label: 'Artifacts', icon: Ticket, path: '/staff/coupons' },
   ],
   staff: [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/staff/dashboard' },
-    { label: '1-on-1', icon: User, path: '/staff/one-on-one' },
-    { label: 'Chat', icon: MessageSquare, path: '/instructor/chat' },
+    { label: 'Sanctuary', icon: LayoutDashboard, path: '/staff/dashboard' },
+    { label: 'One-on-One', icon: User, path: '/staff/one-on-one' },
+    { label: 'Gateway', icon: MessageSquare, path: '/instructor/chat' },
     { label: 'Groups', icon: Users, path: '/staff/groups' },
     { label: 'Broadcast', icon: Megaphone, path: '/staff/broadcast' },
     { label: 'LMS', icon: BookOpen, path: '/staff/lms' },
-    { label: 'Coupons', icon: Ticket, path: '/staff/coupons' },
+    { label: 'Artifacts', icon: Ticket, path: '/staff/coupons' },
   ],
   client_management: [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/staff/dashboard' },
-    { label: '1-on-1', icon: User, path: '/staff/one-on-one' },
-    { label: 'Chat', icon: MessageSquare, path: '/instructor/chat' },
+    { label: 'Sanctuary', icon: LayoutDashboard, path: '/staff/dashboard' },
+    { label: 'One-on-One', icon: User, path: '/staff/one-on-one' },
+    { label: 'Gateway', icon: MessageSquare, path: '/instructor/chat' },
     { label: 'Groups', icon: Users, path: '/staff/groups' },
     { label: 'Broadcast', icon: Megaphone, path: '/staff/broadcast' },
     { label: 'LMS', icon: BookOpen, path: '/staff/lms' },
-    { label: 'Coupons', icon: Ticket, path: '/staff/coupons' },
+    { label: 'Artifacts', icon: Ticket, path: '/staff/coupons' },
   ],
   sales_team: [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/instructor/dashboard' },
+    { label: 'Sanctuary', icon: LayoutDashboard, path: '/instructor/dashboard' },
   ],
   marketing_team: [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/instructor/dashboard' },
+    { label: 'Sanctuary', icon: LayoutDashboard, path: '/instructor/dashboard' },
   ],
 };
 
@@ -98,198 +103,202 @@ export function AppSidebar({
   const pathname = usePathname();
   const links = navConfig[user.role as keyof typeof navConfig] || navConfig.student;
 
-  // Close mobile menu on route change
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [pathname]);
 
   return (
     <SidebarContext.Provider value={{ collapsed, toggle: () => setCollapsed((p) => !p) }}>
-      <div className="flex h-[100dvh] overflow-hidden bg-background selection:bg-primary-container selection:text-primary">
+      <div className="flex h-[100dvh] overflow-hidden bg-[#FFFAF7] selection:bg-[#FF8A75]/20 selection:text-[#FF8A75] font-sans">
         
-        {/* Mobile Header (Hamburger Menu) */}
-        <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-surface/80 backdrop-blur-2xl border-b border-outline-variant/10 z-40 flex items-center justify-between px-6 shadow-sm">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-foreground text-background shadow-sm">
-              <Flower2 className="h-4 w-4" />
+        {/* MOBILE HEADER */}
+        <div className="lg:hidden fixed top-0 left-0 right-0 h-20 bg-white/60 backdrop-blur-3xl border-b border-[#FF8A75]/10 z-[70] flex items-center justify-between px-8">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="h-10 w-10 flex items-center justify-center rounded-2xl bg-[#1a1a1a] text-white shadow-xl">
+              <Flower2 className="h-5 w-5" />
             </div>
-            <span className="text-lg font-bold tracking-tight text-foreground">
+            <span className="text-xl font-serif tracking-tight text-[#1a1a1a] leading-none">
               Faceyoguez
             </span>
           </Link>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 -mr-2 text-foreground/50 hover:text-foreground focus:outline-none transition-colors"
-            aria-label="Toggle menu"
+            className="h-12 w-12 flex items-center justify-center rounded-2xl bg-[#FF8A75]/5 text-[#FF8A75] transition-all"
           >
             {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
 
-        {/* Mobile menu overlay */}
-        {mobileMenuOpen && (
-          <div 
-            className="fixed inset-0 bg-black/5 backdrop-blur-sm z-40 lg:hidden"
-            onClick={() => setMobileMenuOpen(false)}
-          />
-        )}
+        {/* MOBILE OVERLAY */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileMenuOpen(false)}
+              className="fixed inset-0 bg-slate-900/10 backdrop-blur-xl z-[80] lg:hidden"
+            />
+          )}
+        </AnimatePresence>
 
-        {/* ── Sidebar ── */}
+        {/* ── SIDEBAR ── */}
         <aside
-          className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-surface-container-low/50 backdrop-blur-3xl transition-all duration-500 ease-in-out border-r border-outline-variant/10
-            ${collapsed ? 'w-[80px] hidden lg:flex' : 'w-72'} 
-            ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-            bg-white/60 backdrop-blur-3xl
-          `}
+          className={cn(
+            "fixed inset-y-0 left-0 z-[100] flex flex-col bg-white border-r border-[#FF8A75]/5 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] shadow-2xl shadow-[#FF8A75]/5",
+            collapsed ? 'w-24 hidden lg:flex' : 'w-80 lg:flex',
+            mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          )}
         >
-          {/* Logo Handle */}
-          <div className="flex h-[88px] shrink-0 items-center justify-between px-6">
-            <Link href="/" className="flex items-center gap-3 overflow-hidden group px-2">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-lg border border-primary/20 group-hover:scale-110 transition-transform duration-500">
+          {/* LOGO AREA */}
+          <div className="h-32 px-10 flex items-center justify-between shrink-0 mb-4">
+            <Link href="/" className="flex items-center gap-4 group">
+              <div className="h-12 w-12 flex items-center justify-center rounded-[1.2rem] bg-[#1a1a1a] text-white shadow-2xl shadow-[#1a1a1a]/20 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500">
                 <Flower2 className="h-6 w-6" />
               </div>
               {!collapsed && (
-                <span className="text-2xl font-serif font-bold tracking-tight text-primary italic">
-                  Faceyoguez
-                </span>
+                <div className="flex flex-col">
+                  <span className="text-2xl font-serif tracking-tight text-[#1a1a1a] leading-none">
+                    Faceyoguez
+                  </span>
+                  <span className="text-[7px] font-black uppercase tracking-[0.4em] text-[#FF8A75] mt-1.5 opacity-60">Pioneering Glow</span>
+                </div>
               )}
             </Link>
+            
             <button
-              onClick={() => setCollapsed((p) => !p)}
-              className="hidden lg:flex h-8 w-8 items-center justify-center text-foreground/40 transition-colors hover:text-foreground"
-              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              onClick={() => setCollapsed(!collapsed)}
+              className="hidden lg:flex h-8 w-8 items-center justify-center text-slate-300 hover:text-[#FF8A75] transition-colors"
             >
               {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
             </button>
-            <button
-               onClick={() => setMobileMenuOpen(false)}
-               className="lg:hidden p-2 text-foreground/40 hover:text-foreground"
-            >
-               <X className="h-5 w-5" />
-            </button>
           </div>
 
-          {/* Nav Links */}
-          <nav className="flex-1 overflow-y-auto px-4 py-8 custom-scrollbar">
-            {!collapsed && (
-              <p className="mb-4 px-3 text-[11px] font-bold uppercase tracking-widest text-foreground/40">
-                Menu
-              </p>
-            )}
-            <ul className="space-y-1.5">
-              {links.map(({ label, icon: Icon, path }) => {
-                const isActive = pathname === path || pathname?.startsWith(path + '/');
+          {/* MAIN NAV */}
+          <nav className="flex-1 overflow-y-auto px-6 py-4 custom-scrollbar">
+             {!collapsed && (
+               <p className="px-6 mb-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">
+                 Domain Navigation
+               </p>
+             )}
+             
+             <ul className="space-y-3">
+                {links.map(({ label, icon: Icon, path }) => {
+                  const isActive = pathname === path || pathname?.startsWith(path + '/');
+                  
+                  let requiresPlan: string | null = null;
+                  if (user.role === 'student') {
+                    if (path.includes('one-on-one')) requiresPlan = 'one_on_one';
+                    if (path.includes('group-session')) requiresPlan = 'group_session';
+                  }
+                  const isLocked = requiresPlan && !activePlans.includes(requiresPlan);
 
-                let requiresPlan: string | null = null;
-                if (user.role === 'student') {
-                  if (path.includes('one-on-one')) requiresPlan = 'one_on_one';
-                  if (path.includes('group-session')) requiresPlan = 'group_session';
-                }
+                  return (
+                    <li key={label}>
+                      <Link
+                        href={isLocked ? '#' : path}
+                        onClick={(e) => { if (isLocked) e.preventDefault(); }}
+                        className={cn(
+                          "group relative flex items-center h-16 rounded-[1.5rem] px-6 transition-all duration-500",
+                          isActive 
+                            ? "bg-white shadow-xl shadow-[#FF8A75]/10 text-[#FF8A75] ring-1 ring-[#FF8A75]/5" 
+                            : isLocked 
+                              ? "text-slate-200 cursor-not-allowed" 
+                              : "text-slate-400 hover:text-[#FF8A75] hover:bg-[#FFFAF7]"
+                        )}
+                      >
+                        {/* Active Indicator Glow */}
+                        <AnimatePresence>
+                          {isActive && (
+                            <motion.div 
+                              layoutId="active-nav"
+                              className="absolute left-0 w-1.5 h-6 bg-[#FF8A75] rounded-r-full"
+                              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                            />
+                          )}
+                        </AnimatePresence>
 
-                const isLocked = requiresPlan && !activePlans.includes(requiresPlan);
-                const tooltipTitle = isLocked ? 'Buy subscription to enable access' : (collapsed ? label : undefined);
+                        <div className={cn(
+                          "flex items-center justify-center h-10 w-10 shrink-0 transition-all duration-500 rounded-xl",
+                          isActive ? "bg-[#FF8A75]/5" : "bg-transparent"
+                        )}>
+                          <Icon className={cn("h-5 w-5 transition-transform group-hover:scale-110", isActive ? "text-[#FF8A75]" : "text-current")} />
+                        </div>
 
-                return (
-                  <li key={label}>
-                    <Link
-                      href={isLocked ? '#' : path}
-                      onClick={(e) => { if (isLocked) e.preventDefault(); }}
-                      title={tooltipTitle}
-                      className={`group flex items-center gap-4 rounded-[1.5rem] px-4 py-3.5 text-[13px] font-bold transition-all duration-500 ${
-                        isActive
-                        ? 'bg-primary text-white shadow-xl scale-[1.02] shadow-primary/20'
-                        : isLocked
-                          ? 'text-foreground/20 cursor-not-allowed'
-                          : 'text-foreground/50 hover:bg-primary/5 hover:text-primary'
-                        } ${collapsed ? 'justify-center mx-2' : ''}`}
-                    >
-                      <Icon
-                        className={`h-[20px] w-[20px] shrink-0 transition-transform duration-500 group-hover:scale-110 ${
-                          isActive
-                          ? 'text-background'
-                          : isLocked
-                            ? 'text-foreground/10'
-                            : 'text-foreground/30'
-                          }`}
-                      />
-                      {!collapsed && <span className="flex-1">{label}</span>}
-                      {!collapsed && label === 'Broadcasts' && unreadNotificationsCount > 0 && (
-                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-error-container text-error text-[10px] font-bold shadow-sm ring-1 ring-error/20">
-                          {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
-                        </span>
-                      )}
-                      {collapsed && label === 'Broadcasts' && unreadNotificationsCount > 0 && (
-                        <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-error shadow-sm ring-2 ring-surface-container-lowest"></span>
-                      )}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+                        {!collapsed && (
+                          <div className="ml-4 flex-1 flex items-center justify-between">
+                            <span className="text-[13px] font-bold tracking-tight">{label}</span>
+                            {isLocked && <ShieldCheck className="h-3 w-3 text-slate-100" />}
+                            {label === 'Signals' && unreadNotificationsCount > 0 && (
+                               <span className="flex h-5 w-8 items-center justify-center rounded-full bg-[#FF8A75] text-white text-[9px] font-black shadow-lg">
+                                  {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
+                               </span>
+                            )}
+                          </div>
+                        )}
+                      </Link>
+                    </li>
+                  );
+                })}
+             </ul>
           </nav>
 
-          <div className="shrink-0 pt-4 px-4 pb-0">
-          </div>
+          {/* USER FOOTER AREA */}
+          <div className="shrink-0 p-6 border-t border-[#FF8A75]/5">
+            <div className={cn(
+              "flex items-center gap-4 p-4 rounded-[1.8rem] bg-[#FFFAF7] border border-[#FF8A75]/10 shadow-sm transition-all hover:bg-white",
+              collapsed ? 'justify-center' : ''
+            )}>
+               <div className="relative shrink-0">
+                  {user.avatar_url ? (
+                    <img src={user.avatar_url} className="h-10 w-10 rounded-2xl object-cover ring-2 ring-white shadow-sm" />
+                  ) : (
+                    <div className="h-10 w-10 flex items-center justify-center rounded-2xl bg-[#FF8A75]/5 text-[#FF8A75] font-black text-sm">
+                      {user.full_name?.charAt(0)}
+                    </div>
+                  )}
+                  <div className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full bg-emerald-500 border-2 border-white" />
+               </div>
 
-          {/* User Profile */}
-          <div className="shrink-0 border-t border-outline-variant/10 p-4">
-            <div
-              className={`flex items-center gap-3 rounded-[1.5rem] bg-surface-container-low/50 p-3 ring-1 ring-outline-variant/15 shadow-sm backdrop-blur-md transition-all hover:bg-surface-container-low/80 ${collapsed ? 'justify-center' : ''
-                }`}
-            >
-              {user.avatar_url ? (
-                <img
-                  src={user.avatar_url}
-                  alt={user.full_name}
-                  className="h-10 w-10 shrink-0 rounded-[1rem] object-cover shadow-sm ring-1 ring-outline-variant/20"
-                />
-              ) : (
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[1rem] bg-secondary-container text-sm font-extrabold text-secondary shadow-sm ring-1 ring-secondary/20">
-                  {user.full_name?.charAt(0)?.toUpperCase() || '?'}
-                </div>
-              )}
-              {!collapsed && (
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13px] font-extrabold text-foreground">
-                    {user.full_name}
-                  </p>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <p className="text-[11px] font-medium capitalize text-foreground/50 tracking-wide">
-                      {user.role === 'client_management' ? 'Client Management' : user.role.replace(/_/g, ' ')}
-                    </p>
-                    {isTrial && (
-                      <span className="text-[9px] font-black uppercase text-red-500 bg-red-50 px-1.5 py-0.5 rounded border border-red-100 leading-none">
-                        Trial
+               {!collapsed && (
+                 <div className="flex-1 min-w-0">
+                    <p className="truncate text-xs font-black text-[#1a1a1a]">{user.full_name}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[#FF8A75]/60 truncate">
+                        {user.role.replace(/_/g, ' ')}
                       </span>
-                    )}
-                  </div>
-                </div>
-              )}
-              {!collapsed && (
-                <form action="/auth/logout" method="post">
-                  <button
-                    type="submit"
-                    className="flex h-8 w-8 items-center justify-center rounded-[0.75rem] text-foreground/40 transition-colors hover:bg-surface hover:text-error hover:shadow-sm ring-1 ring-transparent hover:ring-outline-variant/10"
-                    title="Log out"
-                  >
-                    <LogOut className="h-[14px] w-[14px]" />
-                  </button>
-                </form>
-              )}
+                    </div>
+                 </div>
+               )}
+
+               {!collapsed && (
+                 <form action="/auth/logout" method="post">
+                   <button type="submit" className="h-8 w-8 flex items-center justify-center rounded-xl text-slate-300 hover:text-red-400 hover:bg-red-50 transition-all">
+                     <LogOut className="h-4 w-4" />
+                   </button>
+                 </form>
+               )}
             </div>
           </div>
         </aside>
 
-        {/* ── Main content wrapper ── */}
+        {/* ── MAIN CONTENT CANVAS ── */}
         <main
-          className={`flex-1 overflow-y-auto h-full transition-all duration-300 ease-in-out w-full
-            pt-16 lg:pt-0 
-            ${collapsed ? 'lg:ml-[72px]' : 'lg:ml-72'}
-          `}
+          className={cn(
+            "flex-1 overflow-y-auto h-full transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] pt-20 lg:pt-0 pb-12 relative z-0",
+            collapsed ? 'lg:ml-24' : 'lg:ml-80'
+          )}
         >
           {children}
         </main>
       </div>
+
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,138,117,0.1); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,138,117,0.2); }
+      `}</style>
     </SidebarContext.Provider>
   );
 }

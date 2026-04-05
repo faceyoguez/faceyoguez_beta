@@ -1,8 +1,25 @@
 import { redirect } from 'next/navigation';
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
-import { Users, Video, Sparkles, Clock, Calendar, ChevronRight, UserPlus, Shield, ArrowUpRight, TrendingUp } from 'lucide-react';
+import { 
+  Users, 
+  User,
+  Video, 
+  Sparkles, 
+  Clock, 
+  Calendar, 
+  ChevronRight, 
+  UserPlus, 
+  Shield, 
+  ArrowUpRight, 
+  TrendingUp,
+  Zap,
+  Activity,
+  Award,
+  Heart
+} from 'lucide-react';
 import { format, startOfMonth, startOfDay, endOfDay, addMinutes } from 'date-fns';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 export default async function InstructorDashboardPage() {
   // ─── 1. Auth & Profile ──────────────────────────────────────────
@@ -148,285 +165,197 @@ export default async function InstructorDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6 lg:p-12 space-y-12 font-sans overflow-hidden animate-in fade-in duration-1000">
+    <div className="min-h-screen bg-[#FFFAF7] p-8 lg:p-16 space-y-16 selection:bg-[#FF8A75]/10 font-sans animate-in fade-in slide-in-from-bottom-4 duration-1000">
       
-      {/* 1. Header Section */}
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-bold tracking-widest uppercase border border-primary/10">
-            <TrendingUp className="w-3 h-3" />
-            Instructor Dashboard
+      {/* ─── 1. MORNING REFLECTION HERO ─── */}
+      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-10">
+        <div className="space-y-4">
+          <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-white border border-[#FF8A75]/10 shadow-sm">
+            <div className="h-2 w-2 rounded-full bg-[#FF8A75] animate-pulse" />
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF8A75]/60 leading-none">Curator Presence Active</span>
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground tracking-tight">
+          <h1 className="text-6xl md:text-7xl font-serif text-[#1a1a1a] tracking-tight leading-[1.1]">
             Greetings, {firstName}
           </h1>
-          <p className="text-lg text-foreground/40 font-medium max-w-lg">
-            &quot;Empowering transformations, one face at a time.&quot;
+          <p className="text-xl md:text-2xl text-slate-400 font-medium max-w-2xl leading-relaxed">
+            Your sanctuary is prepared. Today, we guide <span className="text-[#FF8A75] underline decoration-[#FF8A75]/20 underline-offset-8">progressive glow</span> through focused intention.
           </p>
         </div>
         
         {isMaster && (
-          <div className="flex items-center gap-3 px-6 py-3 bg-white shadow-sm rounded-3xl border border-primary/10 group">
-            <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover:rotate-12 transition-transform">
-              <Shield className="w-4 h-4" />
+          <div className="flex items-center gap-5 p-6 bg-white rounded-[2.5rem] border border-[#FF8A75]/5 shadow-2xl shadow-[#FF8A75]/5 group">
+            <div className="h-14 w-14 rounded-2xl bg-[#1a1a1a] flex items-center justify-center text-white shadow-xl transition-all duration-500 group-hover:rotate-6">
+              <Award className="w-6 h-6 text-[#FF8A75]" />
             </div>
             <div>
-              <p className="text-[9px] font-bold text-primary/50 uppercase tracking-widest leading-none">Status</p>
-              <p className="text-sm font-bold text-foreground/80">Master Instructor</p>
+              <p className="text-[9px] font-black text-[#FF8A75]/40 uppercase tracking-[0.3em] leading-none mb-2">Authority Level</p>
+              <p className="text-lg font-bold text-[#1a1a1a]">Master Curator</p>
             </div>
           </div>
         )}
       </header>
 
-      {/* 2. Platform Statistics */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
+      {/* ─── 2. GROWTH ARTIFACTS (STATS) ─── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         {[
-          { icon: Users, label: '1-on-1 Portfolio', val: totalOneOnOne || 0, color: 'text-primary', bg: 'bg-primary/5', sub: 'Total Clients' },
-          { icon: Sparkles, label: 'Group Reach', val: totalGroup || 0, color: 'text-primary', bg: 'bg-primary/5', sub: 'Active Students' },
-          { icon: UserPlus, label: 'New Joinees', val: newJoineesCount, color: 'text-primary', bg: 'bg-primary/5', sub: 'This Month' },
-          { icon: TrendingUp, label: 'Rejoinees', val: rejoineesCount, color: 'text-primary', bg: 'bg-primary/5', sub: 'Returning Clients' }
+          { label: 'One-on-One Portfolio', val: totalOneOnOne || 0, sub: 'Manifested Souls', icon: User },
+          { label: 'Group Reach', val: totalGroup || 0, sub: 'Collective Resonance', icon: Users },
+          { label: 'New Joinees', val: newJoineesCount, sub: 'Cycle Commencement', icon: Sparkles },
+          { label: 'Rejoinees', val: rejoineesCount, sub: 'Continuity Flow', icon: Activity }
         ].map((stat, i) => (
-          <div key={i} className="rounded-3xl p-8 border border-primary/5 hover:border-primary/20 transition-all duration-500 group flex flex-col justify-between shadow-sm bg-white/60 backdrop-blur-xl">
-            <div className="flex items-center gap-4 mb-6">
-              <div className={`h-12 w-12 rounded-xl ${stat.bg} flex items-center justify-center ${stat.color} group-hover:scale-110 transition-transform`}>
-                <stat.icon className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest leading-none mb-1">{stat.label}</h3>
-                <p className="text-3xl font-black text-foreground tracking-tighter">{stat.val}</p>
-              </div>
+          <div key={i} className="group p-10 rounded-[3rem] bg-white border border-[#FF8A75]/5 shadow-sm hover:shadow-2xl hover:shadow-[#FF8A75]/10 hover:-translate-y-1 transition-all duration-700 overflow-hidden relative">
+            <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+               <stat.icon className="w-24 h-24 text-[#1a1a1a]" />
             </div>
-            <p className="text-[9px] font-bold text-foreground/20 uppercase tracking-widest truncate">{stat.sub}</p>
+            <div className="relative z-10 space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="h-1 w-8 bg-[#FF8A75]/20 rounded-full group-hover:w-12 transition-all duration-500" />
+                <h3 className="text-[9px] font-black text-slate-300 uppercase tracking-[0.3em]">{stat.label}</h3>
+              </div>
+              <p className="text-5xl font-serif text-[#1a1a1a] tracking-tighter leading-none">{stat.val}</p>
+              <p className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.4em] opacity-40">{stat.sub}</p>
+            </div>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 relative z-10">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-12">
         
-        {/* Left Section (Sessions & Team) */}
-        <div className="lg:col-span-8 space-y-10">
-          
-          {/* 3. Today's Sessions */}
-          <section className="rounded-3xl p-8 md:p-12 border border-primary/5 bg-white/60 backdrop-blur-xl shadow-sm">
-            <div className="flex items-center justify-between mb-10">
-              <div className="space-y-1">
-                <h2 className="text-3xl font-bold text-foreground">Today&apos;s Sessions</h2>
-                <div className="h-1 w-10 bg-primary/30 rounded-full" />
-              </div>
-              <div className="px-4 py-2 bg-white/80 backdrop-blur-md rounded-2xl border border-primary/5 shadow-sm">
-                <span className="text-xs font-bold text-primary/40 uppercase tracking-widest">
+        {/* ─── 3. TODAY'S RADIANCE (SCHEDULE) ─── */}
+        <section className="xl:col-span-8 flex flex-col gap-10">
+          <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <h2 className="text-4xl font-serif text-[#1a1a1a] tracking-tight">Today&apos;s Radiance</h2>
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75] opacity-60">Temporal Alignments</p>
+            </div>
+            <div className="px-6 py-3 bg-white rounded-2xl border border-[#FF8A75]/10 shadow-sm">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
                   {format(now, 'EEEE, MMM d')}
                 </span>
-              </div>
             </div>
+          </div>
 
+          <div className="grid grid-cols-1 gap-6">
             {todaysMeetings.length === 0 ? (
-              <div className="text-center py-20 bg-background/20 rounded-3xl border border-dashed border-primary/20">
-                <div className="h-16 w-16 bg-white/50 backdrop-blur-md rounded-full flex items-center justify-center mx-auto mb-6 text-primary/10">
-                  <Calendar className="w-8 h-8" />
+              <div className="p-20 bg-white/40 border border-dashed border-[#FF8A75]/10 rounded-[4rem] text-center space-y-6">
+                <div className="h-20 w-20 rounded-full bg-white border border-[#FF8A75]/5 flex items-center justify-center mx-auto text-[#FF8A75]/20">
+                  <Calendar className="w-10 h-10" />
                 </div>
-                <p className="text-xl font-bold text-foreground/30 tracking-tight">No sessions hosted today</p>
-                <p className="text-foreground/10 font-bold mt-1 uppercase text-[9px] tracking-widest">Take the time to prepare for upcoming sessions</p>
+                <p className="text-xl font-serif text-slate-300">The ritual schedule is pristine for today.</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {todaysMeetings.map((meeting) => {
-                  const isLive = isMeetingLive(meeting.start_time, meeting.duration_minutes);
-                  const isUpcoming = isMeetingUpcoming(meeting.start_time);
-                  const isOneOnOne = meeting.meeting_type === 'one_on_one';
-                  
-                  return (
-                    <div key={meeting.id} className={`flex flex-col sm:flex-row sm:items-center justify-between p-6 sm:p-8 rounded-3xl transition-all duration-500 border ${
-                      isLive ? 'border-primary/40 bg-primary/5 shadow-md shadow-primary/5' : 'border-primary/5 bg-white/40 backdrop-blur-md hover:bg-white hover:border-primary/20'
-                    }`}>
-                      <div className="flex items-start gap-6">
-                        <div className={`h-14 w-14 rounded-2xl flex items-center justify-center shrink-0 shadow-sm bg-primary/10 text-primary`}>
-                          <Video className="w-7 h-7" />
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex items-center flex-wrap gap-2">
-                            <h4 className="text-2xl font-bold tracking-tight text-foreground">{meeting.topic}</h4>
-                            {isLive && (
-                              <span className="px-3 py-1 bg-primary text-white text-[9px] font-bold tracking-widest uppercase rounded-full animate-pulse shadow-sm">
-                                HOSTING NOW
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-4 text-xs font-bold text-foreground/40">
-                             <div className="flex items-center gap-1.5 uppercase tracking-widest">
-                               <Clock className="w-3.5 h-3.5" />
-                               {format(new Date(meeting.start_time), 'h:mm a')} – {format(addMinutes(new Date(meeting.start_time), meeting.duration_minutes), 'h:mm a')}
+              todaysMeetings.map((meeting) => {
+                const isLive = isMeetingLive(meeting.start_time, meeting.duration_minutes);
+                const isUpcoming = isMeetingUpcoming(meeting.start_time);
+                
+                return (
+                  <div key={meeting.id} className={cn(
+                    "group flex flex-col md:flex-row items-center gap-8 p-10 rounded-[3.5rem] transition-all duration-700 bg-white border",
+                    isLive ? "border-[#FF8A75]/30 shadow-2xl shadow-[#FF8A75]/10 ring-4 ring-[#FF8A75]/5 scale-[1.02]" : "border-[#FF8A75]/5 hover:border-[#FF8A75]/20 shadow-sm"
+                  )}>
+                    <div className="h-20 w-20 rounded-[2rem] bg-[#FF8A75]/5 flex items-center justify-center text-[#FF8A75] shrink-0 border border-[#FF8A75]/10 shadow-inner group-hover:scale-110 transition-transform duration-500">
+                      <Video className="w-8 h-8" />
+                    </div>
+
+                    <div className="flex-1 flex flex-col gap-3 text-center md:text-left min-w-0">
+                       <div className="flex items-center justify-center md:justify-start gap-4">
+                          <h4 className="text-2xl font-serif text-[#1a1a1a] tracking-tight truncate">{meeting.topic}</h4>
+                          {isLive && (
+                             <div className="flex items-center gap-2 px-4 py-1 rounded-full bg-[#FF8A75] text-white text-[8px] font-black uppercase tracking-[0.2em] animate-pulse">
+                                <div className="h-1 w-1 rounded-full bg-white" />
+                                Host Room Active
                              </div>
-                             <span className="h-1 w-1 rounded-full bg-primary/10" />
-                             <span className={`uppercase tracking-widest text-[9px] font-bold text-primary`}>
-                                {isOneOnOne ? '1-on-1' : 'Group Session'}
+                          )}
+                       </div>
+                       <div className="flex items-center justify-center md:justify-start gap-6">
+                          <div className="flex items-center gap-2">
+                             <Clock className="w-4 h-4 text-slate-300" />
+                             <span className="text-[12px] font-bold text-slate-400 capitalize">
+                                {format(new Date(meeting.start_time), 'h:mm a')} – {format(addMinutes(new Date(meeting.start_time), meeting.duration_minutes), 'h:mm a')}
                              </span>
                           </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-6 sm:mt-0">
-                        {(isLive || isUpcoming) ? (
-                           <a href={meeting.start_url || meeting.join_url} target="_blank" rel="noopener noreferrer"
-                               className="px-8 py-3.5 bg-foreground text-background font-bold text-xs uppercase tracking-widest rounded-2xl transition-all shadow-lg hover:scale-105 active:scale-95 block text-center min-w-[140px]">
-                             Start Room
-                           </a>
-                        ) : (
-                          <div className="px-8 py-3 bg-foreground/5 text-foreground/20 font-bold rounded-2xl uppercase tracking-widest text-[9px]">
-                            Archived
-                          </div>
-                        )}
-                      </div>
+                          <div className="h-1 w-1 rounded-full bg-slate-200" />
+                          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF8A75]/60">
+                             {meeting.meeting_type === 'one_on_one' ? 'Sanctuary Exchange' : 'Collective Glow'}
+                          </span>
+                       </div>
                     </div>
-                  );
-                })}
-              </div>
+
+                    <div className="shrink-0 w-full md:w-auto">
+                       {(isLive || isUpcoming) ? (
+                          <Link href={meeting.start_url || meeting.join_url} target="_blank" className="block w-full text-center px-10 h-16 rounded-full bg-[#1a1a1a] text-white text-[10px] font-black uppercase tracking-widest hover:bg-[#FF8A75] hover:shadow-2xl hover:shadow-[#FF8A75]/30 transition-all duration-500">
+                             {isLive ? 'Enter Sanctuary' : 'Portal Ready'}
+                          </Link>
+                       ) : (
+                         <div className="px-10 h-16 flex items-center justify-center rounded-full bg-[#FF8A75]/5 text-[#FF8A75]/30 text-[10px] font-black uppercase tracking-[0.2em]">
+                            Completed
+                         </div>
+                       )}
+                    </div>
+                  </div>
+                );
+              })
             )}
-          </section>
+          </div>
+        </section>
 
-          {/* 5. Master View: Team Management */}
-          {isMaster && (
-            <section className="bg-white/60 backdrop-blur-2xl rounded-3xl p-8 md:p-12 border border-primary/5 shadow-sm transition-all duration-500 hover:shadow-md">
-              <div className="flex items-center justify-between mb-10">
-                <div className="space-y-1">
-                  <h2 className="text-3xl font-bold text-foreground">Your Students</h2>
-                  <div className="h-1 w-10 bg-primary/30 rounded-full" />
-                </div>
-                <Link href="/staff/groups" className="text-[10px] font-bold text-primary uppercase tracking-widest hover:underline">
-                  Advanced Controls
-                </Link>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Group Classes */}
-                <div className="space-y-6">
-                  <h3 className="text-[9px] font-bold text-primary/40 uppercase tracking-widest ml-2">Active Batches</h3>
-                  {activeBatches.length > 0 ? (
-                    <div className="space-y-3">
-                      {activeBatches.map(batch => (
-                        <div key={batch.id} className="flex items-center justify-between p-4 bg-white/80 rounded-2xl border border-primary/5 hover:border-primary/20 transition-all duration-500 group shadow-sm">
-                          <div className="flex items-center gap-3">
-                             <div className="w-10 h-10 rounded-full bg-primary/5 overflow-hidden ring-2 ring-white shadow-sm">
-                                {batch.instructor?.avatar_url ? (
-                                  <img src={batch.instructor.avatar_url} alt="" className="w-full h-full object-cover grayscale" />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-primary/30 font-bold text-xs">
-                                    {batch.instructor?.full_name?.charAt(0) || '?'}
-                                  </div>
-                                )}
-                             </div>
-                             <div className="min-w-0">
-                               <p className="text-sm font-bold text-foreground truncate">{batch.instructor?.full_name || 'Unknown'}</p>
-                               <p className="text-[9px] text-foreground/40 font-bold uppercase tracking-widest truncate">{batch.name}</p>
-                             </div>
-                          </div>
-                          <div className="px-3 py-1 bg-primary/10 text-primary text-[9px] font-bold uppercase tracking-widest rounded-lg border border-primary/10">
-                            {batch.current_students} Students
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-[10px] text-foreground/20 font-bold ml-2 uppercase tracking-widest">No active group sessions.</p>
-                  )}
-                </div>
+        {/* ─── 4. SOUL COMMENCEMENT (NEW STUDENTS) ─── */}
+        <section className="xl:col-span-4 flex flex-col gap-10">
+           <div className="space-y-2">
+              <h2 className="text-4xl font-serif text-[#1a1a1a] tracking-tight">New Souls</h2>
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75] opacity-60">Cycle Intake Portfolio</p>
+           </div>
 
-                {/* 1-on-1 Portfolio */}
-                <div className="space-y-6">
-                  <h3 className="text-[9px] font-bold text-primary/40 uppercase tracking-widest ml-2">1-on-1 Students</h3>
-                  {instructorAllocations.length > 0 ? (
-                    <div className="space-y-3">
-                      {instructorAllocations.map((alloc, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-4 bg-white/80 rounded-2xl border border-primary/5 hover:border-primary/20 transition-all duration-500 group shadow-sm">
-                           <div className="flex items-center gap-3">
-                             <div className="w-10 h-10 rounded-full bg-primary/5 overflow-hidden ring-2 ring-white shadow-sm">
-                                {alloc.instructor?.avatar_url ? (
-                                  <img src={alloc.instructor.avatar_url} alt="" className="w-full h-full object-cover grayscale" />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-primary/30 font-bold text-xs">
-                                    {alloc.instructor?.full_name?.charAt(0) || '?'}
-                                  </div>
-                                )}
-                             </div>
-                             <div className="min-w-0">
-                               <p className="text-sm font-bold text-foreground truncate">{alloc.instructor?.full_name || 'Unknown'}</p>
-                               <p className="text-[9px] text-foreground/40 font-bold uppercase tracking-widest">Private Coaching</p>
-                             </div>
-                          </div>
-                          <div className="px-3 py-1 bg-primary/10 text-primary text-[9px] font-bold uppercase tracking-widest rounded-lg border border-primary/10">
-                            {alloc.studentCount} Active
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-[10px] text-foreground/20 font-bold ml-2 uppercase tracking-widest">No assigned 1-on-1s.</p>
-                  )}
-                </div>
-              </div>
-            </section>
-          )}
-
-        </div>
-
-        {/* Right Section (New Students) */}
-        <div className="lg:col-span-4">
-          <section className="rounded-3xl p-8 border border-primary/5 h-full flex flex-col bg-white/60 backdrop-blur-xl shadow-sm">
-            <div className="space-y-1 mb-10">
-              <h2 className="text-2xl font-bold text-foreground">New Students</h2>
-              <div className="h-1 w-10 bg-primary/30 rounded-full" />
-            </div>
-
-            <div className="space-y-4 flex-1">
+           <div className="space-y-4">
               {!newAllocations || newAllocations.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-24 text-center space-y-4 opacity-10 grayscale">
-                  <UserPlus className="w-12 h-12 text-primary" />
-                  <p className="text-[9px] font-bold text-foreground uppercase tracking-widest">Awaiting Allocations</p>
+                <div className="p-20 bg-white/40 border border-dashed border-[#FF8A75]/10 rounded-[3rem] text-center space-y-4 opacity-10">
+                   <UserPlus className="w-12 h-12 mx-auto text-[#FF8A75]" />
+                   <p className="text-[10px] font-black uppercase tracking-widest text-[#1a1a1a]">Awaiting Resonance</p>
                 </div>
               ) : (
                 newAllocations.map(alloc => {
                   const student = Array.isArray(alloc.student) ? alloc.student[0] : alloc.student;
                   return (
-                    <div key={alloc.id} className="p-5 bg-white/80 border border-primary/5 rounded-3xl flex items-center justify-between hover:border-primary/20 transition-all duration-500 group shadow-sm">
-                      <div className="flex items-center gap-4">
-                         <div className="w-12 h-12 rounded-2xl bg-white shadow-sm overflow-hidden p-0.5 border border-primary/10">
-                            <div className="w-full h-full rounded-[0.9rem] overflow-hidden bg-primary/5 flex items-center justify-center">
-                              {student?.avatar_url ? (
-                                <img src={student.avatar_url} alt="" className="w-full h-full object-cover grayscale" />
-                              ) : (
-                                <span className="text-primary/30 font-bold text-xs">{student?.full_name?.charAt(0)}</span>
-                              )}
-                            </div>
-                         </div>
-                         <div>
-                           <p className="text-sm font-bold text-foreground">
-                             {student?.full_name || 'Anonymous'}
-                             {alloc.is_trial && (
-                               <span className="ml-2 text-[8px] font-black uppercase text-red-500 bg-red-50 px-1.5 py-0.5 rounded border border-red-100 leading-none inline-block align-middle">Trial</span>
+                    <div key={alloc.id} className="group p-6 bg-white border border-[#FF8A75]/5 rounded-[2.5rem] flex items-center justify-between hover:shadow-2xl hover:shadow-[#FF8A75]/10 hover:border-[#FF8A75]/20 transition-all duration-500">
+                       <div className="flex items-center gap-5">
+                          <div className="h-14 w-14 rounded-2xl bg-[#FF8A75]/5 flex items-center justify-center text-[#FF8A75] overflow-hidden border border-[#FF8A75]/10 shadow-inner">
+                             {student?.avatar_url ? (
+                               <img src={student.avatar_url} className="w-full h-full object-cover group-hover:rotate-3 transition-transform" />
+                             ) : (
+                               <span className="text-xl font-serif">{student?.full_name?.charAt(0)}</span>
                              )}
-                           </p>
-                           <p className="text-[9px] font-bold text-primary uppercase tracking-widest">
-                             Starts {alloc.start_date ? format(new Date(alloc.start_date), 'MMM d') : '—'}
-                           </p>
-                         </div>
-                      </div>
-                      <Link href="/instructor/one-on-one" className="h-10 w-10 flex items-center justify-center rounded-xl bg-foreground text-background shadow-lg opacity-0 group-hover:opacity-100 transition-all scale-75 group-hover:scale-100">
-                        <ArrowUpRight className="w-4 h-4 text-primary" />
-                      </Link>
+                          </div>
+                          <div className="space-y-1">
+                             <div className="flex items-center gap-2">
+                                <p className="text-base font-bold text-[#1a1a1a] tracking-tight leading-none">{student?.full_name}</p>
+                                {alloc.is_trial && (
+                                   <div className="h-1.5 w-1.5 rounded-full bg-red-400 group-hover:scale-125 transition-transform" />
+                                )}
+                             </div>
+                             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FF8A75]/60">
+                                Starts {alloc.start_date ? format(new Date(alloc.start_date), 'MMM d') : 'Cycle TBD'}
+                             </p>
+                          </div>
+                       </div>
+                       <Link href="/instructor/one-on-one" className="h-12 w-12 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center shadow-lg transform translate-x-4 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-500">
+                          <ArrowUpRight className="w-5 h-5 text-[#FF8A75]" />
+                       </Link>
                     </div>
                   )
                 })
               )}
-            </div>
+           </div>
 
-            <div className="mt-10 pt-8 border-t border-primary/10">
-              <Link href="/instructor/one-on-one" className="flex items-center justify-center gap-3 py-5 bg-foreground text-background font-bold uppercase tracking-widest text-[10px] rounded-2xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all">
-                Open Client Hub
-                <ChevronRight className="w-3.5 h-3.5" />
-              </Link>
-            </div>
-          </section>
-        </div>
+           <Link href="/instructor/one-on-one" className="group flex items-center justify-between p-10 bg-[#1a1a1a] text-white rounded-[3.5rem] shadow-2xl shadow-slate-900/40 hover:bg-[#FF8A75] transition-all duration-700">
+              <div className="space-y-1">
+                 <p className="text-xs font-black uppercase tracking-[0.3em] text-[#FF8A75] group-hover:text-white/60 transition-colors">Unified Access</p>
+                 <h3 className="text-2xl font-serif tracking-tight">Open Sanctuary Hub</h3>
+              </div>
+              <div className="h-14 w-14 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white group-hover:text-[#FF8A75] transition-all duration-500">
+                 <ChevronRight className="w-6 h-6" />
+              </div>
+           </Link>
+        </section>
 
       </div>
     </div>
