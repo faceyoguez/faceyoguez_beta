@@ -51,7 +51,7 @@ const navConfig = {
   admin: [
     { label: 'Sanctuary', icon: LayoutDashboard, path: '/staff/dashboard' },
     { label: 'One-on-One', icon: User, path: '/staff/one-on-one' },
-    { label: 'Gateway', icon: MessageSquare, path: '/instructor/chat' },
+
     { label: 'Groups', icon: Users, path: '/staff/groups' },
     { label: 'Broadcast', icon: Megaphone, path: '/staff/broadcast' },
     { label: 'LMS', icon: BookOpen, path: '/staff/lms' },
@@ -60,7 +60,7 @@ const navConfig = {
   staff: [
     { label: 'Sanctuary', icon: LayoutDashboard, path: '/staff/dashboard' },
     { label: 'One-on-One', icon: User, path: '/staff/one-on-one' },
-    { label: 'Gateway', icon: MessageSquare, path: '/instructor/chat' },
+
     { label: 'Groups', icon: Users, path: '/staff/groups' },
     { label: 'Broadcast', icon: Megaphone, path: '/staff/broadcast' },
     { label: 'LMS', icon: BookOpen, path: '/staff/lms' },
@@ -69,7 +69,7 @@ const navConfig = {
   client_management: [
     { label: 'Sanctuary', icon: LayoutDashboard, path: '/staff/dashboard' },
     { label: 'One-on-One', icon: User, path: '/staff/one-on-one' },
-    { label: 'Gateway', icon: MessageSquare, path: '/instructor/chat' },
+
     { label: 'Groups', icon: Users, path: '/staff/groups' },
     { label: 'Broadcast', icon: Megaphone, path: '/staff/broadcast' },
     { label: 'LMS', icon: BookOpen, path: '/staff/lms' },
