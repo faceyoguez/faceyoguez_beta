@@ -31,7 +31,7 @@ export function MessageBubble({ message, isOwn, showSender = false, isMultiParty
         {/* Sender label */}
         {shouldShowSender && message.sender && (
           <div className={`mb-2 flex items-center gap-2.5 ${isOwn ? 'flex-row-reverse mr-2' : 'ml-2'}`}>
-            <div className="h-6 w-6 rounded-full overflow-hidden ring-2 ring-white shadow-sm lustre-border p-0.5">
+            <div className="h-6 w-6 rounded-full overflow-hidden ring-2 ring-white lustre-border p-0.5">
               {message.sender.avatar_url ? (
                 <img
                   src={message.sender.avatar_url}
@@ -44,7 +44,7 @@ export function MessageBubble({ message, isOwn, showSender = false, isMultiParty
                 </div>
               )}
             </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-foreground/40">
+            <span className="text-[10px] font-black uppercase tracking-widest text-foreground/40 capitalize">
               {isOwn ? 'You' : message.sender.full_name}
             </span>
             {badge && (
@@ -59,8 +59,8 @@ export function MessageBubble({ message, isOwn, showSender = false, isMultiParty
         <div
           className={`px-5 py-3.5 transition-all duration-300 ${
             isOwn
-              ? 'rounded-[1.5rem] rounded-tr-[0.4rem] bg-foreground text-background shadow-xl'
-              : 'bg-white/60 backdrop-blur-xl rounded-[1.5rem] rounded-tl-[0.4rem] text-foreground border border-primary/5 shadow-sm'
+              ? 'rounded-[1.5rem] rounded-tr-[0.4rem] bg-foreground text-background'
+              : 'bg-white/60 backdrop-blur-xl rounded-[1.5rem] rounded-tl-[0.4rem] text-foreground border border-primary/5'
           }`}
         >
           {message.content_type === 'text' && (
@@ -70,7 +70,7 @@ export function MessageBubble({ message, isOwn, showSender = false, isMultiParty
           )}
 
           {message.content_type === 'image' && message.file_url && (
-            <div className="relative group overflow-hidden rounded-xl bg-surface-container-low shadow-sm">
+            <div className="relative group overflow-hidden rounded-xl bg-surface-container-low">
                 <img
                 src={message.file_url}
                 alt={'Image'}

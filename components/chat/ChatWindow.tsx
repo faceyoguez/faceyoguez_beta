@@ -75,7 +75,7 @@ export function ChatWindow({
   const canSend = conversationType === 'direct' ? true : (isChatEnabled || isStaff);
 
   return (
-    <div className={`flex flex-col overflow-hidden rounded-[2.5rem] bg-white/40 backdrop-blur-3xl border border-primary/5 shadow-2xl relative ${className}`}>
+    <div className={`flex flex-col overflow-hidden rounded-[2.5rem] bg-white/40 backdrop-blur-3xl border border-primary/5 relative ${className}`}>
       
       {/* Decorative Blur Backgrounds */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-[80px] -translate-y-12 translate-x-12 pointer-events-none" />
@@ -88,7 +88,7 @@ export function ChatWindow({
             <div className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-tr from-primary/20 to-brand-emerald/20 rounded-[1.2rem] blur opacity-0 group-hover:opacity-100 transition duration-500" />
                 {otherParticipant?.avatar_url ? (
-                    <div className="relative h-12 w-12 rounded-[1rem] overflow-hidden ring-2 ring-white shadow-xl border border-primary/20 p-0.5 bg-white">
+                    <div className="relative h-12 w-12 rounded-[1rem] overflow-hidden ring-2 ring-white border border-primary/20 p-0.5 bg-white">
                         <img
                         src={otherParticipant.avatar_url}
                         alt={otherParticipant.full_name}
@@ -96,14 +96,14 @@ export function ChatWindow({
                         />
                     </div>
                 ) : (
-                    <div className="relative flex h-12 w-12 items-center justify-center rounded-[1rem] bg-foreground text-background text-lg font-serif font-bold shadow-xl">
+                    <div className="relative flex h-12 w-12 items-center justify-center rounded-[1rem] bg-foreground text-background text-lg font-serif font-bold">
                     {title.charAt(0).toUpperCase()}
                     </div>
                 )}
-                <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-primary border-4 border-white shadow-sm" />
+                <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-primary border-4 border-white" />
             </div>
             <div className="space-y-0.5">
-                <h3 className="text-base font-bold tracking-tight text-foreground">{title}</h3>
+                <h3 className="text-base font-bold tracking-tight text-foreground capitalize">{title}</h3>
                 <div className="flex items-center gap-2">
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/40">
                         {conversationType === 'group' ? 'Group Chat' : 'Direct Message'}

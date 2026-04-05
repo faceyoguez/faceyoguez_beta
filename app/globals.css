@@ -2,36 +2,34 @@
 
 :root {
   --background: #FFFAF7;
-  --foreground: #1D1D1F;
+  --foreground: #1a1a1a;
 
-  /* Peach Zen Palette (Stitch Refined) */
-  --color-solace-peach: #C49781;
-  --color-zen-olive: #666827;
+  /* Sanctuary Peach Palette */
   --color-peach-light: #FFFAF7;
   --color-peach-base: #FF8A75;
   --color-peach-deep: #FF7051;
   --color-warm-gray: #86868b;
 
   --surface: #ffffff;
-  --surface-container-low: #fcfaf9;
-  --surface-container: #f7f2f0;
-  --surface-container-high: #f0ebe8;
-  --surface-container-highest: #e9e2df;
+  --surface-container-low: rgba(255, 255, 255, 0.4);
+  --surface-container: rgba(255, 255, 255, 0.6);
+  --surface-container-high: rgba(255, 255, 255, 0.8);
+  --surface-container-highest: #F0F0F0;
   --surface-container-lowest: #ffffff;
 
   --primary: #FF8A75;
   --on-primary: #ffffff;
-  --primary-container: #fff1ee;
+  --primary-container: #FFF7F2;
 
-  --secondary: #86868b;
-  --secondary-container: #f2f2f7;
+  --secondary: #2A2A2A;
+  --secondary-container: #F5F5F7;
 
-  --outline: rgba(0, 0, 0, 0.1);
-  --outline-variant: rgba(0, 0, 0, 0.05);
+  --outline: rgba(0, 0, 0, 0.08);
+  --outline-variant: rgba(255, 138, 117, 0.1);
 
-  --radius-section: 2.5rem;
-  --radius-card: 1.5rem;
-  --radius-button: 0.75rem;
+  --radius-section: 3.5rem;
+  --radius-card: 2.5rem;
+  --radius-button: 1rem;
 }
 
 .dark {
@@ -103,8 +101,8 @@ html {
 
 @theme {
   --color-destructive-foreground: var(--destructive-foreground);
-  --font-sans: var(--font-rubik), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-rubik), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Outfit", var(--font-rubik), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Outfit", serif;
 
   --color-primary: var(--primary);
   --color-primary-container: var(--primary-container);
@@ -116,27 +114,10 @@ html {
   --color-surface-container-low: var(--surface-container-low);
   --color-surface-container-highest: var(--surface-container-highest);
   --color-surface-container-lowest: var(--surface-container-lowest);
-  --color-outline-variant: var(--outline-variant);
   --color-border: var(--outline-variant);
-  --color-input: var(--outline-variant);
   --color-ring: var(--primary);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-card: var(--surface);
-
-  --color-peach-light: var(--color-peach-light);
-  --color-peach-base: var(--color-peach-base);
-  --color-peach-deep: var(--color-peach-deep);
-  --color-warm-gray: var(--color-warm-gray);
-  --color-solace-peach: var(--color-solace-peach);
-  --color-zen-olive: var(--color-zen-olive);
-
-  /* Retain old brand colors for backward compatibility temporarily */
-  --color-brand-blush: #f4e8e5;
-  --color-brand-rose: #e8c6c8;
-  --color-brand-sage: #e1e9e2;
-  --color-brand-emerald: #10b981;
-  --color-brand-sand: #f2efe9;
 }
 
 /* Premium Liquid Glass Utilities */
@@ -282,7 +263,7 @@ html {
 }
 
 .text-gradient-zen {
-  background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+  background: linear-gradient(135deg, #1a1a1a 0%, #4a5568 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;

@@ -85,7 +85,7 @@ export default function CommunityPage() {
         <div className="max-w-7xl mx-auto space-y-12">
           <div className="text-center space-y-4">
              <h2 className="text-4xl font-bold tracking-tight">Real Stories. <span className="text-[#FF8A75]">Real Results.</span></h2>
-             <p className="text-slate-500 font-medium italic">Discover why women love the Faceyoguez journey.</p>
+             <p className="text-slate-500 font-medium">Discover why women love the Faceyoguez journey.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -107,7 +107,7 @@ export default function CommunityPage() {
                       <div className="text-[10px] font-bold text-[#FF8A75]/70 uppercase tracking-widest">{item.period} Journey</div>
                    </div>
                 </div>
-                <p className="text-sm font-medium text-slate-600 leading-relaxed italic">
+                <p className="text-sm font-medium text-slate-600 leading-relaxed">
                   "{item.story}"
                 </p>
                 <div className="absolute top-8 right-8">

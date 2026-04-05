@@ -507,3 +507,29 @@ export async function getWaitingQueue() {
     }
     return data || [];
 }
+
+/**
+ * Toggles the chat enablement for a specific batch.
+ */
+export async function toggleBatchChat(batchId: string, isEnabled: boolean) {
+    const admin = createAdminClient();
+    
+    // Update both batch and linked conversation
+    const { data: batch } = await admin
+        .from('batches')
+        .update({ is_chat_enabled: isEnabled })
+        .eq('id', batchId)
+        .select('conversation_id')
+        .single();
+
+    if (batch?.conversation_id) {
+        await admin
+            .from('conversations')
+            .update({ is_chat_enabled: isEnabled })
+            .eq('id', batch.conversation_id);
+    }
+
+    revalidatePath('/instructor/groups');
+    revalidatePath('/student/group-session');
+    return { success: true };
+}

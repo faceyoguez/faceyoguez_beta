@@ -57,7 +57,7 @@ export function MessageInput({ onSendText, onSendFile }: MessageInputProps) {
   return (
     <div className="px-6 py-5 bg-background/60 backdrop-blur-xl border-t border-primary/5 relative z-20">
       <div className="flex items-end gap-3 max-w-6xl mx-auto">
-        <div className="flex-1 bg-white/60 backdrop-blur-xl rounded-[1.8rem] flex items-end px-3 py-2 border border-primary/10 focus-within:border-primary/30 focus-within:ring-8 focus-within:ring-primary/5 transition-all duration-500 shadow-sm">
+        <div className="flex-1 bg-white/60 backdrop-blur-xl rounded-[1.8rem] flex items-end px-3 py-2 border border-primary/10 focus-within:border-primary/30 focus-within:ring-8 focus-within:ring-primary/5 transition-all duration-500">
             
             <button
                 onClick={() => fileInputRef.current?.click()}
@@ -89,7 +89,7 @@ export function MessageInput({ onSendText, onSendFile }: MessageInputProps) {
         <button
           onClick={handleSend}
           disabled={!text.trim() || isSending}
-          className="h-12 w-12 flex items-center justify-center rounded-[1.2rem] bg-foreground text-background shadow-xl hover:scale-105 active:scale-95 transition-all duration-300 disabled:opacity-20 disabled:scale-100 disabled:shadow-none"
+          className="h-12 w-12 flex items-center justify-center rounded-[1.2rem] bg-foreground text-background hover:scale-105 active:scale-95 transition-all duration-300 disabled:opacity-20 disabled:scale-100"
         >
           <Send className="h-5 w-5 fill-current" />
         </button>
