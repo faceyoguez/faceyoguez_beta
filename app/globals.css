@@ -61,7 +61,6 @@ html {
 @layer base {
   * {
     @apply border-border;
-    font-style: normal !important;
   }
 
   body {
@@ -73,9 +72,7 @@ html {
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-bold;
-    font-weight: 700 !important;
-    font-family: var(--font-rubik) !important;
+    font-family: var(--font-rubik);
   }
 }
 
@@ -300,4 +297,52 @@ html {
 
 .premium-shadow {
   box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.08);
+}
+
+/* Noise texture animation */
+@keyframes noise-animation {
+  0%   { transform: translate(0, 0); }
+  10%  { transform: translate(-2%, -3%); }
+  20%  { transform: translate(-4%, 2%); }
+  30%  { transform: translate(2%, -4%); }
+  40%  { transform: translate(-2%, 5%); }
+  50%  { transform: translate(-4%, 2%); }
+  60%  { transform: translate(3%, 0); }
+  70%  { transform: translate(0, 3%); }
+  80%  { transform: translate(-3%, 0); }
+  90%  { transform: translate(2%, 2%); }
+  100% { transform: translate(1%, 0); }
+}
+
+/* Gallery carousel */
+@keyframes carousel-rtl {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(calc(-100% / 3)); }
+}
+
+.carousel-track:hover { animation-play-state: paused !important; }
+.carousel-card { transition: box-shadow 0.4s ease !important; }
+.carousel-card:hover { box-shadow: 0 16px 56px rgba(0,0,0,0.14), 0 4px 14px rgba(0,0,0,0.06) !important; }
+.nav-pill { transition: border-color 0.3s ease, background 0.3s ease !important; }
+.nav-pill:hover { border-color: rgba(42,32,25,0.35) !important; background: rgba(255,255,255,0.22) !important; }
+
+/* Landing page scroll hint animation */
+@keyframes scrollDrop {
+  0% { transform: translateY(-100%); opacity: 1; }
+  60% { transform: translateY(150%); opacity: 1; }
+  61% { transform: translateY(-100%); opacity: 0; }
+  100% { transform: translateY(-100%); opacity: 0; }
+}
+
+/* Lenis smooth scroll */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
 }

@@ -8,105 +8,167 @@ import { cn } from '@/lib/utils';
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 60);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navLinks = [
+  const mainLinks = [
     { name: 'Programs', href: '/programs' },
     { name: 'Experts', href: '/experts' },
     { name: 'Community', href: '/community' },
   ];
 
   return (
-    <header 
+    <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-6 py-4",
-        scrolled ? "bg-white/80 backdrop-blur-xl border-b border-slate-200/50 py-3" : "bg-transparent"
+        'fixed top-0 left-0 right-0 z-50 transition-all duration-500 px-6 md:px-12',
+        scrolled ? 'py-3' : 'py-5',
       )}
+      style={{
+        backgroundColor: scrolled ? 'rgba(252, 244, 235, 0.9)' : 'transparent',
+        backdropFilter: scrolled ? 'blur(20px) saturate(180%)' : 'none',
+        borderBottom: scrolled ? '1px solid rgba(44, 37, 37, 0.08)' : '1px solid transparent',
+      }}
     >
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
+      <div className="max-w-6xl mx-auto flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="h-10 w-10 flex items-center justify-center rounded-2xl bg-[#FF8A75]/10 text-[#FF8A75] transition-transform group-hover:scale-110">
-            <Flower2 className="h-6 w-6" strokeWidth={1.5} />
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div
+            className="h-9 w-9 flex items-center justify-center rounded-xl transition-colors"
+            style={{ backgroundColor: 'rgba(249, 109, 65, 0.1)' }}
+          >
+            <Flower2 className="h-4 w-4" strokeWidth={1.5} style={{ color: 'rgb(249, 109, 65)' }} />
           </div>
-          <span className="text-xl font-bold tracking-tight text-slate-900">Faceyoguez</span>
+          <span
+            className="text-sm font-bold tracking-tight"
+            style={{ color: 'rgb(44, 37, 37)', fontFamily: 'Inter, sans-serif' }}
+          >
+            Faceyoguez
+          </span>
         </Link>
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <Link 
+          {mainLinks.map((link) => (
+            <Link
               key={link.name}
               href={link.href}
-              className="text-sm font-semibold text-slate-600 hover:text-[#FF8A75] transition-colors relative group"
+              className="relative group transition-colors duration-200"
+              style={{
+                fontFamily: '"Cormorant Garamond", "Georgia", serif',
+                fontSize: '16px',
+                fontWeight: 500,
+                color: 'rgb(44, 37, 37)',
+              }}
             >
               {link.name}
-              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#FF8A75] transition-all group-hover:w-full" />
+              <span
+                className="absolute -bottom-0.5 left-0 w-0 h-px transition-all duration-300 group-hover:w-full"
+                style={{ backgroundColor: 'rgb(249, 109, 65)' }}
+              />
             </Link>
           ))}
         </nav>
 
         {/* CTAs */}
-        <div className="hidden md:flex items-center gap-4">
-          <Link 
-            href="/auth/login" 
-            className="text-sm font-bold text-slate-700 hover:text-[#FF8A75] transition-colors"
+        <div className="hidden md:flex items-center gap-5">
+          <Link
+            href="/auth/login"
+            className="transition-colors duration-200"
+            style={{
+              fontFamily: '"Cormorant Garamond", "Georgia", serif',
+              fontSize: '15px',
+              fontWeight: 500,
+              color: 'rgb(44, 37, 37)',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = 'rgb(249, 109, 65)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = 'rgb(44, 37, 37)'; }}
           >
-            Log in
+            Sign In
           </Link>
-          <Link 
-            href="/auth/signup" 
-            className="px-6 py-2.5 rounded-full bg-[#FF8A75] text-white text-sm font-bold shadow-lg shadow-[#FF8A75]/20 hover:scale-105 transition-all active:scale-95"
+          <Link
+            href="/auth/signup"
+            className="px-5 py-2.5 rounded-full text-[13px] tracking-[0.05em] transition-all duration-300 hover:scale-[1.03]"
+            style={{
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 500,
+              backgroundColor: 'rgb(44, 37, 37)',
+              color: 'rgb(252, 244, 235)',
+            }}
           >
-            Start Free Trial
+            Book a Session
           </Link>
         </div>
 
-        {/* Mobile Toggle */}
-        <button 
-          className="md:hidden p-2 text-slate-600"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        {/* Mobile toggle */}
+        <button
+          className="md:hidden p-2"
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Toggle menu"
+          style={{ color: 'rgb(44, 37, 37)' }}
         >
-          {mobileMenuOpen ? <X /> : <Menu />}
+          {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </div>
 
       {/* Mobile Menu */}
       <AnimatePresence>
-        {mobileMenuOpen && (
+        {menuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="absolute top-full left-0 right-0 bg-white border-b border-slate-200 p-6 flex flex-col gap-6 md:hidden shadow-xl"
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.25 }}
+            className="absolute top-full left-0 right-0 p-8 flex flex-col gap-5 md:hidden border-b"
+            style={{
+              backgroundColor: 'rgba(252, 244, 235, 0.97)',
+              backdropFilter: 'blur(20px)',
+              borderColor: 'rgba(44, 37, 37, 0.08)',
+            }}
           >
-            {navLinks.map((link) => (
-              <Link 
+            {mainLinks.map((link) => (
+              <Link
                 key={link.name}
                 href={link.href}
-                className="text-lg font-bold text-slate-900"
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={() => setMenuOpen(false)}
+                style={{
+                  fontFamily: '"Cormorant Garamond", "Georgia", serif',
+                  fontSize: '20px',
+                  fontWeight: 400,
+                  color: 'rgb(44, 37, 37)',
+                }}
               >
                 {link.name}
               </Link>
             ))}
-            <div className="h-px bg-slate-100" />
-            <div className="flex flex-col gap-4">
-              <Link href="/auth/login" className="text-center font-bold text-slate-700 py-2">
-                Log in
-              </Link>
-              <Link href="/auth/signup" className="px-6 py-4 rounded-2xl bg-[#FF8A75] text-white text-center font-bold">
-                Start Free Trial
-              </Link>
-            </div>
+            <div className="h-px" style={{ backgroundColor: 'rgba(44, 37, 37, 0.1)' }} />
+            <Link
+              href="/auth/login"
+              className="text-center"
+              style={{
+                fontFamily: '"Cormorant Garamond", "Georgia", serif',
+                fontSize: '16px',
+                color: 'rgb(44, 37, 37)',
+              }}
+            >
+              Sign In
+            </Link>
+            <Link
+              href="/auth/signup"
+              className="px-6 py-3.5 rounded-full text-center text-[13px] tracking-[0.05em]"
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: 500,
+                backgroundColor: 'rgb(44, 37, 37)',
+                color: 'rgb(252, 244, 235)',
+              }}
+            >
+              Book a Session
+            </Link>
           </motion.div>
         )}
       </AnimatePresence>
