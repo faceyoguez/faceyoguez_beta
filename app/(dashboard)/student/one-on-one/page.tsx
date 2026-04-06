@@ -30,6 +30,7 @@ export default async function StudentOneOnOnePage() {
       currentUser={profile}
       hasSubscription={!!subscription}
       subscriptionStartDate={subscription?.start_date ?? null}
+      durationMonths={subscription?.duration_months ?? 1}
       isTrial={subscription?.is_trial ?? false}
     />
   );

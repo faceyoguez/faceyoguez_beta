@@ -61,7 +61,7 @@ export function JourneyProgress({
                         ? "border-primary/40 bg-primary/10 text-primary"
                         : isReached
                           ? "border-primary/20 bg-white text-primary/60"
-                          : "border-primary/5 bg-white/50 text-foreground/10"
+                          : "border-primary/5 bg-white/50 text-foreground/40"
                   )}
                 >
                   {isCompleted ? (
@@ -69,7 +69,7 @@ export function JourneyProgress({
                   ) : isReached ? (
                     <span className="text-[10px] font-black">{day}</span>
                   ) : (
-                    <Sparkles className="h-4 w-4 opacity-20" />
+                    <span className="text-[10px] font-black opacity-60">{day}</span>
                   )}
 
                   {/* Photo badge */}
@@ -84,8 +84,8 @@ export function JourneyProgress({
                 <span
                   className={cn(
                     "absolute top-12 whitespace-nowrap text-[8px] font-black uppercase tracking-[0.2em] transition-all duration-500",
-                    isActive
-                      ? "text-foreground opacity-100"
+                    isReached
+                      ? "text-foreground opacity-90"
                       : "text-foreground/20 opacity-0 group-hover:opacity-100"
                   )}
                 >

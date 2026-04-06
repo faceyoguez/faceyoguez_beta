@@ -80,7 +80,7 @@ export const ImageComparison = ({ beforeImage, afterImage, altBefore = 'Baseline
                     className="absolute top-0 bottom-0 w-px bg-white/40 z-20 flex items-center justify-center transition-opacity duration-300 pointer-events-none"
                     style={{ left: `${sliderPosition}%` }}
                 >
-                    <div 
+                    <div
                         className={cn(
                             "h-14 w-1 flex flex-col items-center justify-between py-1 transition-all duration-500",
                             isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-100"
@@ -92,16 +92,16 @@ export const ImageComparison = ({ beforeImage, afterImage, altBefore = 'Baseline
                     </div>
                 </div>
             )}
-            
+
             {/* Interactive Handle Button */}
             {!disabled && (
-                <div 
+                <div
                     className="absolute top-1/2 -translate-y-1/2 z-30 transition-all duration-500 p-1 pointer-events-auto cursor-ew-resize"
                     style={{ left: `calc(${sliderPosition}% - 1.5rem)` }}
                     onMouseDown={handleMouseDown}
                     onTouchStart={handleTouchStart}
                 >
-                    <div 
+                    <div
                         className={cn(
                             "h-12 w-12 rounded-[1.2rem] bg-foreground text-background flex items-center justify-center shadow-2xl border border-white/10 transition-transform duration-500",
                             isDragging ? "scale-125 rotate-45" : "scale-100 group-hover:scale-110"
