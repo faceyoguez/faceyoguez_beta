@@ -64,7 +64,7 @@ export function Plans() {
     <section
       id="plans-overview"
       className="px-6 md:px-12 py-24 md:py-40 relative overflow-hidden"
-      style={{ backgroundColor: '#FAF9F6' }}
+      style={{ backgroundColor: 'transparent' }}
     >
       {/* Decorative Blur Orbs */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#E07A5F]/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />

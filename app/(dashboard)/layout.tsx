@@ -18,7 +18,6 @@ export default async function DashboardLayout({
 
   let unreadNotificationsCount = 0;
   let activePlans: string[] = [];
-  let isTrial = false;
 
   const admin = createAdminClient();
 
@@ -40,7 +39,6 @@ export default async function DashboardLayout({
   
   const activeSubscriptions = subscriptions?.filter(s => s.status === 'active') || [];
   activePlans = activeSubscriptions.map(sub => sub.plan_type);
-  isTrial = activeSubscriptions.some(sub => sub.is_trial);
 
   // Check if there's an expired trial to show the "kind words" prompt
   const hasExpiredTrial = subscriptions?.some(s => s.is_trial && (s.status === 'expired' || (s.end_date && new Date(s.end_date) < new Date()))) || false;
@@ -51,7 +49,6 @@ export default async function DashboardLayout({
       user={profile}
       activePlans={activePlans}
       unreadNotificationsCount={unreadNotificationsCount}
-      isTrial={isTrial}
     >
       {showTrialPrompt && (
         <div className="fixed top-20 right-8 z-[60] animate-in slide-in-from-right duration-500">

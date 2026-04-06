@@ -63,7 +63,7 @@ export function Testimonials() {
     <section
       ref={sectionRef}
       className="px-6 md:px-12 py-24 md:py-36 overflow-hidden relative"
-      style={{ backgroundColor: 'rgb(252, 244, 235)' }}
+      style={{ backgroundColor: 'transparent' }}
     >
       <div className="max-w-[1400px] mx-auto">
         {/* Header */}

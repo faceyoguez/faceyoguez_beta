@@ -76,55 +76,83 @@ function LoopingCard({ src, index, total, baseX }: LoopingCardProps) {
 }
 
 export function Gallery() {
+  const [isMobile, setIsMobile] = useState(false);
   const baseX = useMotionValue(0);
   const containerRef = useRef<HTMLDivElement>(null);
-  const speed = 0.6; // Speed for LTR move
+  const speed = 1.2;
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.matchMedia('(max-width: 768px)').matches);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useAnimationFrame(() => {
     baseX.set(baseX.get() + speed);
   });
 
+  const cardWidth = isMobile ? 240 : 320;
+  const gap = isMobile ? 20 : 40;
+  const totalWidth = (cardWidth + gap) * DOUBLED_IMAGES.length;
+  const wrapRange = Math.max(totalWidth, 3000);
+
   return (
     <section
       style={{
-        position: 'relative', overflow: 'hidden', height: '80vh', minHeight: 600,
-        background: 'linear-gradient(180deg, #FDF5EE 0%, #FAE0D0 25%, #F0A88A 55%, #ECA482 75%, #FDF5EE 100%)',
+        position: 'relative', overflow: 'hidden', height: isMobile ? '65vh' : '80vh', minHeight: isMobile ? 450 : 600,
+        background: 'transparent',
       }}
     >
-      {/* Noise */}
-      <div style={{
-        position: 'absolute', inset: '-60%', width: '220%', height: '220%',
-        backgroundImage: NOISE_SVG,
-        animation: 'noise-animation 0.6s steps(4) infinite',
-        pointerEvents: 'none', zIndex: 1,
-      }} />
-
       <div 
         ref={containerRef}
         style={{
           position: 'relative', zIndex: 2, height: '100%',
-          perspective: '1500px', transformStyle: 'preserve-3d',
+          perspective: isMobile ? '1000px' : '1500px', transformStyle: 'preserve-3d',
           maskImage: 'linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%)',
           WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%)',
         }}
       >
-        {DOUBLED_IMAGES.map((src, i) => (
-          <LoopingCard 
-            key={i} 
-            src={src} 
-            index={i} 
-            total={DOUBLED_IMAGES.length} 
-            baseX={baseX} 
-          />
-        ))}
-      </div>
+        {DOUBLED_IMAGES.map((src, i) => {
+          // Inline calculation for mobile-aware motion values
+          const x = useTransform(baseX, (val: number) => {
+            let rawX = (val + i * (cardWidth + gap)) % wrapRange;
+            if (rawX > wrapRange - cardWidth) rawX -= wrapRange;
+            return rawX;
+          });
 
-      <div style={{
-        position: 'absolute', bottom: '2rem', right: '4rem', zIndex: 3,
-        width: 80, height: 1,
-        background: 'rgba(200,100,60,0.2)',
-        transform: 'rotate(-35deg)', transformOrigin: 'right center',
-      }} />
+          const scale = useTransform(x, [-300, isMobile ? 60 : 800, 1800], [0.8, 1.1, 0.8]);
+          const opacity = useTransform(x, [-400, 0, 1600, 2000], [0, 1, 1, 0]);
+
+          return (
+            <motion.div
+              key={i}
+              style={{
+                position: 'absolute',
+                top: '50%',
+                left: 0,
+                x,
+                y: '-50%',
+                width: cardWidth,
+                aspectRatio: '3 / 4.2',
+                borderRadius: isMobile ? 8 : 12,
+                overflow: 'hidden',
+                scale,
+                opacity,
+                rotateY: isMobile ? 15 : 25,
+                transformStyle: 'preserve-3d',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.12), 0 4px 14px rgba(0,0,0,0.06)',
+              }}
+            >
+              <img
+                src={src} alt="Face yoga"
+                draggable={false}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+            </motion.div>
+          );
+        })}
+      </div>
     </section>
   );
 }

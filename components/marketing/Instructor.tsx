@@ -23,6 +23,14 @@ function useInView(threshold = 0.1) {
 
 export function Instructor() {
   const [ref, inView] = useInView();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.matchMedia('(max-width: 768px)').matches);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const rv = (d = 0): React.CSSProperties => ({
     opacity: inView ? 1 : 0,
@@ -33,27 +41,21 @@ export function Instructor() {
   return (
     <section
       ref={ref}
-      style={{ position: 'relative', background: '#FDF5EE', padding: '6rem 0 8rem', overflow: 'hidden' }}
+      style={{ position: 'relative', background: 'transparent', padding: isMobile ? '4rem 0' : '6rem 0 8rem', overflow: 'hidden' }}
     >
       <div style={{
-        width: '100%', height: 1,
-        background: 'linear-gradient(90deg, transparent, rgba(200,100,60,0.2), rgba(200,100,60,0.15), transparent)',
-        marginBottom: '5rem',
-      }} />
-
-      <div style={{
         maxWidth: 1200, margin: '0 auto',
-        padding: '0 clamp(2rem,5vw,5rem)',
-        display: 'grid', gridTemplateColumns: '1.2fr 1fr',
-        gap: 'clamp(3rem,6vw,8rem)', alignItems: 'start',
+        padding: isMobile ? '0 1.5rem' : '0 clamp(2rem,5vw,5rem)',
+        display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.2fr 1fr',
+        gap: isMobile ? '3rem' : 'clamp(3rem,6vw,8rem)', alignItems: 'start',
       }}>
         {/* Left — text */}
-        <div>
+        <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
           <h2 style={{
             fontFamily: "'Cormorant Garamond', serif",
-            fontSize: 'clamp(2.8rem,5vw,4.8rem)',
+            fontSize: isMobile ? '2.5rem' : 'clamp(2.8rem,5vw,4.8rem)',
             fontWeight: 400, lineHeight: 1.05, color: '#2a2019',
-            marginBottom: '2.5rem',
+            marginBottom: isMobile ? '1.5rem' : '2.5rem',
           }}>
             <span style={{ display: 'block', overflow: 'hidden' }}>
               <span style={{
@@ -71,17 +73,17 @@ export function Instructor() {
             </span>
           </h2>
 
-          <div style={{ maxWidth: 520, ...rv(0.25) }}>
+          <div style={{ maxWidth: isMobile ? '100%' : 520, margin: isMobile ? '1.5rem auto' : '0', ...rv(0.25) }}>
             <p style={{
               fontFamily: 'var(--font-dm-sans, "DM Sans", sans-serif)',
-              fontSize: '0.98rem', lineHeight: 1.85,
+              fontSize: isMobile ? '0.9rem' : '0.98rem', lineHeight: 1.85,
               color: 'rgba(42,32,25,0.65)', marginBottom: '1.8rem',
             }}>
               Every face is unique and deserves special attention. We work with passion, enthusiasm and a sincere desire to help each and everyone who wants to feel and see a real change on their face.
             </p>
             <p style={{
               fontFamily: 'var(--font-dm-sans, "DM Sans", sans-serif)',
-              fontSize: '0.98rem', lineHeight: 1.85,
+              fontSize: isMobile ? '0.9rem' : '0.98rem', lineHeight: 1.85,
               color: 'rgba(42,32,25,0.65)',
             }}>
               The change is visible even after one massage, regardless of face type and age — it is necessary to combine the right techniques, estimate the needs of the face and know what needs to be strengthened or released and relaxed.
@@ -90,9 +92,9 @@ export function Instructor() {
         </div>
 
         {/* Right — portrait + bio */}
-        <div style={{ ...rv(0.15) }}>
+        <div style={{ ...rv(0.15), display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'center' : 'start', textAlign: isMobile ? 'center' : 'left' }}>
           <div style={{
-            width: 'clamp(160px,14vw,200px)', aspectRatio: '1',
+            width: isMobile ? '180px' : 'clamp(160px,14vw,200px)', aspectRatio: '1',
             borderRadius: 6, overflow: 'hidden', marginBottom: '2rem',
             boxShadow: '0 6px 30px rgba(0,0,0,0.06)',
           }}>
@@ -106,9 +108,10 @@ export function Instructor() {
 
           <blockquote style={{
             fontFamily: 'var(--font-dm-sans, "DM Sans", sans-serif)',
-            fontSize: '0.92rem', lineHeight: 1.8,
+            fontSize: isMobile ? '0.85rem' : '0.92rem', lineHeight: 1.8,
             color: 'rgba(42,32,25,0.55)',
             margin: '0 0 2rem', padding: 0, border: 'none',
+            fontStyle: 'italic',
             ...rv(0.3),
           }}>
             "I have been discovering facial yoga and natural rejuvenation techniques all over the world. I have received certifications from the best experts so that I can bring the most effective that the world of natural rejuvenation has to offer."
@@ -117,7 +120,7 @@ export function Instructor() {
           <div style={{ ...rv(0.4) }}>
             <h3 style={{
               fontFamily: "'Cormorant Garamond', serif",
-              fontSize: '1.4rem', fontWeight: 600,
+              fontSize: isMobile ? '1.2rem' : '1.4rem', fontWeight: 600,
               letterSpacing: '0.12em', textTransform: 'uppercase',
               color: '#8B6914', marginBottom: '0.5rem',
             }}>
@@ -125,7 +128,7 @@ export function Instructor() {
             </h3>
             <p style={{
               fontFamily: 'var(--font-dm-sans, "DM Sans", sans-serif)',
-              fontSize: '0.82rem', color: 'rgba(42,32,25,0.45)', lineHeight: 1.6,
+              fontSize: '0.8rem', color: 'rgba(42,32,25,0.45)', lineHeight: 1.6,
             }}>
               instructor of facial yoga and natural<br />facial rejuvenation techniques
             </p>

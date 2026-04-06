@@ -179,16 +179,16 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
           <div className="space-y-6 flex-1">
             <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-white/40 backdrop-blur-3xl border border-[#FF8A75]/10 text-[#FF8A75] text-[9px] font-black tracking-[0.3em] uppercase shadow-sm">
               <div className="w-1.5 h-1.5 rounded-full bg-[#FF8A75] shadow-[0_0_8px_#FF8A75]" />
-              1-on-1 Elite Experience
+              Personal 1-on-1 Classes
               <span className="mx-2 opacity-20">|</span>
-              Cycle {Math.ceil(currentDay / 30)}
+              Month {Math.ceil(currentDay / 30)}
             </div>
             <div className="space-y-3">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif text-[#1a1a1a] tracking-tight leading-[1.1]">
                 Your Dedicated Path
               </h1>
               <p className="text-sm font-medium text-[#6B7280]/80 max-w-xl leading-relaxed">
-                A bespoke transformation journey guided by ancient flow and structural renewal.
+                Your personal face yoga journey, guided by an expert instructor.
               </p>
             </div>
           </div>
@@ -209,12 +209,12 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                   <div className="space-y-6 flex-1 min-w-0">
                     <div className="inline-flex items-center gap-3 px-4 py-2 bg-white/60 text-[#FF8A75] rounded-full text-[9px] font-black uppercase tracking-[0.3em] border border-[#FF8A75]/5">
                       <div className="h-1.5 w-1.5 rounded-full bg-[#FF8A75] animate-pulse shadow-[0_0_8px_#FF8A75]" />
-                      Transmission Imminent
+                      Upcoming Session
                     </div>
                     <h3 className="text-4xl lg:text-5xl font-serif text-[#1a1a1a] tracking-tight leading-tight truncate">{nextMeeting.topic}</h3>
                     <div className="flex items-center gap-8 pt-6 border-t border-[#FF8A75]/10">
                       <div className="space-y-1">
-                        <p className="text-[9px] uppercase font-black tracking-[0.3em] text-[#6B7280]/40 leading-none">Ritual Date</p>
+                        <p className="text-[9px] uppercase font-black tracking-[0.3em] text-[#6B7280]/40 leading-none">Session Date</p>
                         <p className="text-sm font-bold text-[#1a1a1a] tracking-tight">{new Date(nextMeeting.start_time).toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' })}</p>
                       </div>
                       <div className="space-y-1">
@@ -234,7 +234,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                           : "bg-white/40 text-slate-300 border border-slate-200 cursor-not-allowed"
                       )}
                     >
-                      {isJoinEnabled ? "Enter Presence" : "Waiting for Transmission"}
+                      {isJoinEnabled ? "Join Session" : "Session Not Started Yet"}
                       <ArrowUpRight className="h-4 w-4 shrink-0" />
                     </button>
                   </div>
@@ -244,7 +244,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                   <div className="h-12 w-12 rounded-2xl bg-white border border-[#FF8A75]/10 flex items-center justify-center shadow-sm">
                     <Video className="w-5 h-5 text-[#FF8A75]/30" />
                   </div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF8A75]/40 text-center">No active transmissions</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF8A75]/40 text-center">No Sessions Scheduled</p>
                 </div>
               )}
             </div>
@@ -255,9 +255,9 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                 <div className="space-y-4">
                   <div className="inline-flex items-center gap-3 px-4 py-2 bg-[#FFFAF7] rounded-full border border-[#FF8A75]/10 text-[#FF8A75] text-[9px] font-black uppercase tracking-[0.4em] shadow-sm">
                     <TrendingUp className="w-3.5 h-3.5" />
-                    Evolution Log
+                    Progress Tracker
                   </div>
-                  <h3 className="text-4xl lg:text-5xl font-serif text-[#1a1a1a] tracking-tight leading-none">Transformation Mirror</h3>
+                  <h3 className="text-4xl lg:text-5xl font-serif text-[#1a1a1a] tracking-tight leading-none">Your Progress</h3>
                 </div>
                 <div className="flex gap-4">
                   <div className="px-8 h-20 bg-slate-900 rounded-3xl flex flex-col items-center justify-center shadow-xl">
@@ -293,7 +293,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                       <Edit3 className="w-6 h-6" />
                     </div>
                     <div>
-                      <h5 className="text-3xl font-serif text-[#1a1a1a] tracking-tight">Node Reflection</h5>
+                      <h5 className="text-3xl font-serif text-[#1a1a1a] tracking-tight">Your Notes</h5>
                       <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75]">Day {activeDay}</p>
                     </div>
                   </div>
@@ -303,7 +303,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                       value={notesInput}
                       onChange={(e) => setNotesInput(e.target.value)}
                       className="w-full h-full resize-none bg-transparent text-slate-700 text-lg font-medium outline-none border-none focus:ring-0 custom-scrollbar font-sans"
-                      placeholder="Document your physical and energetic shifts here..."
+                      placeholder="How are you feeling today? Note any changes you noticed."
                     />
                   </div>
 
@@ -311,11 +311,11 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                     <input type="file" ref={fileInputRef} onChange={handlePhotoSelect} className="hidden" />
                     {isPhotoDay && (
                       <button onClick={() => fileInputRef.current?.click()} className="h-16 rounded-2xl border border-slate-200 bg-white shadow-sm flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest hover:border-[#FF8A75]/20 hover:text-[#FF8A75] transition-all">
-                        <Camera className="w-4 h-4" /> Capture State
+                        <Camera className="w-4 h-4" /> Take Photo
                       </button>
                     )}
                     <button onClick={handleSaveLog} disabled={isSavingLog} className={cn("h-16 rounded-2xl bg-slate-900 text-white shadow-lg flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest hover:bg-[#FF8A75] transition-colors duration-300", !isPhotoDay && "col-span-2")}>
-                      {isSavingLog ? 'Committing...' : 'Commit Path'}
+                      {isSavingLog ? 'Saving...' : 'Save Notes'}
                     </button>
                   </div>
                 </div>
@@ -328,7 +328,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
               <div className="px-8 py-6 border-b border-[#FF8A75]/5 bg-white/20 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="h-5 w-1 bg-[#FF8A75] rounded-full" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75]">Elite Support</span>
+                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75]">Chat with Your Instructor</span>
                 </div>
               </div>
               <div className="flex-1 overflow-hidden relative">

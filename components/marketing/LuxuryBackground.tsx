@@ -30,58 +30,55 @@ export function LuxuryBackground() {
       ref={containerRef}
       className="fixed inset-0 w-full h-full -z-10 pointer-events-none overflow-hidden bg-[#FDF5EE]"
     >
-      {/* Rosegold Orb 1 - Bouncing Corner to Corner */}
+      {/* Rosegold Orb 1 - Complex Random Pattern */}
       <motion.div
         animate={{
-          x: ["-10%", "110%", "-10%"],
-          y: ["-10%", "110%", "50%"],
-        }}
-        transition={{
-          duration: 35,
-          repeat: Infinity,
-          ease: "linear",
-        }}
-        style={{ x: orb1X, y: orb1Y }}
-        className="absolute w-[800px] h-[800px] rounded-full blur-[160px] opacity-20 bg-[#B76E79]"
-      />
-
-      {/* Peach Orb 2 - Bouncing Corner to Corner */}
-      <motion.div
-        animate={{
-          x: ["110%", "-10%", "110%"],
-          y: ["-10%", "110%", "10%"],
+          x: ["-20%", "40%", "120%", "60%", "-30%"],
+          y: ["-20%", "80%", "40%", "140%", "10%"],
         }}
         transition={{
           duration: 45,
           repeat: Infinity,
-          ease: "linear",
-          delay: 2
+          ease: "easeInOut",
         }}
-        style={{ x: orb2X, y: orb2Y }}
-        className="absolute w-[900px] h-[900px] rounded-full blur-[180px] opacity-25 bg-[#FFDAB9]"
+        className="absolute w-[1200px] h-[1200px] rounded-full blur-[180px] opacity-[0.45] bg-[#B76E79] mix-blend-multiply"
       />
 
-      {/* White/Light Rose Orb 3 - Bouncing Corner to Corner */}
+      {/* Peach Orb 2 - Complex Random Pattern */}
       <motion.div
         animate={{
-          x: ["50%", "110%", "-10%", "50%"],
-          y: ["110%", "-10%", "110%", "110%"],
+          x: ["130%", "20%", "-20%", "100%", "70%"],
+          y: ["-20%", "130%", "60%", "10%", "110%"],
         }}
         transition={{
-          duration: 40,
+          duration: 55,
           repeat: Infinity,
-          ease: "linear",
-          delay: 5
+          ease: "easeInOut",
+          delay: 3
         }}
-        style={{ x: orb3X, y: orb3Y }}
-        className="absolute w-[1000px] h-[1000px] rounded-full blur-[200px] opacity-30 bg-[#FFFFFF]"
+        className="absolute w-[1400px] h-[1400px] rounded-full blur-[200px] opacity-[0.5] bg-[#FFDAB9] mix-blend-multiply"
       />
 
-      {/* Surface Gloss Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-[#B76E79]/5 mix-blend-soft-light" />
+      {/* White/Light Rose Orb 3 - Complex Random Pattern */}
+      <motion.div
+        animate={{
+          x: ["-20%", "110%", "40%", "-20%", "80%"],
+          y: ["110%", "20%", "120%", "50%", "-10%"],
+        }}
+        transition={{
+          duration: 50,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: 6
+        }}
+        className="absolute w-[1600px] h-[1600px] rounded-full blur-[220px] opacity-[0.4] bg-[#FFFFFF] mix-blend-overlay"
+      />
+
+      {/* Surface Gloss Gradient Overlay - Darkened */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-[#B76E79]/15 mix-blend-soft-light" />
       
       {/* Noise Texture for Luxury Material Feel */}
-      <div className="absolute inset-0 opacity-[0.02] mix-blend-overlay pointer-events-none" 
+      <div className="absolute inset-0 opacity-[0.035] mix-blend-overlay pointer-events-none" 
         style={{ 
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` 
         }} 

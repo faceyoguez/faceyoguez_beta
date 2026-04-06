@@ -9,7 +9,6 @@ import {
   Users,
   BookOpen,
   Megaphone,
-  MessageSquare,
   LogOut,
   ChevronLeft,
   ChevronRight,
@@ -18,10 +17,7 @@ import {
   Menu,
   X,
   Ticket,
-  Sparkles,
-  Zap,
   ShieldCheck,
-  Heart
 } from 'lucide-react';
 import type { Profile } from '@/types/database';
 import { cn } from '@/lib/utils';
@@ -34,52 +30,49 @@ export const useSidebar = () => useContext(SidebarContext);
 // ── Nav config per role ──
 const navConfig = {
   student: [
-    { label: 'Sanctuary', icon: LayoutDashboard, path: '/student/dashboard' },
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/student/dashboard' },
     { label: 'One-on-One', icon: User, path: '/student/one-on-one' },
-    { label: 'Collective', icon: Users, path: '/student/group-session' },
-    { label: 'Academy', icon: BookOpen, path: '/student/lms' },
-    { label: 'Provision', icon: CreditCard, path: '/student/plans' },
-    { label: 'Signals', icon: Megaphone, path: '/student/broadcasts' },
+    { label: 'Group Classes', icon: Users, path: '/student/group-session' },
+    { label: 'Courses', icon: BookOpen, path: '/student/lms' },
+    { label: 'Plans & Pricing', icon: CreditCard, path: '/student/plans' },
+    { label: 'Updates', icon: Megaphone, path: '/student/broadcasts' },
   ],
   instructor: [
-    { label: 'Sanctuary', icon: LayoutDashboard, path: '/instructor/dashboard' },
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/instructor/dashboard' },
     { label: 'One-on-One', icon: User, path: '/instructor/one-on-one' },
-    { label: 'Collective', icon: Users, path: '/instructor/groups' },
+    { label: 'Group Classes', icon: Users, path: '/instructor/groups' },
     { label: 'Broadcast', icon: Megaphone, path: '/instructor/broadcast' },
-    { label: 'Academy', icon: BookOpen, path: '/instructor/lms' },
+    { label: 'Courses', icon: BookOpen, path: '/instructor/lms' },
   ],
   admin: [
-    { label: 'Sanctuary', icon: LayoutDashboard, path: '/staff/dashboard' },
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/staff/dashboard' },
     { label: 'One-on-One', icon: User, path: '/staff/one-on-one' },
-
     { label: 'Groups', icon: Users, path: '/staff/groups' },
     { label: 'Broadcast', icon: Megaphone, path: '/staff/broadcast' },
-    { label: 'LMS', icon: BookOpen, path: '/staff/lms' },
-    { label: 'Artifacts', icon: Ticket, path: '/staff/coupons' },
+    { label: 'Courses', icon: BookOpen, path: '/staff/lms' },
+    { label: 'Coupons', icon: Ticket, path: '/staff/coupons' },
   ],
   staff: [
-    { label: 'Sanctuary', icon: LayoutDashboard, path: '/staff/dashboard' },
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/staff/dashboard' },
     { label: 'One-on-One', icon: User, path: '/staff/one-on-one' },
-
     { label: 'Groups', icon: Users, path: '/staff/groups' },
     { label: 'Broadcast', icon: Megaphone, path: '/staff/broadcast' },
-    { label: 'LMS', icon: BookOpen, path: '/staff/lms' },
-    { label: 'Artifacts', icon: Ticket, path: '/staff/coupons' },
+    { label: 'Courses', icon: BookOpen, path: '/staff/lms' },
+    { label: 'Coupons', icon: Ticket, path: '/staff/coupons' },
   ],
   client_management: [
-    { label: 'Sanctuary', icon: LayoutDashboard, path: '/staff/dashboard' },
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/staff/dashboard' },
     { label: 'One-on-One', icon: User, path: '/staff/one-on-one' },
-
     { label: 'Groups', icon: Users, path: '/staff/groups' },
     { label: 'Broadcast', icon: Megaphone, path: '/staff/broadcast' },
-    { label: 'LMS', icon: BookOpen, path: '/staff/lms' },
-    { label: 'Artifacts', icon: Ticket, path: '/staff/coupons' },
+    { label: 'Courses', icon: BookOpen, path: '/staff/lms' },
+    { label: 'Coupons', icon: Ticket, path: '/staff/coupons' },
   ],
   sales_team: [
-    { label: 'Sanctuary', icon: LayoutDashboard, path: '/instructor/dashboard' },
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/instructor/dashboard' },
   ],
   marketing_team: [
-    { label: 'Sanctuary', icon: LayoutDashboard, path: '/instructor/dashboard' },
+    { label: 'Dashboard', icon: LayoutDashboard, path: '/instructor/dashboard' },
   ],
 };
 
@@ -87,16 +80,14 @@ interface AppSidebarProps {
   user: Profile;
   activePlans?: string[];
   unreadNotificationsCount?: number;
-  isTrial?: boolean;
   children: React.ReactNode;
 }
 
-export function AppSidebar({ 
-  user, 
-  activePlans = [], 
-  unreadNotificationsCount = 0, 
-  isTrial = false,
-  children 
+export function AppSidebar({
+  user,
+  activePlans = [],
+  unreadNotificationsCount = 0,
+  children
 }: AppSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -161,7 +152,7 @@ export function AppSidebar({
                   <span className="text-2xl font-serif tracking-tight text-[#1a1a1a] leading-none">
                     Faceyoguez
                   </span>
-                  <span className="text-[7px] font-black uppercase tracking-[0.4em] text-[#FF8A75] mt-1.5 opacity-60">Pioneering Glow</span>
+                  <span className="text-[7px] font-black uppercase tracking-[0.4em] text-[#FF8A75] mt-1.5 opacity-60">Face Yoga for Women</span>
                 </div>
               )}
             </Link>
@@ -178,7 +169,7 @@ export function AppSidebar({
           <nav className="flex-1 overflow-y-auto px-6 py-4 custom-scrollbar">
              {!collapsed && (
                <p className="px-6 mb-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">
-                 Domain Navigation
+                 Navigation
                </p>
              )}
              
@@ -229,7 +220,7 @@ export function AppSidebar({
                           <div className="ml-4 flex-1 flex items-center justify-between">
                             <span className="text-[13px] font-bold tracking-tight">{label}</span>
                             {isLocked && <ShieldCheck className="h-3 w-3 text-slate-100" />}
-                            {label === 'Signals' && unreadNotificationsCount > 0 && (
+                            {label === 'Updates' && unreadNotificationsCount > 0 && (
                                <span className="flex h-5 w-8 items-center justify-center rounded-full bg-[#FF8A75] text-white text-[9px] font-black shadow-lg">
                                   {unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount}
                                </span>

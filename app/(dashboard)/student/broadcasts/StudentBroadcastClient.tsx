@@ -1,18 +1,16 @@
 'use client';
 
 import {
-    Bell, CheckCircle2, Megaphone, Clock, Info, User as UserIcon, ShieldCheck, Download, Sparkles
+    Bell, Megaphone, ShieldCheck, Download, Sparkles
 } from 'lucide-react';
 import { markNotificationAsRead } from '@/lib/actions/broadcast';
-import type { Profile } from '@/types/database';
 import { cn } from '@/lib/utils';
 
 interface StudentBroadcastClientProps {
-    currentUser: Profile;
     notifications: any[];
 }
 
-export function StudentBroadcastClient({ currentUser, notifications }: StudentBroadcastClientProps) {
+export function StudentBroadcastClient({ notifications }: StudentBroadcastClientProps) {
 
     return (
         <div className="min-h-screen bg-background p-6 lg:p-12 space-y-12 font-sans overflow-hidden animate-in fade-in duration-1000">
@@ -41,7 +39,7 @@ export function StudentBroadcastClient({ currentUser, notifications }: StudentBr
                 {notifications.length === 0 ? (
                     <div className="flex h-[400px] flex-col items-center justify-center rounded-[3rem] liquid-glass border border-outline-variant/10 shadow-sm bg-white/40">
                         <Sparkles className="mb-6 h-16 w-16 text-primary/10 animate-pulse" />
-                        <h3 className="text-xl font-bold text-foreground">Perfect Stillness</h3>
+                        <h3 className="text-xl font-bold text-foreground">No Announcements Yet</h3>
                         <p className="mt-2 text-sm text-foreground/40 font-medium">No new announcements yet.</p>
                     </div>
                 ) : (
@@ -84,7 +82,7 @@ export function StudentBroadcastClient({ currentUser, notifications }: StudentBr
                                                 <div>
                                                     <h4 className="text-[11px] font-black uppercase tracking-tight text-foreground">{instructor.full_name || 'Guide'}</h4>
                                                     <div className="flex items-center gap-1.5 text-[8px] font-black text-primary uppercase tracking-widest mt-0.5">
-                                                        <ShieldCheck className="h-2.5 w-2.5" /> VERIFIED GUIDE
+                                                        <ShieldCheck className="h-2.5 w-2.5" /> Certified Instructor
                                                     </div>
                                                 </div>
                                             </div>
@@ -115,7 +113,7 @@ export function StudentBroadcastClient({ currentUser, notifications }: StudentBr
                                                     </div>
                                                     <div className="min-w-0">
                                                         <p className="truncate text-[10px] font-black uppercase tracking-tight text-foreground">{broadcast.file_name || 'Attachment'}</p>
-                                                        <p className="text-[8px] font-black text-foreground/20 uppercase tracking-widest mt-0.5">Manifest to view</p>
+                                                        <p className="text-[8px] font-black text-foreground/20 uppercase tracking-widest mt-0.5">Tap to open</p>
                                                     </div>
                                                 </div>
                                                 <a
@@ -124,7 +122,7 @@ export function StudentBroadcastClient({ currentUser, notifications }: StudentBr
                                                     rel="noopener noreferrer"
                                                     className="h-10 px-6 rounded-full bg-foreground text-background text-[9px] font-black uppercase tracking-[0.2em] flex items-center shadow-xl hover:scale-110 active:scale-95 transition-all"
                                                 >
-                                                    Manifest
+                                                    Open
                                                 </a>
                                             </div>
                                         </div>

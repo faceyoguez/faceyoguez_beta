@@ -35,7 +35,6 @@ export default async function StudentBroadcastsPage() {
 
   return (
     <StudentBroadcastClient
-      currentUser={profile}
       notifications={notifications || []}
     />
   );

@@ -238,7 +238,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                 </span>
                               )}
                            </div>
-                           <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">Collective Growth</p>
+                           <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">Group Journey</p>
                         </div>
 
                         <div className="space-y-6">
@@ -286,11 +286,11 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                  </div>
                                  <div className="min-w-0">
                                     <p className="text-xs font-bold text-foreground truncate">{res.title || res.file_name}</p>
-                                    <p className="text-[9px] font-bold text-foreground/20 uppercase tracking-widest mt-0.5">Download Artifact</p>
+                                    <p className="text-[9px] font-bold text-foreground/20 uppercase tracking-widest mt-0.5">Download File</p>
                                  </div>
                               </button>
                            ))}
-                           {initialResources.length === 0 && <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/20 text-center py-12 opacity-50">Awaiting artifacts...</p>}
+                           {initialResources.length === 0 && <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/20 text-center py-12 opacity-50">No files yet</p>}
                         </div>
                     </div>
                 </div>
@@ -333,14 +333,14 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                           : "bg-white/10 text-white/20 backdrop-blur-md border border-white/10 cursor-not-allowed"
                                    )}
                                >
-                                   {isJoinEnabled ? <><Play className="w-4 h-4 fill-current" /> Enter Presence</> : 'Patience'}
+                                   {isJoinEnabled ? <><Play className="w-4 h-4 fill-current" /> Join Class</> : 'Opens Soon'}
                                </button>
                             </div>
                         </div>
                     ) : (
                         <div className="w-full h-32 surface-container rounded-3xl border border-outline-variant/10 flex flex-col items-center justify-center gap-2 bg-white/40 backdrop-blur-xl shrink-0 opacity-50">
                            <Video className="w-6 h-6 text-foreground/20" />
-                           <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/20">No active transmissions</p>
+                           <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/20">No Live Sessions</p>
                         </div>
                     )}
 
@@ -365,7 +365,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                 )}
                                 <div className="absolute top-4 left-4 z-10">
                                    <div className="bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-full text-[9px] font-bold text-white uppercase tracking-widest border border-white/10">
-                                      Chronicle {activeStepDay}
+                                      Day {activeStepDay}
                                    </div>
                                 </div>
                             </div>
@@ -373,7 +373,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                             <div className="space-y-6">
                                <div className="space-y-2">
                                   <h4 className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">Daily Snapshot</h4>
-                                  <p className="text-sm text-foreground/40 font-medium leading-relaxed">Capture your essence at critical nodes of transcendence. Required on Day 1 and 25.</p>
+                                  <p className="text-sm text-foreground/40 font-medium leading-relaxed">Take a photo to track your progress. Required on Day 1 and Day 25.</p>
                                </div>
 
                                {(activeStepDay === 1 || activeStepDay === 25) ? (
@@ -384,14 +384,14 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                        </button>
                                        {selectedImageBase64 && (
                                            <button onClick={handleSaveLog} disabled={isSavingLog} className="h-14 w-full rounded-2xl bg-foreground text-background shadow-lg flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-widest hover:scale-[1.01] active:scale-[0.99] transition-all">
-                                               {isSavingLog ? <Loader2 className="w-4 h-4 animate-spin text-background" /> : <ShieldCheck className="w-4 h-4" />} Commit Archive
+                                               {isSavingLog ? <Loader2 className="w-4 h-4 animate-spin text-background" /> : <ShieldCheck className="w-4 h-4" />} Save Progress
                                            </button>
                                        )}
                                    </div>
                                ) : (
                                    <div className="h-32 rounded-2xl border border-dashed border-outline-variant/20 flex flex-col items-center justify-center p-6 text-center opacity-40 bg-foreground/[0.02]">
                                       <Sparkles className="w-5 h-5 text-foreground/20 mb-3" />
-                                      <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/20 leading-relaxed">Observe & Breathe. The next archive window opens at node 25.</p>
+                                      <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/20 leading-relaxed">Photos are only required on Day 1 and Day 25.</p>
                                    </div>
                                )}
                             </div>
@@ -401,7 +401,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                     {/* Recordings Suite */}
                     <div className="surface-container rounded-3xl border border-outline-variant/10 flex flex-col overflow-hidden bg-white/50 backdrop-blur-xl shadow-sm">
                         <div className="p-8 border-b border-outline-variant/5 flex items-center justify-between">
-                           <h3 className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">Past Transmissions</h3>
+                           <h3 className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">Recorded Sessions</h3>
                            <PlayCircle className="w-4 h-4 text-foreground/10" />
                         </div>
                         <div className="flex overflow-x-auto p-8 gap-6 custom-scrollbar">
@@ -427,7 +427,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                  </div>
                               </div>
                            ))}
-                           {recordings.length === 0 && <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/20 py-12 w-full text-center opacity-50">No recorded echoes yet.</p>}
+                           {recordings.length === 0 && <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/20 py-12 w-full text-center opacity-50">No recorded sessions yet.</p>}
                         </div>
                     </div>
                 </div>
@@ -440,7 +440,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                               <h3 className="text-2xl font-bold tracking-tight text-foreground">Group Chat</h3>
                               <div className="h-2 w-2 rounded-full bg-primary/40" />
                            </div>
-                           <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">Collective Energy Stream</p>
+                           <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">Live Group Chat</p>
                         </div>
 
                         <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar">
@@ -488,7 +488,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                      value={newMessage}
                                      onChange={(e) => setNewMessage(e.target.value)}
                                      onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                                     placeholder="Resonate with others..."
+                                     placeholder="Type a message..."
                                      className="w-full h-12 pl-5 pr-12 rounded-xl bg-white border border-outline-variant/10 text-[13px] text-foreground font-medium placeholder:text-foreground/20 focus:ring-2 focus:ring-primary/10 focus:outline-none transition-all shadow-sm group-hover:border-primary/20"
                                  />
                                  <button onClick={handleSendMessage} className="absolute right-1.5 top-1.5 h-9 w-9 rounded-lg bg-foreground text-background flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
@@ -496,7 +496,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                  </button>
                               </div>
                            ) : (
-                              <div className="h-12 rounded-xl bg-foreground/5 flex items-center justify-center text-[10px] font-bold uppercase tracking-widest text-foreground/20">Quietude Enabled</div>
+                              <div className="h-12 rounded-xl bg-foreground/5 flex items-center justify-center text-[10px] font-bold uppercase tracking-widest text-foreground/20">Chat is turned off</div>
                            )}
                         </div>
                     </div>

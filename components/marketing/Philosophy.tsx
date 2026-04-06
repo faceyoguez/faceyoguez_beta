@@ -29,37 +29,46 @@ function useInView(threshold = 0.1) {
 
 export function Philosophy() {
   const [ref, inView] = useInView();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.matchMedia('(max-width: 768px)').matches);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   return (
     <section
       ref={ref}
       style={{
         position: 'relative',
-        padding: 'clamp(5rem, 10vw, 10rem) 0 clamp(5rem, 8vw, 8rem)',
+        padding: isMobile ? '4rem 0 3rem' : 'clamp(5rem, 10vw, 10rem) 0 clamp(5rem, 8vw, 8rem)',
         overflow: 'hidden',
-        background: 'linear-gradient(180deg, #F2BFA4 0%, #FDF5EE 12%, #FDF5EE 100%)',
+        background: 'transparent',
       }}
     >
       <div style={{
         position: 'relative', zIndex: 2,
         maxWidth: 1300, margin: '0 auto',
-        padding: '0 clamp(2rem, 6vw, 7rem)',
+        padding: isMobile ? '0 1.5rem' : '0 clamp(2rem, 6vw, 7rem)',
       }}>
         {/* Large staggered text */}
-        <div style={{ marginBottom: 'clamp(3rem, 5vw, 5rem)', overflow: 'hidden' }}>
+        <div style={{ marginBottom: isMobile ? '2.5rem' : 'clamp(3rem, 5vw, 5rem)' }}>
           {SCRAMBLED_LINES.map((line, i) => (
             <div key={i} style={{ overflow: 'hidden' }}>
               <p style={{
                 fontFamily: "'Cormorant Garamond', Georgia, serif",
-                fontSize: 'clamp(2rem, 5.2vw, 4.8rem)',
+                fontSize: isMobile ? 'clamp(1.6rem, 8vw, 2.5rem)' : 'clamp(2rem, 5.2vw, 4.8rem)',
                 fontWeight: 400,
-                lineHeight: 1.1,
+                lineHeight: 1.15,
                 letterSpacing: '-0.01em',
                 color: '#2a2019',
-                margin: 0,
-                whiteSpace: 'nowrap',
+                margin: '0 0 0.2rem',
+                whiteSpace: isMobile ? 'normal' : 'nowrap',
                 clipPath: inView ? 'inset(0 0 0 0)' : 'inset(100% 0 0 0)',
                 transition: `clip-path 1.1s cubic-bezier(0.22, 1, 0.36, 1) ${i * 0.12 + 0.1}s`,
+                textAlign: isMobile ? 'center' : 'left',
               }}>
                 {line}
               </p>
@@ -67,17 +76,17 @@ export function Philosophy() {
           ))}
         </div>
 
-        {/* Body copy — right aligned */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        {/* Body copy — centered on mobile, right aligned on desktop */}
+        <div style={{ display: 'flex', justifyContent: isMobile ? 'center' : 'flex-end', textAlign: isMobile ? 'center' : 'left' }}>
           <div style={{
-            maxWidth: 380,
+            maxWidth: 420,
             opacity: inView ? 1 : 0,
             transform: inView ? 'translateY(0)' : 'translateY(30px)',
             transition: 'all 1s cubic-bezier(0.22,1,0.36,1) 0.5s',
           }}>
             <p style={{
               fontFamily: 'var(--font-dm-sans, "DM Sans", sans-serif)',
-              fontSize: '0.95rem',
+              fontSize: isMobile ? '0.875rem' : '0.95rem',
               lineHeight: 1.8,
               color: 'rgba(42, 32, 25, 0.55)',
               letterSpacing: '0.01em',
