@@ -10,16 +10,9 @@ gsap.registerPlugin(ScrollTrigger);
 
 const siteLinks = [
   { label: 'Home', href: '/' },
-  { label: 'Programs', href: '/programs' },
-  { label: 'Experts', href: '/experts' },
-  { label: 'Community', href: '/community' },
 ];
 
-const schoolLinks = [
-  { label: 'Workshops', href: '/programs' },
-  { label: 'Online Courses', href: '/programs' },
-  { label: 'Personal Training', href: '/programs' },
-];
+const schoolLinks: { label: string; href: string }[] = [];
 
 export function FooterCTA() {
   const footerRef = useRef<HTMLElement>(null);
@@ -126,46 +119,48 @@ export function FooterCTA() {
               ))}
             </div>
 
-            {/* Right - School links */}
-            <div className="space-y-5">
-              <h4
-                className="text-[11px] tracking-[0.35em] uppercase mb-6"
-                style={{ fontFamily: 'Inter, sans-serif', color: 'rgb(153, 143, 132)' }}
-              >
-                School of Face
-              </h4>
-              {schoolLinks.map((link) => (
-                <Link
-                  key={link.label}
-                  href={link.href}
-                  className="block transition-colors duration-200"
-                  style={{
-                    fontFamily: '"Cormorant Garamond", "Georgia", serif',
-                    fontSize: '1.05rem',
-                    color: 'rgb(44, 37, 37)',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = 'rgb(249, 109, 65)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = 'rgb(44, 37, 37)'; }}
+            {/* School of Face links - only show if there are links */}
+            {schoolLinks.length > 0 && (
+              <div className="space-y-5">
+                <h4
+                  className="text-[11px] tracking-[0.35em] uppercase mb-6"
+                  style={{ fontFamily: 'Inter, sans-serif', color: 'rgb(153, 143, 132)' }}
                 >
-                  {link.label}
-                </Link>
-              ))}
-
-              <div className="pt-6 space-y-3">
-                <Link
-                  href="/auth/login"
-                  className="block transition-colors duration-200"
-                  style={{
-                    fontFamily: '"Cormorant Garamond", "Georgia", serif',
-                    fontSize: '1.05rem',
-                    color: 'rgb(44, 37, 37)',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = 'rgb(249, 109, 65)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = 'rgb(44, 37, 37)'; }}
-                >
-                  Sign In
-                </Link>
+                  School of Face
+                </h4>
+                {schoolLinks.map((link) => (
+                  <Link
+                    key={link.label}
+                    href={link.href}
+                    className="block transition-colors duration-200"
+                    style={{
+                      fontFamily: '"Cormorant Garamond", "Georgia", serif',
+                      fontSize: '1.05rem',
+                      color: 'rgb(44, 37, 37)',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = 'rgb(249, 109, 65)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = 'rgb(44, 37, 37)'; }}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
               </div>
+            )}
+            
+            <div className="space-y-5 pt-0 md:pt-14">
+              <Link
+                href="/auth/login"
+                className="block transition-colors duration-200"
+                style={{
+                  fontFamily: '"Cormorant Garamond", "Georgia", serif',
+                  fontSize: '1.05rem',
+                  color: 'rgb(44, 37, 37)',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = 'rgb(249, 109, 65)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = 'rgb(44, 37, 37)'; }}
+              >
+                Sign In
+              </Link>
             </div>
           </div>
         </div>

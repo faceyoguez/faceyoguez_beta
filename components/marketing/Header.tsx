@@ -16,11 +16,7 @@ export function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const mainLinks = [
-    { name: 'Programs', href: '/programs' },
-    { name: 'Experts', href: '/experts' },
-    { name: 'Community', href: '/community' },
-  ];
+  const mainLinks: { name: string; href: string }[] = [];
 
   return (
     <header

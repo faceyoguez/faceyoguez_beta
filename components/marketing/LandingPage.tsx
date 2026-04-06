@@ -11,7 +11,6 @@ import { Testimonials } from './Testimonials';
 import { Plans } from './Plans';
 import { GoogleReview } from './GoogleReview';
 import { FooterCTA } from './FooterCTA';
-import { FloatingDock } from './FloatingDock';
 import { LuxuryBackground } from './LuxuryBackground';
 
 export function LandingPage() {
@@ -38,7 +37,6 @@ export function LandingPage() {
               <Plans />
               <GoogleReview />
               <FooterCTA />
-              <FloatingDock />
             </>
           )}
         </div>
