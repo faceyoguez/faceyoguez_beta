@@ -221,7 +221,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground selection:bg-primary/20 overflow-hidden font-sans">
-      
+
       {/* Background decoration */}
       <div className="fixed top-0 right-0 w-[50vw] h-[50vh] bg-primary/2 rounded-full blur-[120px] -z-10" />
 
@@ -270,40 +270,41 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
             />
           </div>
           <button className="h-12 w-12 rounded-xl bg-white/50 backdrop-blur-xl border border-outline-variant/10 flex items-center justify-center text-foreground/40 hover:text-primary hover:border-primary/20 transition-all shadow-sm">
-             <Filter className="w-5 h-5" />
+            <Filter className="w-5 h-5" />
           </button>
         </div>
       </header>
 
       <main className="flex-1 flex overflow-hidden p-6 lg:p-10 gap-4 xl:gap-8 min-w-0">
-        
+
         {/* LEFT: Registry List (Student Rail Style) */}
-        <div className="w-64 xl:w-80 flex flex-col gap-6 shrink-0 h-full min-w-0">
+        <div className="w-56 xl:w-64 flex flex-col gap-6 shrink-0 h-full min-w-0">
+          {/* New row for filters outside directory card */}
+          <div className="flex gap-1 bg-white/40 backdrop-blur-xl p-1 rounded-2xl border border-outline-variant/10 shadow-sm">
+            {[
+              { id: 'all', label: 'All', count: students.length },
+              { id: 'trial', label: 'Trial', count: students.filter(s => s.isTrial).length },
+              { id: 'paid', label: 'Paid', count: students.filter(s => !s.isTrial).length }
+            ].map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setFilterTrial(f.id as any)}
+                className={cn(
+                  "flex-1 h-10 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-1.5",
+                  filterTrial === f.id
+                    ? "bg-white text-primary shadow-sm border border-outline-variant/10"
+                    : "text-foreground/30 hover:text-primary transition-colors"
+                )}
+              >
+                <span>{f.label}</span>
+                <span className="text-[7px] opacity-40 px-1 py-0.5 bg-foreground/5 rounded-md">{f.count}</span>
+              </button>
+            ))}
+          </div>
+
           <div className="flex-1 bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col min-h-0 overflow-hidden">
             <div className="p-8 border-b border-outline-variant/5">
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30 mb-6">Directory</h3>
-              
-              <div className="flex gap-1 bg-foreground/5 p-1 rounded-xl mb-4">
-                {[
-                  { id: 'all', label: 'All', count: students.length },
-                  { id: 'trial', label: 'Trial', count: students.filter(s => s.isTrial).length },
-                  { id: 'paid', label: 'Paid', count: students.filter(s => !s.isTrial).length }
-                ].map((f) => (
-                  <button
-                    key={f.id}
-                    onClick={() => setFilterTrial(f.id as any)}
-                    className={cn(
-                      "flex-1 h-8 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-1.5",
-                      filterTrial === f.id 
-                        ? "bg-white text-foreground shadow-sm" 
-                        : "text-foreground/40 hover:text-foreground/60"
-                    )}
-                  >
-                    <span>{f.label}</span>
-                    <span className="text-[7px] opacity-40 px-1 py-0.5 bg-foreground/5 rounded-md">{f.count}</span>
-                  </button>
-                ))}
-              </div>
+              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Directory</h3>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
@@ -317,8 +318,8 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                     onClick={() => setSelectedStudent(student)}
                     className={cn(
                       "w-full flex items-center gap-4 p-4 rounded-2xl transition-all text-left group",
-                      selectedStudent?.id === student.id 
-                        ? (isEmergency ? "bg-red-50/50 border border-red-500/20 shadow-md scale-[1.02]" : "bg-white border border-outline-variant/10 shadow-md scale-[1.02]") 
+                      selectedStudent?.id === student.id
+                        ? (isEmergency ? "bg-red-50/50 border border-red-500/20 shadow-md scale-[1.02]" : "bg-white border border-outline-variant/10 shadow-md scale-[1.02]")
                         : "bg-transparent border border-transparent hover:bg-white/40 hover:border-outline-variant/5"
                     )}
                   >
@@ -344,11 +345,11 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                         )}
                       </div>
                       <p className={cn("text-[8px] font-bold uppercase tracking-widest mt-0.5 truncate", isEmergency ? "text-red-500/70" : "text-foreground/30")}>
-                        {isEmergency 
-                          ? `Day ${elapsedDays}: Ending Soon` 
-                          : (student.isTrial 
-                              ? "Discovery" 
-                              : `Aligned: ${getInstructorName(student.assignedInstructorId) || 'Pending'}`)}
+                        {isEmergency
+                          ? `Day ${elapsedDays}: Ending Soon`
+                          : (student.isTrial
+                            ? "Discovery"
+                            : `Aligned: ${getInstructorName(student.assignedInstructorId) || 'Pending'}`)}
                       </p>
                     </div>
                   </button>
@@ -376,24 +377,24 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                       )}
                     </div>
                     <div className="space-y-2">
-                       <div className="flex items-center gap-3">
-                         <h2 className="text-3xl font-bold text-foreground tracking-tight">
-                           {selectedStudent.full_name}
-                         </h2>
-                         {selectedStudent.isTrial && (
-                           <span className="text-[10px] font-black uppercase text-white bg-red-500 px-2 py-0.5 rounded-full shadow-sm animate-pulse whitespace-nowrap">
-                             Trial
-                           </span>
-                         )}
-                       </div>
-                       <div className="flex items-center gap-6">
-                         <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-foreground/30">
-                            <Clock className="w-3.5 h-3.5" /> Start: {selectedStudent.startDate ? new Date(selectedStudent.startDate).toLocaleDateString() : 'Unmanifested'}
-                         </div>
-                         <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-foreground/30">
-                            <ShieldCheck className={cn("w-3.5 h-3.5", selectedStudent.isTrial ? "text-primary/60" : "text-brand-emerald/60")} /> {selectedStudent.isTrial ? "Trial Access" : "Full Alignment"}
-                         </div>
-                       </div>
+                      <div className="flex items-center gap-3">
+                        <h2 className="text-3xl font-bold text-foreground tracking-tight">
+                          {selectedStudent.full_name}
+                        </h2>
+                        {selectedStudent.isTrial && (
+                          <span className="text-[10px] font-black uppercase text-white bg-red-500 px-2 py-0.5 rounded-full shadow-sm animate-pulse whitespace-nowrap">
+                            Trial
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-foreground/30">
+                          <Clock className="w-3.5 h-3.5" /> Start: {selectedStudent.startDate ? new Date(selectedStudent.startDate).toLocaleDateString() : 'Unmanifested'}
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-foreground/30">
+                          <ShieldCheck className={cn("w-3.5 h-3.5", selectedStudent.isTrial ? "text-primary/60" : "text-brand-emerald/60")} /> {selectedStudent.isTrial ? "Trial Access" : "Full Alignment"}
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -411,134 +412,134 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
 
                 {/* Journey & Transformation Focus */}
                 <div className="p-10 space-y-12">
-                   {/* Journey Progress */}
+                  {/* Journey Progress */}
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Transformation Path</h3>
+                      <span className="text-[10px] font-bold text-primary bg-primary/5 px-3 py-1 rounded-full uppercase tracking-widest">Day {activeStepDay} of {JOURNEY_MAX_DAY}</span>
+                    </div>
+                    <JourneyProgress
+                      currentDay={selectedStudent.startDate
+                        ? Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate).getTime()) / 86400000) + 1))
+                        : 1}
+                      activeDay={activeStepDay}
+                      onSelectDay={setActiveStepDay}
+                      completedDays={new Set(journeyLogs.map(l => l.day_number))}
+                    />
+                  </div>
+
+                  {/* Image Comparison / Visual Log */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                     <div className="space-y-6">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Transformation Path</h3>
-                        <span className="text-[10px] font-bold text-primary bg-primary/5 px-3 py-1 rounded-full uppercase tracking-widest">Day {activeStepDay} of {JOURNEY_MAX_DAY}</span>
+                        <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Photo Progress</h3>
+                        <div className="flex items-center gap-2">
+                          <div className="h-1.5 w-1.5 rounded-full bg-brand-emerald animate-pulse" />
+                          <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20 text-right">Manifestation comparison</span>
+                        </div>
                       </div>
-                      <JourneyProgress 
-                        currentDay={selectedStudent.startDate
-                          ? Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate).getTime()) / 86400000) + 1))
-                          : 1}
-                        activeDay={activeStepDay} 
-                        onSelectDay={setActiveStepDay}
-                        completedDays={new Set(journeyLogs.map(l => l.day_number))}
-                      />
+                      <div className="aspect-[4/5] rounded-[2.5rem] overflow-hidden border border-outline-variant/10 shadow-2xl bg-foreground">
+                        <ImageComparison
+                          beforeImage={beforeImage}
+                          afterImage={afterImage}
+                          beforeLabel="Foundation"
+                          afterLabel={`Day ${activeStepDay}`}
+                        />
+                      </div>
+
+                      {/* Photo Download Tools */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          disabled={!journeyLogs.find(l => l.day_number === 1)?.photo_url}
+                          onClick={() => {
+                            const url = journeyLogs.find(l => l.day_number === 1)?.photo_url;
+                            if (url) window.open(url, '_blank');
+                          }}
+                          className="h-12 px-3 rounded-[1.25rem] bg-white/40 backdrop-blur-md border border-outline-variant/10 shadow-sm flex items-center justify-center gap-1.5 text-[8px] font-black uppercase tracking-widest hover:border-primary/20 hover:bg-white transition-all disabled:opacity-30 group overflow-hidden"
+                        >
+                          <Download className="w-3 h-3 text-primary shrink-0" />
+                          <span className="truncate">Day 1</span>
+                        </button>
+                        <button
+                          disabled={!journeyLogs.find(l => l.day_number === 25)?.photo_url}
+                          onClick={() => {
+                            const url = journeyLogs.find(l => l.day_number === 25)?.photo_url;
+                            if (url) window.open(url, '_blank');
+                          }}
+                          className="h-12 px-3 rounded-[1.25rem] bg-white/40 backdrop-blur-md border border-outline-variant/10 shadow-sm flex items-center justify-center gap-1.5 text-[8px] font-black uppercase tracking-widest hover:border-primary/20 hover:bg-white transition-all disabled:opacity-30 group overflow-hidden"
+                        >
+                          <Download className="w-3 h-3 text-primary shrink-0" />
+                          <span className="truncate">Day 25</span>
+                        </button>
+                      </div>
                     </div>
 
-                    {/* Image Comparison / Visual Log */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                      <div className="space-y-6">
-                        <div className="flex items-center justify-between">
-                          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Photo Progress</h3>
-                          <div className="flex items-center gap-2">
-                             <div className="h-1.5 w-1.5 rounded-full bg-brand-emerald animate-pulse" />
-                             <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20 text-right">Manifestation comparison</span>
+                    <div className="space-y-6">
+                      <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Soul Chronicles</h3>
+                      <div className="bg-white/40 backdrop-blur-md rounded-[2.5rem] p-8 border border-outline-variant/5 min-h-[300px] flex flex-col">
+                        {activeLog ? (
+                          <div className="flex-1 flex flex-col">
+                            <div className="flex items-center justify-between mb-6">
+                              <span className="text-[9px] font-bold uppercase tracking-widest text-primary">Observation {activeStepDay}</span>
+                              <span className="text-[8px] text-foreground/20">{new Date(activeLog.created_at).toLocaleDateString()}</span>
+                            </div>
+                            <p className="text-sm font-medium leading-relaxed text-foreground/70 whitespace-pre-wrap flex-1">
+                              "{activeLog.notes || 'The silence speaks of unspoken progress.'}"
+                            </p>
+                            <div className="mt-8 pt-6 border-t border-outline-variant/5 flex items-center justify-between">
+                              <div className="flex -space-x-2">
+                                {[1, 2, 3].map(i => <div key={i} className="h-6 w-6 rounded-full border-2 border-white bg-primary/10" />)}
+                              </div>
+                              <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20">On track</span>
+                            </div>
                           </div>
-                        </div>
-                        <div className="aspect-[4/5] rounded-[2.5rem] overflow-hidden border border-outline-variant/10 shadow-2xl bg-foreground">
-                          <ImageComparison 
-                            beforeImage={beforeImage}
-                            afterImage={afterImage}
-                            beforeLabel="Foundation"
-                            afterLabel={`Day ${activeStepDay}`}
-                          />
-                        </div>
-                        
-                        {/* Photo Download Tools */}
-                        <div className="flex gap-4">
-                           <button 
-                              disabled={!journeyLogs.find(l => l.day_number === 1)?.photo_url}
-                              onClick={() => {
-                                 const url = journeyLogs.find(l => l.day_number === 1)?.photo_url;
-                                 if (url) window.open(url, '_blank');
-                              }}
-                              className="flex-1 h-14 rounded-[1.5rem] bg-white/40 backdrop-blur-md border border-outline-variant/10 shadow-sm flex items-center justify-center gap-2 text-[9px] font-bold uppercase tracking-widest hover:border-primary/20 hover:bg-white transition-all disabled:opacity-30 disabled:hover:bg-white/40 group"
-                           >
-                              <Download className="w-3.5 h-3.5 text-primary group-hover:-translate-y-0.5 transition-transform" />
-                              Extract Day 1
-                           </button>
-                           <button 
-                              disabled={!journeyLogs.find(l => l.day_number === 25)?.photo_url}
-                              onClick={() => {
-                                 const url = journeyLogs.find(l => l.day_number === 25)?.photo_url;
-                                 if (url) window.open(url, '_blank');
-                              }}
-                              className="flex-1 h-14 rounded-[1.5rem] bg-white/40 backdrop-blur-md border border-outline-variant/10 shadow-sm flex items-center justify-center gap-2 text-[9px] font-bold uppercase tracking-widest hover:border-primary/20 hover:bg-white transition-all disabled:opacity-30 disabled:hover:bg-white/40 group"
-                           >
-                              <Download className="w-3.5 h-3.5 text-primary group-hover:-translate-y-0.5 transition-transform" />
-                              Extract Day 25
-                           </button>
-                        </div>
-                      </div>
-
-                      <div className="space-y-6">
-                        <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Soul Chronicles</h3>
-                        <div className="bg-white/40 backdrop-blur-md rounded-[2.5rem] p-8 border border-outline-variant/5 min-h-[300px] flex flex-col">
-                           {activeLog ? (
-                             <div className="flex-1 flex flex-col">
-                               <div className="flex items-center justify-between mb-6">
-                                  <span className="text-[9px] font-bold uppercase tracking-widest text-primary">Observation {activeStepDay}</span>
-                                  <span className="text-[8px] text-foreground/20">{new Date(activeLog.created_at).toLocaleDateString()}</span>
-                               </div>
-                               <p className="text-sm font-medium leading-relaxed text-foreground/70 whitespace-pre-wrap flex-1">
-                                 "{activeLog.notes || 'The silence speaks of unspoken progress.'}"
-                               </p>
-                               <div className="mt-8 pt-6 border-t border-outline-variant/5 flex items-center justify-between">
-                                  <div className="flex -space-x-2">
-                                     {[1,2,3].map(i => <div key={i} className="h-6 w-6 rounded-full border-2 border-white bg-primary/10" />)}
-                                  </div>
-                                  <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20">On track</span>
-                               </div>
-                             </div>
-                           ) : (
-                             <div className="flex-1 flex flex-col items-center justify-center text-center opacity-20">
-                               <Sparkles className="w-12 h-12 mb-4" />
-                               <p className="text-[10px] font-bold uppercase tracking-widest">Day {activeStepDay} awaits manifestation</p>
-                             </div>
-                           )}
-                        </div>
+                        ) : (
+                          <div className="flex-1 flex flex-col items-center justify-center text-center opacity-20">
+                            <Sparkles className="w-12 h-12 mb-4" />
+                            <p className="text-[10px] font-bold uppercase tracking-widest">Day {activeStepDay} awaits manifestation</p>
+                          </div>
+                        )}
                       </div>
                     </div>
-                    
-                    {/* Moved Registry Artifacts (Update PDF) Section */}
-                    <div className="bg-white/40 backdrop-blur-md p-8 rounded-[2.5rem] border border-outline-variant/10 shadow-lg flex flex-col -mt-6">
-                       <div className="flex items-center justify-between mb-8 shrink-0">
-                          <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Registry Artifacts</h3>
-                          <button
-                            disabled={!selectedStudent || isUploading}
-                            onClick={() => fileInputRef.current?.click()}
-                            className="h-10 w-10 rounded-xl bg-primary/5 text-primary flex items-center justify-center transition-all hover:scale-110 active:scale-95 disabled:opacity-20 border border-primary/10"
-                          >
-                            {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-5 w-5" />}
+                  </div>
+
+                  {/* Moved Registry Artifacts (Update PDF) Section */}
+                  <div className="bg-white/40 backdrop-blur-md p-8 rounded-[2.5rem] border border-outline-variant/10 shadow-lg flex flex-col -mt-6">
+                    <div className="flex items-center justify-between mb-8 shrink-0">
+                      <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Registry Artifacts</h3>
+                      <button
+                        disabled={!selectedStudent || isUploading}
+                        onClick={() => fileInputRef.current?.click()}
+                        className="h-10 w-10 rounded-xl bg-primary/5 text-primary flex items-center justify-center transition-all hover:scale-110 active:scale-95 disabled:opacity-20 border border-primary/10"
+                      >
+                        {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-5 w-5" />}
+                      </button>
+                      <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
+                    </div>
+
+                    <div className="space-y-3 overflow-y-auto max-h-[300px] custom-scrollbar pr-2">
+                      {resources.map((res) => {
+                        const style = getFileIcon(res.content_type || '');
+                        return (
+                          <button key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="w-full flex items-center gap-4 p-4 bg-white border border-outline-variant/5 rounded-2xl hover:border-primary/20 hover:shadow-md transition-all text-left group">
+                            <div className={cn("h-10 w-10 rounded-xl bg-foreground/5 flex items-center justify-center text-foreground/20 group-hover:bg-primary/5 group-hover:text-primary transition-colors", style.color)}>
+                              <style.icon className="w-4 h-4" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-foreground truncate">{res.file_name}</p>
+                              <p className="text-[9px] font-bold text-foreground/20 uppercase tracking-widest mt-0.5">{formatFileSize(res.file_size)}</p>
+                            </div>
                           </button>
-                          <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
-                       </div>
-
-                       <div className="space-y-3 overflow-y-auto max-h-[300px] custom-scrollbar pr-2">
-                          {resources.map((res) => {
-                             const style = getFileIcon(res.content_type || '');
-                             return (
-                                <button key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="w-full flex items-center gap-4 p-4 bg-white border border-outline-variant/5 rounded-2xl hover:border-primary/20 hover:shadow-md transition-all text-left group">
-                                   <div className={cn("h-10 w-10 rounded-xl bg-foreground/5 flex items-center justify-center text-foreground/20 group-hover:bg-primary/5 group-hover:text-primary transition-colors", style.color)}>
-                                      <style.icon className="w-4 h-4" />
-                                   </div>
-                                   <div className="min-w-0">
-                                      <p className="text-xs font-bold text-foreground truncate">{res.file_name}</p>
-                                      <p className="text-[9px] font-bold text-foreground/20 uppercase tracking-widest mt-0.5">{formatFileSize(res.file_size)}</p>
-                                   </div>
-                                </button>
-                             );
-                          })}
-                          {resources.length === 0 && (
-                             <div className="h-40 flex flex-col items-center justify-center opacity-20 bg-foreground/[0.02] border border-dashed border-outline-variant/20 rounded-2xl">
-                                <FolderOpen className="w-6 h-6 mb-2" />
-                                <p className="text-[9px] font-bold uppercase tracking-widest">Registry pristine</p>
-                             </div>
-                          )}
-                       </div>
+                        );
+                      })}
+                      {resources.length === 0 && (
+                        <div className="h-40 flex flex-col items-center justify-center opacity-20 bg-foreground/[0.02] border border-dashed border-outline-variant/20 rounded-2xl">
+                          <FolderOpen className="w-6 h-6 mb-2" />
+                          <p className="text-[9px] font-bold uppercase tracking-widest">Registry pristine</p>
+                        </div>
+                      )}
                     </div>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -552,7 +553,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
 
         {/* RIGHT: Communion & Artifacts (Instructor Pattern) */}
         <div className="w-72 xl:w-96 flex flex-col gap-8 shrink-0 h-full min-w-0">
-          
+
           {/* Interaction Box (ChatWindow) */}
           <div className="flex-1 bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col overflow-hidden">
             <div className="p-8 border-b border-outline-variant/5 flex items-center justify-between shrink-0 bg-white/20">
@@ -615,8 +616,8 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                   onClick={() => setSelectedInstructorId(instructor.id)}
                   className={cn(
                     "w-full flex items-center gap-5 p-5 rounded-2xl transition-all group border",
-                    selectedInstructorId === instructor.id 
-                      ? "bg-foreground text-background border-foreground shadow-lg" 
+                    selectedInstructorId === instructor.id
+                      ? "bg-foreground text-background border-foreground shadow-lg"
                       : "bg-surface-container/50 hover:bg-white text-foreground border-outline-variant/5 shadow-sm"
                   )}
                 >
@@ -636,14 +637,14 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                     </p>
                   </div>
                   <div className={cn("h-6 w-6 rounded-full flex items-center justify-center border-2 transition-all", selectedInstructorId === instructor.id ? "bg-primary border-primary text-white" : "border-outline-variant/20 text-transparent")}>
-                     <CheckCircle className="w-3.5 h-3.5" />
+                    <CheckCircle className="w-3.5 h-3.5" />
                   </div>
                 </button>
               ))}
             </div>
 
             <div className="flex gap-4 pt-4">
-              <button 
+              <button
                 onClick={() => setShowAssignModal(false)}
                 className="flex-1 h-14 rounded-2xl text-[10px] font-bold uppercase tracking-widest text-foreground/40 hover:text-foreground transition-all"
               >

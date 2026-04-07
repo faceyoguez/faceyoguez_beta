@@ -3,7 +3,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export const ImageComparison = ({ beforeImage, afterImage, altBefore = 'Baseline', altAfter = 'Unfolding', disabled = false }: any) => {
+export const ImageComparison = ({ beforeImage, afterImage, altBefore = 'Baseline', altAfter = 'Unfolding', beforeLabel, afterLabel, disabled = false }: any) => {
     const [sliderPosition, setSliderPosition] = useState(disabled ? 0 : 50);
     const [isDragging, setIsDragging] = useState(false);
 
@@ -57,10 +57,12 @@ export const ImageComparison = ({ beforeImage, afterImage, altBefore = 'Baseline
                     className="h-full w-full object-cover grayscale-[0.2] contrast-[1.05]"
                     draggable="false"
                 />
-                <div className="absolute left-6 top-6 z-30 flex items-center gap-3 px-4 py-2 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl">
-                    <Sparkles className="w-3.5 h-3.5 text-primary animate-pulse" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white">Baseline</span>
-                </div>
+                {beforeLabel && (
+                  <div className="absolute left-6 top-6 z-30 flex items-center gap-3 px-4 py-2 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl">
+                      <Sparkles className="w-3.5 h-3.5 text-primary animate-pulse" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white">{beforeLabel}</span>
+                  </div>
+                )}
             </div>
 
             {/* Evolution Image (Bottom Layer) */}
@@ -70,9 +72,11 @@ export const ImageComparison = ({ beforeImage, afterImage, altBefore = 'Baseline
                 className="block h-full w-full object-cover contrast-[1.1]"
                 draggable="false"
             />
-            <div className="absolute right-6 top-6 z-30 px-4 py-2 rounded-2xl bg-white/60 backdrop-blur-xl border border-primary/5 shadow-2xl">
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-foreground/60">Evolution</span>
-            </div>
+            {afterLabel && (
+              <div className="absolute right-6 top-6 z-30 px-4 py-2 rounded-2xl bg-white/60 backdrop-blur-xl border border-primary/5 shadow-2xl">
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-foreground/60">{afterLabel}</span>
+              </div>
+            )}
 
             {/* Slider Handle */}
             {!disabled && (
