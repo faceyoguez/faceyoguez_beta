@@ -103,7 +103,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
 
     return (
         <div className="h-screen bg-background flex flex-col overflow-hidden font-sans selection:bg-primary/20 selection:text-primary">
-            
+
             {/* 1. COMPACT HEADER */}
             <header className="flex items-center justify-between px-8 py-4 border-b border-primary/5 bg-white/40 backdrop-blur-3xl shrink-0 z-20">
                 <div className="flex items-center gap-6">
@@ -140,10 +140,10 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
 
             {/* 2. MAIN CONTENT AREA (TRI-PANEL) */}
             <main className="flex-1 flex overflow-hidden p-6 gap-6 relative z-10">
-                
+
                 {/* PANEL 1: TARGETING & ASSETS (Left - Narrow) */}
                 <div className="w-[300px] flex flex-col gap-6 shrink-0 overflow-y-auto pr-2 custom-scrollbar">
-                    
+
                     {/* Audience Section */}
                     <div className="p-6 rounded-3xl bg-white/60 border border-primary/5 shadow-sm space-y-6">
                         <div className="flex items-center gap-3">
@@ -199,7 +199,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
 
                     <div className="p-6 rounded-3xl bg-white/60 border border-primary/5 shadow-sm space-y-6 relative overflow-hidden group">
                         <UploadCloud className="absolute -bottom-10 -right-10 w-32 h-32 text-primary/5 transition-transform" />
-                        
+
                         <div className="flex items-center gap-3 relative z-10">
                             <div className="h-8 w-8 rounded-xl bg-violet-500/10 text-violet-500 flex items-center justify-center">
                                 <UploadCloud className="w-4 h-4" />
@@ -208,7 +208,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                         </div>
 
                         <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
-                        
+
                         <button
                             onClick={() => fileInputRef.current?.click()}
                             disabled={uploading}
@@ -232,7 +232,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                 {/* PANEL 2: COMPOSER (Center - Wide) */}
                 <div className="flex-1 flex flex-col gap-6">
                     <div className="flex-1 rounded-[2.5rem] bg-white border border-primary/5 overflow-hidden flex flex-col relative group">
-                        
+
                         {/* Interactive Background Gradient */}
                         <div className="absolute inset-0 bg-gradient-to-tr from-primary/[0.02] to-transparent pointer-events-none" />
 
@@ -284,7 +284,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                                                 <p className="text-[9px] text-primary uppercase">Resource Bound</p>
                                             </div>
                                         </div>
-                                        <button onClick={() => {setFileUrl(''); setFileName('');}} className="h-8 w-8 rounded-full hover:bg-white text-foreground/20 hover:text-rose-500 transition-colors">
+                                        <button onClick={() => { setFileUrl(''); setFileName(''); }} className="h-8 w-8 rounded-full hover:bg-white text-foreground/20 hover:text-rose-500 transition-colors">
                                             <X className="h-4 w-4" />
                                         </button>
                                     </div>

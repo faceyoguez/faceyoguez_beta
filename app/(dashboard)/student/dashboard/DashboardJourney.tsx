@@ -126,9 +126,9 @@ export function DashboardJourney({
               />
             )}
             <div className="absolute top-4 left-4 flex gap-2">
-               <span className="px-3 py-1 bg-black/40 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-widest rounded-full ring-1 ring-white/20 shadow-lg">
-                  Day {activeStepDay} View
-               </span>
+              <span className="px-3 py-1 bg-black/40 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-widest rounded-full ring-1 ring-white/20 shadow-lg">
+                Day {activeStepDay} View
+              </span>
             </div>
           </div>
 
@@ -138,7 +138,7 @@ export function DashboardJourney({
                 {activeStepDay === 1 ? 'Start Your Journey' : activeStepDay === 25 ? 'Final Comparison' : `Day ${activeStepDay} Progress`}
               </h4>
               <p className="text-sm text-foreground/50 font-medium max-w-[200px]">
-                {activeStepDay === 1 || activeStepDay === 25 
+                {activeStepDay === 1 || activeStepDay === 25
                   ? 'Capture your face yoga progress to see the visible results of your practice.'
                   : 'Maintain your consistent practice. Photo uploads are only required for Day 1 and Day 25.'}
               </p>
@@ -157,7 +157,7 @@ export function DashboardJourney({
                   onClick={() => fileInputRef.current?.click()}
                   className="flex items-center justify-center w-full gap-2 rounded-[1.25rem] bg-surface-container-highest/50 px-6 py-4 text-sm font-bold text-foreground shadow-sm ring-1 ring-outline-variant/20 transition-all hover:scale-[1.03] hover:bg-surface-container-highest hover:shadow-md active:scale-95"
                 >
-                  <Camera className="h-5 w-5 text-primary" /> 
+                  <Camera className="h-5 w-5 text-primary" />
                   Select Photo
                 </button>
                 {selectedImageBase64 && (

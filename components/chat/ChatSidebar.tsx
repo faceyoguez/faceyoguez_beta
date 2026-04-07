@@ -157,11 +157,10 @@ export function ChatSidebar({
             <button
               key={conv.id}
               onClick={() => onSelectConversation(conv)}
-              className={`flex w-full items-center gap-3 border-b border-primary/5 px-4 py-3 text-left transition-colors hover:bg-primary/5 ${
-                selectedConversationId === conv.id
+              className={`flex w-full items-center gap-3 border-b border-primary/5 px-4 py-3 text-left transition-colors hover:bg-primary/5 ${selectedConversationId === conv.id
                   ? 'border-l-2 border-l-primary bg-primary/5'
                   : ''
-              }`}
+                }`}
             >
               {getAvatar(conv) ? (
                 <img src={getAvatar(conv)!} alt="" className="h-10 w-10 rounded-full object-cover shadow-sm ring-1 ring-primary/10" />

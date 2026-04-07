@@ -6,8 +6,9 @@ import { getStudentResources } from '@/lib/actions/resources';
 import { getUpcomingMeetingsForStudent } from '@/lib/actions/meetings';
 import { createClient } from '@/lib/supabase/client';
 import { getJourneyLogs, saveDailyCheckIn, type JourneyLog } from '@/lib/actions/journey';
+import { toast } from 'sonner';
 import { ImageComparison } from '@/components/ui/image-comparison-slider';
-import { JourneyProgress, JOURNEY_MAX_DAY, JOURNEY_MILESTONES } from '@/components/ui/journey-progress';
+import { JourneyProgress, JOURNEY_MILESTONES } from '@/components/ui/journey-progress';
 import {
   Video,
   FileText,
@@ -122,16 +123,23 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
 
   const handleSaveLog = async () => {
     setIsSavingLog(true);
-    const { success, data } = await saveDailyCheckIn(
-      currentUser.id,
-      activeDay,
-      notesInput.trim() || null,
-      selectedImageBase64,
-      selectedImageMime || 'image/jpeg'
-    );
-    if (success && data) {
-      setJourneyLogs(prev => [...prev.filter(l => l.day_number !== activeDay), data]);
-      setSelectedImageBase64(null);
+    try {
+      const { success, data } = await saveDailyCheckIn(
+        currentUser.id,
+        activeDay,
+        notesInput.trim() || null,
+        selectedImageBase64,
+        selectedImageMime || 'image/jpeg'
+      );
+      if (success && data) {
+        setJourneyLogs(prev => [...prev.filter(l => l.day_number !== activeDay), data]);
+        setSelectedImageBase64(null);
+        toast.success("Progress Saved!", { description: `Your journey notes for Day ${activeDay} have been updated.` });
+      } else {
+        toast.error("Failed to save progress", { description: "There was an issue saving your check-in." });
+      }
+    } catch (e) {
+      toast.error("Network Error", { description: "Failed to communicate with the server." });
     }
     setIsSavingLog(false);
   };

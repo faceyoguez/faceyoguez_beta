@@ -24,6 +24,7 @@ const dmSans = DM_Sans({
 });
 
 import { ThemeProvider } from '@/components/theme-provider';
+import { Toaster } from 'sonner';
 
 export const metadata: Metadata = {
   title: {
@@ -67,6 +68,13 @@ export default function RootLayout({
           <div className="relative z-10">
             {children}
           </div>
+          <Toaster 
+            position="top-right" 
+            richColors 
+            duration={4000} 
+            closeButton 
+            visibleToasts={3}
+          />
         </ThemeProvider>
       </body>
     </html>

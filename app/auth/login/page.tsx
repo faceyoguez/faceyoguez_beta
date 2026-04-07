@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import { ArrowRight, Facebook, Instagram } from 'lucide-react';
 import AuthLayout from '@/components/auth/AuthLayout';
 import AuthInput from '@/components/auth/AuthInput';
@@ -47,13 +48,16 @@ function LoginContent() {
 
     if (signInError) {
       setError(signInError.message);
+      toast.error("Login Failed", { description: signInError.message });
       setLoading(false);
       return;
     }
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      setError('User data could not be retrieved. Please try again.');
+      const msg = 'User data could not be retrieved. Please try again.';
+      setError(msg);
+      toast.error("Authentication Error", { description: msg });
       setLoading(false);
       return;
     }
@@ -62,6 +66,9 @@ function LoginContent() {
     const redirectPath = getRoleRedirectPath(role);
 
     console.log(`Login Success: User ${user.id} logged in as ${role}. Redirecting to ${redirectPath}`);
+    toast.success('Successfully logged in!', {
+      description: 'Welcome back to your face yoga sanctuary.',
+    });
     router.push(redirectPath);
     router.refresh();
   };
@@ -79,6 +86,7 @@ function LoginContent() {
 
     if (oauthError) {
       setError(oauthError.message);
+      toast.error("OAuth Login Failed", { description: oauthError.message });
       setLoading(false);
     }
   };

@@ -137,8 +137,14 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
          if (res.success) {
             const updated = await getBatchResources(selectedBatch.id);
             setResources(updated);
+            toast.success('Resource shared successfully!');
+         } else {
+            toast.error(res.error || 'Failed to share resource');
          }
-      } catch (err) { console.error(err); } finally { setIsUploading(false); }
+      } catch (err) { 
+         console.error(err); 
+         toast.error('Upload failed. Please try again.');
+      } finally { setIsUploading(false); }
    };
 
    const fetchRecordings = async (batch: any) => {

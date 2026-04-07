@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowRight, Facebook, Instagram } from 'lucide-react';
+import { toast } from 'sonner';
 import { z } from 'zod';
 import AuthLayout from '@/components/auth/AuthLayout';
 import AuthInput from '@/components/auth/AuthInput';
@@ -48,6 +49,7 @@ export default function SignUpForm() {
       const fieldErrors: Record<string, string> = {};
       result.error.issues.forEach(issue => {
         fieldErrors[issue.path[0] as string] = issue.message;
+        toast.error("Validation Error", { description: issue.message });
       });
       setErrors(fieldErrors);
       return;
@@ -69,12 +71,15 @@ export default function SignUpForm() {
 
     if (authError) {
       setErrors({ form: authError.message });
+      toast.error("Sign Up Failed", { description: authError.message });
       setLoading(false);
       return;
     }
 
     if (!authData.user) {
-      setErrors({ form: 'Failed to create account. Please try again.' });
+      const msg = 'Failed to create account. Please try again.';
+      setErrors({ form: msg });
+      toast.error("Sign Up Failed", { description: msg });
       setLoading(false);
       return;
     }
@@ -86,11 +91,17 @@ export default function SignUpForm() {
     });
 
     if (loginError) {
+      toast.success('Account created!', {
+        description: 'Please confirm your email before signing in.',
+      });
       setErrors({ form: 'Success! Please confirm your email before signing in.' });
       setLoading(false);
       return;
     }
 
+    toast.success('Account created successfully!', {
+      description: 'Welcome to Faceyoguez.',
+    });
     const redirectPath = getRoleRedirectPath('student');
     router.push(redirectPath);
     router.refresh();
@@ -109,6 +120,7 @@ export default function SignUpForm() {
 
     if (oauthError) {
       setErrors({ form: oauthError.message });
+      toast.error("OAuth Sign Up Failed", { description: oauthError.message });
       setLoading(false);
     }
   };

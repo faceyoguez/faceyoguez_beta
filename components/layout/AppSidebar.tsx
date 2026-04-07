@@ -2,7 +2,9 @@
 
 import { useState, createContext, useContext, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
+import { toast } from 'sonner';
 import {
   LayoutDashboard,
   User,
@@ -92,7 +94,19 @@ export function AppSidebar({
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const links = navConfig[user.role as keyof typeof navConfig] || navConfig.student;
+
+  const handleLogout = async () => {
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      toast.success('Logged out', { description: 'You have successfully logged out.' });
+      router.push('/auth/login');
+    } catch (error) {
+      toast.error('Logout failed', { description: 'An error occurred while logging out.' });
+    }
+  };
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -263,11 +277,9 @@ export function AppSidebar({
                )}
 
                {!collapsed && (
-                 <form action="/auth/logout" method="post">
-                   <button type="submit" className="h-8 w-8 flex items-center justify-center rounded-xl text-slate-300 hover:text-red-400 hover:bg-red-50 transition-all">
-                     <LogOut className="h-4 w-4" />
-                   </button>
-                 </form>
+                 <button onClick={handleLogout} className="h-8 w-8 flex items-center justify-center rounded-xl text-slate-300 hover:text-red-400 hover:bg-red-50 transition-all">
+                   <LogOut className="h-4 w-4" />
+                 </button>
                )}
             </div>
           </div>
