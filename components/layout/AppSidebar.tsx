@@ -20,6 +20,7 @@ import {
   X,
   Ticket,
   ShieldCheck,
+  Heart,
 } from 'lucide-react';
 import type { Profile } from '@/types/database';
 import { cn } from '@/lib/utils';
@@ -47,12 +48,15 @@ const navConfig = {
     { label: 'Courses', icon: BookOpen, path: '/instructor/lms' },
   ],
   admin: [
-    { label: 'Dashboard', icon: LayoutDashboard, path: '/staff/dashboard' },
+    { label: 'Admin Dashboard', icon: LayoutDashboard, path: '/admin' },
+    { label: 'Analytics', icon: Users, path: '/admin#analytics' },
+    { label: 'Staff Portal', icon: ShieldCheck, path: '/staff/dashboard' },
     { label: 'One-on-One', icon: User, path: '/staff/one-on-one' },
     { label: 'Groups', icon: Users, path: '/staff/groups' },
     { label: 'Broadcast', icon: Megaphone, path: '/staff/broadcast' },
     { label: 'Courses', icon: BookOpen, path: '/staff/lms' },
     { label: 'Coupons', icon: Ticket, path: '/staff/coupons' },
+    { label: 'Student Feedback', icon: Heart, path: '/staff/feedbacks' },
   ],
   staff: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/staff/dashboard' },
@@ -61,6 +65,7 @@ const navConfig = {
     { label: 'Broadcast', icon: Megaphone, path: '/staff/broadcast' },
     { label: 'Courses', icon: BookOpen, path: '/staff/lms' },
     { label: 'Coupons', icon: Ticket, path: '/staff/coupons' },
+    { label: 'Student Feedback', icon: Heart, path: '/staff/feedbacks' },
   ],
   client_management: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/staff/dashboard' },
@@ -69,6 +74,7 @@ const navConfig = {
     { label: 'Broadcast', icon: Megaphone, path: '/staff/broadcast' },
     { label: 'Courses', icon: BookOpen, path: '/staff/lms' },
     { label: 'Coupons', icon: Ticket, path: '/staff/coupons' },
+    { label: 'Student Feedback', icon: Heart, path: '/staff/feedbacks' },
   ],
   sales_team: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/instructor/dashboard' },

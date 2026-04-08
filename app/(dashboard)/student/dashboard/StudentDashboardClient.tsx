@@ -23,6 +23,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ImageComparison } from '@/components/ui/image-comparison-slider';
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
+import { submitExitFeedback } from '@/app/actions/feedback';
+import { toast } from 'sonner';
 
 interface StudentDashboardClientProps {
   profile: any;
@@ -63,6 +65,9 @@ export function StudentDashboardClient({
 }: StudentDashboardClientProps) {
   const firstName = profile.full_name?.split(' ')[0] || 'there';
   const [showRenewModal, setShowRenewModal] = React.useState(false);
+  const [showFeedbackForm, setShowFeedbackForm] = React.useState(false);
+  const [feedbackState, setFeedbackState] = React.useState({ rating: 5, comments: '', improvement_suggestions: '' });
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [meetings, setMeetings] = React.useState(todaysMeetings);
   const supabase = createClient();
 
@@ -387,53 +392,133 @@ export function StudentDashboardClient({
       </div>
 
       <AnimatePresence>
-        {showRenewModal && (
+        {(showRenewModal || showFeedbackForm) && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-slate-900/20 backdrop-blur-3xl"
           >
-            <div className="absolute inset-0" onClick={() => setShowRenewModal(false)} />
-            <motion.div
-              initial={{ scale: 0.9, y: 30 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 30 }}
-              className="relative bg-[#FFFAF7] w-full max-w-md rounded-[4rem] border border-[#FF8A75]/10 shadow-3xl p-12 overflow-hidden"
-            >
-              <div className="absolute top-0 left-0 w-full h-2 bg-[#FF8A75]" />
-              <div className="text-center space-y-8">
-                <div className="mx-auto w-24 h-24 rounded-[2.5rem] bg-white border border-[#FF8A75]/5 shadow-inner flex items-center justify-center text-[#FF8A75]">
-                  <AlertTriangle className="w-10 h-10" />
-                </div>
-                <div className="space-y-3">
-                  <h3 className="text-3xl font-serif text-[#1a1a1a] tracking-tight">Renew Ritual</h3>
-                  <p className="text-sm text-slate-600 font-medium leading-relaxed">
-                    Your sanctuary journey is reaching its current horizon.
-                  </p>
-                </div>
-
-                <div className="space-y-4 pt-4">
-                  <Link href="/student/plans" className="w-full h-16 bg-[#1a1a1a] text-white rounded-full text-[12px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-[#FF8A75] transition-all shadow-xl shadow-slate-900/10 hover:scale-[1.02]">
-                    Extend Sanctuary
-                    <ArrowUpRight className="w-5 h-5" />
-                  </Link>
-                  <button
-                    onClick={() => setShowRenewModal(false)}
-                    className="w-full text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] hover:text-[#FF8A75] transition-all"
-                  >
-                    I will continue later
-                  </button>
-                </div>
-              </div>
-
-              <button
-                onClick={() => setShowRenewModal(false)}
-                className="absolute top-10 right-10 h-10 w-10 bg-white border border-[#FF8A75]/5 rounded-full flex items-center justify-center hover:bg-slate-50 transition-all text-slate-400 shadow-sm"
+            <div className="absolute inset-0" onClick={() => { setShowRenewModal(false); setShowFeedbackForm(false); }} />
+            
+            {showRenewModal && !showFeedbackForm && (
+              <motion.div
+                initial={{ scale: 0.9, y: 30 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.9, y: 30 }}
+                className="relative bg-[#FFFAF7] w-full max-w-md rounded-[4rem] border border-[#FF8A75]/10 shadow-3xl p-12 overflow-hidden"
               >
-                <X className="w-5 h-5" />
-              </button>
-            </motion.div>
+                <div className="absolute top-0 left-0 w-full h-2 bg-[#FF8A75]" />
+                <div className="text-center space-y-8">
+                  <div className="mx-auto w-24 h-24 rounded-[2.5rem] bg-white border border-[#FF8A75]/5 shadow-inner flex items-center justify-center text-[#FF8A75]">
+                    <AlertTriangle className="w-10 h-10" />
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-3xl font-serif text-[#1a1a1a] tracking-tight">Renew Ritual</h3>
+                    <p className="text-sm text-slate-600 font-medium leading-relaxed">
+                      Your sanctuary journey is reaching its current horizon.
+                    </p>
+                  </div>
+
+                  <div className="space-y-4 pt-4">
+                    <Link href="/student/plans" className="w-full h-16 bg-[#1a1a1a] text-white rounded-full text-[12px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-[#FF8A75] transition-all shadow-xl shadow-slate-900/10 hover:scale-[1.02]">
+                      Extend Sanctuary
+                      <ArrowUpRight className="w-5 h-5" />
+                    </Link>
+                    <button
+                      onClick={() => { setShowRenewModal(false); setShowFeedbackForm(true); }}
+                      className="w-full text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] hover:text-[#FF8A75] transition-all"
+                    >
+                      I will continue later
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowRenewModal(false)}
+                  className="absolute top-10 right-10 h-10 w-10 bg-white border border-[#FF8A75]/5 rounded-full flex items-center justify-center hover:bg-slate-50 transition-all text-slate-400 shadow-sm"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </motion.div>
+            )}
+
+            {showFeedbackForm && (
+              <motion.div
+                initial={{ scale: 0.9, y: 30 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.9, y: 30 }}
+                className="relative bg-[#FFFAF7] w-full max-w-xl rounded-[4rem] border border-[#FF8A75]/10 shadow-3xl p-12 overflow-hidden"
+              >
+                <div className="absolute top-0 left-0 w-full h-2 bg-[#FF8A75]" />
+                <div className="space-y-8">
+                  <div className="flex items-center gap-6">
+                    <div className="h-16 w-16 rounded-[2rem] bg-white border border-[#FF8A75]/5 shadow-sm flex items-center justify-center">
+                      <Heart className="w-8 h-8 text-[#FF8A75]" />
+                    </div>
+                    <div>
+                      <h3 className="text-3xl font-serif text-[#1a1a1a] tracking-tight">Sanctuary Reflection</h3>
+                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF8A75] mt-1 opacity-60">Share your journey</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">How was your experience?</label>
+                      <textarea
+                        value={feedbackState.comments}
+                        onChange={(e) => setFeedbackState({ ...feedbackState, comments: e.target.value })}
+                        placeholder="Your journey is eternal, but your time here is pausing. Share your reflections so our sanctuary can blossom..."
+                        className="w-full h-32 p-6 rounded-[2rem] border border-[#FF8A75]/10 bg-white/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF8A75]/20 text-sm italic font-serif placeholder:opacity-40 resize-none"
+                      />
+                    </div>
+
+                    <div className="space-y-3">
+                       <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Suggestions for improvement?</label>
+                       <input
+                         type="text"
+                         value={feedbackState.improvement_suggestions}
+                         onChange={(e) => setFeedbackState({ ...feedbackState, improvement_suggestions: e.target.value })}
+                         className="w-full h-14 px-6 rounded-full border border-[#FF8A75]/10 bg-white/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF8A75]/20 text-sm"
+                         placeholder="What could make your sanctuary even brighter?"
+                       />
+                    </div>
+
+                    <button
+                      disabled={isSubmitting || !feedbackState.comments.trim()}
+                      onClick={async () => {
+                        setIsSubmitting(true);
+                        try {
+                          await submitExitFeedback({
+                            plan_taken: activePlanTypes.join(', ') || 'General',
+                            rating: feedbackState.rating,
+                            comments: feedbackState.comments,
+                            improvement_suggestions: feedbackState.improvement_suggestions
+                          });
+                          toast.success('Your reflection has been gracefully received.');
+                          setShowFeedbackForm(false);
+                        } catch (err) {
+                          toast.error('The universe could not receive your reflection. Try again.');
+                        } finally {
+                          setIsSubmitting(false);
+                        }
+                      }}
+                      className="w-full h-16 bg-[#1a1a1a] text-white rounded-full text-[12px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-[#FF8A75] transition-all shadow-xl shadow-slate-900/10 hover:scale-[1.02] disabled:opacity-50"
+                    >
+                      {isSubmitting ? 'Sending Reflections...' : 'Submit Reflection'}
+                      <Sparkles className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowFeedbackForm(false)}
+                  className="absolute top-10 right-10 h-10 w-10 bg-white border border-[#FF8A75]/5 rounded-full flex items-center justify-center hover:bg-slate-50 transition-all text-slate-400 shadow-sm"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </motion.div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
