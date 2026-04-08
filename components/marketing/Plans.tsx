@@ -166,7 +166,7 @@ export function Plans() {
             </h4>
             <Link
               href="/auth/signup"
-              onClick={() => trackConversionEvent('buy_click')}
+              onClick={() => trackConversionEvent({ event_type: 'buy_click' })}
               className="group relative inline-flex items-center gap-4 px-10 py-5 bg-[#2c2525] text-[#FAF9F6] rounded-full overflow-hidden transition-all duration-500 hover:scale-[1.05]"
             >
               <span className="relative z-10 text-[11px] font-black uppercase tracking-[0.3em]">
