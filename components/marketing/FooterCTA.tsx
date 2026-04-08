@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Flower2 } from 'lucide-react';
+import { trackConversionEvent } from '@/lib/conversionTracking';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -147,20 +148,35 @@ export function FooterCTA() {
               </div>
             )}
             
-            <div className="space-y-5 pt-0 md:pt-14">
-              <Link
-                href="/auth/login"
-                className="block transition-colors duration-200"
-                style={{
-                  fontFamily: '"Cormorant Garamond", "Georgia", serif',
-                  fontSize: '1.05rem',
-                  color: 'rgb(44, 37, 37)',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = 'rgb(249, 109, 65)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = 'rgb(44, 37, 37)'; }}
+            <div className="space-y-6">
+              <h4
+                className="text-[11px] tracking-[0.35em] uppercase mb-6"
+                style={{ fontFamily: 'Inter, sans-serif', color: 'rgb(153, 143, 132)' }}
               >
-                Sign In
-              </Link>
+                Inquiries
+              </h4>
+              <form 
+                className="space-y-4"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  trackConversionEvent({ event_type: 'contact_form_fill' });
+                  // Add actual submission logic here if needed
+                  alert('Thank you! We will get back to you soon.');
+                }}
+              >
+                <input 
+                  type="email" 
+                  placeholder="Your Email" 
+                  required
+                  className="w-full bg-white/50 border border-black/5 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-pink-300 transition-colors"
+                />
+                <button 
+                  type="submit"
+                  className="w-full bg-[#2c2525] text-white text-[11px] font-black uppercase tracking-widest py-3 rounded-xl hover:bg-pink-500 transition-all duration-300"
+                >
+                  Send Message
+                </button>
+              </form>
             </div>
           </div>
         </div>

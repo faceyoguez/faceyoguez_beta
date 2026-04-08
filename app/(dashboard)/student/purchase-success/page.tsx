@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { 
     CheckCircle2, Sparkles, Heart, 
@@ -17,6 +17,18 @@ function PurchaseSuccessContent() {
     const tierId = searchParams.get('tierId') || '1_month_12d';
     const totalAmount = searchParams.get('amount') || '0';
     const includesBumps = searchParams.get('bumps')?.split(',') || [];
+
+    useEffect(() => {
+        import('@/lib/conversionTracking').then(({ trackConversionEvent }) => {
+            trackConversionEvent({
+                event_type: 'payment_complete',
+                plan_type: planId,
+                amount: parseFloat(totalAmount),
+                page_path: window.location.pathname,
+                metadata: { tierId, bumps: includesBumps }
+            });
+        });
+    }, [planId, totalAmount, tierId, includesBumps]);
 
     const getPlanIcon = (id: string) => {
         if (id === 'one_on_one') return <Star className="w-6 h-6" />;

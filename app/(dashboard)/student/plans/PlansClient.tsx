@@ -67,6 +67,23 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
         setSelectedTierId(popular.id);
     }, [selectedPlanId]);
 
+    // Meta Pixel & Supabase Analytics: Track pricing page view
+    useEffect(() => {
+        if (typeof window !== 'undefined' && window.fbq) {
+            window.fbq('track', 'ViewContent', {
+                content_name: 'Pricing Page',
+                content_type: 'product',
+            });
+        }
+        
+        import('@/lib/conversionTracking').then(({ trackConversionEvent }) => {
+            trackConversionEvent({
+                event_type: 'pricing_view',
+                page_path: window.location.pathname,
+            });
+        });
+    }, []);
+
     const handleStartTrial = async () => {
         setIsStartingTrial(true);
         try {
@@ -164,6 +181,14 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
             
             // Simulate purchase for now as requested
             setTimeout(() => {
+                // Meta Pixel: Track purchase completion
+                if (typeof window !== 'undefined' && window.fbq) {
+                    window.fbq('track', 'Purchase', {
+                        value: calculateTotal(),
+                        currency: 'INR',
+                        content_name: currentPlan.title,
+                    });
+                }
                 const params = new URLSearchParams({
                     planId: selectedPlanId,
                     tierId: selectedTierId,
@@ -184,6 +209,31 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
             toast.info('Free trial is coming soon!');
             return;
         }
+        // Meta Pixel: Track checkout initiation
+        if (typeof window !== 'undefined' && window.fbq) {
+            window.fbq('track', 'InitiateCheckout', {
+                value: currentTier.discountedPrice,
+                currency: 'INR',
+                content_name: currentPlan.title,
+            });
+        }
+        
+        import('@/lib/conversionTracking').then(({ trackConversionEvent }) => {
+            trackConversionEvent({
+                event_type: 'buy_click',
+                plan_type: selectedPlanId,
+                amount: currentTier.discountedPrice,
+                page_path: window.location.pathname,
+            });
+            // We consider opening the checkout panel to also be the payment_screen display for now
+            trackConversionEvent({
+                event_type: 'payment_screen',
+                plan_type: selectedPlanId,
+                amount: currentTier.discountedPrice,
+                page_path: window.location.pathname,
+            });
+        });
+
         setShowCheckout(true);
     };
 

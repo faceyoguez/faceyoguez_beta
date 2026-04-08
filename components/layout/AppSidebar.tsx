@@ -21,6 +21,11 @@ import {
   Ticket,
   ShieldCheck,
   Heart,
+  Activity,
+  Globe,
+  Instagram,
+  LineChart,
+  PieChart,
 } from 'lucide-react';
 import type { Profile } from '@/types/database';
 import { cn } from '@/lib/utils';
@@ -48,15 +53,9 @@ const navConfig = {
     { label: 'Courses', icon: BookOpen, path: '/instructor/lms' },
   ],
   admin: [
-    { label: 'Admin Dashboard', icon: LayoutDashboard, path: '/admin' },
-    { label: 'Analytics', icon: Users, path: '/admin#analytics' },
-    { label: 'Staff Portal', icon: ShieldCheck, path: '/staff/dashboard' },
-    { label: 'One-on-One', icon: User, path: '/staff/one-on-one' },
-    { label: 'Groups', icon: Users, path: '/staff/groups' },
-    { label: 'Broadcast', icon: Megaphone, path: '/staff/broadcast' },
-    { label: 'Courses', icon: BookOpen, path: '/staff/lms' },
-    { label: 'Coupons', icon: Ticket, path: '/staff/coupons' },
-    { label: 'Student Feedback', icon: Heart, path: '/staff/feedbacks' },
+    { label: 'Google Analytics', icon: Globe, path: '/admin?tab=google' },
+    { label: 'Razorpay Analytics', icon: CreditCard, path: '/admin/razorpay-analytics' },
+    { label: 'Meta Analytics', icon: Instagram, path: '/admin?tab=meta' },
   ],
   staff: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/staff/dashboard' },
@@ -156,9 +155,12 @@ export function AppSidebar({
         {/* ── SIDEBAR ── */}
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-[100] flex flex-col bg-white border-r border-[#FF8A75]/5 transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] shadow-2xl shadow-[#FF8A75]/5",
-            collapsed ? 'w-24 hidden lg:flex' : 'w-80 lg:flex',
-            mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+            "fixed inset-y-0 left-0 z-[100] flex flex-col border-r transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] shadow-2xl",
+            user.role === 'admin' 
+              ? "bg-[#0a0a0a] text-white shadow-none border-white/[0.03]" 
+              : "bg-white border-[#FF8A75]/5 text-slate-900 shadow-[#FF8A75]/5",
+            collapsed ? 'w-24' : 'w-80',
+            mobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'
           )}
         >
           {/* LOGO AREA */}
@@ -169,10 +171,18 @@ export function AppSidebar({
               </div>
               {!collapsed && (
                 <div className="flex flex-col">
-                  <span className="text-2xl font-serif tracking-tight text-[#1a1a1a] leading-none">
-                    Faceyoguez
-                  </span>
-                  <span className="text-[7px] font-black uppercase tracking-[0.4em] text-[#FF8A75] mt-1.5 opacity-60">Face Yoga for Women</span>
+                    <span className={cn(
+                      "text-2xl font-serif tracking-tight leading-none",
+                      user.role === 'admin' ? "text-white" : "text-[#1a1a1a]"
+                    )}>
+                      {user.role === 'admin' ? 'Intelligence' : 'Faceyoguez'}
+                    </span>
+                    <span className={cn(
+                      "text-[7px] font-black uppercase tracking-[0.4em] mt-1.5 opacity-60",
+                      user.role === 'admin' ? "text-slate-600" : "text-[#FF8A75]"
+                    )}>
+                      {user.role === 'admin' ? 'Telemetry' : 'Face Yoga for Women'}
+                    </span>
                 </div>
               )}
             </Link>
@@ -187,8 +197,11 @@ export function AppSidebar({
 
           {/* MAIN NAV */}
           <nav className="flex-1 overflow-y-auto px-6 py-4 custom-scrollbar">
-             {!collapsed && (
-               <p className="px-6 mb-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">
+             {!collapsed && user.role !== 'admin' && (
+               <p className={cn(
+                 "px-6 mb-6 text-[10px] font-black uppercase tracking-[0.3em]",
+                 "text-slate-300"
+               )}>
                  Navigation
                </p>
              )}
@@ -208,14 +221,21 @@ export function AppSidebar({
                     <li key={label}>
                       <Link
                         href={isLocked ? '#' : path}
-                        onClick={(e) => { if (isLocked) e.preventDefault(); }}
+                        onClick={(e) => { 
+                          if (isLocked) e.preventDefault();
+                          if (user.role === 'admin') setCollapsed(true);
+                        }}
                         className={cn(
                           "group relative flex items-center h-16 rounded-[1.5rem] px-6 transition-all duration-500",
                           isActive 
-                            ? "bg-white shadow-xl shadow-[#FF8A75]/10 text-[#FF8A75] ring-1 ring-[#FF8A75]/5" 
+                            ? user.role === 'admin'
+                              ? "bg-white/10 text-white shadow-2xl shadow-black/20 ring-1 ring-white/10"
+                              : "bg-white shadow-xl shadow-[#FF8A75]/10 text-[#FF8A75] ring-1 ring-[#FF8A75]/5" 
                             : isLocked 
-                              ? "text-slate-200 cursor-not-allowed" 
-                              : "text-slate-400 hover:text-[#FF8A75] hover:bg-[#FFFAF7]"
+                              ? "text-slate-600 cursor-not-allowed" 
+                              : user.role === 'admin'
+                                ? "text-slate-400 hover:text-white"
+                                : "text-slate-400 hover:text-[#FF8A75] hover:bg-[#FFFAF7]"
                         )}
                       >
                         {/* Active Indicator Glow */}
@@ -223,7 +243,10 @@ export function AppSidebar({
                           {isActive && (
                             <motion.div 
                               layoutId="active-nav"
-                              className="absolute left-0 w-1.5 h-6 bg-[#FF8A75] rounded-r-full"
+                              className={cn(
+                                "absolute left-0 w-1.5 h-6 rounded-r-full",
+                                user.role === 'admin' ? "bg-white shadow-[0_0_15px_rgba(255,255,255,0.5)]" : "bg-[#FF8A75]"
+                              )}
                               transition={{ type: "spring", stiffness: 300, damping: 30 }}
                             />
                           )}
@@ -231,9 +254,9 @@ export function AppSidebar({
 
                         <div className={cn(
                           "flex items-center justify-center h-10 w-10 shrink-0 transition-all duration-500 rounded-xl",
-                          isActive ? "bg-[#FF8A75]/5" : "bg-transparent"
+                          isActive ? user.role === 'admin' ? "bg-white/5" : "bg-[#FF8A75]/5" : "bg-transparent"
                         )}>
-                          <Icon className={cn("h-5 w-5 transition-transform group-hover:scale-110", isActive ? "text-[#FF8A75]" : "text-current")} />
+                          <Icon className={cn("h-5 w-5 transition-transform group-hover:scale-110", isActive ? user.role === 'admin' ? "text-white" : "text-[#FF8A75]" : "text-current")} />
                         </div>
 
                         {!collapsed && (
@@ -257,7 +280,10 @@ export function AppSidebar({
           {/* USER FOOTER AREA */}
           <div className="shrink-0 p-6 border-t border-[#FF8A75]/5">
             <div className={cn(
-              "flex items-center gap-4 p-4 rounded-[1.8rem] bg-[#FFFAF7] border border-[#FF8A75]/10 shadow-sm transition-all hover:bg-white",
+              "flex items-center gap-4 p-4 rounded-[1.8rem] transition-all",
+              user.role === 'admin' 
+                ? "bg-white/5 border-white/5 shadow-2xl hover:bg-white/10" 
+                : "bg-[#FFFAF7] border border-[#FF8A75]/10 shadow-sm hover:bg-white",
               collapsed ? 'justify-center' : ''
             )}>
                <div className="relative shrink-0">
@@ -273,9 +299,15 @@ export function AppSidebar({
 
                {!collapsed && (
                  <div className="flex-1 min-w-0">
-                    <p className="truncate text-xs font-black text-[#1a1a1a]">{user.full_name}</p>
+                    <p className={cn(
+                      "truncate text-xs font-black",
+                      user.role === 'admin' ? "text-white" : "text-[#1a1a1a]"
+                    )}>{user.full_name}</p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[#FF8A75]/60 truncate">
+                      <span className={cn(
+                        "text-[8px] font-black uppercase tracking-[0.2em] truncate",
+                        user.role === 'admin' ? "text-slate-500" : "text-[#FF8A75]/60"
+                      )}>
                         {user.role.replace(/_/g, ' ')}
                       </span>
                     </div>

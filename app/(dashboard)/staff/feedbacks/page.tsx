@@ -34,12 +34,12 @@ export default async function StaffFeedbackPage() {
           </p>
         </div>
 
-        {/* Feedback List */}
-        <div className="space-y-8">
+        {/* Feedback List Container */}
+        <div className="space-y-3">
           {feedbacks.length === 0 ? (
-            <div className="bg-white rounded-[3rem] border border-[#FF8A75]/5 p-20 text-center space-y-6 shadow-xl shadow-[#FF8A75]/5">
-              <div className="h-20 w-20 rounded-[2.5rem] bg-[#FFFAF7] flex items-center justify-center mx-auto border border-[#FF8A75]/10">
-                <Heart className="w-10 h-10 text-[#FF8A75]/20" />
+            <div className="bg-white rounded-[2rem] border border-[#FF8A75]/5 p-20 text-center space-y-6 shadow-xl shadow-[#FF8A75]/5">
+              <div className="h-16 w-16 rounded-[2rem] bg-[#FFFAF7] flex items-center justify-center mx-auto border border-[#FF8A75]/10">
+                <Heart className="w-8 h-8 text-[#FF8A75]/20" />
               </div>
               <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300">No reflections gathered yet</p>
             </div>
@@ -47,125 +47,102 @@ export default async function StaffFeedbackPage() {
             feedbacks.map((fb) => (
               <div 
                 key={fb.id}
-                className="group bg-white rounded-[3.5rem] border border-[#FF8A75]/5 p-10 lg:p-12 shadow-xl shadow-[#FF8A75]/5 hover:shadow-2xl hover:shadow-[#FF8A75]/10 transition-all duration-700 relative overflow-hidden"
+                className="group bg-white rounded-3xl lg:rounded-full border border-[#FF8A75]/5 px-6 lg:px-10 py-4 lg:h-20 flex flex-col lg:flex-row items-center justify-between gap-6 hover:bg-[#FF8A75]/[0.02] transition-all duration-300 hover:shadow-lg hover:shadow-[#FF8A75]/5"
               >
-                {/* Decorative background element */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-[#FF8A75]/5 to-transparent rounded-tr-[3.5rem] blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-                
-                <div className="relative z-10 flex flex-col lg:flex-row gap-12">
-                  
-                  {/* Left Column: Student & Plan Info */}
-                  <div className="lg:w-1/3 space-y-8">
-                    <div className="flex items-center gap-6">
-                      <div className="h-20 w-20 rounded-[2.2rem] border border-[#FF8A75]/10 p-1 bg-white ring-4 ring-[#FF8A75]/5 shadow-inner">
-                        {fb.student?.avatar_url ? (
-                          <img src={fb.student.avatar_url} className="w-full h-full object-cover rounded-[1.8rem]" alt={fb.student.full_name} />
-                        ) : (
-                          <div className="w-full h-full bg-[#FFFAF7] flex items-center justify-center rounded-[1.8rem]">
-                            <User className="w-8 h-8 text-[#FF8A75]" />
+                {/* 1. Student Info - One Line */}
+                <div className="flex items-center gap-4 min-w-[200px] w-full lg:w-auto">
+                  <div className="h-12 w-12 rounded-2xl border border-[#FF8A75]/10 overflow-hidden shrink-0 bg-[#FFFAF7]">
+                    {fb.student?.avatar_url ? (
+                      <img src={fb.student.avatar_url} className="w-full h-full object-cover" alt="" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <User className="w-5 h-5 text-[#FF8A75]" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-[13px] font-bold text-[#1a1a1a] truncate">{fb.student?.full_name || 'Anonymous'}</h3>
+                    <div className="flex items-center gap-2">
+                       <span className="text-[8px] font-black uppercase tracking-widest text-[#FF8A75] opacity-60 truncate">
+                         {fb.plan_taken}
+                       </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Reflection Snippet - Middle */}
+                <div className="flex-1 min-w-0 flex items-center gap-4 w-full lg:w-auto">
+                  <div className="h-8 w-px bg-[#FF8A75]/10 hidden lg:block" />
+                  <div className="relative group/text flex-1">
+                    <p className="text-[12px] italic font-serif text-slate-600 line-clamp-1 lg:pr-10">
+                      &ldquo;{fb.comments}&rdquo;
+                    </p>
+                    {/* Tooltip on hover if they want to see more? Or just keep it as is */}
+                  </div>
+                </div>
+
+                {/* 3. Metrics & Actions - Right */}
+                <div className="flex items-center gap-8 w-full lg:w-auto justify-between lg:justify-end">
+                   <div className="flex flex-col items-end hidden sm:flex">
+                     <span className="text-[9px] font-black uppercase tracking-widest text-slate-300">
+                        {format(new Date(fb.created_at), 'MMM d, yyyy')}
+                     </span>
+                   </div>
+
+                   <div className="flex items-center gap-2">
+                      {/* Photo Pills */}
+                      <div className="flex -space-x-2 mr-4">
+                        {fb.firstPhoto && (
+                          <div className="h-10 w-10 rounded-full border-2 border-white shadow-sm overflow-hidden ring-1 ring-[#FF8A75]/5">
+                            <img src={fb.firstPhoto} className="w-full h-full object-cover" alt="Day 1" />
+                          </div>
+                        )}
+                        {fb.latestPhoto && (
+                          <div className="h-10 w-10 rounded-full border-2 border-white shadow-sm overflow-hidden ring-1 ring-[#FF8A75]/5">
+                            <img src={fb.latestPhoto} className="w-full h-full object-cover" alt="Latest" />
                           </div>
                         )}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-2xl font-serif text-[#1a1a1a] truncate">{fb.student?.full_name || 'Anonymous Student'}</h3>
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FF8A75]/60 mt-1">{fb.student?.email}</p>
-                      </div>
-                    </div>
 
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3 text-slate-400">
-                        <Sparkles className="w-4 h-4 text-[#FF8A75]" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">{fb.plan_taken}</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-slate-400">
-                        <Calendar className="w-4 h-4" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">
-                          {format(new Date(fb.created_at), 'MMMM d, yyyy')}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Photo Quick Actions */}
-                    <div className="grid grid-cols-2 gap-4">
-                       {fb.firstPhoto ? (
+                      {/* Download Actions */}
+                      <div className="flex items-center gap-3">
+                        {fb.firstPhoto ? (
                           <a 
                             href={fb.firstPhoto} 
-                            download 
+                            download={`Before_${fb.student?.full_name?.replace(/\s+/g, '_')}_Day1.jpg`}
                             target="_blank" 
-                            rel="noreferrer"
-                            className="flex flex-col items-center gap-3 p-6 rounded-[2.5rem] bg-[#FFFAF7] border border-[#FF8A75]/5 hover:bg-white hover:border-[#FF8A75]/20 hover:shadow-lg transition-all text-[#FF8A75] group/btn"
+                            rel="noreferrer" 
+                            className="h-10 px-4 flex items-center gap-2 rounded-full bg-[#FFFAF7] text-[#FF8A75] border border-[#FF8A75]/10 hover:bg-[#FF8A75] hover:text-white transition-all shadow-sm group/dl"
                           >
-                            <Download className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
-                            <span className="text-[8px] font-black uppercase tracking-widest text-[#1a1a1a]">Day 1 Photo</span>
+                            <Download className="w-3.5 h-3.5 group-hover/dl:-translate-y-0.5 transition-transform" />
+                            <span className="text-[9px] font-black uppercase tracking-wider">Before</span>
                           </a>
-                       ) : (
-                          <div className="flex flex-col items-center gap-3 p-6 rounded-[2.5rem] bg-slate-50 border border-slate-100 opacity-40">
-                            <Download className="w-5 h-5" />
-                            <span className="text-[8px] font-black uppercase tracking-widest">No Baseline</span>
-                          </div>
-                       )}
+                        ) : (
+                           <div className="h-10 px-4 flex items-center gap-2 rounded-full bg-slate-50 text-slate-300 border border-slate-100 opacity-50 cursor-not-allowed">
+                             <Download className="w-3.5 h-3.5" />
+                             <span className="text-[9px] font-black uppercase tracking-wider">No Before</span>
+                           </div>
+                        )}
 
-                       {fb.latestPhoto ? (
+                        {fb.latestPhoto ? (
                           <a 
                             href={fb.latestPhoto} 
-                            download 
+                            download={`After_${fb.student?.full_name?.replace(/\s+/g, '_')}_Latest.jpg`}
                             target="_blank" 
-                            rel="noreferrer"
-                            className="flex flex-col items-center gap-3 p-6 rounded-[2.5rem] bg-[#FFFAF7] border border-[#FF8A75]/5 hover:bg-white hover:border-[#FF8A75]/20 hover:shadow-lg transition-all text-[#FF8A75] group/btn"
+                            rel="noreferrer" 
+                            className="h-10 px-4 flex items-center gap-2 rounded-full bg-[#FFFAF7] text-[#FF8A75] border border-[#FF8A75]/10 hover:bg-[#FF8A75] hover:text-white transition-all shadow-sm group/dl"
                           >
-                            <Download className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
-                            <span className="text-[8px] font-black uppercase tracking-widest text-[#1a1a1a]">Last Photo</span>
+                            <Download className="w-3.5 h-3.5 group-hover/dl:translate-y-0.5 transition-transform" />
+                            <span className="text-[9px] font-black uppercase tracking-wider">After</span>
                           </a>
-                       ) : (
-                          <div className="flex flex-col items-center gap-3 p-6 rounded-[2.5rem] bg-slate-50 border border-slate-100 opacity-40">
-                            <Download className="w-5 h-5" />
-                            <span className="text-[8px] font-black uppercase tracking-widest">No Outcome</span>
+                        ) : (
+                          <div className="h-10 px-4 flex items-center gap-2 rounded-full bg-slate-50 text-slate-300 border border-slate-100 opacity-50 cursor-not-allowed">
+                            <Download className="w-3.5 h-3.5" />
+                            <span className="text-[9px] font-black uppercase tracking-wider">No After</span>
                           </div>
-                       )}
-                    </div>
-                  </div>
-
-                  {/* Right Column: Feedback Details */}
-                  <div className="flex-1 space-y-10">
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <MessageSquare className="w-4 h-4 text-[#FF8A75]" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">Reflections</span>
+                        )}
                       </div>
-                      <div className="bg-[#FFFAF7] rounded-[2.5rem] p-8 lg:p-10 relative italic font-serif text-lg leading-relaxed text-[#1a1a1a]">
-                         <div className="absolute top-4 left-4 text-4xl text-[#FF8A75]/10 font-black leading-none group-hover:scale-125 transition-transform duration-700">&ldquo;</div>
-                         {fb.comments}
-                      </div>
-                    </div>
-
-                    {fb.improvement_suggestions && (
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2">
-                          <ArrowRight className="w-4 h-4 text-slate-300" />
-                          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">Suggestions for the Sanctuary</span>
-                        </div>
-                        <p className="px-10 text-sm text-slate-600 font-medium">
-                          {fb.improvement_suggestions}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Mini Transformation Preview */}
-                    <div className="pt-4 flex items-center gap-6">
-                       {fb.firstPhoto && fb.latestPhoto && (
-                          <div className="flex items-center gap-2">
-                             <div className="h-10 w-10 rounded-full overflow-hidden border border-white shadow-sm ring-2 ring-[#FF8A75]/5">
-                                <img src={fb.firstPhoto} className="w-full h-full object-cover" alt="Day 1" />
-                             </div>
-                             <ArrowRight className="w-3 h-3 text-[#FF8A75]" />
-                             <div className="h-10 w-10 rounded-full overflow-hidden border border-white shadow-sm ring-2 ring-[#FF8A75]/5">
-                                <img src={fb.latestPhoto} className="w-full h-full object-cover" alt="Last Day" />
-                             </div>
-                             <span className="text-[9px] font-black uppercase tracking-widest text-[#FF8A75] ml-4">Transformation Complete</span>
-                          </div>
-                       )}
-                    </div>
-                  </div>
+                   </div>
                 </div>
               </div>
             ))

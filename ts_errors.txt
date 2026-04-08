@@ -1,0 +1,5 @@
+﻿app/(dashboard)/admin/razorpay-analytics/RazorpayAnalyticsClient.tsx(410,33): error TS2322: Type '(val: number) => string' is not assignable to type 'Formatter<ValueType, NameType> & ((value: ValueType, name: NameType, item: TooltipPayloadEntry, index: number, payload: TooltipPayload) => ReactNode | [...])'.
+  Type '(val: number) => string' is not assignable to type 'Formatter<ValueType, NameType>'.
+    Types of parameters 'val' and 'value' are incompatible.
+      Type 'ValueType | undefined' is not assignable to type 'number'.
+        Type 'undefined' is not assignable to type 'number'.

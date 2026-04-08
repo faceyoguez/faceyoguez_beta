@@ -25,6 +25,9 @@ const dmSans = DM_Sans({
 
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from 'sonner';
+import Script from 'next/script';
+import { Suspense } from 'react';
+import MetaPixel from '@/components/MetaPixel';
 
 export const metadata: Metadata = {
   title: {
@@ -57,7 +60,30 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" translate="no" suppressHydrationWarning data-scroll-behavior="smooth" className={`${rubik.variable} ${cormorant.variable} ${dmSans.variable}`}>
+      <head>
+        <Script
+          strategy="afterInteractive"
+          src={'https://www.googletagmanager.com/gtag/js?id=G-QFW9HLLC0S'}
+        />
+        <Script
+          id="google-analytics"
+          strategy="afterInteractive"
+        >
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-QFW9HLLC0S', {
+              page_path: window.location.pathname,
+            });
+          `}
+        </Script>
+      </head>
       <body translate="no" suppressHydrationWarning className="antialiased font-sans text-foreground bg-background relative overflow-x-hidden">
+        <Suspense fallback={null}>
+          <MetaPixel />
+        </Suspense>
+        
         {/* Abstract Glow (Simplified to reduce lag) */}
         <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
           <div className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] bg-rose-100/30 rounded-full blur-[120px] mix-blend-multiply opacity-50" />
