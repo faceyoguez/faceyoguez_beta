@@ -56,7 +56,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
     const currentDay = React.useMemo(() => {
         const anchorDateStr = activeBatch?.start_date || subscriptionStartDate;
         if (!anchorDateStr) return 1;
-        
+
         const startDate = new Date(anchorDateStr);
         const now = new Date();
         const diffTime = now.getTime() - startDate.getTime();
@@ -196,9 +196,9 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
     useEffect(() => {
         if (!nextBatchMeeting) return;
         const checkTime = () => {
-          const meetingTime = new Date(nextBatchMeeting.start_time).getTime();
-          const now = Date.now();
-          setIsJoinEnabled(meetingTime - now <= 300000);
+            const meetingTime = new Date(nextBatchMeeting.start_time).getTime();
+            const now = Date.now();
+            setIsJoinEnabled(meetingTime - now <= 300000);
         };
         checkTime();
         const interval = setInterval(checkTime, 10000);
@@ -207,7 +207,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
 
     return (
         <div className="flex h-screen w-full flex-col overflow-hidden bg-background animate-in fade-in duration-1000">
-            
+
             {/* Background elements */}
             <div className="fixed top-0 right-0 w-[50vw] h-[50vh] bg-primary/2 rounded-full blur-[120px] -z-10" />
 
@@ -220,127 +220,127 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
             )}
 
             <main className="flex-1 flex overflow-hidden lg:p-10 gap-8">
-                
+
                 {/* ── LEFT RAIL: Batch Meta ── */}
                 <div className="hidden lg:flex w-80 flex-col gap-8 shrink-0">
                     <div className="surface-container p-8 rounded-3xl flex flex-col gap-8 border border-outline-variant/10 h-min bg-white/50 backdrop-blur-xl shadow-sm">
                         <div className="space-y-1.5">
-                           <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary border border-primary/10">
-                              <Users className="w-5 h-5" />
-                           </div>
-                           <div className="flex items-center gap-3">
-                              <h2 className="text-2xl font-bold text-foreground tracking-tight">
-                                {activeBatch?.name || 'Your Batch'}
-                              </h2>
-                              {isTrialAccess && (
-                                <span className="text-[10px] font-black uppercase text-white bg-red-500 px-1.5 py-0.5 rounded shadow-sm leading-none whitespace-nowrap">
-                                  Trial
-                                </span>
-                              )}
-                           </div>
-                           <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">Group Journey</p>
+                            <div className="h-10 w-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary border border-primary/10">
+                                <Users className="w-5 h-5" />
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <h2 className="text-2xl font-bold text-foreground tracking-tight">
+                                    {activeBatch?.name || 'Your Batch'}
+                                </h2>
+                                {isTrialAccess && (
+                                    <span className="text-[10px] font-black uppercase text-white bg-red-500 px-1.5 py-0.5 rounded shadow-sm leading-none whitespace-nowrap">
+                                        Trial
+                                    </span>
+                                )}
+                            </div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">Group Journey</p>
                         </div>
 
                         <div className="space-y-6">
-                           <div className="flex items-center gap-4">
-                              <div className="h-11 w-11 rounded-xl overflow-hidden border border-outline-variant/10 shadow-sm bg-white shrink-0">
-                                 {activeBatch?.instructor?.avatar_url ? (
-                                    <img src={activeBatch.instructor.avatar_url} className="w-full h-full object-cover" />
-                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-xs font-bold text-foreground/20 bg-foreground/5">{(activeBatch?.instructor?.full_name || 'I').charAt(0).toUpperCase()}</div>
-                                 )}
-                              </div>
-                              <div className="min-w-0">
-                                 <p className="text-[9px] font-bold uppercase tracking-widest text-foreground/30 leading-none mb-1">Your Guide</p>
-                                 <p className="text-sm font-bold text-foreground truncate">{activeBatch?.instructor?.full_name || 'Instructor'}</p>
-                              </div>
-                           </div>
+                            <div className="flex items-center gap-4">
+                                <div className="h-11 w-11 rounded-xl overflow-hidden border border-outline-variant/10 shadow-sm bg-white shrink-0">
+                                    {activeBatch?.instructor?.avatar_url ? (
+                                        <img src={activeBatch.instructor.avatar_url} className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-xs font-bold text-foreground/20 bg-foreground/5">{(activeBatch?.instructor?.full_name || 'I').charAt(0).toUpperCase()}</div>
+                                    )}
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="text-[9px] font-bold uppercase tracking-widest text-foreground/30 leading-none mb-1">Your Guide</p>
+                                    <p className="text-sm font-bold text-foreground truncate">{activeBatch?.instructor?.full_name || 'Instructor'}</p>
+                                </div>
+                            </div>
 
-                           <div className="flex items-center gap-4">
-                              <div className="h-11 w-11 rounded-xl bg-primary/5 flex items-center justify-center text-primary shrink-0 border border-primary/10">
-                                 <Flame className="w-5 h-5" />
-                              </div>
-                              <div className="min-w-0">
-                                 <p className="text-[9px] font-bold uppercase tracking-widest text-foreground/30 leading-none mb-1">Current Streak</p>
-                                 <p className="text-sm font-bold text-foreground truncate">Day {currentDay}</p>
-                              </div>
-                           </div>
+                            <div className="flex items-center gap-4">
+                                <div className="h-11 w-11 rounded-xl bg-primary/5 flex items-center justify-center text-primary shrink-0 border border-primary/10">
+                                    <Flame className="w-5 h-5" />
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="text-[9px] font-bold uppercase tracking-widest text-foreground/30 leading-none mb-1">Current Streak</p>
+                                    <p className="text-sm font-bold text-foreground truncate">Day {currentDay}</p>
+                                </div>
+                            </div>
                         </div>
 
                         <div className="pt-6 border-t border-outline-variant/5 flex items-center gap-2">
-                           <div className="h-2 w-2 rounded-full bg-brand-emerald shadow-[0_0_8px_rgba(16,185,129,0.3)]" />
-                           <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">{activeBatch?.current_students || 1} Students Active</span>
+                            <div className="h-2 w-2 rounded-full bg-brand-emerald shadow-[0_0_8px_rgba(16,185,129,0.3)]" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-foreground/40">{activeBatch?.current_students || 1} Students Active</span>
                         </div>
                     </div>
 
                     <div className="surface-container p-8 rounded-3xl border border-outline-variant/10 flex-1 overflow-hidden flex flex-col bg-white/50 backdrop-blur-xl shadow-sm">
                         <div className="flex items-center justify-between mb-8">
-                           <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Resources</h3>
-                           <FileText className="w-4 h-4 text-foreground/20" />
+                            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Resources</h3>
+                            <FileText className="w-4 h-4 text-foreground/20" />
                         </div>
                         <div className="space-y-3 overflow-y-auto custom-scrollbar flex-1 pr-2">
-                           {initialResources.map((res: any) => (
-                              <button key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="w-full flex items-center gap-4 p-4 bg-white/40 border border-outline-variant/5 rounded-2xl hover:border-primary/20 hover:bg-white hover:shadow-md transition-all text-left group">
-                                 <div className="h-10 w-10 rounded-xl bg-foreground/5 flex items-center justify-center text-foreground/20 group-hover:bg-primary/5 group-hover:text-primary transition-colors">
-                                    <Download className="w-4 h-4" />
-                                 </div>
-                                 <div className="min-w-0">
-                                    <p className="text-xs font-bold text-foreground truncate">{res.title || res.file_name}</p>
-                                    <p className="text-[9px] font-bold text-foreground/20 uppercase tracking-widest mt-0.5">Download File</p>
-                                 </div>
-                              </button>
-                           ))}
-                           {initialResources.length === 0 && <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/20 text-center py-12 opacity-50">No files yet</p>}
+                            {initialResources.map((res: any) => (
+                                <button key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="w-full flex items-center gap-4 p-4 bg-white/40 border border-outline-variant/5 rounded-2xl hover:border-primary/20 hover:bg-white hover:shadow-md transition-all text-left group">
+                                    <div className="h-10 w-10 rounded-xl bg-foreground/5 flex items-center justify-center text-foreground/20 group-hover:bg-primary/5 group-hover:text-primary transition-colors">
+                                        <Download className="w-4 h-4" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-xs font-bold text-foreground truncate">{res.title || res.file_name}</p>
+                                        <p className="text-[9px] font-bold text-foreground/20 uppercase tracking-widest mt-0.5">Download File</p>
+                                    </div>
+                                </button>
+                            ))}
+                            {initialResources.length === 0 && <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/20 text-center py-12 opacity-50">No files yet</p>}
                         </div>
                     </div>
                 </div>
 
                 {/* ── CENTER: Focus Area ── */}
                 <div className="flex-1 flex flex-col gap-8 overflow-hidden">
-                    
+
                     {/* Live Section */}
                     {nextBatchMeeting ? (
                         <div className="group relative w-full h-80 rounded-3xl overflow-hidden shadow-xl border border-outline-variant/10 bg-black">
                             <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2420&auto=format&fit=crop" className="w-full h-full object-cover opacity-60 transition-transform duration-[2000ms] group-hover:scale-105" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
-                            
+
                             <div className="absolute top-8 left-8 z-20">
-                               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 text-white text-[10px] font-bold uppercase tracking-widest">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                                  Session Upcoming
-                               </div>
+                                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 text-white text-[10px] font-bold uppercase tracking-widest">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                                    Session Upcoming
+                                </div>
                             </div>
 
                             <div className="absolute inset-x-8 bottom-8 z-20 flex items-end justify-between gap-10">
-                               <div className="space-y-3 max-w-xl">
-                                  <h2 className="text-4xl font-bold text-white tracking-tight leading-tight">{nextBatchMeeting.topic}</h2>
-                                  <div className="flex gap-4">
-                                     <div className="flex items-center gap-2 text-white/50 text-[10px] font-bold uppercase tracking-widest">
-                                        <Calendar className="w-3.5 h-3.5" /> {new Date(nextBatchMeeting.start_time).toLocaleDateString()}
-                                     </div>
-                                     <div className="flex items-center gap-2 text-white/50 text-[10px] font-bold uppercase tracking-widest">
-                                        <Clock className="w-3.5 h-3.5" /> {new Date(nextBatchMeeting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                     </div>
-                                  </div>
-                               </div>
-                               <button
-                                   disabled={!isJoinEnabled}
-                                   onClick={() => window.open(nextBatchMeeting.join_url, '_blank')}
-                                   className={cn(
-                                       "h-16 px-10 rounded-2xl text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-3",
-                                       isJoinEnabled 
-                                          ? "bg-white text-black hover:scale-[1.02] active:scale-[0.98] shadow-lg" 
-                                          : "bg-white/10 text-white/20 backdrop-blur-md border border-white/10 cursor-not-allowed"
-                                   )}
-                               >
-                                   {isJoinEnabled ? <><Play className="w-4 h-4 fill-current" /> Join Class</> : 'Opens Soon'}
-                               </button>
+                                <div className="space-y-3 max-w-xl">
+                                    <h2 className="text-4xl font-bold text-white tracking-tight leading-tight">{nextBatchMeeting.topic}</h2>
+                                    <div className="flex gap-4">
+                                        <div className="flex items-center gap-2 text-white/50 text-[10px] font-bold uppercase tracking-widest">
+                                            <Calendar className="w-3.5 h-3.5" /> {new Date(nextBatchMeeting.start_time).toLocaleDateString()}
+                                        </div>
+                                        <div className="flex items-center gap-2 text-white/50 text-[10px] font-bold uppercase tracking-widest">
+                                            <Clock className="w-3.5 h-3.5" /> {new Date(nextBatchMeeting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </div>
+                                    </div>
+                                </div>
+                                <button
+                                    disabled={!isJoinEnabled}
+                                    onClick={() => window.open(nextBatchMeeting.join_url, '_blank')}
+                                    className={cn(
+                                        "h-16 px-10 rounded-2xl text-[11px] font-bold uppercase tracking-widest transition-all flex items-center gap-3",
+                                        isJoinEnabled
+                                            ? "bg-white text-black hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+                                            : "bg-white/10 text-white/20 backdrop-blur-md border border-white/10 cursor-not-allowed"
+                                    )}
+                                >
+                                    {isJoinEnabled ? <><Play className="w-4 h-4 fill-current" /> Join Class</> : 'Opens Soon'}
+                                </button>
                             </div>
                         </div>
                     ) : (
                         <div className="w-full h-32 surface-container rounded-3xl border border-outline-variant/10 flex flex-col items-center justify-center gap-2 bg-white/40 backdrop-blur-xl shrink-0 opacity-50">
-                           <Video className="w-6 h-6 text-foreground/20" />
-                           <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/20">No Live Sessions</p>
+                            <Video className="w-6 h-6 text-foreground/20" />
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/20">No Live Sessions</p>
                         </div>
                     )}
 
@@ -348,7 +348,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                     <div className="surface-container p-8 rounded-3xl border border-outline-variant/10 flex flex-col gap-10 overflow-hidden bg-white/50 backdrop-blur-xl shadow-sm">
                         <div className="flex items-center justify-between">
                             <h3 className="text-2xl font-bold text-foreground tracking-tight">Your Journey – Day {currentDay}</h3>
-                            <JourneyProgress 
+                            <JourneyProgress
                                 currentDay={currentDay}
                                 activeDay={activeStepDay}
                                 onSelectDay={setActiveStepDay}
@@ -364,36 +364,36 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                     <img src={activeLog?.photo_url || (activeStepDay === 25 ? (afterImage as string ?? beforeImage) : beforeImage)} alt={`Day ${activeStepDay}`} className="w-full h-full object-cover animate-in fade-in duration-700" />
                                 )}
                                 <div className="absolute top-4 left-4 z-10">
-                                   <div className="bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-full text-[9px] font-bold text-white uppercase tracking-widest border border-white/10">
-                                      Day {activeStepDay}
-                                   </div>
+                                    <div className="bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-full text-[9px] font-bold text-white uppercase tracking-widest border border-white/10">
+                                        Day {activeStepDay}
+                                    </div>
                                 </div>
                             </div>
-                            
-                            <div className="space-y-6">
-                               <div className="space-y-2">
-                                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">Daily Snapshot</h4>
-                                  <p className="text-sm text-foreground/40 font-medium leading-relaxed">Take a photo to track your progress. Required on Day 1 and Day 25.</p>
-                               </div>
 
-                               {(activeStepDay === 1 || activeStepDay === 25) ? (
-                                   <div className="flex flex-col gap-3">
-                                       <input type="file" ref={fileInputRef} onChange={handlePhotoSelect} accept="image/*" className="hidden" />
-                                       <button onClick={() => fileInputRef.current?.click()} className="h-14 w-full rounded-2xl bg-white border border-outline-variant/10 shadow-sm flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-widest hover:border-primary/20 hover:scale-[1.01] transition-all">
-                                           <Camera className="w-4 h-4 text-primary" /> Select Source
-                                       </button>
-                                       {selectedImageBase64 && (
-                                           <button onClick={handleSaveLog} disabled={isSavingLog} className="h-14 w-full rounded-2xl bg-foreground text-background shadow-lg flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-widest hover:scale-[1.01] active:scale-[0.99] transition-all">
-                                               {isSavingLog ? <Loader2 className="w-4 h-4 animate-spin text-background" /> : <ShieldCheck className="w-4 h-4" />} Save Progress
-                                           </button>
-                                       )}
-                                   </div>
-                               ) : (
-                                   <div className="h-32 rounded-2xl border border-dashed border-outline-variant/20 flex flex-col items-center justify-center p-6 text-center opacity-40 bg-foreground/[0.02]">
-                                      <Sparkles className="w-5 h-5 text-foreground/20 mb-3" />
-                                      <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/20 leading-relaxed">Photos are only required on Day 1 and Day 25.</p>
-                                   </div>
-                               )}
+                            <div className="space-y-6">
+                                <div className="space-y-2">
+                                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">Daily Snapshot</h4>
+                                    <p className="text-sm text-foreground/40 font-medium leading-relaxed">Take a photo to track your progress. Required on Day 1 and Day 25.</p>
+                                </div>
+
+                                {(activeStepDay === 1 || activeStepDay === 25) ? (
+                                    <div className="flex flex-col gap-3">
+                                        <input type="file" ref={fileInputRef} onChange={handlePhotoSelect} accept="image/*" className="hidden" />
+                                        <button onClick={() => fileInputRef.current?.click()} className="h-14 w-full rounded-2xl bg-white border border-outline-variant/10 shadow-sm flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-widest hover:border-primary/20 hover:scale-[1.01] transition-all">
+                                            <Camera className="w-4 h-4 text-primary" /> Select Source
+                                        </button>
+                                        {selectedImageBase64 && (
+                                            <button onClick={handleSaveLog} disabled={isSavingLog} className="h-14 w-full rounded-2xl bg-foreground text-background shadow-lg flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-widest hover:scale-[1.01] active:scale-[0.99] transition-all">
+                                                {isSavingLog ? <Loader2 className="w-4 h-4 animate-spin text-background" /> : <ShieldCheck className="w-4 h-4" />} Save Progress
+                                            </button>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="h-32 rounded-2xl border border-dashed border-outline-variant/20 flex flex-col items-center justify-center p-6 text-center opacity-40 bg-foreground/[0.02]">
+                                        <Sparkles className="w-5 h-5 text-foreground/20 mb-3" />
+                                        <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/20 leading-relaxed">Photos are only required on Day 1 and Day 25.</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -401,33 +401,33 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                     {/* Recordings Suite */}
                     <div className="surface-container rounded-3xl border border-outline-variant/10 flex flex-col overflow-hidden bg-white/50 backdrop-blur-xl shadow-sm">
                         <div className="p-8 border-b border-outline-variant/5 flex items-center justify-between">
-                           <h3 className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">Recorded Sessions</h3>
-                           <PlayCircle className="w-4 h-4 text-foreground/10" />
+                            <h3 className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">Recorded Sessions</h3>
+                            <PlayCircle className="w-4 h-4 text-foreground/10" />
                         </div>
                         <div className="flex overflow-x-auto p-8 gap-6 custom-scrollbar">
-                           {recordings.map((rec) => (
-                              <div key={rec.id} className="min-w-[280px] w-[280px] flex flex-col bg-white border border-outline-variant/5 rounded-3xl overflow-hidden shadow-sm hover:shadow-md hover:scale-[1.01] transition-all group">
-                                 <div className="aspect-video relative overflow-hidden bg-foreground/[0.02]">
-                                    <div className="absolute inset-0 flex items-center justify-center z-10">
-                                       {rec.is_available ? (
-                                          <button onClick={() => window.open(rec.play_url!, '_blank')} className="h-10 w-10 rounded-full bg-white text-black shadow-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
-                                             <Play className="w-4 h-4 fill-current ml-0.5" />
-                                          </button>
-                                       ) : (
-                                          <div className="text-[8px] font-bold text-foreground/20 uppercase tracking-widest">Processing</div>
-                                       )}
+                            {recordings.map((rec) => (
+                                <div key={rec.id} className="min-w-[280px] w-[280px] flex flex-col bg-white border border-outline-variant/5 rounded-3xl overflow-hidden shadow-sm hover:shadow-md hover:scale-[1.01] transition-all group">
+                                    <div className="aspect-video relative overflow-hidden bg-foreground/[0.02]">
+                                        <div className="absolute inset-0 flex items-center justify-center z-10">
+                                            {rec.is_available ? (
+                                                <button onClick={() => window.open(rec.play_url!, '_blank')} className="h-10 w-10 rounded-full bg-white text-black shadow-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                                                    <Play className="w-4 h-4 fill-current ml-0.5" />
+                                                </button>
+                                            ) : (
+                                                <div className="text-[8px] font-bold text-foreground/20 uppercase tracking-widest">Processing</div>
+                                            )}
+                                        </div>
+                                        <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg text-[8px] font-bold text-white/90 uppercase tracking-widest">
+                                            {rec.duration_minutes}m
+                                        </div>
                                     </div>
-                                    <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg text-[8px] font-bold text-white/90 uppercase tracking-widest">
-                                       {rec.duration_minutes}m
+                                    <div className="p-5 space-y-1.5">
+                                        <p className="text-[9px] font-bold text-primary uppercase tracking-widest">{new Date(rec.start_time).toLocaleDateString()}</p>
+                                        <h4 className="text-sm font-bold text-foreground leading-tight truncate">{rec.topic}</h4>
                                     </div>
-                                 </div>
-                                 <div className="p-5 space-y-1.5">
-                                    <p className="text-[9px] font-bold text-primary uppercase tracking-widest">{new Date(rec.start_time).toLocaleDateString()}</p>
-                                    <h4 className="text-sm font-bold text-foreground leading-tight truncate">{rec.topic}</h4>
-                                 </div>
-                              </div>
-                           ))}
-                           {recordings.length === 0 && <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/20 py-12 w-full text-center opacity-50">No recorded sessions yet.</p>}
+                                </div>
+                            ))}
+                            {recordings.length === 0 && <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/20 py-12 w-full text-center opacity-50">No recorded sessions yet.</p>}
                         </div>
                     </div>
                 </div>
@@ -436,68 +436,68 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                 <div className="hidden xl:flex w-96 flex-col gap-6 shrink-0 h-full">
                     <div className="surface-container rounded-3xl border border-outline-variant/10 h-full flex flex-col overflow-hidden bg-white/50 backdrop-blur-xl shadow-sm">
                         <div className="p-8 border-b border-outline-variant/5 flex flex-col gap-1.5">
-                           <div className="flex items-center justify-between">
-                              <h3 className="text-2xl font-bold tracking-tight text-foreground">Group Chat</h3>
-                              <div className="h-2 w-2 rounded-full bg-primary/40" />
-                           </div>
-                           <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">Live Group Chat</p>
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-2xl font-bold tracking-tight text-foreground">Group Chat</h3>
+                                <div className="h-2 w-2 rounded-full bg-primary/40" />
+                            </div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">Live Group Chat</p>
                         </div>
 
                         <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar">
-                           {messages.map((msg) => {
-                               const sender = msg.sender || msg.profiles || msg.senderProfile || {};
-                               const isOwn = msg.sender_id === currentUser.id;
-                               const isPoll = msg.message_type === 'poll';
-                               const poll = isPoll ? polls[msg.poll_id] : null;
+                            {messages.map((msg) => {
+                                const sender = msg.sender || msg.profiles || msg.senderProfile || {};
+                                const isOwn = msg.sender_id === currentUser.id;
+                                const isPoll = msg.message_type === 'poll';
+                                const poll = isPoll ? polls[msg.poll_id] : null;
 
-                               return (
-                                  <div key={msg.id} className={cn("flex flex-col gap-1.5", isOwn ? "items-end" : "items-start")}>
-                                     {!isOwn && (
-                                        <div className="flex items-center gap-2 mb-0.5">
-                                           <div className="h-6 w-6 rounded-lg overflow-hidden border border-outline-variant/10 bg-white">
-                                              {sender.avatar_url ? <img src={sender.avatar_url} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-[7px] font-bold text-foreground/20 bg-foreground/5">{(sender.full_name || 'U').charAt(0).toUpperCase()}</div>}
-                                           </div>
-                                           <p className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest">{sender.full_name}</p>
-                                           {msg.sender_id === activeBatch?.instructor_id && <ShieldCheck className="w-3 h-3 text-primary/60" />}
-                                        </div>
-                                     )}
-                                     
-                                     {isPoll ? (
-                                         poll && <div className="w-full"><PollCard poll={poll} isAdmin={false} onVote={(id) => handleVotePoll(poll.id, id)} isVoting={votingPollId === poll.id} /></div>
-                                     ) : (
-                                         <div className={cn(
-                                            "max-w-[90%] px-4 py-2.5 rounded-2xl text-[13px] font-medium leading-relaxed border shadow-sm",
-                                            isOwn 
-                                               ? "bg-foreground text-background border-foreground rounded-tr-none" 
-                                               : "bg-white border-outline-variant/5 text-foreground/70 rounded-tl-none"
-                                         )}>
-                                            {msg.content}
-                                         </div>
-                                     )}
-                                     <p className="text-[8px] font-bold text-foreground/20 uppercase tracking-widest mt-0.5">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                                  </div>
-                               );
-                           })}
+                                return (
+                                    <div key={msg.id} className={cn("flex flex-col gap-1.5", isOwn ? "items-end" : "items-start")}>
+                                        {!isOwn && (
+                                            <div className="flex items-center gap-2 mb-0.5">
+                                                <div className="h-6 w-6 rounded-lg overflow-hidden border border-outline-variant/10 bg-white">
+                                                    {sender.avatar_url ? <img src={sender.avatar_url} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-[7px] font-bold text-foreground/20 bg-foreground/5">{(sender.full_name || 'U').charAt(0).toUpperCase()}</div>}
+                                                </div>
+                                                <p className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest">{sender.full_name}</p>
+                                                {msg.sender_id === activeBatch?.instructor_id && <ShieldCheck className="w-3 h-3 text-primary/60" />}
+                                            </div>
+                                        )}
+
+                                        {isPoll ? (
+                                            poll && <div className="w-full"><PollCard poll={poll} isAdmin={false} onVote={(id) => handleVotePoll(poll.id, id)} isVoting={votingPollId === poll.id} /></div>
+                                        ) : (
+                                            <div className={cn(
+                                                "max-w-[90%] px-4 py-2.5 rounded-2xl text-[13px] font-medium leading-relaxed border shadow-sm",
+                                                isOwn
+                                                    ? "bg-foreground text-background border-foreground rounded-tr-none"
+                                                    : "bg-white border-outline-variant/5 text-foreground/70 rounded-tl-none"
+                                            )}>
+                                                {msg.content}
+                                            </div>
+                                        )}
+                                        <p className="text-[8px] font-bold text-foreground/20 uppercase tracking-widest mt-0.5">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                    </div>
+                                );
+                            })}
                         </div>
 
                         <div className="p-8 border-t border-outline-variant/10 bg-white/40 backdrop-blur-md">
-                           {isChatEnabled ? (
-                              <div className="relative group">
-                                 <input
-                                     type="text"
-                                     value={newMessage}
-                                     onChange={(e) => setNewMessage(e.target.value)}
-                                     onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                                     placeholder="Type a message..."
-                                     className="w-full h-12 pl-5 pr-12 rounded-xl bg-white border border-outline-variant/10 text-[13px] text-foreground font-medium placeholder:text-foreground/20 focus:ring-2 focus:ring-primary/10 focus:outline-none transition-all shadow-sm group-hover:border-primary/20"
-                                 />
-                                 <button onClick={handleSendMessage} className="absolute right-1.5 top-1.5 h-9 w-9 rounded-lg bg-foreground text-background flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
-                                    <Send className="w-3.5 h-3.5" />
-                                 </button>
-                              </div>
-                           ) : (
-                              <div className="h-12 rounded-xl bg-foreground/5 flex items-center justify-center text-[10px] font-bold uppercase tracking-widest text-foreground/20">Chat is turned off</div>
-                           )}
+                            {isChatEnabled ? (
+                                <div className="relative group">
+                                    <input
+                                        type="text"
+                                        value={newMessage}
+                                        onChange={(e) => setNewMessage(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                                        placeholder="Type a message..."
+                                        className="w-full h-12 pl-5 pr-12 rounded-xl bg-white border border-outline-variant/10 text-[13px] text-foreground font-medium placeholder:text-foreground/20 focus:ring-2 focus:ring-primary/10 focus:outline-none transition-all shadow-sm group-hover:border-primary/20"
+                                    />
+                                    <button onClick={handleSendMessage} className="absolute right-1.5 top-1.5 h-9 w-9 rounded-lg bg-foreground text-background flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
+                                        <Send className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="h-12 rounded-xl bg-foreground/5 flex items-center justify-center text-[10px] font-bold uppercase tracking-widest text-foreground/20">Chat is turned off</div>
+                            )}
                         </div>
                     </div>
                 </div>

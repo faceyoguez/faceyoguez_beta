@@ -36,7 +36,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
   const currentDay = subscriptionStartDate
     ? Math.max(1, differenceInDays(startOfDay(new Date()), startOfDay(new Date(subscriptionStartDate))) + 1)
     : 1;
-  
+
   const currentMonth = Math.ceil(currentDay / 30);
   const dayInMonth = ((currentDay - 1) % 30) + 1;
   const totalDurationDays = durationMonths * 30;
@@ -177,7 +177,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
       <div className="relative z-10 p-4 lg:p-6 flex-1 flex flex-col min-h-0 gap-6">
         <header className="shrink-0 flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-[#FF8A75]/10 mt-0">
           <div className="space-y-3 flex-1">
-           
+
             <div className="space-y-0.5">
               <h1 className="text-2xl lg:text-3xl font-serif text-[#1a1a1a] tracking-tight leading-[1.1]">
                 Your Dedicated Path

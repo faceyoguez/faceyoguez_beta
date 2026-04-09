@@ -4,28 +4,27 @@ import { useState, useRef, useTransition, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import {
    Search, Plus, Users,
-   Video, Library, Play,
+   Video, Play,
    FileText, Send, X,
-   CheckCircle, Download, Clock,
+   Download, 
    Loader2, ArrowUpRight,
-   Sparkles, ArrowRight, ChevronRight,
-   Radio, PlayCircle, ChevronDown,
-   Activity, History, MessageSquare,
-   Zap, Heart, LayoutDashboard, User as UserIcon,
-   MessageSquareOff, ShieldCheck, ShieldAlert
+   ArrowRight, 
+   
+   Activity, 
+   
+   ShieldCheck, ShieldAlert
 } from 'lucide-react';
 import { createAndPopulateBatch, type CreateBatchInput, toggleBatchChat, getInstructorBatches } from '@/lib/actions/batches';
 import { useRouter } from 'next/navigation';
-import type { Profile, BatchPoll, RecordedSession, StudentResource } from '@/types/database';
+import type { RecordedSession, StudentResource } from '@/types/database';
 import { uploadBatchResource, getBatchResources } from '@/lib/actions/resources';
 import { sendBatchMessage, getBatchMessages } from '@/lib/actions/chat';
 import { getBatchRecordedSessions } from '@/lib/actions/meetings';
 import { getJourneyLogs, type JourneyLog } from '@/lib/actions/journey';
 import { ImageComparison } from '@/components/ui/image-comparison-slider';
-import { JourneyProgress, JOURNEY_MAX_DAY } from '@/components/ui/journey-progress';
+import { JOURNEY_MAX_DAY } from '@/components/ui/journey-progress';
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
 
 export function InstructorGroupClient({ currentUser, initialBatches, initialBatchResources, instructors, waitingQueue }: any) {
    const [isCreateBatchOpen, setIsCreateBatchOpen] = useState(false);
@@ -141,8 +140,8 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
          } else {
             toast.error(res.error || 'Failed to share resource');
          }
-      } catch (err) { 
-         console.error(err); 
+      } catch (err) {
+         console.error(err);
          toast.error('Upload failed. Please try again.');
       } finally { setIsUploading(false); }
    };
@@ -225,8 +224,8 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                         onChange={(e) => setSearchQuery(e.target.value)}
                      />
                   </div>
-                  <button 
-                     onClick={() => setIsCreateBatchOpen(true)} 
+                  <button
+                     onClick={() => setIsCreateBatchOpen(true)}
                      className="h-12 w-12 rounded-2xl bg-[#1a1a1a] text-white flex items-center justify-center hover:bg-[#FF8A75] hover:-rotate-3 transition-all shadow-xl shadow-[#1a1a1a]/10"
                   >
                      <Plus className="w-5 h-5" />
@@ -235,7 +234,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
             </header>
 
             <main className="flex-1 flex flex-col overflow-hidden">
-               
+
                {/* 🗺️ Collective Compass Row (Active Batches) */}
                <div className="shrink-0 h-20 px-12 bg-white/20 backdrop-blur-md border-b border-[#FF8A75]/5 flex items-center z-50">
                   <span className="text-[9px] font-black uppercase tracking-[0.4em] text-[#FF8A75] shrink-0 mr-10">Compass Nodes:</span>
@@ -248,8 +247,8 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                               onClick={() => handleBatchClick(batch)}
                               className={cn(
                                  "flex items-center gap-3 px-6 py-2 rounded-full transition-all shrink-0 border whitespace-nowrap group",
-                                 isSelected 
-                                    ? "bg-white border-[#FF8A75]/30 shadow-xl shadow-[#FF8A75]/5 ring-4 ring-[#FF8A75]/5" 
+                                 isSelected
+                                    ? "bg-white border-[#FF8A75]/30 shadow-xl shadow-[#FF8A75]/5 ring-4 ring-[#FF8A75]/5"
                                     : "bg-transparent border-transparent opacity-40 hover:opacity-100"
                               )}
                            >
@@ -315,8 +314,8 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                        onClick={() => setSelectedStudent(student)}
                                        className={cn(
                                           "w-full p-5 rounded-[2.5rem] border transition-all flex items-center gap-5 group",
-                                          isSelected 
-                                             ? "bg-white border-[#FF8A75]/30 shadow-xl shadow-[#FF8A75]/5 ring-4 ring-[#FF8A75]/5" 
+                                          isSelected
+                                             ? "bg-white border-[#FF8A75]/30 shadow-xl shadow-[#FF8A75]/5 ring-4 ring-[#FF8A75]/5"
                                              : "bg-transparent border-transparent hover:bg-white/60 hover:shadow-sm"
                                        )}
                                     >
@@ -368,8 +367,8 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                     }}
                                     className={cn(
                                        "h-11 px-6 rounded-2xl flex items-center gap-3 transition-all text-[9px] font-black uppercase tracking-widest border",
-                                       selectedBatch?.is_chat_enabled 
-                                          ? "bg-white/5 border-white/10 text-white/40 hover:text-[#FF8A75] hover:border-[#FF8A75]/30 hover:bg-white/10" 
+                                       selectedBatch?.is_chat_enabled
+                                          ? "bg-white/5 border-white/10 text-white/40 hover:text-[#FF8A75] hover:border-[#FF8A75]/30 hover:bg-white/10"
                                           : "bg-[#FF8A75] border-[#FF8A75] text-white shadow-2xl shadow-[#FF8A75]/30"
                                     )}
                                  >
@@ -387,8 +386,8 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                        {!isMe && <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[#FF8A75] opacity-60 ml-4">{msg.sender?.full_name}</span>}
                                        <div className={cn(
                                           "px-6 py-4 rounded-[2.5rem] text-[13px] font-medium max-w-[85%] leading-relaxed shadow-lg",
-                                          isMe 
-                                             ? "bg-[#FF8A75] text-white rounded-tr-none shadow-[#FF8A75]/20" 
+                                          isMe
+                                             ? "bg-[#FF8A75] text-white rounded-tr-none shadow-[#FF8A75]/20"
                                              : "bg-white/5 text-white/90 border border-white/5 rounded-tl-none backdrop-blur-xl"
                                        )}>
                                           {msg.content}
@@ -408,8 +407,8 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                  disabled={!selectedBatch?.is_chat_enabled}
                                  className={cn(
                                     "w-full h-16 rounded-[2rem] border-none pl-8 pr-16 text-sm font-medium transition-all outline-none",
-                                    selectedBatch?.is_chat_enabled 
-                                       ? "bg-white/10 text-white placeholder:text-white/20 focus:bg-white/15 focus:ring-4 focus:ring-[#FF8A75]/10" 
+                                    selectedBatch?.is_chat_enabled
+                                       ? "bg-white/10 text-white placeholder:text-white/20 focus:bg-white/15 focus:ring-4 focus:ring-[#FF8A75]/10"
                                        : "bg-white/[0.02] text-white/10 placeholder:text-white/5 cursor-not-allowed"
                                  )}
                               />
@@ -418,8 +417,8 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                  disabled={!selectedBatch?.is_chat_enabled}
                                  className={cn(
                                     "absolute right-2 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full text-white flex items-center justify-center transition-all transform active:scale-90",
-                                    selectedBatch?.is_chat_enabled 
-                                       ? "bg-[#FF8A75] hover:bg-[#FF6B4E] shadow-xl shadow-[#FF8A75]/40" 
+                                    selectedBatch?.is_chat_enabled
+                                       ? "bg-[#FF8A75] hover:bg-[#FF6B4E] shadow-xl shadow-[#FF8A75]/40"
                                        : "bg-white/5 text-white/10 cursor-not-allowed"
                                  )}
                               >
@@ -466,8 +465,8 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                      <div className="flex-1 bg-white/40 backdrop-blur-3xl rounded-[4.5rem] p-10 border border-[#FF8A75]/10 shadow-xl flex flex-col min-h-0">
                         <div className="flex items-center justify-between mb-8 shrink-0 px-2">
                            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75]">Registry Chronicles</h3>
-                           <button 
-                              onClick={() => fileInputRef.current?.click()} 
+                           <button
+                              onClick={() => fileInputRef.current?.click()}
                               className="h-10 w-10 rounded-2xl bg-white text-[#1a1a1a] shadow-lg border border-slate-100 flex items-center justify-center hover:bg-[#FF8A75] hover:text-white transition-all group/add"
                            >
                               <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
@@ -508,64 +507,64 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-[#1a1a1a]/30 backdrop-blur-3xl animate-in zoom-in-95 duration-500">
                <div className="w-full max-w-lg bg-[#FFFAF7] rounded-[4rem] p-16 relative overflow-hidden shadow-2xl shadow-black/20 text-center border border-white/50">
                   <div className="absolute top-0 right-0 w-40 h-40 bg-[#FF8A75]/10 rounded-full blur-3xl -translate-y-20 translate-x-20" />
-                  
+
                   <button onClick={() => setIsCreateBatchOpen(false)} className="absolute top-12 right-12 text-[#1a1a1a]/20 hover:text-[#FF8A75] transition-colors"><X className="w-8 h-8" /></button>
                   <h3 className="text-4xl font-serif text-slate-900 mb-2">Manifest Path</h3>
                   <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75] mb-12">New Collective Node Calibration</p>
-                  
+
                   <div className="space-y-6 relative z-10">
                      <div className="space-y-2 text-left">
                         <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[#FF8A75] ml-4">Node Identity</label>
-                        <input 
-                           type="text" 
-                           placeholder="e.g., Spring Equinox Sanctuary" 
-                           value={formData.name} 
-                           onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
-                           className="h-18 w-full px-8 rounded-3xl bg-white border border-[#FF8A75]/10 text-base font-bold text-slate-900 focus:ring-8 focus:ring-[#FF8A75]/5 outline-none transition-all" 
+                        <input
+                           type="text"
+                           placeholder="e.g., Spring Equinox Sanctuary"
+                           value={formData.name}
+                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                           className="h-18 w-full px-8 rounded-3xl bg-white border border-[#FF8A75]/10 text-base font-bold text-slate-900 focus:ring-8 focus:ring-[#FF8A75]/5 outline-none transition-all"
                         />
                      </div>
-                     
+
                      <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-2 text-left">
                            <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[#FF8A75] ml-4">Cycle Start</label>
-                           <input 
-                              type="date" 
-                              value={formData.startDate} 
-                              onChange={(e) => setFormData({ ...formData, startDate: e.target.value })} 
-                              className="h-18 w-full px-8 rounded-3xl bg-white border border-[#FF8A75]/10 text-base font-bold text-slate-900 focus:ring-8 focus:ring-[#FF8A75]/5 outline-none transition-all" 
+                           <input
+                              type="date"
+                              value={formData.startDate}
+                              onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                              className="h-18 w-full px-8 rounded-3xl bg-white border border-[#FF8A75]/10 text-base font-bold text-slate-900 focus:ring-8 focus:ring-[#FF8A75]/5 outline-none transition-all"
                            />
                         </div>
                         <div className="space-y-2 text-left">
                            <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[#FF8A75] ml-4">Cycle End</label>
-                           <input 
-                              type="date" 
-                              value={formData.endDate} 
-                              onChange={(e) => setFormData({ ...formData, endDate: e.target.value })} 
-                              className="h-18 w-full px-8 rounded-3xl bg-white border border-[#FF8A75]/10 text-base font-bold text-slate-900 focus:ring-8 focus:ring-[#FF8A75]/5 outline-none transition-all" 
+                           <input
+                              type="date"
+                              value={formData.endDate}
+                              onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                              className="h-18 w-full px-8 rounded-3xl bg-white border border-[#FF8A75]/10 text-base font-bold text-slate-900 focus:ring-8 focus:ring-[#FF8A75]/5 outline-none transition-all"
                            />
                         </div>
-                      </div>
+                     </div>
 
-                      <button
-                         onClick={handleCreateBatch}
-                         className={cn(
-                            "w-full h-20 mt-8 rounded-[2.5rem] bg-[#1a1a1a] text-white text-[12px] font-black uppercase tracking-[0.3em] hover:bg-[#FF8A75] shadow-2xl transition-all flex items-center justify-center gap-4 group/submit",
-                            isPending && "opacity-50 pointer-events-none"
-                         )}
-                      >
-                         {isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : (
-                            <>
-                               Commit Collective
-                               <ArrowRight className="w-5 h-5 group-hover/submit:translate-x-2 transition-transform" />
-                            </>
-                         )}
-                      </button>
-                   </div>
-                </div>
-             </div>
-          )}
+                     <button
+                        onClick={handleCreateBatch}
+                        className={cn(
+                           "w-full h-20 mt-8 rounded-[2.5rem] bg-[#1a1a1a] text-white text-[12px] font-black uppercase tracking-[0.3em] hover:bg-[#FF8A75] shadow-2xl transition-all flex items-center justify-center gap-4 group/submit",
+                           isPending && "opacity-50 pointer-events-none"
+                        )}
+                     >
+                        {isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : (
+                           <>
+                              Commit Collective
+                              <ArrowRight className="w-5 h-5 group-hover/submit:translate-x-2 transition-transform" />
+                           </>
+                        )}
+                     </button>
+                  </div>
+               </div>
+            </div>
+         )}
 
-          <style jsx global>{`
+         <style jsx global>{`
            .no-scrollbar::-webkit-scrollbar { display: none; }
            .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
            .custom-scrollbar::-webkit-scrollbar { width: 5px; }
@@ -573,6 +572,6 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
            .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,138,117,0.15); border-radius: 10px; }
            .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,138,117,0.3); }
          `}</style>
-       </div>
-    );
+      </div>
+   );
 }

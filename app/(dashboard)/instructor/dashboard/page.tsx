@@ -1,16 +1,16 @@
 import { redirect } from 'next/navigation';
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
-import { 
-  Users, 
+import {
+  Users,
   User,
-  Video, 
-  Sparkles, 
-  Clock, 
-  Calendar, 
-  ChevronRight, 
-  UserPlus, 
-  Shield, 
-  ArrowUpRight, 
+  Video,
+  Sparkles,
+  Clock,
+  Calendar,
+  ChevronRight,
+  UserPlus,
+  Shield,
+  ArrowUpRight,
   TrendingUp,
   Zap,
   Activity,
@@ -166,7 +166,7 @@ export default async function InstructorDashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#FFFAF7] p-8 lg:p-16 space-y-16 selection:bg-[#FF8A75]/10 font-sans animate-in fade-in slide-in-from-bottom-4 duration-1000 relative">
-      
+
       {/* Background Zen Elements */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-0 right-0 w-[80%] h-[80%] bg-[radial-gradient(circle_at_center,rgba(255,138,117,0.04)_0%,transparent_70%)] blur-3xl opacity-60" />
@@ -176,18 +176,15 @@ export default async function InstructorDashboardPage() {
       {/* ─── 1. MORNING REFLECTION HERO ─── */}
       <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-10 relative z-10">
         <div className="space-y-4">
-          <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-white/40 backdrop-blur-3xl border border-[#FF8A75]/10 shadow-sm">
-            <div className="h-1.5 w-1.5 rounded-full bg-[#FF8A75] shadow-[0_0_8px_#FF8A75]" />
-            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75] leading-none">Curator Presence Active</span>
-          </div>
-          <h1 className="text-6xl md:text-7xl lg:text-8xl font-serif text-[#1a1a1a] tracking-tight leading-[1.05]">
+          
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif text-[#1a1a1a] tracking-tight leading-[1.05]">
             Greetings, {firstName}
           </h1>
-          <p className="text-xl md:text-2xl text-slate-400 font-medium max-w-2xl leading-relaxed">
+          <p className="text-lg md:text-xl text-slate-400 font-medium max-w-2xl leading-relaxed">
             Your sanctuary is prepared. Today, we guide <span className="text-[#FF8A75] underline decoration-[#FF8A75]/20 underline-offset-8">progressive glow</span> through focused intention.
           </p>
         </div>
-        
+
         {isMaster && (
           <div className="flex items-center gap-5 p-6 bg-white/60 backdrop-blur-3xl rounded-[2.5rem] border border-[#FF8A75]/5 shadow-2xl shadow-[#FF8A75]/5 group">
             <div className="h-14 w-14 rounded-2xl bg-[#1a1a1a] flex items-center justify-center text-white shadow-xl transition-all duration-500 group-hover:rotate-6">
@@ -209,9 +206,9 @@ export default async function InstructorDashboardPage() {
           { label: 'New Joinees', val: newJoineesCount, sub: 'Cycle Commencement', icon: Sparkles },
           { label: 'Rejoinees', val: rejoineesCount, sub: 'Continuity Flow', icon: Activity }
         ].map((stat, i) => (
-          <div key={i} className="group p-10 rounded-[3.5rem] bg-white border border-[#FF8A75]/5 shadow-sm hover:shadow-2xl hover:shadow-[#FF8A75]/10 hover:-translate-y-1 transition-all duration-700 overflow-hidden relative">
+          <div key={i} className="group p-5 rounded-[2.5rem] bg-white border border-[#FF8A75]/5 shadow-sm hover:shadow-2xl hover:shadow-[#FF8A75]/10 hover:-translate-y-1 transition-all duration-700 overflow-hidden relative">
             <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-               <stat.icon className="w-24 h-24 text-[#1a1a1a]" />
+              <stat.icon className="w-24 h-24 text-[#1a1a1a]" />
             </div>
             <div className="relative z-10 space-y-6">
               <div className="flex items-center gap-4">
@@ -226,18 +223,18 @@ export default async function InstructorDashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-12 relative z-10">
-        
+
         {/* ─── 3. TODAY'S RADIANCE (SCHEDULE) ─── */}
         <section className="xl:col-span-8 flex flex-col gap-10">
           <div className="flex items-center justify-between">
             <div className="space-y-2">
-              <h2 className="text-4xl lg:text-5xl font-serif text-[#1a1a1a] tracking-tight">Today&apos;s Radiance</h2>
+              <h2 className="text-3xl lg:text-4xl font-serif text-[#1a1a1a] tracking-tight">Today&apos;s Radiance</h2>
               <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75] opacity-60">Temporal Alignments</p>
             </div>
             <div className="px-6 py-3 bg-white/60 backdrop-blur-3xl rounded-2xl border border-[#FF8A75]/10 shadow-sm">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
-                  {format(now, 'EEEE, MMM d')}
-                </span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
+                {format(now, 'EEEE, MMM d')}
+              </span>
             </div>
           </div>
 
@@ -253,7 +250,7 @@ export default async function InstructorDashboardPage() {
               todaysMeetings.map((meeting) => {
                 const isLive = isMeetingLive(meeting.start_time, meeting.duration_minutes);
                 const isUpcoming = isMeetingUpcoming(meeting.start_time);
-                
+
                 return (
                   <div key={meeting.id} className={cn(
                     "group flex flex-col md:flex-row items-center gap-8 p-10 rounded-[4rem] transition-all duration-700 bg-white border",
@@ -264,39 +261,39 @@ export default async function InstructorDashboardPage() {
                     </div>
 
                     <div className="flex-1 flex flex-col gap-3 text-center md:text-left min-w-0">
-                       <div className="flex items-center justify-center md:justify-start gap-4">
-                          <h4 className="text-3xl font-serif text-[#1a1a1a] tracking-tight truncate">{meeting.topic}</h4>
-                          {isLive && (
-                             <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1a1a1a] text-white text-[8px] font-black uppercase tracking-[0.2em] shadow-lg shadow-[#1a1a1a]/20">
-                                <div className="h-1.5 w-1.5 rounded-full bg-[#FF8A75] animate-pulse shadow-[0_0_8px_#FF8A75]" />
-                                Portal Active
-                             </div>
-                          )}
-                       </div>
-                       <div className="flex items-center justify-center md:justify-start gap-6">
-                          <div className="flex items-center gap-2">
-                             <Clock className="w-4 h-4 text-[#FF8A75]/40" />
-                             <span className="text-[12px] font-bold text-slate-400 capitalize">
-                                {format(new Date(meeting.start_time), 'h:mm a')} – {format(addMinutes(new Date(meeting.start_time), meeting.duration_minutes), 'h:mm a')}
-                             </span>
+                      <div className="flex items-center justify-center md:justify-start gap-4">
+                        <h4 className="text-3xl font-serif text-[#1a1a1a] tracking-tight truncate">{meeting.topic}</h4>
+                        {isLive && (
+                          <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1a1a1a] text-white text-[8px] font-black uppercase tracking-[0.2em] shadow-lg shadow-[#1a1a1a]/20">
+                            <div className="h-1.5 w-1.5 rounded-full bg-[#FF8A75] animate-pulse shadow-[0_0_8px_#FF8A75]" />
+                            Portal Active
                           </div>
-                          <div className="h-px w-6 bg-slate-100" />
-                          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF8A75]/60">
-                             {meeting.meeting_type === 'one_on_one' ? 'Elite Exchange' : 'Collective Glow'}
+                        )}
+                      </div>
+                      <div className="flex items-center justify-center md:justify-start gap-6">
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-[#FF8A75]/40" />
+                          <span className="text-[12px] font-bold text-slate-400 capitalize">
+                            {format(new Date(meeting.start_time), 'h:mm a')} – {format(addMinutes(new Date(meeting.start_time), meeting.duration_minutes), 'h:mm a')}
                           </span>
-                       </div>
+                        </div>
+                        <div className="h-px w-6 bg-slate-100" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF8A75]/60">
+                          {meeting.meeting_type === 'one_on_one' ? 'Elite Exchange' : 'Collective Glow'}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="shrink-0 w-full md:w-auto">
-                       {(isLive || isUpcoming) ? (
-                          <Link href={meeting.start_url || meeting.join_url} target="_blank" className="block w-full text-center px-10 h-16 rounded-[2rem] bg-[#1a1a1a] text-white text-[10px] font-black uppercase tracking-widest hover:bg-[#FF8A75] hover:shadow-2xl hover:shadow-[#FF8A75]/30 transition-all duration-700">
-                             {isLive ? 'Enter Sanctuary' : 'Awaiting Transmission'}
-                          </Link>
-                       ) : (
-                         <div className="px-10 h-16 flex items-center justify-center rounded-[2rem] bg-slate-50 text-slate-300 text-[10px] font-black uppercase tracking-[0.2em]">
-                            Completed
-                         </div>
-                       )}
+                      {(isLive || isUpcoming) ? (
+                        <Link href={meeting.start_url || meeting.join_url} target="_blank" className="block w-full text-center px-10 h-16 rounded-[2rem] bg-[#1a1a1a] text-white text-[10px] font-black uppercase tracking-widest hover:bg-[#FF8A75] hover:shadow-2xl hover:shadow-[#FF8A75]/30 transition-all duration-700">
+                          {isLive ? 'Enter Sanctuary' : 'Awaiting Transmission'}
+                        </Link>
+                      ) : (
+                        <div className="px-10 h-16 flex items-center justify-center rounded-[2rem] bg-slate-50 text-slate-300 text-[10px] font-black uppercase tracking-[0.2em]">
+                          Completed
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -307,61 +304,52 @@ export default async function InstructorDashboardPage() {
 
         {/* ─── 4. SOUL COMMENCEMENT (NEW STUDENTS) ─── */}
         <section className="xl:col-span-4 flex flex-col gap-10">
-           <div className="space-y-2">
-              <h2 className="text-4xl lg:text-5xl font-serif text-[#1a1a1a] tracking-tight">New Souls</h2>
-              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75] opacity-60">Cycle Intake Portfolio</p>
-           </div>
+          <div className="space-y-2">
+            <h2 className="text-3xl lg:text-4xl font-serif text-[#1a1a1a] tracking-tight">New Souls</h2>
+            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75] opacity-60">Cycle Intake Portfolio</p>
+          </div>
 
-           <div className="space-y-4">
-              {!newAllocations || newAllocations.length === 0 ? (
-                <div className="p-20 bg-white/40 backdrop-blur-3xl border border-dashed border-[#FF8A75]/10 rounded-[3rem] text-center space-y-4 opacity-10">
-                   <UserPlus className="w-12 h-12 mx-auto text-[#FF8A75]" />
-                   <p className="text-[10px] font-black uppercase tracking-widest text-[#1a1a1a]">Awaiting Resonance</p>
-                </div>
-              ) : (
-                newAllocations.map(alloc => {
-                  const student = Array.isArray(alloc.student) ? alloc.student[0] : alloc.student;
-                  return (
-                    <div key={alloc.id} className="group p-6 bg-white border border-[#FF8A75]/5 rounded-[2.5rem] flex items-center justify-between hover:shadow-2xl hover:shadow-[#FF8A75]/10 hover:border-[#FF8A75]/20 transition-all duration-700">
-                       <div className="flex items-center gap-5">
-                          <div className="h-16 w-16 rounded-[2rem] bg-[#FF8A75]/5 flex items-center justify-center text-[#FF8A75] overflow-hidden border border-[#FF8A75]/10 shadow-inner">
-                             {student?.avatar_url ? (
-                               <img src={student.avatar_url} className="w-full h-full object-cover group-hover:rotate-3 transition-transform duration-700" />
-                             ) : (
-                               <span className="text-2xl font-serif">{student?.full_name?.charAt(0)}</span>
-                             )}
-                          </div>
-                          <div className="space-y-1">
-                             <div className="flex items-center gap-2">
-                                <p className="text-lg font-bold text-[#1a1a1a] tracking-tight leading-none">{student?.full_name}</p>
-                                {alloc.is_trial && (
-                                   <div className="h-1.5 w-1.5 rounded-full bg-[#FF8A75] animate-pulse" />
-                                )}
-                             </div>
-                             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FF8A75]/60">
-                                Node {alloc.start_date ? format(new Date(alloc.start_date), 'MMM d') : 'Cycle TBD'}
-                             </p>
-                          </div>
-                       </div>
-                       <Link href="/instructor/one-on-one" className="h-12 w-12 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center shadow-lg transform translate-x-4 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-700">
-                          <ArrowUpRight className="w-5 h-5 text-[#FF8A75]" />
-                       </Link>
+          <div className="space-y-4">
+            {!newAllocations || newAllocations.length === 0 ? (
+              <div className="p-20 bg-white/40 backdrop-blur-3xl border border-dashed border-[#FF8A75]/10 rounded-[3rem] text-center space-y-4 opacity-10">
+                <UserPlus className="w-12 h-12 mx-auto text-[#FF8A75]" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-[#1a1a1a]">Awaiting Resonance</p>
+              </div>
+            ) : (
+              newAllocations.map(alloc => {
+                const student = Array.isArray(alloc.student) ? alloc.student[0] : alloc.student;
+                return (
+                  <div key={alloc.id} className="group p-6 bg-white border border-[#FF8A75]/5 rounded-[2.5rem] flex items-center justify-between hover:shadow-2xl hover:shadow-[#FF8A75]/10 hover:border-[#FF8A75]/20 transition-all duration-700">
+                    <div className="flex items-center gap-5">
+                      <div className="h-16 w-16 rounded-[2rem] bg-[#FF8A75]/5 flex items-center justify-center text-[#FF8A75] overflow-hidden border border-[#FF8A75]/10 shadow-inner">
+                        {student?.avatar_url ? (
+                          <img src={student.avatar_url} className="w-full h-full object-cover group-hover:rotate-3 transition-transform duration-700" />
+                        ) : (
+                          <span className="text-2xl font-serif">{student?.full_name?.charAt(0)}</span>
+                        )}
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-lg font-bold text-[#1a1a1a] tracking-tight leading-none">{student?.full_name}</p>
+                          {alloc.is_trial && (
+                            <div className="h-1.5 w-1.5 rounded-full bg-[#FF8A75] animate-pulse" />
+                          )}
+                        </div>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FF8A75]/60">
+                          Node {alloc.start_date ? format(new Date(alloc.start_date), 'MMM d') : 'Cycle TBD'}
+                        </p>
+                      </div>
                     </div>
-                  )
-                })
-              )}
-           </div>
+                    <Link href="/instructor/one-on-one" className="h-12 w-12 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center shadow-lg transform translate-x-4 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all duration-700">
+                      <ArrowUpRight className="w-5 h-5 text-[#FF8A75]" />
+                    </Link>
+                  </div>
+                )
+              })
+            )}
+          </div>
 
-           <Link href="/instructor/one-on-one" className="group flex items-center justify-between p-10 bg-[#1a1a1a] text-white rounded-[4rem] shadow-2xl shadow-slate-900/40 hover:bg-[#FF8A75] transition-all duration-700 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -translate-y-12 translate-x-12" />
-              <div className="relative z-10 space-y-1">
-                 <p className="text-xs font-black uppercase tracking-[0.3em] text-[#FF8A75] group-hover:text-white/60 transition-colors">Unified Access</p>
-                 <h3 className="text-3xl font-serif tracking-tight">Open Sanctuary Hub</h3>
-              </div>
-              <div className="relative z-10 h-16 w-16 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-white group-hover:text-[#FF8A75] transition-all duration-700">
-                 <ChevronRight className="w-8 h-8" />
-              </div>
-           </Link>
+     
         </section>
 
       </div>

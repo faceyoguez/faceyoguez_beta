@@ -56,17 +56,17 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
 
     useEffect(() => {
         if (!nextMeeting) return;
-    
+
         const checkTime = () => {
-          const meetingTime = new Date(nextMeeting.start_time).getTime();
-          const now = Date.now();
-          // 5 minutes = 300000 ms
-          setIsJoinEnabled(meetingTime - now <= 300000);
+            const meetingTime = new Date(nextMeeting.start_time).getTime();
+            const now = Date.now();
+            // 5 minutes = 300000 ms
+            setIsJoinEnabled(meetingTime - now <= 300000);
         };
-    
+
         checkTime();
         const interval = setInterval(checkTime, 10000); // Check every 10 seconds
-    
+
         return () => clearInterval(interval);
     }, [nextMeeting]);
 
@@ -97,11 +97,11 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
             toast.error('Please fill out all fields');
             return;
         }
-    
+
         setIsScheduling(true);
         try {
             const startDateTime = new Date(`${meetingDate}T${meetingTime}`).toISOString();
-    
+
             const res = await fetch('/api/meetings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -113,15 +113,15 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                     batchId: activeBatch.id,
                 })
             });
-    
+
             const data = await res.json();
             if (!res.ok) {
                 throw new Error(data.error || 'Failed to schedule meeting');
             }
-    
+
             const updatedList = await getInstructorUpcomingMeetings();
             setUpcomingMeetings(updatedList || []);
-          
+
             setShowScheduleModal(false);
             setMeetingTopic('');
             setMeetingDate('');
@@ -244,7 +244,7 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                         <div className="h-full w-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1545205597-3d9d02c29597?q=80&w=1000&auto=format&fit=crop')" }}></div>
                         <div className="absolute inset-0 p-5 z-20 flex flex-row items-center justify-between gap-4">
                             <div className="max-w-md">
-                                {(() => {                                    
+                                {(() => {
                                     if (nextMeeting) {
                                         return (
                                             <>
@@ -287,7 +287,7 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                                 {(() => {
                                     if (nextMeeting) {
                                         return (
-                                            <button 
+                                            <button
                                                 disabled={!isJoinEnabled}
                                                 onClick={() => window.open(nextMeeting.start_url, '_blank')}
                                                 className={`px-6 py-2.5 rounded-lg font-bold flex items-center justify-center gap-2 transition-all text-sm w-full shadow-[0_0_15px_rgba(219,39,119,0.4)] ${isJoinEnabled ? 'bg-pink-600 hover:bg-pink-700 text-white hover:-translate-y-0.5' : 'bg-gray-700 text-gray-400 cursor-not-allowed shadow-none border border-gray-600'}`}
@@ -559,90 +559,90 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
 
             {/* SCHEDULE MEETING MODAL OVERLAY */}
             {showScheduleModal && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-md transition-all duration-300">
-          <div className="w-full max-w-lg rounded-3xl bg-white/90 shadow-2xl overflow-hidden border border-white/40 ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-300 backdrop-blur-xl">
-            
-            {/* Modal Header */}
-            <div className="relative flex flex-col p-6 bg-gradient-to-br from-indigo-50 via-white to-indigo-50/30 border-b border-indigo-100/50">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-400 via-blue-400 to-indigo-500"></div>
-              <div className="flex items-start justify-between">
-                <div className="flex gap-4 items-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-600 shadow-inner">
-                    <CalendarPlus className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900 tracking-tight">Schedule Group Session</h3>
-                    <p className="text-sm font-bold text-indigo-600/80 mt-0.5 flex items-center gap-1.5">
-                      <Users className="h-3.5 w-3.5" /> Auto-generate Zoom for '{activeBatch?.name}'
-                    </p>
-                  </div>
-                </div>
-                <button onClick={() => setShowScheduleModal(false)} className="p-2 rounded-full text-gray-400 hover:bg-black/5 hover:text-gray-700 transition-all bg-white border border-gray-100 shadow-sm">
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
+                <div className="absolute inset-0 z-50 flex items-center justify-center bg-gray-900/60 backdrop-blur-md transition-all duration-300">
+                    <div className="w-full max-w-lg rounded-3xl bg-white/90 shadow-2xl overflow-hidden border border-white/40 ring-1 ring-black/5 animate-in fade-in zoom-in-95 duration-300 backdrop-blur-xl">
 
-            {/* Modal Body */}
-            <div className="p-6 space-y-5 bg-white/50">
-              
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100/50 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
-                  <div className="h-12 w-12 shrink-0 flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-xl shadow-inner">
-                      <Video className="h-6 w-6" />
-                  </div>
-                  <div className="flex flex-col">
-                      <span className="font-bold text-sm text-blue-900">Zoom API Integration active</span>
-                      <span className="text-xs text-blue-700/80 mt-0.5 leading-relaxed">This meeting will be generated instantly and added to the batch dashboard.</span>
-                  </div>
-              </div>
+                        {/* Modal Header */}
+                        <div className="relative flex flex-col p-6 bg-gradient-to-br from-indigo-50 via-white to-indigo-50/30 border-b border-indigo-100/50">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-400 via-blue-400 to-indigo-500"></div>
+                            <div className="flex items-start justify-between">
+                                <div className="flex gap-4 items-center">
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-600 shadow-inner">
+                                        <CalendarPlus className="h-6 w-6" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-gray-900 tracking-tight">Schedule Group Session</h3>
+                                        <p className="text-sm font-bold text-indigo-600/80 mt-0.5 flex items-center gap-1.5">
+                                            <Users className="h-3.5 w-3.5" /> Auto-generate Zoom for '{activeBatch?.name}'
+                                        </p>
+                                    </div>
+                                </div>
+                                <button onClick={() => setShowScheduleModal(false)} className="p-2 rounded-full text-gray-400 hover:bg-black/5 hover:text-gray-700 transition-all bg-white border border-gray-100 shadow-sm">
+                                    <X className="h-4 w-4" />
+                                </button>
+                            </div>
+                        </div>
 
-              <div className="group">
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-indigo-500 transition-colors">Topic</label>
-                  <div className="relative">
-                    <input value={meetingTopic} onChange={(e) => setMeetingTopic(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-bold text-gray-900 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all" placeholder={`e.g. Day 1: ${activeBatch?.name}`} type="text" />
-                  </div>
-              </div>
+                        {/* Modal Body */}
+                        <div className="p-6 space-y-5 bg-white/50">
 
-              <div className="grid grid-cols-2 gap-5">
-                  <div className="group">
-                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-indigo-500 transition-colors">Start Date</label>
-                      <input value={meetingDate} onChange={(e) => setMeetingDate(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all" type="date" />
-                  </div>
-                  <div className="group">
-                      <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-indigo-500 transition-colors">Start Time</label>
-                      <input value={meetingTime} onChange={(e) => setMeetingTime(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-bold text-gray-900 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all" type="time" />
-                  </div>
-              </div>
+                            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100/50 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
+                                <div className="h-12 w-12 shrink-0 flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-xl shadow-inner">
+                                    <Video className="h-6 w-6" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="font-bold text-sm text-blue-900">Zoom API Integration active</span>
+                                    <span className="text-xs text-blue-700/80 mt-0.5 leading-relaxed">This meeting will be generated instantly and added to the batch dashboard.</span>
+                                </div>
+                            </div>
 
-              <div className="group">
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-indigo-500 transition-colors">Duration</label>
-                  <div className="relative">
-                    <select value={meetingDuration} onChange={(e) => setMeetingDuration(e.target.value)} className="w-full appearance-none rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all">
-                        <option value="30">30 Minutes</option>
-                        <option value="45">45 Minutes</option>
-                        <option value="60">1 Hour</option>
-                        <option value="90">1.5 Hours</option>
-                        <option value="120">2 Hours</option>
-                    </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-clock"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            <div className="group">
+                                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-indigo-500 transition-colors">Topic</label>
+                                <div className="relative">
+                                    <input value={meetingTopic} onChange={(e) => setMeetingTopic(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-bold text-gray-900 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all" placeholder={`e.g. Day 1: ${activeBatch?.name}`} type="text" />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-5">
+                                <div className="group">
+                                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-indigo-500 transition-colors">Start Date</label>
+                                    <input value={meetingDate} onChange={(e) => setMeetingDate(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all" type="date" />
+                                </div>
+                                <div className="group">
+                                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-indigo-500 transition-colors">Start Time</label>
+                                    <input value={meetingTime} onChange={(e) => setMeetingTime(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-bold text-gray-900 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all" type="time" />
+                                </div>
+                            </div>
+
+                            <div className="group">
+                                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-indigo-500 transition-colors">Duration</label>
+                                <div className="relative">
+                                    <select value={meetingDuration} onChange={(e) => setMeetingDuration(e.target.value)} className="w-full appearance-none rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all">
+                                        <option value="30">30 Minutes</option>
+                                        <option value="45">45 Minutes</option>
+                                        <option value="60">1 Hour</option>
+                                        <option value="90">1.5 Hours</option>
+                                        <option value="120">2 Hours</option>
+                                    </select>
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-clock"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="flex gap-3 justify-end items-center bg-gray-50/80 p-6 border-t border-gray-100">
+                            <button onClick={() => setShowScheduleModal(false)} className="px-5 py-2.5 font-bold text-gray-500 hover:text-gray-900 hover:bg-gray-200/50 rounded-xl transition-all text-sm">Cancel</button>
+                            <button onClick={handleScheduleMeeting} disabled={isScheduling} className="relative flex items-center gap-2 px-6 py-2.5 font-bold text-white bg-gradient-to-r from-indigo-500 to-blue-600 rounded-xl transition-all shadow-[0_4px_14px_0_rgba(79,70,229,0.39)] hover:shadow-[0_6px_20px_rgba(79,70,229,0.23)] hover:scale-[1.02] disabled:opacity-70 disabled:hover:scale-100 disabled:cursor-not-allowed text-sm active:scale-95">
+                                {isScheduling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
+                                Schedule on Zoom
+                            </button>
+                        </div>
+
                     </div>
-                  </div>
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="flex gap-3 justify-end items-center bg-gray-50/80 p-6 border-t border-gray-100">
-                <button onClick={() => setShowScheduleModal(false)} className="px-5 py-2.5 font-bold text-gray-500 hover:text-gray-900 hover:bg-gray-200/50 rounded-xl transition-all text-sm">Cancel</button>
-                <button onClick={handleScheduleMeeting} disabled={isScheduling} className="relative flex items-center gap-2 px-6 py-2.5 font-bold text-white bg-gradient-to-r from-indigo-500 to-blue-600 rounded-xl transition-all shadow-[0_4px_14px_0_rgba(79,70,229,0.39)] hover:shadow-[0_6px_20px_rgba(79,70,229,0.23)] hover:scale-[1.02] disabled:opacity-70 disabled:hover:scale-100 disabled:cursor-not-allowed text-sm active:scale-95">
-                    {isScheduling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
-                    Schedule on Zoom
-                </button>
-            </div>
-            
-          </div>
-        </div>
-      )}
+                </div>
+            )}
         </div>
     );
 }

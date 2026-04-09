@@ -2,37 +2,22 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { ChatWindow } from '@/components/chat';
-import { searchStudents, getOrCreateSharedChat } from '@/lib/actions/chat';
+import { getOrCreateSharedChat } from '@/lib/actions/chat';
 import { uploadResource, getStudentResources } from '@/lib/actions/resources';
 import { getInstructorUpcomingMeetings } from '@/lib/actions/meetings';
 import { createClient } from '@/lib/supabase/client';
 import {
   Search,
   Calendar,
-  Clock,
-  Video,
-  ArrowUpRight,
   FolderOpen,
   Plus,
   FileText,
-  PlayCircle,
   Download,
   MessageSquare,
   Loader2,
-  Users,
   Image as ImageIcon,
   X,
-  User,
-  Sparkles,
-  ChevronRight,
-  ChevronLeft,
-  ChevronDown,
-  Activity,
-  History,
-  Zap,
-  LayoutDashboard,
-  Heart
-} from 'lucide-react';
+  Zap} from 'lucide-react';
 import type { Profile, StudentResource, MeetingWithDetails } from '@/types/database';
 
 import { getJourneyLogs, type JourneyLog } from '@/lib/actions/journey';
