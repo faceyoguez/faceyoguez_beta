@@ -25,6 +25,8 @@ import { ImageComparison } from '@/components/ui/image-comparison-slider';
 import { JOURNEY_MAX_DAY } from '@/components/ui/journey-progress';
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MessageSquare } from 'lucide-react';
 
 export function InstructorGroupClient({ currentUser, initialBatches, initialBatchResources, instructors, waitingQueue }: any) {
    const [isCreateBatchOpen, setIsCreateBatchOpen] = useState(false);
@@ -49,6 +51,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
 
    // Recordings State
    const [recordings, setRecordings] = useState<RecordedSession[]>([]);
+   const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
 
    // Create Batch Form
    const [formData, setFormData] = useState<Partial<CreateBatchInput>>({
@@ -204,8 +207,8 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
          <div className="relative z-10 flex flex-col h-full overflow-hidden">
 
             {/* Header (Title + Search + Create) */}
-            <header className="shrink-0 h-24 px-12 flex items-center justify-between border-b border-[#FF8A75]/10 bg-white/40 backdrop-blur-3xl">
-               <div className="flex items-center gap-6">
+            <header className="shrink-0 h-24 px-6 lg:px-12 flex items-center justify-between border-b border-[#FF8A75]/10 bg-white/40 backdrop-blur-3xl">
+               <div className="flex items-center gap-4 lg:gap-6">
                   <div className="h-10 w-1.5 bg-[#FF8A75] rounded-full shadow-[0_0_12px_#FF8A75]" />
                   <div>
                      <h1 className="text-3xl font-serif tracking-tight text-[#1a1a1a]">Collective Sanctuary</h1>
@@ -213,8 +216,8 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                   </div>
                </div>
 
-               <div className="flex items-center gap-8">
-                  <div className="relative group w-80">
+               <div className="flex items-center gap-4 lg:gap-8">
+                  <div className="relative group w-40 lg:w-80">
                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-[#FF8A75] transition-colors" />
                      <input
                         type="text"
@@ -236,8 +239,8 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
             <main className="flex-1 flex flex-col overflow-hidden">
 
                {/* 🗺️ Collective Compass Row (Active Batches) */}
-               <div className="shrink-0 h-20 px-12 bg-white/20 backdrop-blur-md border-b border-[#FF8A75]/5 flex items-center z-50">
-                  <span className="text-[9px] font-black uppercase tracking-[0.4em] text-[#FF8A75] shrink-0 mr-10">Compass Nodes:</span>
+               <div className="shrink-0 h-20 px-6 lg:px-12 bg-white/20 backdrop-blur-md border-b border-[#FF8A75]/5 flex items-center z-50">
+                  <span className="hidden lg:block text-[9px] font-black uppercase tracking-[0.4em] text-[#FF8A75] shrink-0 mr-10">Compass Nodes:</span>
                   <div className="flex items-center gap-4 overflow-x-auto no-scrollbar py-2">
                      {filteredBatches.map((batch: any) => {
                         const isSelected = selectedBatch?.id === batch.id;
@@ -265,15 +268,15 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                   </div>
                </div>
 
-               <div className="flex-1 flex overflow-hidden p-12 pt-10 gap-12">
+               <div className="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden p-6 lg:p-12 pt-6 lg:pt-10 gap-8 lg:gap-12 custom-scrollbar lg:no-scrollbar relative">
 
                   {/* LEFT MAJOR PANE (Master - 65%) */}
-                  <div className="flex-[0.65] flex flex-col gap-12 min-w-0">
+                  <div className="w-full lg:flex-[0.65] flex flex-col gap-8 lg:gap-12 min-w-0">
 
                      {/* 1. Meeting Portal (Full Width Action Tile) */}
-                     <div className="shrink-0 w-full rounded-[3.5rem] bg-white border border-[#FF8A75]/10 shadow-2xl shadow-[#FF8A75]/5 relative overflow-hidden group p-7 px-10">
+                     <div className="shrink-0 w-full rounded-[2.5rem] lg:rounded-[3.5rem] bg-white border border-[#FF8A75]/10 shadow-2xl shadow-[#FF8A75]/5 relative overflow-hidden group p-6 lg:p-7 lg:px-10">
                         <div className="absolute top-0 right-0 w-1/2 h-full bg-[radial-gradient(circle_at_top_right,rgba(255,138,117,0.15),transparent_70%)] blur-3xl" />
-                        <div className="relative flex items-center justify-between">
+                        <div className="relative flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
                            <div className="flex items-center gap-8">
                               <div className="h-16 w-16 rounded-[2rem] bg-[#1a1a1a] flex items-center justify-center shadow-2xl relative group-hover:rotate-3 transition-transform duration-700">
                                  <Video className="w-7 h-7 text-[#FF8A75]" />
@@ -297,10 +300,10 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                      </div>
 
                      {/* 2. Collective Interaction (Roster | Chat Split) */}
-                     <div className="flex-1 min-h-0 flex gap-10 overflow-hidden">
+                     <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-8 lg:gap-10 overflow-visible lg:overflow-hidden">
 
                         {/* Seeker Roster (Plain Vertical List) */}
-                        <div className="w-[30%] flex flex-col h-full min-h-0">
+                        <div className="w-full lg:w-[30%] flex flex-col min-h-[300px] lg:min-h-0 lg:h-full">
                            <div className="flex items-center justify-between mb-6 px-4">
                               <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75]">Seeker Roster</h3>
                               <span className="px-3 py-1 rounded-full bg-[#FF8A75]/5 text-[10px] font-black text-[#FF8A75] border border-[#FF8A75]/10">{activeStudents.length}</span>
@@ -337,7 +340,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                         </div>
 
                         {/* Communion Pulse (Chat - Compact Middle) */}
-                        <div className="flex-1 bg-[#1a1a1a] rounded-[4.5rem] p-10 flex flex-col h-full relative shadow-2xl shadow-slate-900/40">
+                        <div className="hidden lg:flex flex-1 bg-[#1a1a1a] rounded-[4.5rem] p-10 flex-col h-full relative shadow-2xl shadow-slate-900/40">
                            <div className="flex items-center justify-between mb-8 shrink-0">
                               <div className="flex items-center gap-5">
                                  <div className="space-y-1">
@@ -446,10 +449,10 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                   </div>
 
                   {/* RIGHT MAJOR PANE (Focus - 35%) */}
-                  <div className="flex-[0.35] flex flex-col gap-12 min-h-0 min-w-0">
+                  <div className="w-full lg:flex-[0.35] flex flex-col gap-8 lg:gap-12 min-h-0 min-w-0 pb-24 lg:pb-0">
 
                      {/* Seeker Focus (Transformation Mirror) */}
-                     <div className="bg-white rounded-[4.5rem] p-10 shadow-2xl shadow-[#FF8A75]/5 border border-[#FF8A75]/10 relative overflow-hidden flex flex-col gap-8 shrink-0 h-[480px]">
+                     <div className="bg-white rounded-[3rem] lg:rounded-[4.5rem] p-6 lg:p-10 shadow-2xl shadow-[#FF8A75]/5 border border-[#FF8A75]/10 relative overflow-hidden flex flex-col gap-8 shrink-0 min-h-[400px] lg:h-[480px]">
                         <div className="flex items-center justify-between relative z-10">
                            <div className="space-y-1">
                               <h3 className="text-2xl font-serif text-slate-900 tracking-tight">{selectedStudent?.full_name || 'Identity Mirror'}</h3>
@@ -518,13 +521,13 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
 
          {/* Create Batch Modal */}
          {isCreateBatchOpen && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-[#1a1a1a]/30 backdrop-blur-3xl animate-in zoom-in-95 duration-500">
-               <div className="w-full max-w-lg bg-[#FFFAF7] rounded-[4rem] p-16 relative overflow-hidden shadow-2xl shadow-black/20 text-center border border-white/50">
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 lg:p-8 bg-[#1a1a1a]/30 backdrop-blur-3xl animate-in zoom-in-95 duration-500">
+               <div className="w-full max-w-lg bg-[#FFFAF7] rounded-[3rem] lg:rounded-[4rem] p-8 lg:p-16 relative overflow-y-auto max-h-screen shadow-2xl shadow-black/20 text-center border border-white/50">
                   <div className="absolute top-0 right-0 w-40 h-40 bg-[#FF8A75]/10 rounded-full blur-3xl -translate-y-20 translate-x-20" />
 
-                  <button onClick={() => setIsCreateBatchOpen(false)} className="absolute top-12 right-12 text-[#1a1a1a]/20 hover:text-[#FF8A75] transition-colors"><X className="w-8 h-8" /></button>
-                  <h3 className="text-4xl font-serif text-slate-900 mb-2">Manifest Path</h3>
-                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75] mb-12">New Collective Node Calibration</p>
+                  <button onClick={() => setIsCreateBatchOpen(false)} className="absolute top-6 right-6 lg:top-12 lg:right-12 text-[#1a1a1a]/20 hover:text-[#FF8A75] transition-colors"><X className="w-6 h-6 lg:w-8 lg:h-8" /></button>
+                  <h3 className="text-3xl lg:text-4xl font-serif text-slate-900 mb-2">Manifest Path</h3>
+                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75] mb-8 lg:mb-12">New Collective Node Calibration</p>
 
                   <div className="space-y-6 relative z-10">
                      <div className="space-y-2 text-left">
@@ -534,18 +537,18 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                            placeholder="e.g., Spring Equinox Sanctuary"
                            value={formData.name}
                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                           className="h-18 w-full px-8 rounded-3xl bg-white border border-[#FF8A75]/10 text-base font-bold text-slate-900 focus:ring-8 focus:ring-[#FF8A75]/5 outline-none transition-all"
+                           className="h-16 lg:h-18 w-full px-6 lg:px-8 rounded-3xl bg-white border border-[#FF8A75]/10 text-base font-bold text-slate-900 focus:ring-8 focus:ring-[#FF8A75]/5 outline-none transition-all"
                         />
                      </div>
 
-                     <div className="grid grid-cols-2 gap-6">
+                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
                         <div className="space-y-2 text-left">
                            <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[#FF8A75] ml-4">Cycle Start</label>
                            <input
                               type="date"
                               value={formData.startDate}
                               onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                              className="h-18 w-full px-8 rounded-3xl bg-white border border-[#FF8A75]/10 text-base font-bold text-slate-900 focus:ring-8 focus:ring-[#FF8A75]/5 outline-none transition-all"
+                              className="h-16 lg:h-18 w-full px-6 lg:px-8 rounded-3xl bg-white border border-[#FF8A75]/10 text-base font-bold text-slate-900 focus:ring-8 focus:ring-[#FF8A75]/5 outline-none transition-all"
                            />
                         </div>
                         <div className="space-y-2 text-left">
@@ -554,7 +557,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                               type="date"
                               value={formData.endDate}
                               onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                              className="h-18 w-full px-8 rounded-3xl bg-white border border-[#FF8A75]/10 text-base font-bold text-slate-900 focus:ring-8 focus:ring-[#FF8A75]/5 outline-none transition-all"
+                              className="h-16 lg:h-18 w-full px-6 lg:px-8 rounded-3xl bg-white border border-[#FF8A75]/10 text-base font-bold text-slate-900 focus:ring-8 focus:ring-[#FF8A75]/5 outline-none transition-all"
                            />
                         </div>
                      </div>
@@ -562,7 +565,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                      <button
                         onClick={handleCreateBatch}
                         className={cn(
-                           "w-full h-20 mt-8 rounded-[2.5rem] bg-[#1a1a1a] text-white text-[12px] font-black uppercase tracking-[0.3em] hover:bg-[#FF8A75] shadow-2xl transition-all flex items-center justify-center gap-4 group/submit",
+                           "w-full h-16 lg:h-20 mt-4 lg:mt-8 rounded-[2.5rem] bg-[#1a1a1a] text-white text-[10px] lg:text-[12px] font-black uppercase tracking-[0.3em] hover:bg-[#FF8A75] shadow-2xl transition-all flex items-center justify-center gap-4 group/submit",
                            isPending && "opacity-50 pointer-events-none"
                         )}
                      >
@@ -577,6 +580,113 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                </div>
             </div>
          )}
+
+         {/* MOBILE FAB FOR CHAT */}
+         <button 
+            onClick={() => setIsMobileChatOpen(true)}
+            className="lg:hidden fixed bottom-6 right-6 h-16 w-16 rounded-[2rem] bg-black text-[#FF8A75] flex items-center justify-center shadow-2xl z-40 border border-white/10 hover:scale-105 transition-transform"
+         >
+            <MessageSquare className="w-6 h-6" />
+            {selectedBatch?.is_chat_enabled && (
+               <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 border-2 border-black"></span>
+               </span>
+            )}
+         </button>
+
+      {/* MOBILE CHAT OVERLAY */}
+         <AnimatePresence>
+            {isMobileChatOpen && (
+               <>
+                  <motion.div 
+                     initial={{ opacity: 0 }}
+                     animate={{ opacity: 1 }}
+                     exit={{ opacity: 0 }}
+                     className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] lg:hidden"
+                     onClick={() => setIsMobileChatOpen(false)}
+                  />
+                  <motion.div 
+                     initial={{ y: "100%" }}
+                     animate={{ y: 0 }}
+                     exit={{ y: "100%" }}
+                     transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                     className="fixed inset-x-0 bottom-0 top-[10%] z-[100] bg-black flex flex-col lg:hidden rounded-t-[2rem] border-t border-white/10 shadow-2xl overflow-hidden"
+                  >
+                     <div className="flex items-center justify-between p-6 border-b border-white/10 shrink-0">
+                        <div className="space-y-1">
+                           <h3 className="text-xl font-serif text-white tracking-tight flex items-center gap-3">
+                              Communion Pulse <span className="flex h-2 w-2 relative rounded-full bg-emerald-500"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span></span>
+                           </h3>
+                           <p className="text-[8px] font-black uppercase tracking-[0.3em] text-[#FF8A75] opacity-80">Spectrum Feed Active</p>
+                        </div>
+                        <button onClick={() => setIsMobileChatOpen(false)} className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 hover:scale-110 active:scale-95 transition-all shadow-lg border border-white/10">
+                           <X className="w-5 h-5" />
+                        </button>
+                     </div>
+                  
+                  {/* Messages Area */}
+                  <div className="flex-1 space-y-5 overflow-y-auto custom-scrollbar p-6">
+                     {messages.map((msg) => {
+                        const isMe = msg.sender_id === currentUser.id;
+                        const sender = msg.sender || {};
+                        const roles: Record<string, string> = { admin: 'Admin', instructor: 'Instructor', staff: 'Staff', client_management: 'Staff' };
+                        const roleLabel = roles[sender.role] || (msg.sender_id === selectedBatch?.instructor_id ? 'Instructor' : null);
+
+                        return (
+                           <div key={msg.id} className={cn("flex flex-col gap-2", isMe ? "items-end" : "items-start")}>
+                              {!isMe && (
+                                 <div className="flex flex-col ml-4">
+                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#FF8A75] leading-none mb-1">{sender?.full_name}</span>
+                                    {roleLabel && <span className="text-[7px] font-black uppercase tracking-[0.1em] text-[#FF8A75]/40 leading-none">{roleLabel}</span>}
+                                 </div>
+                              )}
+                              <div className={cn(
+                                 "px-5 py-3 rounded-[2rem] text-[13px] font-medium max-w-[85%] leading-relaxed shadow-lg",
+                                 isMe
+                                    ? "bg-[#FF8A75] text-white rounded-tr-none shadow-[#FF8A75]/20"
+                                    : "bg-white/5 text-white/90 border border-white/5 rounded-tl-none backdrop-blur-xl"
+                              )}>
+                                 {msg.content}
+                              </div>
+                           </div>
+                        );
+                     })}
+                  </div>
+
+                  {/* Input Area */}
+                  <div className="relative p-6 bg-black/50 backdrop-blur-xl border-t border-white/10 shrink-0 mb-4 focus-within:mb-0 transition-all">
+                     <input
+                        type="text"
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && selectedBatch?.is_chat_enabled && handleSendMessage()}
+                        placeholder={selectedBatch?.is_chat_enabled ? "Enter resonance..." : "Node restricted"}
+                        disabled={!selectedBatch?.is_chat_enabled}
+                        className={cn(
+                           "w-full h-14 rounded-[2rem] border-none pl-6 pr-14 text-sm font-medium transition-all outline-none",
+                           selectedBatch?.is_chat_enabled
+                              ? "bg-white/10 text-white placeholder:text-white/20 focus:bg-white/15 focus:ring-4 focus:ring-[#FF8A75]/10"
+                              : "bg-white/[0.02] text-white/10 placeholder:text-white/5 cursor-not-allowed"
+                        )}
+                     />
+                     <button
+                        onClick={handleSendMessage}
+                        disabled={!selectedBatch?.is_chat_enabled}
+                        className={cn(
+                           "absolute right-8 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full text-white flex items-center justify-center transition-all transform active:scale-90",
+                           selectedBatch?.is_chat_enabled
+                              ? "bg-[#FF8A75] hover:bg-[#FF6B4E] shadow-xl shadow-[#FF8A75]/40"
+                              : "bg-white/5 text-white/10 cursor-not-allowed"
+                        )}
+                     >
+                        <Send className="w-4 h-4" />
+                     </button>
+                  </div>
+               </motion.div>
+               </>
+            )}
+         </AnimatePresence>
 
          <style jsx global>{`
            .no-scrollbar::-webkit-scrollbar { display: none; }

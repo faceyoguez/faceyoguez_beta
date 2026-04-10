@@ -15,7 +15,8 @@ import {
   AlertTriangle,
   X,
   TrendingUp,
-  Radio
+  Radio,
+  BookOpen
 } from 'lucide-react';
 import { format, addMinutes, isAfter } from 'date-fns';
 import Link from 'next/link';
