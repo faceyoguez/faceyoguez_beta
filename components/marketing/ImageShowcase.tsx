@@ -74,10 +74,10 @@ export function ImageShowcase() {
         style={{ height: '85vh' }}
       >
         <img
-          src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=1800&q=80"
+          src="/assets/instructor_img.jpg"
           alt="Face yoga practice"
           className="w-full h-[120%] object-cover will-change-transform"
-          style={{ marginTop: '-10%' }}
+          style={{ objectPosition: 'center 5%' }}
         />
         {/* Dark gradient overlay */}
         <div

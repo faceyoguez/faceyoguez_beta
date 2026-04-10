@@ -1,10 +1,13 @@
 'use client';
 
-import { useRef } from 'react';
+import { useState, useRef } from 'react';
 import Link from 'next/link';
-import { motion, useInView } from 'framer-motion';
+import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { User, Users, BookOpen, Sparkles, ArrowRight } from 'lucide-react';
 import { trackConversionEvent } from '@/lib/conversionTracking';
+import { PersonalPlanModal } from './PersonalPlanModal';
+import { GroupPlanModal } from './GroupPlanModal';
+import { VideoCourseModal } from './VideoCourseModal';
 
 const PLANS_PREVIEW = [
   {
@@ -38,6 +41,9 @@ const PLANS_PREVIEW = [
 ];
 
 export function Plans() {
+  const [showPersonalModal, setShowPersonalModal] = useState(false);
+  const [showGroupModal, setShowGroupModal] = useState(false);
+  const [showVideoModal, setShowVideoModal] = useState(false);
   const containerRef = useRef(null);
   const isInView = useInView(containerRef, { once: true, amount: 0.2 });
 
@@ -104,7 +110,14 @@ export function Plans() {
               key={plan.id}
               variants={itemVariants}
               whileHover={{ scale: 1.02 }}
-              className={`group p-8 md:p-10 rounded-[3rem] transition-colors duration-500 relative ${
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (plan.id === 'one_on_one') setShowPersonalModal(true);
+                if (plan.id === 'group_session') setShowGroupModal(true);
+                if (plan.id === 'lms') setShowVideoModal(true);
+              }}
+              className={`group p-8 md:p-10 rounded-[3rem] transition-colors duration-500 relative cursor-pointer ${
                 plan.popular ? 'bg-white shadow-[0_32px_64px_rgba(44,37,37,0.04)]' : 'bg-[#fcf8f7]/60 border border-[#2c2525]/5'
               }`}
             >
@@ -182,6 +195,19 @@ export function Plans() {
           </p>
         </motion.div>
       </div>
+
+      <PersonalPlanModal 
+        isOpen={showPersonalModal} 
+        onClose={() => setShowPersonalModal(false)} 
+      />
+      <GroupPlanModal 
+        isOpen={showGroupModal} 
+        onClose={() => setShowGroupModal(false)} 
+      />
+      <VideoCourseModal 
+        isOpen={showVideoModal} 
+        onClose={() => setShowVideoModal(false)} 
+      />
     </section>
   );
 }

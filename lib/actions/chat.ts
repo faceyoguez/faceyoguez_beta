@@ -327,6 +327,13 @@ export async function getOrCreateSharedChat(studentId: string, assignedInstructo
 
   const admin = createAdminClient();
 
+  // 0. Fetch all oversight members (Master Instructors, Staff, Admins)
+  const { data: oversightMembers } = await admin
+    .from('profiles')
+    .select('id')
+    .or('role.eq.admin,role.eq.staff,role.eq.client_management,is_master_instructor.eq.true');
+  const oversightIds = oversightMembers?.map(m => m.id) || [];
+
   // 1. Find a direct conversation where the student is a participant.
   const { data: studentParts } = await admin
     .from('conversation_participants')
@@ -350,7 +357,7 @@ export async function getOrCreateSharedChat(studentId: string, assignedInstructo
     }
   }
 
-  // 2. No shared conversation yet — create one with all relevant participants.
+  // 2. No shared conversation yet — create one.
   if (!sharedConvId) {
     let targetInstructorId = assignedInstructorId;
     if (!targetInstructorId) {
@@ -367,27 +374,33 @@ export async function getOrCreateSharedChat(studentId: string, assignedInstructo
     if (convError) throw convError;
     sharedConvId = newConv.id;
 
-    const participantRows: { conversation_id: string; user_id: string }[] = [
-      { conversation_id: newConv.id, user_id: studentId },
-      { conversation_id: newConv.id, user_id: targetInstructorId! },
-    ];
+    // Initial participants
+    const participantSet = new Set([studentId, targetInstructorId, ...oversightIds, user.id]);
+    const participantRows = Array.from(participantSet).map(uid => ({
+      conversation_id: sharedConvId as string,
+      user_id: uid,
+    }));
+
     await admin.from('conversation_participants').insert(participantRows);
-  }
-
-  // 3. Ensure the current staff/instructor is a participant so they can use it
-  if (sharedConvId) {
-    const { data: existing } = await admin
+  } else {
+    // 3. Conversation exists — ENSURE all oversight members are participants
+    const { data: currentParts } = await admin
       .from('conversation_participants')
-      .select('id')
-      .eq('conversation_id', sharedConvId)
-      .eq('user_id', user.id)
-      .maybeSingle();
+      .select('user_id')
+      .eq('conversation_id', sharedConvId);
 
-    if (!existing) {
-      await admin.from('conversation_participants').insert({
-        conversation_id: sharedConvId,
-        user_id: user.id,
-      });
+    const currentPartIds = new Set(currentParts?.map(p => p.user_id) || []);
+    
+    // Add missing oversight members
+    const missingIds = oversightIds.filter(id => !currentPartIds.has(id));
+    if (!currentPartIds.has(user.id)) missingIds.push(user.id);
+    
+    if (missingIds.length > 0) {
+      const newParticipantRows = Array.from(new Set(missingIds)).map(uid => ({
+        conversation_id: sharedConvId as string,
+        user_id: uid,
+      }));
+      await admin.from('conversation_participants').insert(newParticipantRows);
     }
   }
 

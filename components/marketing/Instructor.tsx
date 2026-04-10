@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 
-const INSTRUCTOR_IMAGE =
-  'https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?w=600&h=600&fit=crop&crop=face&q=90';
+const INSTRUCTOR_IMAGE = '/assets/instructor_img.jpg';
 
 function useInView(threshold = 0.1) {
   const ref = useRef<HTMLElement>(null);
@@ -100,7 +99,7 @@ export function Instructor() {
           }}>
             <img
               src={INSTRUCTOR_IMAGE} alt="Harsimrat"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 5%', display: 'block' }}
             />
           </div>
 

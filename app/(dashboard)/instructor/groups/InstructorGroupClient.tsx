@@ -379,11 +379,25 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                            </div>
 
                            <div ref={chatContainerRef} className="flex-1 space-y-5 overflow-y-auto mb-8 custom-scrollbar pr-3">
-                              {messages.map((msg) => {
-                                 const isMe = msg.sender_id === currentUser.id;
-                                 return (
-                                    <div key={msg.id} className={cn("flex flex-col gap-2", isMe ? "items-end" : "items-start")}>
-                                       {!isMe && <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[#FF8A75] opacity-60 ml-4">{msg.sender?.full_name}</span>}
+                               {messages.map((msg) => {
+                                  const isMe = msg.sender_id === currentUser.id;
+                                  const sender = msg.sender || {};
+                                  const roles: Record<string, string> = {
+                                     admin: 'Admin',
+                                     instructor: 'Instructor',
+                                     staff: 'Staff',
+                                     client_management: 'Staff'
+                                  };
+                                  const roleLabel = roles[sender.role] || (msg.sender_id === selectedBatch?.instructor_id ? 'Instructor' : null);
+
+                                  return (
+                                     <div key={msg.id} className={cn("flex flex-col gap-2", isMe ? "items-end" : "items-start")}>
+                                        {!isMe && (
+                                           <div className="flex flex-col ml-4">
+                                              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#FF8A75] leading-none mb-1">{sender?.full_name}</span>
+                                              {roleLabel && <span className="text-[7px] font-black uppercase tracking-[0.1em] text-[#FF8A75]/40 leading-none">{roleLabel}</span>}
+                                           </div>
+                                        )}
                                        <div className={cn(
                                           "px-6 py-4 rounded-[2.5rem] text-[13px] font-medium max-w-[85%] leading-relaxed shadow-lg",
                                           isMe

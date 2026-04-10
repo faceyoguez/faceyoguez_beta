@@ -1,40 +1,98 @@
 'use client';
 
-import React, { Suspense, useEffect } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { 
     CheckCircle2, Sparkles, Heart, 
     ArrowRight, BookOpen, Users, 
     Star, Calendar, ShoppingBag,
-    ChevronRight, Download, Share2
+    Loader2, Copy, Check
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 function PurchaseSuccessContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     
     const planId = searchParams.get('planId') || 'group_session';
-    const tierId = searchParams.get('tierId') || '1_month_12d';
+    const tierId = searchParams.get('tierId') || '';
     const totalAmount = searchParams.get('amount') || '0';
-    const includesBumps = searchParams.get('bumps')?.split(',') || [];
+    const includesBumps = searchParams.get('bumps')?.split(',').filter(Boolean) || [];
+    const subscriptionId = searchParams.get('subscriptionId') || '';
+    const paymentId = searchParams.get('paymentId') || '';
 
+    const [copied, setCopied] = useState(false);
+    const [verificationStatus, setVerificationStatus] = useState<'checking' | 'verified' | 'fallback'>('checking');
+
+    // Verify subscription actually exists in DB (guards against direct URL access)
     useEffect(() => {
+        async function verifySubscription() {
+            if (!subscriptionId) {
+                // No subscriptionId = likely direct URL access without payment
+                // Show content anyway since we can't re-verify without the ID
+                setVerificationStatus('fallback');
+                return;
+            }
+            try {
+                const res = await fetch(`/api/razorpay/subscription-status?id=${subscriptionId}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setVerificationStatus(data.exists ? 'verified' : 'fallback');
+                } else {
+                    setVerificationStatus('fallback');
+                }
+            } catch {
+                setVerificationStatus('fallback');
+            }
+        }
+        verifySubscription();
+    }, [subscriptionId]);
+
+    // Track purchase completion
+    useEffect(() => {
+        if (!paymentId) return; // Only track real purchases
         import('@/lib/conversionTracking').then(({ trackConversionEvent }) => {
             trackConversionEvent({
                 event_type: 'payment_complete',
                 plan_type: planId,
                 amount: parseFloat(totalAmount),
                 page_path: window.location.pathname,
-                metadata: { tierId, bumps: includesBumps }
+                metadata: { tierId, bumps: includesBumps, subscriptionId, paymentId }
             });
-        });
-    }, [planId, totalAmount, tierId, includesBumps]);
+        }).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [paymentId]);
+
+    const copyPaymentId = async () => {
+        if (!paymentId) return;
+        await navigator.clipboard.writeText(paymentId);
+        setCopied(true);
+        toast.success('Payment ID copied!');
+        setTimeout(() => setCopied(false), 2000);
+    };
 
     const getPlanIcon = (id: string) => {
         if (id === 'one_on_one') return <Star className="w-6 h-6" />;
         if (id === 'lms') return <BookOpen className="w-6 h-6" />;
         return <Users className="w-6 h-6" />;
     };
+
+    const getPlanLabel = (id: string) => {
+        if (id === 'one_on_one') return '1-on-1 Personal Plan';
+        if (id === 'lms') return 'Self-Paced Video Course';
+        return '21-Day Group Transformation';
+    };
+
+    if (verificationStatus === 'checking') {
+        return (
+            <div className="min-h-screen bg-[#FFFAF7]/40 flex items-center justify-center">
+                <div className="text-center space-y-4">
+                    <Loader2 className="w-10 h-10 animate-spin text-[#FF8A75] mx-auto" />
+                    <p className="text-sm font-semibold text-[#6B7280]">Confirming your purchase…</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-[#FFFAF7]/40 flex items-center justify-center p-6 font-sans selection:bg-[#FF8A75]/20">
@@ -70,7 +128,7 @@ function PurchaseSuccessContent() {
                                 {getPlanIcon(planId)}
                             </div>
                             <div className="flex-1">
-                                <h4 className="text-xs font-black uppercase tracking-widest text-[#1a1a1a]">{planId.replace(/_/g, ' ')}</h4>
+                                <h4 className="text-xs font-black uppercase tracking-widest text-[#1a1a1a]">{getPlanLabel(planId)}</h4>
                                 <p className="text-[10px] font-medium text-[#6B7280]">{tierId.replace(/_/g, ' ')}</p>
                             </div>
                             <div className="p-2 rounded-full bg-emerald-50 text-emerald-500">
@@ -79,7 +137,7 @@ function PurchaseSuccessContent() {
                         </div>
 
                         {/* Bumps */}
-                        {includesBumps.length > 0 && (
+                        {includesBumps.length > 0 && includesBumps[0] !== '' && (
                             <div className="space-y-4">
                                 <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#6B7280]">Added Upgrades</h5>
                                 <div className="space-y-3">
@@ -93,6 +151,24 @@ function PurchaseSuccessContent() {
                                         </div>
                                     ))}
                                 </div>
+                            </div>
+                        )}
+
+                        {/* Payment ID (for support reference) */}
+                        {paymentId && (
+                            <div className="p-4 rounded-2xl bg-[#f8f8f8] border border-[#FF8A75]/10 space-y-1">
+                                <p className="text-[9px] font-black uppercase tracking-widest text-[#6B7280]">Payment Reference</p>
+                                <div className="flex items-center justify-between gap-2">
+                                    <span className="text-[10px] font-mono font-bold text-[#374151] break-all">{paymentId}</span>
+                                    <button
+                                        onClick={copyPaymentId}
+                                        className="p-1.5 rounded-lg hover:bg-[#FF8A75]/10 transition-colors text-[#FF8A75] flex-shrink-0"
+                                        title="Copy Payment ID"
+                                    >
+                                        {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                                    </button>
+                                </div>
+                                <p className="text-[8px] text-[#6B7280]">Keep this for support queries</p>
                             </div>
                         )}
 
@@ -112,13 +188,19 @@ function PurchaseSuccessContent() {
 
                 {/* Next Steps */}
                 <div className="grid grid-cols-2 gap-6">
-                    <button className="flex flex-col items-center gap-3 p-6 rounded-[2.5rem] bg-white border border-[#FF8A75]/10 hover:border-[#FF8A75]/30 transition-all group">
+                    <button
+                        onClick={() => router.push('/student/group-session')}
+                        className="flex flex-col items-center gap-3 p-6 rounded-[2.5rem] bg-white border border-[#FF8A75]/10 hover:border-[#FF8A75]/30 transition-all group"
+                    >
                         <Calendar className="w-5 h-5 text-[#FF8A75] group-hover:scale-110 transition-transform" />
                         <span className="text-[9px] font-black uppercase tracking-widest text-[#1a1a1a]">Track Schedule</span>
                     </button>
-                    <button className="flex flex-col items-center gap-3 p-6 rounded-[2.5rem] bg-white border border-[#FF8A75]/10 hover:border-[#FF8A75]/30 transition-all group">
+                    <button
+                        onClick={copyPaymentId}
+                        className="flex flex-col items-center gap-3 p-6 rounded-[2.5rem] bg-white border border-[#FF8A75]/10 hover:border-[#FF8A75]/30 transition-all group"
+                    >
                         <ShoppingBag className="w-5 h-5 text-[#FF8A75] group-hover:scale-110 transition-transform" />
-                        <span className="text-[9px] font-black uppercase tracking-widest text-[#1a1a1a]">View Invoice</span>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-[#1a1a1a]">Copy Receipt ID</span>
                     </button>
                 </div>
             </div>
@@ -136,30 +218,4 @@ export default function PurchaseSuccessPage() {
             <PurchaseSuccessContent />
         </Suspense>
     );
-}
-
-function Loader2(props: any) {
-    return (
-        <svg
-            {...props}
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-        >
-            <path d="M12 2v4" />
-            <path d="m16.2 7.8 2.9-2.9" />
-            <path d="M18 12h4" />
-            <path d="m16.2 16.2 2.9 2.9" />
-            <path d="M12 18v4" />
-            <path d="m4.9 19.1 2.9-2.9" />
-            <path d="M2 12h4" />
-            <path d="m4.9 4.9 2.9 2.9" />
-        </svg>
-    )
 }

@@ -6,13 +6,11 @@ import { motion, useAnimationFrame, useMotionValue, useTransform } from 'framer-
 const NOISE_SVG = `url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E")`;
 
 const GALLERY_IMAGES = [
-  'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?w=600&h=840&fit=crop&crop=face&q=80',
-  'https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?w=600&h=840&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600&h=840&fit=crop&crop=face&q=80',
-  'https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=600&h=840&fit=crop&crop=face&q=80',
-  'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=600&h=840&fit=crop&crop=face&q=80',
-  'https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=600&h=840&fit=crop&crop=face&q=80',
-  'https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=600&h=840&fit=crop&crop=face&q=80',
+  '/assets/carousel_img_1.PNG',
+  '/assets/carousel_img_2.PNG',
+  '/assets/carousel_img_3.PNG',
+  '/assets/carousel_img_4.PNG',
+  '/assets/carousel_img_5.PNG',
 ];
 
 // Double the images for a seamless loop

@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { format, addMinutes, isAfter } from 'date-fns';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ImageComparison } from '@/components/ui/image-comparison-slider';
 import { createClient } from '@/lib/supabase/client';
@@ -63,12 +64,9 @@ export function StudentDashboardClient({
   batchIds,
   isTrial = false,
 }: StudentDashboardClientProps) {
+  const router = useRouter();
   const rawName = profile.full_name?.split(' ')[0] || 'there';
   const firstName = rawName.charAt(0).toUpperCase() + rawName.slice(1).toLowerCase();
-  const [showRenewModal, setShowRenewModal] = React.useState(false);
-  const [showFeedbackForm, setShowFeedbackForm] = React.useState(false);
-  const [feedbackState, setFeedbackState] = React.useState({ rating: 5, comments: '', improvement_suggestions: '' });
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [meetings, setMeetings] = React.useState(todaysMeetings);
   const supabase = createClient();
 
@@ -76,6 +74,7 @@ export function StudentDashboardClient({
 
   // ─── Real-Time Subscription & Expiry Logic ───
   React.useEffect(() => {
+    // Meetings channel
     const channel = supabase
       .channel('student-dashboard-meetings')
       .on(
@@ -115,31 +114,30 @@ export function StudentDashboardClient({
       )
       .subscribe();
 
-    const interval = setInterval(() => {
-      const now = new Date();
-      setMeetings(prev => prev.filter(meeting => {
-        const startTime = new Date(meeting.start_time);
-        const duration = meeting.duration_minutes || 45;
-        const endTime = addMinutes(startTime, duration);
-        return isAfter(endTime, now);
-      }));
-    }, 10000);
+    // Subscription channel for real-time reactivity
+    const subChannel = supabase
+      .channel(`student-subs-${profile.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'subscriptions',
+          filter: `student_id=eq.${profile.id}`
+        },
+        () => {
+          console.log('Subscription change detected, refreshing dashboard...');
+          router.refresh();
+        }
+      )
+      .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
-      clearInterval(interval);
+      supabase.removeChannel(subChannel);
     };
-  }, [supabase, profile.id, batchIds]);
+  }, [supabase, profile.id, batchIds, router]);
 
-  React.useEffect(() => {
-    if (daysLeft > 0 && daysLeft <= 5) {
-      const hasSeenSession = sessionStorage.getItem('hasSeenRenewModal');
-      if (!hasSeenSession) {
-        setShowRenewModal(true);
-        sessionStorage.setItem('hasSeenRenewModal', 'true');
-      }
-    }
-  }, [daysLeft]);
 
   return (
     <div className="min-h-[100dvh] lg:h-[100dvh] relative flex flex-col bg-[#FFFAF7] text-slate-900 font-sans selection:bg-[#FF8A75]/20 overflow-x-hidden lg:overflow-hidden">
@@ -316,6 +314,66 @@ export function StudentDashboardClient({
             </motion.section>
           </div>
 
+          {/* Active Offerings / Rituals Area */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+            {/* Live Group Ritual Card */}
+            {(activePlanTypes.includes('group_session') || isTrial) && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                onClick={() => router.push('/student/group-session')}
+                className="group relative p-6 lg:p-8 bg-white/60 backdrop-blur-3xl border border-[#FF8A75]/10 rounded-[2rem] lg:rounded-[3rem] hover:bg-white transition-all cursor-pointer shadow-sm hover:shadow-xl hover:shadow-[#FF8A75]/5"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="h-12 w-12 rounded-2xl bg-[#446187]/10 text-[#446187] flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Users className="w-6 h-6" />
+                  </div>
+                  <ArrowUpRight className="w-4 h-4 text-slate-300 group-hover:text-[#446187] transition-colors" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-serif text-[#1a1a1a] tracking-tight">Live Group</h3>
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#446187] mt-1">21-Day Ritual Hub</p>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Video Course Ritual Card */}
+            {activePlanTypes.includes('lms') && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                onClick={() => router.push('/student/lms')}
+                className="group relative p-6 lg:p-8 bg-white/60 backdrop-blur-3xl border border-[#FF8A75]/10 rounded-[2rem] lg:rounded-[3rem] hover:bg-white transition-all cursor-pointer shadow-sm hover:shadow-xl hover:shadow-[#FF8A75]/5"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="h-12 w-12 rounded-2xl bg-[#5a6343]/10 text-[#5a6343] flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <BookOpen className="w-6 h-6" />
+                  </div>
+                  <ArrowUpRight className="w-4 h-4 text-slate-300 group-hover:text-[#5a6343] transition-colors" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-serif text-[#1a1a1a] tracking-tight">Video Courses</h3>
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#5a6343] mt-1">Self-Paced Mastery</p>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Coming Soon / Placeholder (Level 2) - Premium Look */}
+            {!activePlanTypes.includes('level_2') && (
+              <div className="group relative p-6 lg:p-8 bg-white/40 backdrop-blur-xl border border-white/60 rounded-[2rem] lg:rounded-[3rem] opacity-60 flex flex-col justify-center">
+                <div className="h-12 w-12 rounded-2xl bg-slate-900/5 text-slate-400 flex items-center justify-center mb-4">
+                   <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-serif text-slate-400 tracking-tight">Advanced Era</h3>
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-300 mt-1">Level 2 Rituals</p>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Stats & Guidance Area */}
           <div className="shrink-0 flex flex-col sm:flex-row gap-4 lg:gap-8 items-stretch sm:items-center">
 
@@ -374,137 +432,6 @@ export function StudentDashboardClient({
         </main>
       </div>
 
-      <AnimatePresence>
-        {(showRenewModal || showFeedbackForm) && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center sm:p-6 bg-slate-900/20 backdrop-blur-3xl"
-          >
-            <div className="absolute inset-0" onClick={() => { setShowRenewModal(false); setShowFeedbackForm(false); }} />
-            
-            {showRenewModal && !showFeedbackForm && (
-              <motion.div
-                initial={{ scale: 0.95, y: 40 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.95, y: 40 }}
-                className="relative bg-[#FFFAF7] w-full sm:max-w-md rounded-t-[3rem] sm:rounded-[3rem] lg:rounded-[4rem] border border-[#FF8A75]/10 shadow-2xl p-8 lg:p-12 overflow-hidden"
-              >
-                <div className="absolute top-0 left-0 w-full h-2 bg-[#FF8A75]" />
-                <div className="text-center space-y-6 lg:space-y-8">
-                  <div className="mx-auto w-16 h-16 lg:w-24 lg:h-24 rounded-[2rem] lg:rounded-[2.5rem] bg-white border border-[#FF8A75]/5 shadow-inner flex items-center justify-center text-[#FF8A75]">
-                    <AlertTriangle className="w-8 h-8 lg:w-10 lg:h-10" />
-                  </div>
-                  <div className="space-y-2 lg:space-y-3">
-                    <h3 className="text-2xl lg:text-3xl font-serif text-[#1a1a1a] tracking-tight">Renew Ritual</h3>
-                    <p className="text-sm text-slate-600 font-medium leading-relaxed">
-                      Your sanctuary journey is reaching its current horizon.
-                    </p>
-                  </div>
-
-                  <div className="space-y-4 pt-2 lg:pt-4">
-                    <Link href="/student/plans" className="w-full h-14 lg:h-16 bg-[#1a1a1a] text-white rounded-full text-[11px] lg:text-[12px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-[#FF8A75] transition-all shadow-xl shadow-slate-900/10 hover:scale-[1.02]">
-                      Extend Sanctuary
-                      <ArrowUpRight className="w-4 h-4 lg:w-5 lg:h-5" />
-                    </Link>
-                    <button
-                      onClick={() => { setShowRenewModal(false); setShowFeedbackForm(true); }}
-                      className="w-full text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] hover:text-[#FF8A75] transition-all py-2"
-                    >
-                      I will continue later
-                    </button>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setShowRenewModal(false)}
-                  className="absolute top-6 right-6 lg:top-10 lg:right-10 h-9 w-9 lg:h-10 lg:w-10 bg-white border border-[#FF8A75]/5 rounded-full flex items-center justify-center hover:bg-slate-50 transition-all text-slate-400 shadow-sm"
-                >
-                  <X className="w-4 h-4 lg:w-5 lg:h-5" />
-                </button>
-              </motion.div>
-            )}
-
-            {showFeedbackForm && (
-              <motion.div
-                initial={{ scale: 0.95, y: 40 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.95, y: 40 }}
-                className="relative bg-[#FFFAF7] w-full sm:max-w-xl rounded-t-[3rem] sm:rounded-[3rem] lg:rounded-[4rem] border border-[#FF8A75]/10 shadow-2xl p-8 lg:p-12 overflow-hidden max-h-[90dvh] overflow-y-auto no-scrollbar"
-              >
-                <div className="absolute top-0 left-0 w-full h-2 bg-[#FF8A75]" />
-                <div className="space-y-6 lg:space-y-8">
-                  <div className="flex items-center gap-4 lg:gap-6">
-                    <div className="h-12 w-12 lg:h-16 lg:w-16 rounded-[1.5rem] lg:rounded-[2rem] bg-white border border-[#FF8A75]/5 shadow-sm flex items-center justify-center shrink-0">
-                      <Heart className="w-6 h-6 lg:w-8 lg:h-8 text-[#FF8A75]" />
-                    </div>
-                    <div>
-                      <h3 className="text-2xl lg:text-3xl font-serif text-[#1a1a1a] tracking-tight">Sanctuary Reflection</h3>
-                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF8A75] mt-1 opacity-60">Share your journey</p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4 lg:space-y-6">
-                    <div className="space-y-3">
-                      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">How was your experience?</label>
-                      <textarea
-                        value={feedbackState.comments}
-                        onChange={(e) => setFeedbackState({ ...feedbackState, comments: e.target.value })}
-                        placeholder="Your journey is eternal, but your time here is pausing. Share your reflections so our sanctuary can blossom..."
-                        className="w-full h-28 lg:h-32 p-5 lg:p-6 rounded-[1.5rem] lg:rounded-[2rem] border border-[#FF8A75]/10 bg-white/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF8A75]/20 text-sm italic font-serif placeholder:opacity-40 resize-none"
-                      />
-                    </div>
-
-                    <div className="space-y-3">
-                       <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Suggestions for improvement?</label>
-                       <input
-                         type="text"
-                         value={feedbackState.improvement_suggestions}
-                         onChange={(e) => setFeedbackState({ ...feedbackState, improvement_suggestions: e.target.value })}
-                         className="w-full h-13 px-5 lg:px-6 py-3.5 rounded-full border border-[#FF8A75]/10 bg-white/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#FF8A75]/20 text-sm"
-                         placeholder="What could make your sanctuary even brighter?"
-                       />
-                    </div>
-
-                    <button
-                      disabled={isSubmitting || !feedbackState.comments.trim()}
-                      onClick={async () => {
-                        setIsSubmitting(true);
-                        try {
-                          await submitExitFeedback({
-                            plan_taken: activePlanTypes.join(', ') || 'General',
-                            rating: feedbackState.rating,
-                            comments: feedbackState.comments,
-                            improvement_suggestions: feedbackState.improvement_suggestions
-                          });
-                          toast.success('Your reflection has been gracefully received.');
-                          setShowFeedbackForm(false);
-                        } catch (err) {
-                          toast.error('The universe could not receive your reflection. Try again.');
-                        } finally {
-                          setIsSubmitting(false);
-                        }
-                      }}
-                      className="w-full h-14 lg:h-16 bg-[#1a1a1a] text-white rounded-full text-[11px] lg:text-[12px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-[#FF8A75] transition-all shadow-xl shadow-slate-900/10 hover:scale-[1.02] disabled:opacity-50"
-                    >
-                      {isSubmitting ? 'Sending Reflections...' : 'Submit Reflection'}
-                      <Sparkles className="w-4 h-4 lg:w-5 lg:h-5" />
-                    </button>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setShowFeedbackForm(false)}
-                  className="absolute top-6 right-6 lg:top-10 lg:right-10 h-9 w-9 lg:h-10 lg:w-10 bg-white border border-[#FF8A75]/5 rounded-full flex items-center justify-center hover:bg-slate-50 transition-all text-slate-400 shadow-sm"
-                >
-                  <X className="w-4 h-4 lg:w-5 lg:h-5" />
-                </button>
-              </motion.div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }

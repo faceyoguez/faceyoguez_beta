@@ -5,10 +5,10 @@ import { useState, useEffect, useRef } from 'react';
 const NOISE_SVG = `url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E")`;
 
 const PRELOADER_IMAGES = [
-  '/assets/hero.jpg',
-  'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=350&h=500&fit=crop&crop=face&q=80',
-  'https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?w=350&h=500&fit=crop&crop=face&q=80',
-  'https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=350&h=500&fit=crop&crop=face&q=80',
+  '/assets/starter_img_1.jpg',
+  '/assets/starter_img_2.jpg',
+  '/assets/starter_img_1.jpg',
+  '/assets/starter_img_2.jpg',
 ];
 
 interface LoaderProps {
@@ -23,16 +23,21 @@ export function Loader({ onComplete }: LoaderProps) {
   const t0Ref = useRef<number | null>(null);
 
   useEffect(() => {
-    const iv = setInterval(() => setImgIdx(i => (i + 1) % PRELOADER_IMAGES.length), 350);
+    // Slower image switching (1750ms for longer hold times)
+    const iv = setInterval(() => setImgIdx(i => (i + 1) % PRELOADER_IMAGES.length), 1750);
     return () => clearInterval(iv);
   }, []);
 
   useEffect(() => {
-    const DUR = 2600;
+    // Increased duration to 7000ms for a more premium, relaxed feel
+    const DUR = 7000;
     const tick = (ts: number) => {
       if (!t0Ref.current) t0Ref.current = ts;
       const t = Math.min((ts - t0Ref.current) / DUR, 1);
-      setProgress(Math.round((1 - Math.pow(1 - t, 3)) * 100));
+      
+      // Linear progress for a steadier, smoother feel
+      setProgress(Math.round(t * 100));
+      
       if (t < 1) {
         rafRef.current = requestAnimationFrame(tick);
       } else {
@@ -40,7 +45,7 @@ export function Loader({ onComplete }: LoaderProps) {
         setTimeout(() => {
           setPhase('done');
           onComplete();
-        }, 900);
+        }, 1200);
       }
     };
     rafRef.current = requestAnimationFrame(tick);
@@ -68,8 +73,8 @@ export function Loader({ onComplete }: LoaderProps) {
       }} />
       <p style={{
         fontFamily: "'Cormorant Garamond', serif",
-        fontSize: '1.15rem', letterSpacing: '0.3em',
-        textTransform: 'lowercase', color: '#2a2019', opacity: 0.5,
+        fontSize: '1.6rem', letterSpacing: '0.35em',
+        textTransform: 'lowercase', color: '#2a2019', opacity: 0.6,
         marginBottom: '2.5rem',
       }}>
         faceyoguez
@@ -85,19 +90,19 @@ export function Loader({ onComplete }: LoaderProps) {
             style={{
               position: 'absolute', inset: 0, width: '100%', height: '100%',
               objectFit: 'cover',
-              opacity: i === imgIdx ? 1 : 0,
-              transition: 'opacity 0.12s ease',
-            }}
-          />
-        ))}
-      </div>
-      <div style={{ width: 155, height: 1, background: 'rgba(42,32,25,0.08)', overflow: 'hidden' }}>
-        <div style={{
-          height: '100%', width: `${progress}%`,
-          background: 'linear-gradient(90deg, #c9825e, #b06a48)',
-          transition: 'width 0.08s linear',
-        }} />
-      </div>
+                opacity: i === imgIdx ? 1 : 0,
+                transition: 'opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
+              }}
+           />
+         ))}
+       </div>
+       <div style={{ width: 155, height: 1, background: 'rgba(42,32,25,0.08)', overflow: 'hidden' }}>
+         <div style={{
+           height: '100%', width: `${progress}%`,
+           background: 'linear-gradient(90deg, #c9825e, #b06a48)',
+           transition: 'width 0.5s ease-out',
+         }} />
+       </div>
       <p style={{
         fontFamily: "'Cormorant Garamond', serif",
         fontSize: '0.78rem', letterSpacing: '0.18em',

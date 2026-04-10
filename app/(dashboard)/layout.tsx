@@ -4,6 +4,7 @@ import { AppSidebar } from '@/components/layout/AppSidebar';
 import { getServerUser, getServerProfile } from '@/lib/data/auth';
 import Link from 'next/link';
 import { Flower2 } from 'lucide-react';
+import { PlanExpiryPill } from '@/components/dashboard/PlanExpiryPill';
 
 export default async function DashboardLayout({
   children,
@@ -40,6 +41,17 @@ export default async function DashboardLayout({
   const activeSubscriptions = subscriptions?.filter(s => s.status === 'active') || [];
   activePlans = activeSubscriptions.map(sub => sub.plan_type);
 
+  // Calculate daysLeft for renewal pill
+  const furthestEndDate = activeSubscriptions.reduce((furthest: Date | null, sub: any) => {
+    if (!sub.end_date) return furthest;
+    const d = new Date(`${sub.end_date}T23:59:59`);
+    return !furthest || d > furthest ? d : furthest;
+  }, null as Date | null);
+
+  const daysLeft = furthestEndDate
+    ? Math.max(0, Math.ceil((furthestEndDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : activeSubscriptions.some(s => !s.end_date) ? -1 : 0;
+
   // Check if there's an expired trial to show the "kind words" prompt
   const hasExpiredTrial = subscriptions?.some(s => s.is_trial && (s.status === 'expired' || (s.end_date && new Date(s.end_date) < new Date()))) || false;
   const showTrialPrompt = hasExpiredTrial && activeSubscriptions.length === 0;
@@ -50,6 +62,11 @@ export default async function DashboardLayout({
       activePlans={activePlans}
       unreadNotificationsCount={unreadNotificationsCount}
     >
+      {/* Plan Expiry Pill for Students */}
+      {profile.role === 'student' && (
+        <PlanExpiryPill daysLeft={daysLeft} activePlanTypes={activePlans} />
+      )}
+
       {showTrialPrompt && (
         <div className="fixed top-20 right-8 z-[60] animate-in slide-in-from-right duration-500">
            <div className="bg-white border-2 border-primary/20 p-6 rounded-[2rem] shadow-2xl max-w-sm relative overflow-hidden group">

@@ -12,7 +12,6 @@ import {
 } from 'lucide-react';
 import { activateTrial } from '@/app/actions/plans';
 import type { Profile } from '@/types/database';
-import { toast as sonnerToast } from 'sonner';
 import { consumeCouponAction } from '@/lib/actions/coupons';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -38,7 +37,8 @@ function durationFromTierId(tierId: string): number {
   if (tierId.startsWith('12')) return 12;
   if (tierId.startsWith('6')) return 6;
   if (tierId.startsWith('3')) return 3;
-  if (tierId === 'level_1' || tierId === 'level_1_2') return 360; // Long-term lifetime
+  // LMS is lifetime (no expiry needed — we track via plan_type)
+  if (tierId === 'level_1' || tierId === 'level_1_2') return 12;
   return 1;
 }
 
@@ -89,14 +89,15 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
         try {
             const res = await activateTrial(userId);
             if (res.success) {
-                sonnerToast.success('Trial activated! You have 3 days of full access. 🧘‍♂️');
+                toast.success('Trial activated! You have 3 days of full access. 🧘‍♂️');
                 setHasUsedTrial(true);
+                router.refresh();
                 router.push('/student/dashboard');
             } else {
-                sonnerToast.error(res.error || 'Failed to start trial');
+                toast.error(res.error || 'Failed to start trial');
             }
         } catch (err) {
-            sonnerToast.error('Something went wrong');
+            toast.error('Something went wrong');
         } finally {
             setIsStartingTrial(false);
         }
@@ -166,40 +167,203 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
         }
     };
 
+    /**
+     * Opens the Razorpay Checkout modal with a server-created order.
+     * On payment success → calls verify-payment API → redirects to success page.
+     * Handles all failure/dismissal scenarios gracefully.
+     */
     const handleProceed = async () => {
         setLoading(true);
+        const totalAmount = calculateTotal();
+        const duration = durationFromTierId(selectedTierId);
+
         try {
+            // ── Step 1: Consume coupon on server (if applied) ────────────
             if (appliedCoupon) {
-                // Consume the coupon securely on the server
-                const res = await consumeCouponAction(appliedCoupon.code, selectedPlanId);
-                if (!res.success) {
-                    toast.error(res.error || 'Failed to apply coupon. Please try again.');
+                const couponRes = await consumeCouponAction(appliedCoupon.code, selectedPlanId);
+                if (!couponRes.success) {
+                    toast.error(couponRes.error || 'Failed to apply coupon. Please try again.');
                     setLoading(false);
                     return;
                 }
             }
-            
-            // Simulate purchase for now as requested
-            setTimeout(() => {
-                // Meta Pixel: Track purchase completion
-                if (typeof window !== 'undefined' && window.fbq) {
-                    window.fbq('track', 'Purchase', {
-                        value: calculateTotal(),
-                        currency: 'INR',
-                        content_name: currentPlan.title,
-                    });
-                }
-                const params = new URLSearchParams({
-                    planId: selectedPlanId,
-                    tierId: selectedTierId,
-                    amount: calculateTotal().toString(),
-                    bumps: selectedBumps.join(',')
-                });
-                router.push(`/student/purchase-success?${params.toString()}`);
+
+            // ── Step 2: Load Razorpay SDK ────────────────────────────────
+            const sdkLoaded = await loadRazorpayScript();
+            if (!sdkLoaded) {
+                toast.error('Payment service unavailable. Please check your internet connection and try again.');
                 setLoading(false);
-            }, 1500);
-        } catch (error) {
-            toast.error('Something went wrong during checkout.');
+                return;
+            }
+
+            // ── Step 3: Create order server-side ────────────────────────
+            const orderRes = await fetch('/api/razorpay/create-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    planType: selectedPlanId,
+                    planVariant: selectedTierId,
+                    amount: totalAmount,
+                    durationMonths: duration,
+                    bumps: selectedBumps,
+                    couponCode: appliedCoupon?.code || undefined,
+                }),
+            });
+
+            if (!orderRes.ok) {
+                const errData = await orderRes.json().catch(() => ({}));
+                toast.error(errData.error || 'Could not initiate payment. Please try again.');
+                setLoading(false);
+                return;
+            }
+
+            const orderData = await orderRes.json();
+            const { orderId, keyId } = orderData;
+
+            if (!orderId || !keyId) {
+                toast.error('Payment service returned an invalid response. Please try again.');
+                setLoading(false);
+                return;
+            }
+
+            // ── Step 4: Open Razorpay Checkout modal ─────────────────────
+            const options: object = {
+                key: keyId,
+                amount: Math.round(totalAmount * 100), // paise
+                currency: 'INR',
+                name: 'Faceyoguez',
+                description: `${currentPlan.title} — ${currentTier.label}`,
+                image: '/logo.png', // your logo for the checkout modal
+                order_id: orderId,
+                prefill: {
+                    name: currentUser?.full_name || '',
+                    email: currentUser?.email || '',
+                    contact: currentUser?.phone || '',
+                },
+                notes: {
+                    planType: selectedPlanId,
+                    planVariant: selectedTierId,
+                },
+                theme: {
+                    color: '#FF8A75',
+                    backdrop_color: 'rgba(0, 0, 0, 0.6)',
+                },
+                modal: {
+                    ondismiss: () => {
+                        // User closed the modal without paying
+                        setLoading(false);
+                        toast.info('Payment cancelled. Your selections are saved — complete when ready.');
+                    },
+                    confirm_close: true, // show confirmation dialog before closing
+                },
+                // ── on successful payment callback ─────────────────────
+                handler: async (response: {
+                    razorpay_order_id: string;
+                    razorpay_payment_id: string;
+                    razorpay_signature: string;
+                }) => {
+                    try {
+                        // ── Step 5: Verify payment server-side ────────────
+                        const verifyRes = await fetch('/api/razorpay/verify-payment', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                                planType: selectedPlanId,
+                                planVariant: selectedTierId,
+                                amount: totalAmount,
+                                durationMonths: duration,
+                                bumps: selectedBumps,
+                                couponCode: appliedCoupon?.code || undefined,
+                                couponDiscount: appliedCoupon?.discount_percentage || 0,
+                            }),
+                        });
+
+                        const verifyData = await verifyRes.json();
+
+                        if (!verifyRes.ok || !verifyData.success) {
+                            // Payment captured but verification failed — tell user to contact support
+                            toast.error(
+                                `Payment received but activation failed. Please contact support with Payment ID: ${response.razorpay_payment_id}`,
+                                { duration: 10000 }
+                            );
+                            setLoading(false);
+                            return;
+                        }
+
+                        // ── Step 6: Track successful purchase ─────────────
+                        if (typeof window !== 'undefined' && window.fbq) {
+                            window.fbq('track', 'Purchase', {
+                                value: totalAmount,
+                                currency: 'INR',
+                                content_name: currentPlan.title,
+                                content_ids: [selectedPlanId],
+                                transaction_id: response.razorpay_payment_id,
+                            });
+                        }
+
+                        import('@/lib/conversionTracking').then(({ trackConversionEvent }) => {
+                            trackConversionEvent({
+                                event_type: 'payment_complete',
+                                plan_type: selectedPlanId,
+                                amount: totalAmount,
+                                page_path: window.location.pathname,
+                                metadata: {
+                                    tierId: selectedTierId,
+                                    bumps: selectedBumps,
+                                    paymentId: response.razorpay_payment_id,
+                                    subscriptionId: verifyData.subscriptionId,
+                                },
+                            });
+                        }).catch(() => {}); // non-blocking
+
+                        // ── Step 7: Redirect to success page ──────────────
+                        const params = new URLSearchParams({
+                            planId: selectedPlanId,
+                            tierId: selectedTierId,
+                            amount: totalAmount.toString(),
+                            bumps: selectedBumps.join(','),
+                            subscriptionId: verifyData.subscriptionId || '',
+                            paymentId: response.razorpay_payment_id,
+                        });
+                        
+                        router.refresh(); // Force re-fetch of server data for current & next pages
+                        router.push(`/student/purchase-success?${params.toString()}`);
+
+                    } catch (verifyErr) {
+                        console.error('[Checkout] Verify payment error:', verifyErr);
+                        toast.error('Could not confirm payment. Please screenshot your payment details and contact support.');
+                        setLoading(false);
+                    }
+                },
+            };
+
+            const rzp = new window.Razorpay(options);
+
+            // Handle payment errors reported by the Razorpay SDK
+            rzp.on('payment.failed', (response: any) => {
+                const errorMsg = response?.error?.description || response?.error?.reason || 'Payment failed';
+                toast.error(`Payment failed: ${errorMsg}. Please try again with a different payment method.`);
+                setLoading(false);
+
+                // Track failed payment for analytics
+                import('@/lib/conversionTracking').then(({ trackConversionEvent }) => {
+                    trackConversionEvent({
+                        event_type: 'payment_failed',
+                        plan_type: selectedPlanId,
+                        amount: totalAmount,
+                        page_path: window.location.pathname,
+                    });
+                }).catch(() => {});
+            });
+
+            rzp.open();
+
+        } catch (error: any) {
+            console.error('[Checkout] Unexpected error:', error);
+            toast.error('Something went wrong. Please try again or contact support.');
             setLoading(false);
         }
     };
@@ -225,7 +389,6 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                 amount: currentTier.discountedPrice,
                 page_path: window.location.pathname,
             });
-            // We consider opening the checkout panel to also be the payment_screen display for now
             trackConversionEvent({
                 event_type: 'payment_screen',
                 plan_type: selectedPlanId,
@@ -306,7 +469,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                         </div>
                     </div>
                     
-                    <div className="flex-1 space-y-2.5 overflow-y-auto pr-2 scrollbar-hide py-1">
+                    <div data-lenis-prevent className="flex-1 space-y-2.5 overflow-y-auto pr-2 scrollbar-none py-1">
                         {PLANS_DATA.map((plan) => (
                             <button
                                 key={plan.id}
@@ -399,7 +562,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
 
                 {/* Panel 3: Membership & Checkout */}
                 <div className="col-span-3 flex flex-col gap-4 h-full overflow-hidden">
-                    <div className="flex-1 overflow-y-auto space-y-2 pr-2 scrollbar-hide py-1">
+                    <div data-lenis-prevent className="flex-1 overflow-y-auto space-y-2 pr-2 scrollbar-none py-1">
                          <h3 className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.2em] px-2 mb-1">Memberships</h3>
                          {currentPlan.tiers.map((tier) => (
                              <button
@@ -630,7 +793,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                             </button>
                         </div>
 
-                        <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto scrollbar-hide">
+                        <div data-lenis-prevent className="p-8 space-y-6 max-h-[70vh] overflow-y-auto scrollbar-none">
                             {/* Selected Plan Summary */}
                             <div className="p-5 rounded-3xl bg-white border border-[#FF8A75]/10 flex justify-between items-center">
                                 <div>

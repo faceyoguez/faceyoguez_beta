@@ -16,6 +16,7 @@ import { getUpcomingMeetingsForStudent, getBatchRecordedSessions } from '../../.
 import { ImageComparison } from '../../../../components/ui/image-comparison-slider';
 import { JourneyProgress, JOURNEY_MAX_DAY } from '../../../../components/ui/journey-progress';
 import { PollCard } from '../../../../components/ui/poll-card';
+import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 import type { Profile, MeetingWithDetails, BatchPoll, RecordedSession } from '../../../../types/database';
@@ -138,6 +139,30 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
         };
     }, [activeBatch?.id, currentUser.id, supabase]);
 
+    const router = useRouter();
+
+    useEffect(() => {
+        const subChannel = supabase
+            .channel('student-group-subscriptions')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'subscriptions',
+                    filter: `student_id=eq.${currentUser.id}`
+                },
+                () => {
+                    router.refresh();
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(subChannel);
+        };
+    }, [supabase, currentUser.id, router]);
+
     useEffect(() => {
         if (chatContainerRef.current) {
             chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
@@ -225,6 +250,15 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                     const isPoll = msg.message_type === 'poll';
                     const poll = isPoll ? polls[msg.poll_id] : null;
 
+                    const roles: Record<string, string> = {
+                        admin: 'Admin',
+                        instructor: 'Instructor',
+                        staff: 'Staff',
+                        client_management: 'Staff'
+                    };
+
+                    const roleLabel = roles[sender.role] || (msg.sender_id === activeBatch?.instructor_id ? 'Instructor' : null);
+
                     return (
                         <div key={msg.id} className={cn("flex flex-col gap-1.5", isOwn ? "items-end" : "items-start")}>
                             {!isOwn && (
@@ -232,8 +266,15 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                     <div className="h-6 w-6 rounded-lg overflow-hidden border border-outline-variant/10 bg-white">
                                         {sender.avatar_url ? <img src={sender.avatar_url} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-[7px] font-bold text-foreground/20 bg-foreground/5">{(sender.full_name || 'U').charAt(0).toUpperCase()}</div>}
                                     </div>
-                                    <p className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest">{sender.full_name}</p>
-                                    {msg.sender_id === (activeBatch?.instructor_id || activeBatch?.instructor?.id) && <ShieldCheck className="w-3 h-3 text-primary/60" />}
+                                    <div className="flex flex-col">
+                                        <div className="flex items-center gap-1.5">
+                                            <p className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest">{sender.full_name}</p>
+                                            {msg.sender_id === (activeBatch?.instructor_id || activeBatch?.instructor?.id) && <ShieldCheck className="w-3 h-3 text-primary/60" />}
+                                        </div>
+                                        {roleLabel && (
+                                            <span className="text-[7px] font-black uppercase tracking-[0.2em] text-primary/40 leading-none">{roleLabel}</span>
+                                        )}
+                                    </div>
                                 </div>
                             )}
 
