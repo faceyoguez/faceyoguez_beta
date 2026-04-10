@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { ChatWindow } from '@/components/chat';
 import { getOrCreateSharedChat } from '@/lib/actions/chat';
 import { uploadResource, getStudentResources } from '@/lib/actions/resources';
@@ -17,25 +17,15 @@ import {
   Loader2,
   Image as ImageIcon,
   X,
-  Zap} from 'lucide-react';
+  Zap,
+  Menu} from 'lucide-react';
 import type { Profile, StudentResource, MeetingWithDetails } from '@/types/database';
 
 import { getJourneyLogs, type JourneyLog } from '@/lib/actions/journey';
 import { ImageComparison } from '@/components/ui/image-comparison-slider';
-import { JourneyProgress, JOURNEY_MAX_DAY } from '@/components/ui/journey-progress';
 import { cn } from '@/lib/utils';
+import { JourneyProgress, JOURNEY_MAX_DAY } from '@/components/ui/journey-progress';
 import { motion, AnimatePresence } from 'framer-motion';
-
-// ─── AUTHENTIC PEACH ZEN DESIGN TOKENS ───
-const TOKENS = {
-  primary: '#FF8A75',        // The Core Peach
-  primaryLight: '#FFF0ED',   // Soft Surface
-  background: '#FFFAF7',     // Sanctuary Bone
-  text: '#1a1a1a',           // Authority Dark
-  textMuted: '#9a817d',      // Dusty Rose Muted
-  surface: '#FFFFFF',        // Pure Interaction
-  accent: '#FF6B4E',         // Salmon Action
-};
 
 interface StudentInfo {
   conversationId: string | null;
@@ -56,11 +46,11 @@ interface Props {
 }
 
 export function InstructorOneOnOneClient({ currentUser, students }: Props) {
-  // ─── STATE MANAGEMENT ───
   const [selectedStudent, setSelectedStudent] = useState<StudentInfo | null>(students[0] || null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const supabase = useMemo(() => createClient(), []);
   
-  // Data States
   const [resources, setResources] = useState<StudentResource[]>([]);
   const [journeyLogs, setJourneyLogs] = useState<JourneyLog[]>([]);
   const [upcomingMeetings, setUpcomingMeetings] = useState<MeetingWithDetails[]>([]);
@@ -69,15 +59,11 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
 
-  // Notes state
   const [notes, setNotes] = useState('');
-  const [savingNotes, setSavingNotes] = useState(false);
-
   const fileInputRef = useRef<HTMLInputElement>(null);
   const compassScrollRef = useRef<HTMLDivElement>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
-  // ─── EFFECTS: DATA FLOW ───
   useEffect(() => {
     if (!selectedStudent) return;
 
@@ -94,7 +80,6 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
         setJourneyLogs(logsData);
         setUpcomingMeetings(meetingsData || []);
         
-        // Reset journey position to student's current day
         const currentDay = selectedStudent.startDate
           ? Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate).getTime()) / 86400000) + 1))
           : 1;
@@ -111,11 +96,10 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
     };
 
     loadStudentData();
+    setIsSidebarOpen(false); // Close sidebar on student select (mobile)
 
-    // Real-time Resources
-    const supabase = createClient();
     const channel = supabase
-      .channel(`instructor-one-on-one:${selectedStudent.id}`)
+      .channel(`instructor-one-on-one:${selectedStudent.id}-${Math.random().toString(36).slice(2, 9)}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'student_resources', filter: `student_id=eq.${selectedStudent.id}` },
@@ -126,24 +110,6 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
     return () => { supabase.removeChannel(channel); };
   }, [selectedStudent]);
 
-  // Scroll to bottom of chat if it's there
-  useEffect(() => {
-    if (chatBottomRef.current) {
-      chatBottomRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [selectedStudent?.conversationId]);
-
-  // ─── DERIVED DATA ───
-  const day1Log = journeyLogs.find(l => l.day_number === 1);
-  const activeLog = journeyLogs.find(l => l.day_number === activeStepDay);
-  const beforeImage = day1Log?.photo_url || 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800&sat=-100';
-  let afterImage = activeLog?.photo_url || 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800';
-  
-  const filteredStudents = students.filter(s => 
-    s.full_name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  // ─── HANDLERS ───
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.[0] || !selectedStudent) return;
     setIsUploading(true);
@@ -171,54 +137,72 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
     }
   };
 
+  const filteredStudents = students.filter(s => 
+    s.full_name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const day1Log = journeyLogs.find(l => l.day_number === 1);
+  const activeLog = journeyLogs.find(l => l.day_number === activeStepDay);
+  const beforeImage = day1Log?.photo_url || 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800&sat=-100';
+  let afterImage = activeLog?.photo_url || 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800';
+
   return (
-    <div className="flex flex-col h-screen bg-[#FFFAF7] text-[#1a1a1a] selection:bg-[#FF8A75]/10 overflow-hidden font-sans animate-in fade-in duration-1000 relative">
-      
-      {/* Kinetic Aura Background */}
+    <div className="flex flex-col h-screen bg-[#FFFAF7] text-[#1a1a1a] selection:bg-[#FF8A75]/10 overflow-hidden font-sans relative">
       <div className="fixed inset-0 z-0 pointer-events-none">
          <div className="absolute top-[-10%] right-[-10%] w-[60vw] h-[60vh] bg-[#FF8A75]/10 rounded-full blur-[140px] opacity-60" />
          <div className="absolute bottom-[-10%] left-[-10%] w-[50vw] h-[50vh] bg-[#FF6B4E]/5 rounded-full blur-[140px] opacity-40" />
       </div>
 
       <div className="relative z-10 flex flex-col h-full overflow-hidden">
-
-         {/* ─── PURE ZEN HEADER ─── */}
-         <header className="shrink-0 h-24 px-12 flex items-center justify-between border-b border-[#FF8A75]/10 bg-white/40 backdrop-blur-3xl">
-            <div className="flex items-center gap-12">
-               <div className="flex items-center gap-6">
-                  <div className="h-10 w-1.5 bg-[#FF8A75] rounded-full shadow-[0_0_12px_#FF8A75]" />
+         <header className="shrink-0 h-20 lg:h-24 px-6 lg:px-12 flex items-center justify-between border-b border-[#FF8A75]/10 bg-white/40 backdrop-blur-3xl">
+            <div className="flex items-center gap-4 lg:gap-12">
+               <button 
+                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                  className="lg:hidden p-2 hover:bg-black/5 rounded-xl transition-colors"
+               >
+                  <Menu className="w-6 h-6" />
+               </button>
+               <div className="flex items-center gap-4 lg:gap-6">
+                  <div className="h-8 lg:h-10 w-1 bg-[#FF8A75] rounded-full shadow-[0_0_12px_#FF8A75]" />
                   <div>
-                     <h1 className="text-3xl font-serif text-slate-900 tracking-tight leading-none">Sanctuary Curator</h1>
-                     <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75] mt-2 opacity-60">Unified Consultation Hub</p>
+                     <h1 className="text-xl lg:text-3xl font-serif text-slate-900 tracking-tight leading-none">Curator</h1>
+                     <p className="hidden sm:block text-[8px] lg:text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75] mt-1 lg:mt-2 opacity-60 text-nowrap">Unified Hub</p>
                   </div>
                </div>
             </div>
 
-            <div className="flex items-center gap-8">
-               <div className="relative group w-80">
-                  <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-[#FF8A75] transition-colors" />
+            <div className="flex items-center gap-4 lg:gap-8 flex-1 justify-end">
+               <div className="relative group hidden sm:block w-48 lg:w-80">
+                  <Search className="absolute left-4 lg:left-6 top-1/2 -translate-y-1/2 w-3.5 lg:w-4 h-3.5 lg:h-4 text-slate-300 group-focus-within:text-[#FF8A75] transition-colors" />
                   <input
                      type="text"
                      placeholder="Seek resonance..."
-                     className="h-12 w-full pl-14 pr-8 rounded-2xl bg-white/60 backdrop-blur-xl border border-[#FF8A75]/10 text-[11px] font-bold focus:ring-4 focus:ring-[#FF8A75]/5 outline-none transition-all"
+                     className="h-10 lg:h-12 w-full pl-10 lg:pl-14 pr-4 lg:pr-8 rounded-xl lg:rounded-2xl bg-white/60 backdrop-blur-xl border border-[#FF8A75]/10 text-[10px] lg:text-[11px] font-bold focus:ring-4 focus:ring-[#FF8A75]/5 outline-none transition-all"
                      value={searchQuery}
                      onChange={(e) => setSearchQuery(e.target.value)}
                   />
                </div>
                <button 
                   onClick={() => setShowScheduleModal(true)}
-                  className="h-12 px-8 rounded-2xl bg-[#1a1a1a] text-white flex items-center gap-4 hover:bg-[#FF8A75] hover:-rotate-1 transition-all shadow-xl shadow-black/10 group"
+                  className="h-10 lg:h-12 px-4 lg:px-8 rounded-xl lg:rounded-2xl bg-[#1a1a1a] text-white flex items-center gap-2 lg:gap-4 hover:bg-[#FF8A75] transition-all shadow-xl shadow-black/10 group whitespace-nowrap"
                >
-                  <Calendar className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                  <span className="text-[10px] font-black uppercase tracking-widest leading-none">Schedule Alignment</span>
+                  <Calendar className="w-4 h-4 lg:w-5 lg:h-5 group-hover:scale-110 transition-transform" />
+                  <span className="text-[8px] lg:text-[10px] font-black uppercase tracking-widest leading-none">Schedule</span>
                </button>
             </div>
          </header>
 
-         {/* ─── SOUL COMPASS ─── */}
-         <nav className="shrink-0 h-20 bg-white/20 backdrop-blur-md border-b border-[#FF8A75]/5 flex items-center px-12 z-50">
-            <span className="text-[9px] font-black uppercase tracking-[0.4em] text-[#FF8A75] shrink-0 mr-10">Soul Compass:</span>
-            <div className="flex items-center gap-5 overflow-x-auto no-scrollbar py-2" ref={compassScrollRef}>
+         <nav className={cn(
+            "fixed inset-y-0 left-0 z-[60] w-72 bg-white/95 backdrop-blur-2xl border-r border-[#FF8A75]/10 transform transition-transform duration-500 lg:static lg:w-full lg:h-20 lg:bg-white/20 lg:backdrop-blur-md lg:border-b lg:translate-x-0 flex flex-col lg:flex-row items-stretch lg:items-center px-6 lg:px-12",
+            isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+         )}>
+            <div className="flex lg:hidden items-center justify-between py-8 px-2">
+               <span className="text-xl font-serif font-bold">Soul Compass</span>
+               <button onClick={() => setIsSidebarOpen(false)}><X className="w-6 h-6" /></button>
+            </div>
+            
+            <span className="hidden lg:block text-[9px] font-black uppercase tracking-[0.4em] text-[#FF8A75] shrink-0 mr-10">Soul Compass:</span>
+            <div className="flex-1 flex flex-col lg:flex-row items-stretch lg:items-center gap-2 lg:gap-5 overflow-y-auto lg:overflow-x-auto no-scrollbar py-2" ref={compassScrollRef}>
                {filteredStudents.map((student) => {
                   const isSelected = selectedStudent?.id === student.id;
                   return (
@@ -226,26 +210,28 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                         key={student.id}
                         onClick={() => setSelectedStudent(student)}
                         className={cn(
-                           "flex items-center gap-4 px-6 py-2.5 rounded-full transition-all shrink-0 border whitespace-nowrap group",
+                           "flex items-center gap-4 px-4 lg:px-6 py-3 lg:py-2.5 rounded-2xl lg:rounded-full transition-all shrink-0 border whitespace-nowrap group",
                            isSelected 
                               ? "bg-white border-[#FF8A75]/30 shadow-xl shadow-[#FF8A75]/5 ring-4 ring-[#FF8A75]/5" 
-                              : "bg-transparent border-transparent opacity-40 hover:opacity-100"
+                              : "bg-transparent border-transparent opacity-60 lg:opacity-40 hover:opacity-100"
                         )}
                      >
-                        <div className="h-9 w-9 rounded-xl overflow-hidden ring-[3px] ring-white shadow-lg bg-slate-100 flex items-center justify-center">
+                        <div className="h-8 w-8 lg:h-9 lg:w-9 rounded-lg lg:rounded-xl overflow-hidden ring-[2px] ring-white shadow-lg bg-slate-100 flex items-center justify-center">
                            {student.avatar_url ? (
                               <img src={student.avatar_url} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700" />
                            ) : (
-                              <span className="text-sm font-serif text-[#FF8A75]">{student.full_name[0]}</span>
+                              <span className="text-xs font-serif text-[#FF8A75]">{student.full_name[0]}</span>
                            )}
                         </div>
                         <div className="text-left">
-                           <p className={cn("text-xs font-bold tracking-tight capitalize", isSelected ? "text-slate-900" : "text-slate-400")}>
-                              {student.full_name.split(' ')[0]}
+                           <p className={cn("text-xs font-bold tracking-tight capitalize", isSelected ? "text-slate-900" : "text-slate-500")}>
+                              {student.full_name}
                            </p>
-                           <p className="text-[8px] font-black uppercase tracking-widest text-[#FF8A75] mt-1 opacity-80">
-                              Evolution {student.startDate ? Math.floor((Date.now() - new Date(student.startDate).getTime()) / 86400000) + 1 : 1}
-                           </p>
+                           {isSelected && (
+                              <p className="text-[7px] lg:text-[8px] font-black uppercase tracking-widest text-[#FF8A75] mt-0.5 lg:mt-1 opacity-80">
+                                 Day {student.startDate ? Math.floor((Date.now() - new Date(student.startDate).getTime()) / 86400000) + 1 : 1}
+                              </p>
+                           )}
                         </div>
                      </button>
                   );
@@ -253,26 +239,26 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
             </div>
          </nav>
 
-         {/* ─── UNIFIED CANVAS ─── */}
-         <main className="flex-1 flex overflow-hidden">
-            
-            {/* LEFT COLUMN: TRANSFORMATION MIRROR (65%) */}
-            <div className="flex-[0.65] flex flex-col overflow-y-auto custom-scrollbar p-12 pt-8 gap-12">
-               <div className="flex items-center justify-between underline-offset-8">
+         <main className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+            <div className={cn(
+               "flex-1 flex flex-col overflow-y-auto custom-scrollbar p-6 lg:p-12 lg:pt-8 gap-8 lg:gap-12 transition-all",
+               "lg:max-w-[65%]"
+            )}>
+               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div>
-                     <h2 className="text-5xl font-serif text-slate-900 tracking-tight">Transformation Mirror</h2>
-                     <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75] mt-4 opacity-60">Progressive Resonance Analysis</p>
+                     <h2 className="text-3xl lg:text-5xl font-serif text-slate-900 tracking-tight">Transformation</h2>
+                     <p className="text-[8px] lg:text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75] mt-2 lg:mt-4 opacity-60">Journey Node</p>
                   </div>
                   {selectedStudent?.startDate && (
-                     <div className="px-10 py-5 bg-white rounded-[2.5rem] border border-[#FF8A75]/10 shadow-2xl shadow-[#FF8A75]/5 text-center">
-                        <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75]/40 block mb-2">Consistency Node</span>
-                        <span className="text-3xl font-bold text-slate-900 leading-none">Day {Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate).getTime()) / 86400000) + 1))}</span>
+                     <div className="px-6 lg:px-10 py-3 lg:py-5 bg-white rounded-2xl lg:rounded-[2.5rem] border border-[#FF8A75]/10 shadow-2xl shadow-[#FF8A75]/5 text-center flex-shrink-0 animate-in slide-in-from-right duration-500">
+                        <span className="text-[8px] font-black uppercase tracking-[0.3em] text-[#FF8A75]/40 block mb-1">Consistency</span>
+                        <span className="text-xl lg:text-3xl font-bold text-slate-900 leading-none">Day {Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate).getTime()) / 86400000) + 1))}</span>
                      </div>
                   )}
                </div>
 
-               <div className="space-y-12">
-                  <div className="bg-white/40 backdrop-blur-xl p-8 rounded-[3rem] border border-[#FF8A75]/5">
+               <div className="space-y-8 lg:space-y-12 pb-12 lg:pb-0">
+                  <div className="bg-white/40 backdrop-blur-xl p-4 lg:p-8 rounded-[2rem] lg:rounded-[3rem] border border-[#FF8A75]/5">
                      <JourneyProgress
                         currentDay={selectedStudent?.startDate
                            ? Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate).getTime()) / 86400000) + 1))
@@ -283,13 +269,13 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                      />
                   </div>
 
-                  <div className="aspect-[16/8] rounded-[4.5rem] bg-white shadow-3xl shadow-[#FF8A75]/10 ring-1 ring-[#FF8A75]/10 overflow-hidden relative group border-4 border-white">
-                     <div className="absolute top-8 left-8 z-20 px-6 py-2 rounded-2xl bg-[#1a1a1a]/80 backdrop-blur-xl text-white text-[9px] font-black uppercase tracking-widest border border-white/10 group-hover:scale-105 transition-transform duration-700">
-                        Evolution Step {activeStepDay}
+                  <div className="aspect-[4/3] lg:aspect-[16/8] rounded-[2.5rem] lg:rounded-[4.5rem] bg-white shadow-3xl shadow-[#FF8A75]/10 ring-1 ring-[#FF8A75]/10 overflow-hidden relative group border-2 lg:border-4 border-white">
+                     <div className="absolute top-4 lg:top-8 left-4 lg:left-8 z-20 px-4 lg:px-6 py-1.5 lg:py-2 rounded-xl lg:rounded-2xl bg-[#1a1a1a]/80 backdrop-blur-xl text-white text-[8px] lg:text-[9px] font-black uppercase tracking-widest border border-white/10">
+                        Step {activeStepDay} Evolution
                      </div>
                      {isLoading ? (
                         <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm z-20">
-                           <Loader2 className="w-12 h-12 animate-spin text-[#FF8A75]/40" />
+                           <Loader2 className="w-10 lg:w-12 h-10 lg:h-12 animate-spin text-[#FF8A75]/40" />
                         </div>
                      ) : (
                         <ImageComparison
@@ -300,40 +286,36 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                      )}
                   </div>
                   
-                  {/* Evolution Notes */}
-                  <div className="flex flex-col gap-8 p-12 bg-white rounded-[4rem] shadow-2xl shadow-[#FF8A75]/5 border border-[#FF8A75]/10 relative group">
-                     <div className="absolute -top-3 left-12 px-6 py-1.5 rounded-full bg-[#FF8A75] text-white text-[8px] font-black uppercase tracking-widest shadow-xl">
-                        Curatorial Insight
+                  <div className="flex flex-col gap-6 lg:gap-8 p-8 lg:p-12 bg-white rounded-[2.5rem] lg:rounded-[4rem] shadow-2xl shadow-[#FF8A75]/5 border border-[#FF8A75]/10 relative">
+                     <div className="absolute -top-3 left-8 lg:left-12 px-4 lg:px-6 py-1.5 rounded-full bg-[#FF8A75] text-white text-[7px] lg:text-[8px] font-black uppercase tracking-widest shadow-xl">
+                        Instructor Insight
                      </div>
                      <div className="flex items-center justify-between">
-                        <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75] opacity-40">Phase Observations</h4>
-                        <div className="flex items-center gap-3">
-                           <div className="h-1.5 w-1.5 rounded-full bg-[#FF8A75] animate-pulse" />
-                           <span className="text-[8px] font-black uppercase tracking-widest text-slate-300">Synchronized Portal</span>
+                        <h4 className="text-[8px] lg:text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75] opacity-40 capitalize">{selectedStudent?.full_name}'s Record</h4>
+                        <div className="hidden sm:flex items-center gap-3">
+                           <div className="h-1 lg:h-1.5 w-1 lg:w-1.5 rounded-full bg-[#FF8A75] animate-pulse" />
+                           <span className="text-[7px] lg:text-[8px] font-black uppercase tracking-widest text-slate-300 whitespace-nowrap">Auto-Synced</span>
                         </div>
                      </div>
                      <textarea 
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Transcribe the seeker's evolution..."
-                        className="flex-1 bg-transparent border-none p-0 text-xl font-medium text-slate-700 focus:ring-0 resize-none min-h-[160px] placeholder:text-slate-200 placeholder:italic leading-relaxed"
+                        placeholder="Observe the seeker's evolution..."
+                        className="flex-1 bg-transparent border-none p-0 text-lg lg:text-xl font-medium text-slate-700 focus:ring-0 resize-none min-h-[140px] lg:min-h-[160px] placeholder:text-slate-200 placeholder:italic leading-relaxed"
                      />
                   </div>
                </div>
             </div>
 
-            {/* RIGHT COLUMN: INTERACTION HUB (35%) */}
-            <div className="flex-[0.35] flex flex-col overflow-hidden p-12 pt-8 gap-12">
-               
-               {/* Top Half: Communion Pulse (Chat) */}
-               <div className="flex-1 bg-[#1a1a1a] rounded-[4.5rem] p-10 flex flex-col relative shadow-2xl shadow-slate-900/40 min-h-0">
-                  <div className="flex items-center justify-between mb-8 shrink-0">
+            <div className="flex-1 lg:flex-[0.35] flex flex-col overflow-hidden p-6 lg:p-12 lg:pt-8 gap-8 lg:gap-12 bg-white/20 lg:bg-transparent">
+               <div className="flex-1 bg-[#1a1a1a] border border-white/5 rounded-[2.5rem] lg:rounded-[4.5rem] p-6 lg:p-10 flex flex-col relative shadow-2xl shadow-slate-900/40 min-h-[500px] lg:min-h-0">
+                  <div className="flex items-center justify-between mb-6 lg:mb-8 shrink-0">
                      <div className="space-y-1">
-                        <h3 className="text-2xl font-serif text-white tracking-tight">Communion Hub</h3>
-                        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75] opacity-80">Unified Resonance Portal</p>
+                        <h3 className="text-xl lg:text-2xl font-serif text-white tracking-tight">Portal</h3>
+                        <p className="text-[8px] lg:text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75] opacity-80">Sync Portal</p>
                      </div>
-                     <div className="h-12 w-12 bg-[#FF8A75]/10 border border-[#FF8A75]/20 rounded-2xl flex items-center justify-center text-[#FF8A75] shadow-inner">
-                        <MessageSquare className="w-6 h-6" />
+                     <div className="h-10 lg:h-12 w-10 lg:w-12 bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl flex items-center justify-center text-[#FF8A75]">
+                        <MessageSquare className="w-5 lg:w-6 h-5 lg:h-6" />
                      </div>
                   </div>
 
@@ -349,18 +331,19 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                               className="h-full"
                               hideHeader={true}
                               isMultiParty={true}
+                              dark={true}
                            />
                         ) : (
                            <div className="h-full flex flex-col items-center justify-center p-8 text-center">
-                              <div className="h-16 w-16 rounded-[2rem] bg-white/5 border border-white/10 flex items-center justify-center text-[#FF8A75] mb-8 rotate-12">
-                                 <Zap className="w-8 h-8" />
+                              <div className="h-12 w-12 lg:h-16 lg:w-16 rounded-2xl lg:rounded-[2rem] bg-white/5 border border-white/10 flex items-center justify-center text-[#FF8A75] mb-6 animate-bounce">
+                                 <Zap className="w-6 lg:w-8 h-6 lg:h-8" />
                               </div>
-                              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 mb-8">Portal Potential Locked</p>
+                              <p className="text-[8px] lg:text-[10px] font-black uppercase tracking-[0.4em] text-white/20 mb-6">Portal Locked</p>
                               <button
                                  onClick={handleStartChat}
-                                 className="h-14 px-10 rounded-[2rem] bg-[#FF8A75] text-white text-[10px] font-black uppercase tracking-widest hover:shadow-2xl hover:shadow-[#FF8A75]/40 transition-all hover:-translate-y-1"
+                                 className="h-12 lg:h-14 px-8 lg:px-10 rounded-2xl lg:rounded-[2rem] bg-[#FF8A75] text-white text-[8px] lg:text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all"
                               >
-                                 Initiate Alignment
+                                 Open Channel
                               </button>
                            </div>
                         )}
@@ -368,93 +351,89 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                   </div>
                </div>
 
-               {/* Bottom Half: Registry Artifacts (Files) */}
-               <div className="flex-[0.6] bg-white/40 backdrop-blur-3xl rounded-[4.5rem] p-10 border border-[#FF8A75]/10 shadow-xl flex flex-col min-h-0">
-                  <div className="flex items-center justify-between mb-10 shrink-0">
+               <div className="flex-[0.6] bg-white rounded-[2.5rem] lg:rounded-[4.5rem] p-6 lg:p-10 border border-[#FF8A75]/10 shadow-xl flex flex-col min-h-[300px] lg:min-h-0 mb-12 lg:mb-0">
+                  <div className="flex items-center justify-between mb-8 shrink-0">
                      <div className="space-y-1">
-                        <h3 className="text-xl font-serif text-slate-900 tracking-tight">Registry Artifacts</h3>
-                        <p className="text-[9px] font-black uppercase tracking-[0.4em] text-[#FF8A75] opacity-60">Sacred Documentation</p>
+                        <h3 className="text-lg lg:text-xl font-serif text-slate-900 tracking-tight">Artifacts</h3>
+                        <p className="text-[8px] lg:text-[9px] font-black uppercase tracking-[0.4em] text-[#FF8A75] opacity-60">Documentation</p>
                      </div>
                      <button
                         onClick={() => fileInputRef.current?.click()}
-                        className="h-12 w-12 rounded-2xl bg-[#1a1a1a] text-white flex items-center justify-center shadow-xl shadow-black/10 hover:bg-[#FF8A75] transition-all group/add"
+                        className="h-10 lg:h-12 w-10 lg:w-12 rounded-xl lg:rounded-2xl bg-[#1a1a1a] text-white flex items-center justify-center hover:bg-[#FF8A75] transition-all"
                      >
-                        {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-6 h-6 group-hover/add:rotate-90 transition-transform" />}
+                        {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 lg:w-6 h-5 lg:h-6" />}
                      </button>
                      <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
                   </div>
 
-                  <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-3">
+                  <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-2">
                      {resources.map((res) => (
                         <button 
                            key={res.id} 
                            onClick={() => window.open(res.file_url, '_blank')}
-                           className="w-full flex items-center gap-6 p-6 rounded-[2.5rem] bg-white border border-transparent hover:border-[#FF8A75]/20 hover:shadow-2xl hover:shadow-[#FF8A75]/5 transition-all text-left group/res"
+                           className="w-full flex items-center gap-4 lg:gap-6 p-4 lg:p-6 rounded-2xl lg:rounded-[2.5rem] bg-slate-50 border border-transparent hover:border-[#FF8A75]/20 hover:bg-white transition-all text-left group"
                         >
-                           <div className="h-14 w-14 rounded-2xl bg-[#FF8A75]/5 flex items-center justify-center text-[#FF8A75] group-hover/res:rotate-12 transition-all shrink-0">
-                              {res.content_type?.includes('image') ? <ImageIcon className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
+                           <div className="h-10 lg:h-12 w-10 lg:w-12 rounded-xl bg-white flex items-center justify-center text-[#FF8A75] shadow-sm shrink-0">
+                              {res.content_type?.includes('image') ? <ImageIcon className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
                            </div>
                            <div className="min-w-0 flex-1">
-                              <p className="text-base font-bold text-slate-800 truncate">{res.file_name}</p>
-                              <p className="text-[8px] font-black uppercase tracking-widest text-[#FF8A75]/40 mt-1.5">Manifest Artifact</p>
+                              <p className="text-sm lg:text-base font-bold text-slate-800 truncate">{res.file_name}</p>
+                              <p className="text-[7px] lg:text-[8px] font-black uppercase tracking-widest text-[#FF8A75]/40 mt-1">Resource</p>
                            </div>
-                           <Download className="w-5 h-5 text-slate-200 group-hover/res:text-[#FF8A75] transition-all" />
+                           <Download className="w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </button>
                      ))}
                      {resources.length === 0 && (
-                        <div className="h-full flex flex-col items-center justify-center opacity-20">
-                           <FolderOpen className="w-12 h-12 mb-6 text-[#FF8A75]" />
-                           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-center">Registry Vacuum</p>
+                        <div className="h-full flex flex-col items-center justify-center opacity-10 py-12">
+                           <FolderOpen className="w-10 h-10 mb-4" />
+                           <p className="text-[8px] font-black uppercase tracking-widest">No Artifacts</p>
                         </div>
                      )}
                   </div>
                </div>
-
             </div>
          </main>
       </div>
 
-      {/* ─── MODALS ─── */}
       <AnimatePresence>
         {showScheduleModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-[#1a1a1a]/30 backdrop-blur-3xl">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 lg:p-8 bg-[#1a1a1a]/40 backdrop-blur-xl">
             <motion.div 
-               initial={{ scale: 0.95, opacity: 0, y: 20 }}
-               animate={{ scale: 1, opacity: 1, y: 0 }}
-               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-               className="w-full max-w-lg bg-[#FFFAF7] rounded-[4rem] p-16 relative overflow-hidden shadow-2xl shadow-black/20 text-center border border-white/50"
+               initial={{ scale: 0.9, opacity: 0 }}
+               animate={{ scale: 1, opacity: 1 }}
+               exit={{ scale: 0.9, opacity: 0 }}
+               className="w-full max-w-lg bg-[#FFFAF7] rounded-[3rem] lg:rounded-[4rem] p-8 lg:p-16 relative overflow-hidden shadow-2xl"
             >
-               <div className="absolute top-0 right-0 w-40 h-40 bg-[#FF8A75]/10 rounded-full blur-3xl -translate-y-20 translate-x-20" />
                <button 
                   onClick={() => setShowScheduleModal(false)}
-                  className="absolute top-12 right-12 text-[#1a1a1a]/20 hover:text-[#FF8A75] transition-colors"
+                  className="absolute top-8 lg:top-12 right-8 lg:right-12 text-slate-300 hover:text-primary transition-colors"
                >
-                  <X className="w-8 h-8" />
+                  <X className="w-6 h-6 lg:w-8 lg:h-8" />
                </button>
 
-               <div className="space-y-12 relative z-10">
+               <div className="space-y-8 lg:space-y-12 text-center">
                   <div>
-                     <h3 className="text-4xl font-serif text-slate-900 mb-2">Temporal Alignment</h3>
-                     <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75]">Setting Sacred Time</p>
+                     <h3 className="text-3xl lg:text-4xl font-serif text-slate-900 mb-2">Scheduling</h3>
+                     <p className="text-[8px] lg:text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75]">Sync Temporal Spot</p>
                   </div>
 
                   <div className="space-y-6">
                      <div className="space-y-2 text-left">
-                        <label className="text-[9px] font-black tracking-widest uppercase text-[#FF8A75] ml-6">Guided Soul</label>
-                        <div className="h-18 px-8 rounded-3xl bg-white border border-[#FF8A75]/10 flex items-center text-lg font-bold text-slate-900 capitalize">{selectedStudent?.full_name}</div>
+                        <label className="text-[9px] font-black tracking-widest uppercase text-[#FF8A75] ml-4 lg:ml-6">Guided Soul</label>
+                        <div className="h-14 lg:h-18 px-6 lg:px-8 rounded-2xl lg:rounded-3xl bg-white border border-[#FF8A75]/10 flex items-center text-base lg:text-md font-bold text-slate-900 capitalize italic">{selectedStudent?.full_name}</div>
                      </div>
                      
                      <div className="space-y-2 text-left">
-                        <label className="text-[9px] font-black tracking-widest uppercase text-[#FF8A75] ml-6">Sacred Temporal Spot</label>
+                        <label className="text-[9px] font-black tracking-widest uppercase text-[#FF8A75] ml-4 lg:ml-6">Selection</label>
                         <input 
                            type="datetime-local" 
-                           className="h-18 w-full px-8 rounded-3xl bg-white border border-[#FF8A75]/10 text-lg font-bold text-slate-900 focus:ring-8 focus:ring-[#FF8A75]/5 outline-none transition-all" 
+                           className="h-14 lg:h-18 w-full px-6 lg:px-8 rounded-2xl lg:rounded-3xl bg-white border border-[#FF8A75]/10 text-base lg:text-md font-bold focus:ring-4 focus:ring-[#FF8A75]/5 outline-none transition-all" 
                         />
                      </div>
                   </div>
 
-                  <button className="w-full h-20 rounded-[2.5rem] bg-[#1a1a1a] text-white text-[12px] font-black uppercase tracking-[0.4em] hover:bg-[#FF8A75] shadow-2xl transition-all group/submit">
-                     Commit Alignment
+                  <button className="w-full h-16 lg:h-20 rounded-2xl lg:rounded-[2.5rem] bg-[#1a1a1a] text-white text-[10px] lg:text-[12px] font-black uppercase tracking-[0.4em] hover:bg-[#FF8A75] transition-all">
+                     Confirm Slot
                   </button>
                </div>
             </motion.div>
@@ -465,10 +444,10 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,138,117,0.15); border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,138,117,0.3); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,138,117,0.1); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,138,117,0.2); }
       `}</style>
     </div>
   );

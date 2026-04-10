@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import type { ChatMessageWithSender, Profile } from '@/types/database';
 import { sendChatMessage, getConversationChatStatus } from '@/lib/actions/chat';
 import { createClient } from '@/lib/supabase/client';
@@ -176,6 +176,9 @@ export function useRealtimeMessages({
     [conversationId, sendMessage]
   );
 
+  // ── Singleton Supabase client for this hook instance ──
+  const supabase = useMemo(() => createClient(), []);
+
   // ── Lifecycle: WebSockets (Supabase Broadcast) ──
   useEffect(() => {
     mountedRef.current = true;
@@ -188,18 +191,28 @@ export function useRealtimeMessages({
       .then(setIsChatEnabled)
       .catch(console.error);
 
-    // Subscribe to Supabase Broadcast for this specific conversation room
-    const supabase = createClient();
-    const channel = supabase.channel(`room:${conversationId}`);
-    channelRef.current = channel;
+    // Subscribe to Supabase Realtime
+    // We use two channels to avoid "cannot add postgres_changes after subscribe" errors:
+    // 1. A shared channel for Broadcast pings (room-consistent)
+    // 2. A unique channel for Postgres Changes (instance-consistent)
+    
+    const broadcastTopic = `room:${conversationId}`;
+    const changesTopic = `changes:${conversationId}-${Math.random().toString(36).slice(2, 9)}`;
 
-    channel
+    const broadcastChannel = supabase.channel(broadcastTopic);
+    const changesChannel = supabase.channel(changesTopic);
+    
+    channelRef.current = broadcastChannel; // For sending pings
+
+    broadcastChannel
       .on('broadcast', { event: 'new_message' }, () => {
-        // When the other person sends a message, they broadcast this event
-        console.log('[CHAT WEBSOCKET] Received new message ping, fetching...');
-        lastSignatureRef.current = ''; // Force refetch
+        console.log('[CHAT WEBSOCKET] Received Broadcast ping, fetching...');
+        lastSignatureRef.current = '';
         fetchMessages();
       })
+      .subscribe();
+
+    changesChannel
       .on(
         'postgres_changes',
         {
@@ -210,22 +223,19 @@ export function useRealtimeMessages({
         },
         () => {
           console.log('[CHAT WEBSOCKET] Received Postgres INSERT, fetching...');
-          lastSignatureRef.current = ''; // Force refetch
+          lastSignatureRef.current = '';
           fetchMessages();
         }
       )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('[CHAT WEBSOCKET] Connected to room:', conversationId.slice(0, 8));
-        }
-      });
+      .subscribe();
 
     return () => {
       mountedRef.current = false;
-      supabase.removeChannel(channel);
+      supabase.removeChannel(broadcastChannel);
+      supabase.removeChannel(changesChannel);
       channelRef.current = null;
     };
-  }, [conversationId, fetchMessages]);
+  }, [conversationId, fetchMessages, supabase]);
 
   return {
     messages,

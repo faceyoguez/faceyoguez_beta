@@ -18,6 +18,7 @@ import {
 import { useEffect, useState, useCallback } from 'react';
 import { ChatWindow } from './ChatWindow';
 import { Loader2, MessageSquareOff, RefreshCw, MessageCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import type { Profile, ConversationWithDetails, ConversationParticipant } from '@/types/database';
 
 interface OneOnOneChatProps {
@@ -26,6 +27,7 @@ interface OneOnOneChatProps {
   hideHeader?: boolean;
   className?: string;
   isMultiParty?: boolean;
+  dark?: boolean;
 }
 
 export function OneOnOneChat({
@@ -34,6 +36,7 @@ export function OneOnOneChat({
   hideHeader = false,
   className = 'h-full',
   isMultiParty = true,
+  dark = false,
 }: OneOnOneChatProps) {
   const [conversation, setConversation] = useState<ConversationWithDetails | null>(null);
   const [otherParticipant, setOtherParticipant] = useState<Profile | null>(null);
@@ -96,8 +99,8 @@ export function OneOnOneChat({
   // ── Instructor: show placeholder when no student selected ──
   if (isStaff && !conversation && !isLoading) {
     return (
-      <div className={`flex flex-col items-center justify-center gap-2 text-gray-400 ${className}`}>
-        <MessageSquareOff className="h-10 w-10 text-gray-300" />
+      <div className={cn("flex flex-col items-center justify-center gap-2", dark ? "text-white/20" : "text-gray-400", className)}>
+        <MessageSquareOff className={cn("h-10 w-10", dark ? "text-white/10" : "text-gray-300")} />
         <p className="text-sm font-medium">Select a student to start chatting</p>
       </div>
     );
@@ -115,24 +118,32 @@ export function OneOnOneChat({
         hideHeader={hideHeader}
         className={className}
         isMultiParty={isMultiParty}
+        dark={dark}
       />
     );
   }
 
   // ── Student: always show a chat-like shell with inline error banner ──
   return (
-    <div className={`flex flex-col overflow-hidden rounded-2xl bg-white/70 backdrop-blur-xl ring-1 ring-pink-100/40 ${className}`}>
+    <div className={cn(
+      "flex flex-col overflow-hidden rounded-2xl ring-1",
+      dark ? "bg-black/20 ring-white/5" : "bg-white/70 backdrop-blur-xl ring-pink-100/40",
+      className
+    )}>
       {/* Header */}
       {!hideHeader && (
-        <div className="flex items-center gap-3 border-b border-pink-100/40 bg-white/30 px-5 py-3 backdrop-blur-md">
+        <div className={cn(
+          "flex items-center gap-3 border-b px-5 py-3 backdrop-blur-md",
+          dark ? "border-white/5 bg-white/5" : "border-pink-100/40 bg-white/30"
+        )}>
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-pink-400 to-rose-500 text-sm font-bold text-white shadow-sm">
             <MessageCircle className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-gray-800">Your Instructor</h3>
+            <h3 className={cn("text-sm font-bold", dark ? "text-white" : "text-gray-800")}>Your Instructor</h3>
             <div className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-gray-300" />
-              <p className="text-[10px] font-medium uppercase tracking-wide text-gray-500">
+              <span className={cn("h-1.5 w-1.5 rounded-full", dark ? "bg-white/20" : "bg-gray-300")} />
+              <p className={cn("text-[10px] font-medium uppercase tracking-wide", dark ? "text-white/40" : "text-gray-500")}>
                 Direct Message
               </p>
             </div>
@@ -147,13 +158,19 @@ export function OneOnOneChat({
         ) : error ? (
           <>
             {/* Small inline error banner */}
-            <div className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 shadow-sm">
-              <span className="h-2 w-2 rounded-full bg-amber-400" />
-              <span className="text-xs font-medium text-amber-700">{error}</span>
+            <div className={cn(
+               "flex items-center gap-2 rounded-xl border px-4 py-2.5 shadow-sm",
+               dark ? "border-white/10 bg-white/5 text-white" : "border-amber-200 bg-amber-50 text-amber-700"
+            )}>
+              <span className={cn("h-2 w-2 rounded-full", dark ? "bg-white/40" : "bg-amber-400")} />
+              <span className="text-xs font-medium">{error}</span>
               <button
                 onClick={() => findOrCreateConversation(true)}
                 disabled={isRetrying}
-                className="ml-2 flex items-center gap-1 rounded-lg bg-white px-2.5 py-1 text-[10px] font-bold text-amber-700 shadow-sm ring-1 ring-amber-200 transition-all hover:bg-amber-50 disabled:opacity-50"
+                className={cn(
+                  "ml-2 flex items-center gap-1 rounded-lg px-2.5 py-1 text-[10px] font-bold shadow-sm ring-1 transition-all disabled:opacity-50",
+                  dark ? "bg-white/10 text-white ring-white/10 hover:bg-white/20" : "bg-white text-amber-700 ring-amber-200 hover:bg-amber-50"
+                )}
               >
                 {isRetrying ? (
                   <Loader2 className="h-3 w-3 animate-spin" />
@@ -165,22 +182,34 @@ export function OneOnOneChat({
             </div>
           </>
         ) : (
-          <p className="text-sm text-gray-400">Starting your chat...</p>
+          <p className={cn("text-sm", dark ? "text-white/20" : "text-gray-400")}>Starting your chat...</p>
         )}
       </div>
 
       {/* Disabled input area — looks like a real text box */}
-      <div className="border-t border-pink-100/40 bg-white/30 px-4 py-3">
-        <div className="flex items-center gap-2 rounded-xl bg-gray-50 px-4 py-2.5 ring-1 ring-gray-200">
+      <div className={cn(
+        "border-t px-4 py-3",
+        dark ? "border-white/5 bg-white/5" : "border-pink-100/40 bg-white/30"
+      )}>
+        <div className={cn(
+          "flex items-center gap-2 rounded-xl px-4 py-2.5 ring-1",
+          dark ? "bg-white/5 ring-white/5" : "bg-gray-50 ring-gray-200"
+        )}>
           <input
             type="text"
             disabled
             placeholder="Connecting..."
-            className="flex-1 bg-transparent text-sm text-gray-400 outline-none disabled:cursor-not-allowed"
+            className={cn(
+              "flex-1 bg-transparent text-sm outline-none disabled:cursor-not-allowed",
+              dark ? "text-white/20 placeholder-white/10" : "text-gray-400 placeholder-gray-300"
+            )}
           />
           <button
             disabled
-            className="rounded-lg bg-gray-200 px-3 py-1.5 text-xs font-bold text-gray-400"
+            className={cn(
+              "rounded-lg px-3 py-1.5 text-xs font-bold",
+              dark ? "bg-white/5 text-white/10" : "bg-gray-200 text-gray-400"
+            )}
           >
             Send
           </button>

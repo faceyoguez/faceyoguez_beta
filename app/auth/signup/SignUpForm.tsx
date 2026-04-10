@@ -131,7 +131,7 @@ export default function SignUpForm() {
       subtitle="Create your sanctuary and start practicing face yoga today."
       isSignup={true}
     >
-      <form onSubmit={handleSignUp} className="space-y-5">
+      <form onSubmit={handleSignUp} className="space-y-4">
         <AuthInput
           label="Full Name"
           type="text"
@@ -157,7 +157,7 @@ export default function SignUpForm() {
           type="tel"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          placeholder="Enter phone number (Optional)"
+          placeholder="Phone (Optional)"
           error={errors.phone}
         />
 
@@ -167,14 +167,14 @@ export default function SignUpForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          placeholder="Enter password (min. 6 characters)"
+          placeholder="Create a password"
           error={errors.password}
           isPassword
         />
 
         {errors.form && (
-          <div className="p-4 bg-red-50/50 border border-red-100 rounded-2xl">
-            <p className="text-xs text-red-600 font-bold text-center leading-relaxed">{errors.form}</p>
+          <div className="p-3 bg-red-50/50 border border-red-100 rounded-2xl">
+            <p className="text-[10px] text-red-600 font-bold text-center leading-relaxed">{errors.form}</p>
           </div>
         )}
 
@@ -187,7 +187,7 @@ export default function SignUpForm() {
         </AuthButton>
       </form>
 
-      <div className="relative my-8">
+      <div className="relative my-6">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t border-outline-variant/60" />
         </div>
@@ -196,31 +196,31 @@ export default function SignUpForm() {
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3">
         <AuthButton
           variant="outline"
           onClick={() => handleOAuthSignup('google')}
           disabled={loading}
           icon={<GoogleIcon />}
         >
-          Continue with Google
+          Google
         </AuthButton>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           <AuthButton
             variant="outline"
             className="!bg-[#1877F2] !text-white !border-none hover:opacity-90"
             onClick={() => handleOAuthSignup('facebook')}
             disabled={loading}
-            icon={<Facebook className="w-5 h-5 fill-white" stroke="none" />}
+            icon={<Facebook className="w-4 h-4 fill-white" stroke="none" />}
           >
             Facebook
           </AuthButton>
           <AuthButton
             variant="outline"
-            className="!bg-gradient-to-tr !from-[#FFDC80] !via-[#F56040] !to-[#C13584] !text-white !border-none hover:opacity-90"
+            className="!bg-gradient-to-tr !from-[#FFDC80] !via-[#F56040] !to-[#C13584] !text-white !border-none hover:opacity-90 shadow-sm"
             onClick={() => handleOAuthSignup('instagram')}
             disabled={loading}
-            icon={<Instagram className="w-5 h-5" />}
+            icon={<Instagram className="w-4 h-4" />}
           >
             Instagram
           </AuthButton>

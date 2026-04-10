@@ -5,6 +5,7 @@ import { useRealtimeMessages } from '@/hooks/useRealtimeMessages';
 import { MessageBubble } from './MessageBubble';
 import { MessageInput } from './MessageInput';
 import { Loader2, MessageCircle, MoreHorizontal } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import type { Profile, ConversationType } from '@/types/database';
 
 interface ChatWindowProps {
@@ -13,16 +14,10 @@ interface ChatWindowProps {
   conversationType: ConversationType;
   title: string;
   otherParticipant?: Profile;
-  /** Hide the header — useful when embedding inside another panel */
   hideHeader?: boolean;
-  /** Optional class for the outermost wrapper */
   className?: string;
-  /**
-   * When true, render in group-chat style: show sender name + role badge on
-   * every message (own and others) even for 'direct' type conversations.
-   * Use this whenever 3+ parties share one conversation thread.
-   */
   isMultiParty?: boolean;
+  dark?: boolean;
 }
 
 export function ChatWindow({
@@ -34,6 +29,7 @@ export function ChatWindow({
   hideHeader = false,
   className = '',
   isMultiParty = false,
+  dark = false,
 }: ChatWindowProps) {
   const {
     messages,
@@ -75,20 +71,41 @@ export function ChatWindow({
   const canSend = conversationType === 'direct' ? true : (isChatEnabled || isStaff);
 
   return (
-    <div className={`flex flex-col overflow-hidden rounded-[2.5rem] bg-white/40 backdrop-blur-3xl border border-primary/5 relative ${className}`}>
+    <div className={cn(
+      "flex flex-col overflow-hidden relative transition-all duration-700 shadow-2xl",
+      dark 
+        ? "bg-[#1a1a1a] text-white border border-white/5 shadow-slate-900/50 rounded-[2.5rem] lg:rounded-[4.5rem]" 
+        : "bg-white/40 backdrop-blur-3xl border border-primary/5 shadow-primary/5 rounded-[2.5rem]",
+      className
+    )}>
       
       {/* Decorative Blur Backgrounds */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-[80px] -translate-y-12 translate-x-12 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/5 rounded-full blur-[100px] translate-y-12 -translate-x-12 pointer-events-none" />
+      <div className={cn(
+        "absolute top-0 right-0 w-80 h-80 rounded-full blur-[100px] -translate-y-24 translate-x-24 pointer-events-none opacity-50",
+        dark ? "bg-primary/5" : "bg-primary/10"
+      )} />
+      <div className={cn(
+        "absolute bottom-0 left-0 w-80 h-80 rounded-full blur-[120px] translate-y-24 -translate-x-24 pointer-events-none opacity-30",
+        dark ? "bg-primary/5" : "bg-primary/5"
+      )} />
 
       {/* Header */}
       {!hideHeader && (
-        <div className="flex items-center justify-between border-b border-outline-variant/5 px-8 py-6 backdrop-blur-xl relative z-10">
+        <div className={cn(
+          "flex items-center justify-between border-b px-8 py-6 backdrop-blur-3xl relative z-10",
+          dark ? "border-white/5 bg-white/[0.02]" : "border-outline-variant/5 bg-white/20"
+        )}>
           <div className="flex items-center gap-5">
             <div className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-tr from-primary/20 to-brand-emerald/20 rounded-[1.2rem] blur opacity-0 group-hover:opacity-100 transition duration-500" />
+                <div className={cn(
+                  "absolute -inset-1 rounded-[1.2rem] blur opacity-0 group-hover:opacity-100 transition duration-700",
+                  dark ? "bg-primary/10" : "bg-gradient-to-tr from-primary/20 to-brand-emerald/20"
+                )} />
                 {otherParticipant?.avatar_url ? (
-                    <div className="relative h-12 w-12 rounded-[1rem] overflow-hidden ring-2 ring-white border border-primary/20 p-0.5 bg-white">
+                    <div className={cn(
+                      "relative h-12 w-12 rounded-[1rem] overflow-hidden p-0.5",
+                      dark ? "ring-1 ring-white/10 bg-white/5" : "ring-2 ring-white border border-primary/20 bg-white"
+                    )}>
                         <img
                         src={otherParticipant.avatar_url}
                         alt={otherParticipant.full_name}
@@ -96,28 +113,38 @@ export function ChatWindow({
                         />
                     </div>
                 ) : (
-                    <div className="relative flex h-12 w-12 items-center justify-center rounded-[1rem] bg-foreground text-background text-lg font-serif font-bold">
+                    <div className={cn(
+                      "relative flex h-12 w-12 items-center justify-center rounded-[1rem] text-lg font-serif font-bold shadow-sm",
+                      dark ? "bg-white/5 text-white ring-1 ring-white/10" : "bg-foreground text-background"
+                    )}>
                     {title.charAt(0).toUpperCase()}
                     </div>
                 )}
-                <div className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full bg-primary border-4 border-white" />
+                {/* Online status indicator */}
+                <div className={cn(
+                  "absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full border-2",
+                  dark ? "bg-emerald-500 border-[#0a0a0a]" : "bg-primary border-white"
+                )} />
             </div>
             <div className="space-y-0.5">
-                <h3 className="text-base font-bold tracking-tight text-foreground capitalize">{title}</h3>
+                <h3 className={cn("text-base font-bold tracking-tight capitalize", dark ? "text-white" : "text-foreground")}>{title}</h3>
                 <div className="flex items-center gap-2">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/40">
-                        {conversationType === 'group' ? 'Group Chat' : 'Direct Message'}
+                    <p className={cn("text-[10px] font-black uppercase tracking-[0.2em]", dark ? "text-white/30" : "text-foreground/40")}>
+                        {conversationType === 'group' ? 'Group Class Channel' : 'Direct Communion'}
                     </p>
                     {!isChatEnabled && conversationType === 'group' && (
-                        <span className="rounded-full bg-amber-100/50 text-amber-700 text-[8px] font-black uppercase tracking-widest px-2 py-0.5">
-                            Paused
+                        <span className="rounded-full bg-amber-500/10 text-amber-500 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 border border-amber-500/20">
+                            Flow Paused
                         </span>
                     )}
                 </div>
             </div>
           </div>
           
-          <button className="h-10 w-10 flex items-center justify-center rounded-xl hover:bg-foreground/5 transition-colors text-foreground/20 hover:text-foreground">
+          <button className={cn(
+            "h-10 w-10 flex items-center justify-center rounded-xl transition-all duration-300",
+            dark ? "hover:bg-white/5 text-white/20 hover:text-white" : "hover:bg-foreground/5 text-foreground/20 hover:text-foreground"
+          )}>
              <MoreHorizontal className="w-5 h-5" />
           </button>
         </div>
@@ -127,13 +154,18 @@ export function ChatWindow({
       <div
         ref={containerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto px-8 py-8 space-y-2 custom-scrollbar relative z-10"
+        className="flex-1 overflow-y-auto px-8 py-8 space-y-4 custom-scrollbar relative z-10"
       >
         {isLoading ? (
           <div className="flex h-full items-center justify-center">
             <div className="flex flex-col items-center gap-4">
-                <Loader2 className="h-8 w-8 animate-spin text-primary/40" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-foreground/20">Opening Channel</p>
+                <div className={cn(
+                  "h-12 w-12 rounded-2xl flex items-center justify-center animate-pulse",
+                  dark ? "bg-white/5" : "bg-primary/5"
+                )}>
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                </div>
+                <p className={cn("text-[10px] font-black uppercase tracking-widest", dark ? "text-white/20" : "text-foreground/20")}>Synchronizing Flow</p>
             </div>
           </div>
         ) : (
@@ -141,40 +173,52 @@ export function ChatWindow({
             {hasMore && (
               <button
                 onClick={loadMore}
-                className="mb-8 w-full text-center text-[10px] font-black uppercase tracking-widest text-primary/40 hover:text-primary transition-colors py-2 rounded-xl bg-primary/5 border border-primary/10"
+                className={cn(
+                  "mb-10 w-full text-center text-[10px] font-black uppercase tracking-widest transition-all py-3 rounded-2xl border active:scale-95",
+                  dark 
+                    ? "text-white/40 hover:text-white bg-white/5 border-white/5 hover:bg-white/10" 
+                    : "text-primary/40 hover:text-primary bg-primary/5 border-primary/10 hover:bg-primary/10"
+                )}
               >
                 Recall Past Reflections
               </button>
             )}
 
             {messages.length === 0 && (
-              <div className="flex h-full flex-col items-center justify-center text-foreground/20 space-y-4">
-                <div className="h-16 w-16 rounded-[2rem] bg-surface-container-low flex items-center justify-center">
-                    <MessageCircle className="w-8 h-8 opacity-20" />
+              <div className={cn("flex h-full flex-col items-center justify-center space-y-6", dark ? "text-white/20" : "text-foreground/20")}>
+                <div className={cn(
+                  "h-20 w-20 rounded-[2.5rem] flex items-center justify-center relative",
+                  dark ? "bg-white/5 ring-1 ring-white/10" : "bg-surface-container-low"
+                )}>
+                    <MessageCircle className="w-10 h-10 opacity-30" />
+                    <div className="absolute -top-1 -right-1 h-4 w-4 bg-primary rounded-full animate-ping opacity-20" />
                 </div>
-                <p className="text-sm font-medium italic">Begin your transformation story here...</p>
+                <p className="text-sm font-medium italic max-w-[200px] text-center leading-relaxed">Begin your private transformation story here...</p>
               </div>
             )}
 
-            {messages.map((msg, idx) => {
-              const prevMsg = messages[idx - 1];
-              const showSender =
-                !prevMsg ||
-                prevMsg.sender_id !== msg.sender_id ||
-                new Date(msg.created_at).getTime() -
-                new Date(prevMsg.created_at).getTime() >
-                5 * 60 * 1000;
+            <div className="space-y-1">
+              {messages.map((msg, idx) => {
+                const prevMsg = messages[idx - 1];
+                const showSender =
+                  !prevMsg ||
+                  prevMsg.sender_id !== msg.sender_id ||
+                  new Date(msg.created_at).getTime() -
+                  new Date(prevMsg.created_at).getTime() >
+                  5 * 60 * 1000;
 
-              return (
-                <MessageBubble
-                  key={msg.id}
-                  message={msg}
-                  isOwn={msg.sender_id === currentUser.id}
-                  showSender={showSender && (conversationType === 'group' || isMultiParty)}
-                  isMultiParty={isMultiParty}
-                />
-              );
-            })}
+                return (
+                  <MessageBubble
+                    key={msg.id}
+                    message={msg}
+                    isOwn={msg.sender_id === currentUser.id}
+                    showSender={showSender && (conversationType === 'group' || isMultiParty)}
+                    isMultiParty={isMultiParty}
+                    dark={dark}
+                  />
+                );
+              })}
+            </div>
             <div ref={messagesEndRef} className="h-4" />
           </>
         )}
@@ -182,9 +226,12 @@ export function ChatWindow({
 
       {/* Paused notice — only for group chats */}
       {!canSend && conversationType === 'group' && (
-        <div className="bg-amber-50/50 backdrop-blur-md px-8 py-4 text-center border-t border-amber-200/20">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-700/60">
-            Flow is currently restricted by Instructor
+        <div className={cn(
+          "px-8 py-4 text-center border-t backdrop-blur-xl",
+          dark ? "bg-amber-900/10 border-amber-500/5 text-amber-500/60" : "bg-amber-50/50 border-amber-200/20 text-amber-700/60"
+        )}>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em]">
+            Interaction restricted by the Lead Instructor
           </p>
         </div>
       )}
@@ -194,22 +241,23 @@ export function ChatWindow({
         <MessageInput
           onSendText={(text: string) => sendMessage(text)}
           onSendFile={(file: File, type: 'image' | 'pdf' | 'file') => sendFile(file, type)}
+          dark={dark}
         />
       )}
 
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar {
-            width: 5px;
+            width: 4px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
             background: transparent;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(0,0,0,0.05);
-            border-radius: 10px;
+            background: rgba(${dark ? '255,255,255' : '0,0,0'}, ${dark ? '0.1' : '0.05'});
+            border-radius: 20px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: rgba(0,0,0,0.1);
+            background: rgba(${dark ? '255,255,255' : '0,0,0'}, ${dark ? '0.2' : '0.1'});
         }
       `}</style>
     </div>

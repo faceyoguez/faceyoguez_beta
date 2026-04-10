@@ -18,8 +18,11 @@ import {
   Image as ImageIcon,
   PlayCircle,
   ArrowUpRight,
-  TrendingUp
+  TrendingUp,
+  MessageSquare,
+  X
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { differenceInDays, startOfDay } from 'date-fns';
 import type { Profile, StudentResource, MeetingWithDetails } from '@/types/database';
@@ -88,7 +91,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
 
       const supabase = createClient();
       const channel = supabase
-        .channel(`resources:${currentUser.id}`)
+        .channel(`resources:${currentUser.id}-${Math.random().toString(36).slice(2, 9)}`)
         .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'student_resources', filter: `student_id=eq.${currentUser.id}` },
@@ -167,6 +170,8 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
     return () => clearInterval(interval);
   }, [nextMeeting]);
 
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[#FFFAF7] selection:bg-[#FF8A75]/20 font-sans text-[#1a1a1a] relative">
       <div className="fixed inset-0 z-0 pointer-events-none">
@@ -177,7 +182,6 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
       <div className="relative z-10 p-4 lg:p-6 flex-1 flex flex-col min-h-0 gap-6">
         <header className="shrink-0 flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-[#FF8A75]/10 mt-0">
           <div className="space-y-3 flex-1">
-
             <div className="space-y-0.5">
               <h1 className="text-2xl lg:text-3xl font-serif text-[#1a1a1a] tracking-tight leading-[1.1]">
                 Your Dedicated Path
@@ -197,16 +201,16 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 min-h-0">
-          <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-8 relative z-10 overflow-y-auto custom-scrollbar pr-4">
+          <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-8 relative z-10 overflow-y-auto custom-scrollbar pr-0 lg:pr-4">
             <div className="w-full shrink-0">
               {nextMeeting ? (
-                <div className="group relative overflow-hidden rounded-[2.5rem] p-6 lg:p-7 border border-[#FF8A75]/10 bg-white/60 backdrop-blur-3xl transition-all duration-700 hover:border-[#FF8A75]/20 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl shadow-[#FF8A75]/5">
+                <div className="group relative overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-7 border border-[#FF8A75]/10 bg-white/60 backdrop-blur-3xl transition-all duration-700 hover:border-[#FF8A75]/20 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl shadow-[#FF8A75]/5">
                   <div className="space-y-3 flex-1 min-w-0">
                     <div className="inline-flex items-center gap-2.5 px-3 py-1.5 bg-white/60 text-[#FF8A75] rounded-full text-[8.5px] font-black uppercase tracking-[0.3em] border border-[#FF8A75]/5">
                       <div className="h-1.5 w-1.5 rounded-full bg-[#FF8A75] animate-pulse shadow-[0_0_8px_#FF8A75]" />
                       Upcoming Session
                     </div>
-                    <h3 className="text-2xl lg:text-3xl font-serif text-[#1a1a1a] tracking-tight leading-tight truncate">{nextMeeting.topic}</h3>
+                    <h3 className="text-xl sm:text-3xl font-serif text-[#1a1a1a] tracking-tight leading-tight truncate">{nextMeeting.topic}</h3>
                     <div className="flex items-center gap-8 pt-6 border-t border-[#FF8A75]/10">
                       <div className="space-y-1">
                         <p className="text-[9px] uppercase font-black tracking-[0.3em] text-[#6B7280]/40 leading-none">Session Date</p>
@@ -235,7 +239,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center gap-4 p-10 rounded-[3.5rem] bg-white/40 backdrop-blur-3xl border border-[#FF8A75]/5 text-[#6B7280] w-full min-h-[200px] shadow-sm">
+                <div className="flex flex-col items-center justify-center gap-4 p-8 sm:p-10 rounded-[2.5rem] sm:rounded-[3.5rem] bg-white/40 backdrop-blur-3xl border border-[#FF8A75]/5 text-[#6B7280] w-full min-h-[180px] sm:min-h-[200px] shadow-sm">
                   <div className="h-12 w-12 rounded-2xl bg-white border border-[#FF8A75]/10 flex items-center justify-center shadow-sm">
                     <Video className="w-5 h-5 text-[#FF8A75]/30" />
                   </div>
@@ -244,7 +248,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
               )}
             </div>
 
-            <div className="w-full rounded-[2.5rem] p-6 lg:p-8 space-y-6 bg-white/60 backdrop-blur-3xl border border-[#FF8A75]/10 relative overflow-hidden shadow-xl shadow-[#FF8A75]/5 shrink-0">
+            <div className="w-full rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-8 space-y-6 bg-white/60 backdrop-blur-3xl border border-[#FF8A75]/10 relative overflow-hidden shadow-xl shadow-[#FF8A75]/5 shrink-0">
               <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[radial-gradient(circle_at_center,rgba(255,138,117,0.04)_0%,transparent_70%)] blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
               <div className="flex flex-col 2xl:flex-row 2xl:items-end justify-between gap-4 relative z-10">
                 <div className="space-y-3">
@@ -252,21 +256,21 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                     <TrendingUp className="w-3 h-3" />
                     Progress Tracker
                   </div>
-                  <h3 className="text-3xl lg:text-4xl font-serif text-[#1a1a1a] tracking-tight leading-none">Your Progress</h3>
+                  <h3 className="text-2xl sm:text-4xl font-serif text-[#1a1a1a] tracking-tight leading-none">Your Progress</h3>
                 </div>
-                <div className="flex gap-4">
-                  <div className="px-6 h-14 bg-white/60 border border-[#FF8A75]/10 rounded-2xl flex flex-col items-center justify-center shadow-sm">
-                    <span className="text-[8px] font-black text-[#FF8A75] uppercase tracking-[0.3em] mb-0.5">Project</span>
-                    <span className="text-lg font-bold text-[#1a1a1a] tracking-tight">Month {currentMonth}</span>
+                <div className="flex gap-3 sm:gap-4">
+                  <div className="px-4 sm:px-6 h-12 sm:h-14 bg-white/60 border border-[#FF8A75]/10 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center shadow-sm">
+                    <span className="text-[7px] sm:text-[8px] font-black text-[#FF8A75] uppercase tracking-[0.3em] mb-0.5">Project</span>
+                    <span className="text-sm sm:text-lg font-bold text-[#1a1a1a] tracking-tight">Month {currentMonth}</span>
                   </div>
-                  <div className="px-6 h-14 bg-slate-900 rounded-2xl flex flex-col items-center justify-center shadow-lg">
-                    <span className="text-[8px] font-black text-[#FF8A75] uppercase tracking-[0.3em] mb-0.5">Current</span>
-                    <span className="text-lg font-bold text-white tracking-tight">Day {currentDay}/{totalDurationDays}</span>
+                  <div className="px-4 sm:px-6 h-12 sm:h-14 bg-slate-900 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center shadow-lg">
+                    <span className="text-[7px] sm:text-[8px] font-black text-[#FF8A75] uppercase tracking-[0.3em] mb-0.5">Current</span>
+                    <span className="text-sm sm:text-lg font-bold text-white tracking-tight">Day {currentDay}/{totalDurationDays}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="relative z-10 py-12 px-8 bg-slate-50/50 backdrop-blur-3xl rounded-[2rem] border border-slate-100 overflow-x-auto no-scrollbar shadow-inner">
+              <div className="relative z-10 py-8 sm:py-12 px-5 sm:px-8 bg-slate-50/50 backdrop-blur-3xl rounded-[1.5rem] sm:rounded-[2rem] border border-slate-100 overflow-x-auto no-scrollbar shadow-inner">
                 <JourneyProgress
                   currentDay={dayInMonth}
                   activeDay={((activeDay - 1) % 30) + 1}
@@ -275,9 +279,9 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                 />
               </div>
 
-              <div className="grid grid-cols-1 xl:grid-cols-2 items-stretch gap-10 relative z-10">
+              <div className="grid grid-cols-1 xl:grid-cols-2 items-stretch gap-8 sm:gap-10 relative z-10">
                 <div className="flex flex-col">
-                  <div className="rounded-[2.5rem] overflow-hidden border border-[#FF8A75]/5 bg-black h-[280px] lg:h-[320px] relative shadow-2xl flex-1">
+                  <div className="rounded-[1.5rem] sm:rounded-[2.5rem] overflow-hidden border border-[#FF8A75]/5 bg-black h-[260px] sm:h-[320px] relative shadow-2xl flex-1">
                     <ImageComparison
                       beforeImage={beforeImage}
                       afterImage={afterImage}
@@ -287,17 +291,17 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                 </div>
 
                 <div className="space-y-6 flex flex-col h-full">
-                  <div className="flex items-center gap-6 shrink-0">
-                    <div className="h-14 w-14 rounded-2xl bg-slate-900 flex items-center justify-center text-[#FF8A75] shadow-xl">
-                      <Edit3 className="w-6 h-6" />
+                  <div className="flex items-center gap-4 sm:gap-6 shrink-0">
+                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-slate-900 flex items-center justify-center text-[#FF8A75] shadow-xl">
+                      <Edit3 className="w-5 sm:w-6 h-5 sm:h-6" />
                     </div>
                     <div>
-                      <h5 className="text-3xl font-serif text-[#1a1a1a] tracking-tight">Your Notes</h5>
+                      <h5 className="text-2xl sm:text-3xl font-serif text-[#1a1a1a] tracking-tight">Your Notes</h5>
                       <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75]">Day {activeDay}</p>
                     </div>
                   </div>
 
-                  <div className="flex-1 rounded-[1.5rem] bg-white/40 p-6 border border-slate-200/50 min-h-[140px] shadow-inner">
+                  <div className="flex-1 rounded-[1.2rem] sm:rounded-[1.5rem] bg-white/40 p-5 sm:p-6 border border-slate-200/50 min-h-[140px] shadow-inner">
                     <textarea
                       value={notesInput}
                       onChange={(e) => setNotesInput(e.target.value)}
@@ -306,7 +310,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 shrink-0 mt-auto">
+                  <div className="grid grid-cols-2 gap-3 shrink-0 mt-auto pb-4 lg:pb-0">
                     <input type="file" ref={fileInputRef} onChange={handlePhotoSelect} className="hidden" />
                     {isPhotoDay && (
                       <button onClick={() => fileInputRef.current?.click()} className="h-12 rounded-xl border border-slate-200 bg-white shadow-sm flex items-center justify-center gap-2 text-[8px] font-black uppercase tracking-widest hover:border-[#FF8A75]/20 hover:text-[#FF8A75] transition-all">
@@ -322,7 +326,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
             </div>
           </div>
 
-          <div className="lg:col-span-5 xl:col-span-4 flex flex-col gap-6 relative z-10 h-full min-h-0">
+          <div className="hidden lg:col-span-5 lg:xl:col-span-4 lg:flex flex-col gap-6 relative z-10 h-full min-h-0">
             <div className="h-[500px] bg-white/60 backdrop-blur-3xl rounded-[3rem] border border-[#FF8A75]/10 flex flex-col overflow-hidden shadow-xl shadow-[#FF8A75]/5">
               <div className="px-8 py-4 border-b border-[#FF8A75]/5 bg-white/20 flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -371,6 +375,61 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
           </div>
         </div>
       </div>
+
+      {/* Floating Chat Button for Mobile */}
+      <div className="lg:hidden fixed bottom-6 right-6 z-[60]">
+         <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setIsChatOpen(true)}
+            className="w-16 h-16 rounded-full bg-slate-900 text-white flex items-center justify-center shadow-2xl shadow-black/20 relative"
+         >
+            <MessageSquare className="w-7 h-7" />
+            <div className="absolute top-0 right-0 h-4 w-4 bg-[#FF8A75] rounded-full border-2 border-white" />
+         </motion.button>
+      </div>
+
+      {/* Mobile Chat Drawer */}
+      <AnimatePresence>
+         {isChatOpen && (
+            <>
+               <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setIsChatOpen(false)}
+                  className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[70] lg:hidden"
+               />
+               <motion.div
+                  initial={{ y: '100%' }}
+                  animate={{ y: 0 }}
+                  exit={{ y: '100%' }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                  className="fixed inset-x-0 bottom-0 top-12 bg-white rounded-t-[3rem] z-[80] lg:hidden flex flex-col overflow-hidden shadow-2xl"
+               >
+                  <div className="p-6 border-b border-slate-100 flex items-center justify-between shrink-0">
+                     <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-2xl bg-[#FF8A75]/10 text-[#FF8A75] flex items-center justify-center">
+                           <MessageSquare className="w-5 h-5" />
+                        </div>
+                        <div>
+                           <h3 className="text-lg font-serif">Instructor Chat</h3>
+                           <p className="text-[8px] font-black uppercase tracking-widest text-[#FF8A75]">Private Channel</p>
+                        </div>
+                     </div>
+                     <button 
+                        onClick={() => setIsChatOpen(false)}
+                        className="h-10 w-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400"
+                     >
+                        <X className="w-5 h-5" />
+                     </button>
+                  </div>
+                  <div className="flex-1 overflow-hidden relative">
+                     <OneOnOneChat currentUser={currentUser} hideHeader={true} className="h-full w-full border-0 absolute inset-0" />
+                  </div>
+               </motion.div>
+            </>
+         )}
+      </AnimatePresence>
 
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
