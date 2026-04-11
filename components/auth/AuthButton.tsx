@@ -36,7 +36,7 @@ const AuthButton = ({ children, loading, variant = 'primary', icon, className, .
       ) : (
         <>
           {icon && <span className="flex-shrink-0 transition-transform group-hover:scale-110">{icon}</span>}
-          <span className="relative z-10">{children}</span>
+          <span className="relative z-10">{children as React.ReactNode}</span>
         </>
       )}
     </motion.button>
