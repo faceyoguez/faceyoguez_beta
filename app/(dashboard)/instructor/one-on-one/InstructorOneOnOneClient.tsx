@@ -58,6 +58,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
   const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
 
   const [notes, setNotes] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -147,15 +148,16 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
   let afterImage = activeLog?.photo_url || 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800';
 
   return (
-    <div className="flex flex-col h-screen bg-[#FFFAF7] text-[#1a1a1a] selection:bg-[#FF8A75]/10 overflow-hidden font-sans relative">
+    <div className="flex flex-col h-[100dvh] bg-[#FFFAF7] text-[#1a1a1a] selection:bg-[#FF8A75]/10 overflow-hidden font-sans relative">
       <div className="fixed inset-0 z-0 pointer-events-none">
-         <div className="absolute top-[-10%] right-[-10%] w-[60vw] h-[60vh] bg-[#FF8A75]/10 rounded-full blur-[140px] opacity-60" />
-         <div className="absolute bottom-[-10%] left-[-10%] w-[50vw] h-[50vh] bg-[#FF6B4E]/5 rounded-full blur-[140px] opacity-40" />
+         <div className="absolute top-[-10%] right-[-10%] w-[60vw] h-[60vh] bg-[radial-gradient(circle_at_center,rgba(255,138,117,0.08)_0%,transparent_60%)] rounded-full blur-[100px] animate-pulse" style={{ animationDuration: '8s' }} />
+         <div className="absolute bottom-[-10%] left-[-10%] w-[50vw] h-[50vh] bg-[radial-gradient(circle_at_center,rgba(255,107,78,0.05)_0%,transparent_60%)] rounded-full blur-[100px] animate-pulse" style={{ animationDuration: '12s', animationDelay: '2s' }} />
       </div>
 
       <div className="relative z-10 flex flex-col h-full overflow-hidden">
-         <header className="shrink-0 h-20 lg:h-24 px-6 lg:px-12 flex items-center justify-between border-b border-[#FF8A75]/10 bg-white/40 backdrop-blur-3xl">
-            <div className="flex items-center gap-4 lg:gap-12">
+         {/* HEADER */}
+         <header className="shrink-0 h-20 lg:h-24 px-6 lg:px-12 flex items-center justify-between border-b border-[#FF8A75]/5 bg-white/40 backdrop-blur-3xl">
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-4 lg:gap-12">
                <button 
                   onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                   className="lg:hidden p-2 hover:bg-black/5 rounded-xl transition-colors"
@@ -163,102 +165,124 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                   <Menu className="w-6 h-6" />
                </button>
                <div className="flex items-center gap-4 lg:gap-6">
-                  <div className="h-8 lg:h-10 w-1 bg-[#FF8A75] rounded-full shadow-[0_0_12px_#FF8A75]" />
+                  <div className="h-8 lg:h-10 w-[3px] bg-[#FF8A75] rounded-full shadow-[0_0_12px_#FF8A75]/50" />
                   <div>
-                     <h1 className="text-xl lg:text-3xl font-serif text-slate-900 tracking-tight leading-none">Curator</h1>
-                     <p className="hidden sm:block text-[8px] lg:text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75] mt-1 lg:mt-2 opacity-60 text-nowrap">Unified Hub</p>
+                     <div className="flex items-center gap-2">
+                       <h1 className="text-xl lg:text-3xl font-serif text-slate-900 tracking-tight leading-none">Curator</h1>
+                       <span className="px-2 py-0.5 bg-[#FF8A75]/10 border border-[#FF8A75]/20 rounded-full text-[8px] font-black uppercase tracking-widest text-[#FF8A75]">Master</span>
+                     </div>
+                     <p className="hidden sm:block text-[8px] lg:text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mt-1.5 opacity-80 text-nowrap">Unified Command Hub</p>
                   </div>
                </div>
-            </div>
+            </motion.div>
 
-            <div className="flex items-center gap-4 lg:gap-8 flex-1 justify-end">
-               <div className="relative group hidden sm:block w-48 lg:w-80">
-                  <Search className="absolute left-4 lg:left-6 top-1/2 -translate-y-1/2 w-3.5 lg:w-4 h-3.5 lg:h-4 text-slate-300 group-focus-within:text-[#FF8A75] transition-colors" />
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-4 lg:gap-6 flex-1 justify-end">
+               <div className="relative group hidden sm:block w-48 lg:w-72">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-[#FF8A75] transition-colors" />
                   <input
                      type="text"
                      placeholder="Seek resonance..."
-                     className="h-10 lg:h-12 w-full pl-10 lg:pl-14 pr-4 lg:pr-8 rounded-xl lg:rounded-2xl bg-white/60 backdrop-blur-xl border border-[#FF8A75]/10 text-[10px] lg:text-[11px] font-bold focus:ring-4 focus:ring-[#FF8A75]/5 outline-none transition-all"
+                     className="h-10 lg:h-12 w-full pl-12 pr-4 rounded-xl lg:rounded-2xl bg-white/60 backdrop-blur-xl border border-[#FF8A75]/10 text-xs font-bold text-slate-700 placeholder:text-slate-300 focus:bg-white focus:ring-4 focus:ring-[#FF8A75]/5 outline-none transition-all shadow-sm"
                      value={searchQuery}
                      onChange={(e) => setSearchQuery(e.target.value)}
                   />
                </div>
                <button 
                   onClick={() => setShowScheduleModal(true)}
-                  className="h-10 lg:h-12 px-4 lg:px-8 rounded-xl lg:rounded-2xl bg-[#1a1a1a] text-white flex items-center gap-2 lg:gap-4 hover:bg-[#FF8A75] transition-all shadow-xl shadow-black/10 group whitespace-nowrap"
+                  className="h-10 lg:h-12 px-5 lg:px-6 rounded-xl lg:rounded-2xl bg-slate-900 text-white flex items-center gap-3 hover:bg-[#FF8A75] hover:shadow-lg hover:shadow-[#FF8A75]/20 transition-all group whitespace-nowrap"
                >
-                  <Calendar className="w-4 h-4 lg:w-5 lg:h-5 group-hover:scale-110 transition-transform" />
-                  <span className="text-[8px] lg:text-[10px] font-black uppercase tracking-widest leading-none">Schedule</span>
+                  <Calendar className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  <span className="text-[9px] font-black uppercase tracking-[0.2em] leading-none hidden lg:block">Schedule</span>
                </button>
-            </div>
+            </motion.div>
          </header>
 
+         {/* SIDEBAR */}
          <nav className={cn(
-            "fixed inset-y-0 left-0 z-[60] w-72 bg-white/95 backdrop-blur-2xl border-r border-[#FF8A75]/10 transform transition-transform duration-500 lg:static lg:w-full lg:h-20 lg:bg-white/20 lg:backdrop-blur-md lg:border-b lg:translate-x-0 flex flex-col lg:flex-row items-stretch lg:items-center px-6 lg:px-12",
+            "fixed inset-y-0 left-0 z-[60] w-72 bg-white/95 backdrop-blur-2xl border-r border-[#FF8A75]/5 transform transition-transform duration-500 lg:static lg:w-full lg:h-24 lg:bg-white/20 lg:backdrop-blur-md lg:border-b lg:border-white/40 lg:translate-x-0 flex flex-col lg:flex-row items-stretch lg:items-center px-6 lg:px-12",
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
          )}>
-            <div className="flex lg:hidden items-center justify-between py-8 px-2">
-               <span className="text-xl font-serif font-bold">Soul Compass</span>
-               <button onClick={() => setIsSidebarOpen(false)}><X className="w-6 h-6" /></button>
+            <div className="flex lg:hidden items-center justify-between py-8 px-2 border-b border-[#FF8A75]/10 mb-4">
+               <span className="text-xl font-serif font-bold tracking-tight">Soul Compass</span>
+               <button onClick={() => setIsSidebarOpen(false)}><X className="w-6 h-6 text-slate-400" /></button>
             </div>
             
-            <span className="hidden lg:block text-[9px] font-black uppercase tracking-[0.4em] text-[#FF8A75] shrink-0 mr-10">Soul Compass:</span>
-            <div className="flex-1 flex flex-col lg:flex-row items-stretch lg:items-center gap-2 lg:gap-5 overflow-y-auto lg:overflow-x-auto no-scrollbar py-2" ref={compassScrollRef}>
-               {filteredStudents.map((student) => {
+            <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="hidden lg:block text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 shrink-0 mr-8">Compass</motion.span>
+            <div className="flex-1 flex flex-col lg:flex-row items-stretch lg:items-center gap-3 overflow-y-auto lg:overflow-x-auto no-scrollbar py-2" ref={compassScrollRef}>
+               {filteredStudents.map((student, idx) => {
                   const isSelected = selectedStudent?.id === student.id;
+                  const currentDay = student.startDate ? Math.max(1, Math.floor((Date.now() - new Date(student.startDate).getTime()) / 86400000) + 1) : 1;
                   return (
-                     <button
+                     <motion.button
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: idx * 0.05 }}
                         key={student.id}
                         onClick={() => setSelectedStudent(student)}
                         className={cn(
-                           "flex items-center gap-4 px-4 lg:px-6 py-3 lg:py-2.5 rounded-2xl lg:rounded-full transition-all shrink-0 border whitespace-nowrap group",
+                           "flex items-center gap-3 lg:gap-4 px-4 py-3 rounded-2xl transition-all shrink-0 border whitespace-nowrap group relative overflow-hidden",
                            isSelected 
-                              ? "bg-white border-[#FF8A75]/30 shadow-xl shadow-[#FF8A75]/5 ring-4 ring-[#FF8A75]/5" 
-                              : "bg-transparent border-transparent opacity-60 lg:opacity-40 hover:opacity-100"
+                              ? "bg-white border-[#FF8A75] shadow-xl shadow-[#FF8A75]/10 lg:w-64" 
+                              : "bg-white/40 border-transparent hover:bg-white/80 hover:border-[#FF8A75]/20 lg:w-56"
                         )}
                      >
-                        <div className="h-8 w-8 lg:h-9 lg:w-9 rounded-lg lg:rounded-xl overflow-hidden ring-[2px] ring-white shadow-lg bg-slate-100 flex items-center justify-center">
+                        {isSelected && <motion.div layoutId="activeStudentHighlight" className="absolute left-0 top-0 bottom-0 w-1 bg-[#FF8A75]" />}
+                        <div className={cn(
+                          "h-10 w-10 lg:h-12 lg:w-12 rounded-[14px] overflow-hidden shadow-inner flex items-center justify-center shrink-0 border border-white transition-all",
+                          isSelected ? "bg-[#FF8A75]/10" : "bg-slate-100"
+                        )}>
                            {student.avatar_url ? (
-                              <img src={student.avatar_url} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                              <img src={student.avatar_url} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
                            ) : (
-                              <span className="text-xs font-serif text-[#FF8A75]">{student.full_name[0]}</span>
+                              <span className={cn("text-sm font-serif font-bold", isSelected ? "text-[#FF8A75]" : "text-slate-400")}>{student.full_name[0]}</span>
                            )}
                         </div>
-                        <div className="text-left">
-                           <p className={cn("text-xs font-bold tracking-tight capitalize", isSelected ? "text-slate-900" : "text-slate-500")}>
+                        <div className="text-left flex-1 min-w-0">
+                           <p className={cn("text-xs lg:text-sm font-bold tracking-tight capitalize truncate", isSelected ? "text-slate-900" : "text-slate-600 group-hover:text-slate-800")}>
                               {student.full_name}
                            </p>
-                           {isSelected && (
-                              <p className="text-[7px] lg:text-[8px] font-black uppercase tracking-widest text-[#FF8A75] mt-0.5 lg:mt-1 opacity-80">
-                                 Day {student.startDate ? Math.floor((Date.now() - new Date(student.startDate).getTime()) / 86400000) + 1 : 1}
-                              </p>
-                           )}
+                           <p className={cn(
+                             "text-[8px] lg:text-[9px] font-black uppercase tracking-widest mt-1",
+                             isSelected ? "text-[#FF8A75]" : "text-slate-400"
+                           )}>
+                              Day {currentDay} Evolution
+                           </p>
                         </div>
-                     </button>
+                     </motion.button>
                   );
                })}
             </div>
          </nav>
 
-         <main className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-            <div className={cn(
-               "flex-1 flex flex-col overflow-y-auto custom-scrollbar p-6 lg:p-12 lg:pt-8 gap-8 lg:gap-12 transition-all",
-               "lg:max-w-[65%]"
-            )}>
-               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+         <main className="flex-1 flex flex-col lg:flex-row overflow-hidden isolate relative">
+            {/* MAIN JOURNEY AREA */}
+            <motion.div 
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ delay: 0.1 }}
+               className={cn(
+                  "flex-1 flex flex-col overflow-y-auto custom-scrollbar p-6 lg:p-10 gap-8 transition-all relative z-10",
+                  "lg:max-w-[65%]"
+               )}
+            >
+               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0">
                   <div>
-                     <h2 className="text-3xl lg:text-5xl font-serif text-slate-900 tracking-tight">Transformation</h2>
-                     <p className="text-[8px] lg:text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75] mt-2 lg:mt-4 opacity-60">Journey Node</p>
+                     <h2 className="text-3xl lg:text-4xl font-serif text-slate-900 tracking-tight">Transformation</h2>
+                     <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75] mt-2 opacity-80">Journey Context</p>
                   </div>
                   {selectedStudent?.startDate && (
-                     <div className="px-6 lg:px-10 py-3 lg:py-5 bg-white rounded-2xl lg:rounded-[2.5rem] border border-[#FF8A75]/10 shadow-2xl shadow-[#FF8A75]/5 text-center flex-shrink-0 animate-in slide-in-from-right duration-500">
-                        <span className="text-[8px] font-black uppercase tracking-[0.3em] text-[#FF8A75]/40 block mb-1">Consistency</span>
-                        <span className="text-xl lg:text-3xl font-bold text-slate-900 leading-none">Day {Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate).getTime()) / 86400000) + 1))}</span>
+                     <div className="px-6 py-3 bg-white/80 backdrop-blur-xl rounded-[2rem] border border-[#FF8A75]/10 shadow-[0_8px_30px_rgb(255,138,117,0.06)] text-center flex-shrink-0 flex items-center gap-4">
+                        <div className="h-2 w-2 rounded-full bg-[#FF8A75] animate-pulse" />
+                        <div className="text-left">
+                           <span className="text-[7px] font-black uppercase tracking-[0.3em] text-slate-400 block leading-none mb-1">Consistency</span>
+                           <span className="text-lg lg:text-xl font-bold text-slate-900 leading-none">Day {Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate).getTime()) / 86400000) + 1))}</span>
+                        </div>
                      </div>
                   )}
                </div>
 
-               <div className="space-y-8 lg:space-y-12 pb-12 lg:pb-0">
-                  <div className="bg-white/40 backdrop-blur-xl p-4 lg:p-8 rounded-[2rem] lg:rounded-[3rem] border border-[#FF8A75]/5">
+               <div className="space-y-8 pb-12 lg:pb-0">
+                  <div className="bg-white/60 backdrop-blur-2xl p-6 lg:p-8 rounded-[2rem] lg:rounded-[2.5rem] border border-white shadow-xl shadow-[#FF8A75]/5">
                      <JourneyProgress
                         currentDay={selectedStudent?.startDate
                            ? Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate).getTime()) / 86400000) + 1))
@@ -269,171 +293,293 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                      />
                   </div>
 
-                  <div className="aspect-[4/3] lg:aspect-[16/8] rounded-[2.5rem] lg:rounded-[4.5rem] bg-white shadow-3xl shadow-[#FF8A75]/10 ring-1 ring-[#FF8A75]/10 overflow-hidden relative group border-2 lg:border-4 border-white">
-                     <div className="absolute top-4 lg:top-8 left-4 lg:left-8 z-20 px-4 lg:px-6 py-1.5 lg:py-2 rounded-xl lg:rounded-2xl bg-[#1a1a1a]/80 backdrop-blur-xl text-white text-[8px] lg:text-[9px] font-black uppercase tracking-widest border border-white/10">
-                        Step {activeStepDay} Evolution
+                  <div className="aspect-[4/3] lg:aspect-[16/8] rounded-[2rem] lg:rounded-[3rem] bg-slate-100 shadow-2xl shadow-[#FF8A75]/10 overflow-hidden relative group p-2 bg-white/40 border border-white/60 backdrop-blur-sm">
+                     <div className="absolute top-6 left-6 z-20 px-4 py-1.5 rounded-full bg-slate-900/80 backdrop-blur-xl text-white text-[8px] font-black uppercase tracking-widest border border-white/10 shadow-lg">
+                        Visual Registry - Day {activeStepDay}
                      </div>
-                     {isLoading ? (
-                        <div className="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-sm z-20">
-                           <Loader2 className="w-10 lg:w-12 h-10 lg:h-12 animate-spin text-[#FF8A75]/40" />
-                        </div>
-                     ) : (
-                        <ImageComparison
-                           beforeImage={beforeImage}
-                           afterImage={afterImage}
-                           disabled={activeStepDay < 2}
-                        />
-                     )}
+                     <div className="h-full w-full rounded-[1.5rem] lg:rounded-[2.5rem] overflow-hidden border border-white/40">
+                       {isLoading ? (
+                          <div className="h-full w-full flex items-center justify-center bg-white/60 backdrop-blur-md">
+                             <Loader2 className="w-8 h-8 animate-spin text-[#FF8A75]/50" />
+                          </div>
+                       ) : (
+                          <ImageComparison
+                             beforeImage={beforeImage}
+                             afterImage={afterImage}
+                             disabled={activeStepDay < 2}
+                          />
+                       )}
+                     </div>
                   </div>
                   
-                  <div className="flex flex-col gap-6 lg:gap-8 p-8 lg:p-12 bg-white rounded-[2.5rem] lg:rounded-[4rem] shadow-2xl shadow-[#FF8A75]/5 border border-[#FF8A75]/10 relative">
-                     <div className="absolute -top-3 left-8 lg:left-12 px-4 lg:px-6 py-1.5 rounded-full bg-[#FF8A75] text-white text-[7px] lg:text-[8px] font-black uppercase tracking-widest shadow-xl">
-                        Instructor Insight
+                  {/* Notes and Artifacts Grid */}
+                  <div className="grid grid-cols-1 2xl:grid-cols-1 gap-6 lg:gap-8">
+                     <div className="flex flex-col gap-4 p-8 lg:p-10 bg-[#FFFAF7] rounded-[2rem] lg:rounded-[3rem] shadow-inner border border-[#FF8A75]/10 relative overflow-hidden group">
+                        {/* Decorative subtle texture for the notes */}
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-[radial-gradient(circle_at_top_right,rgba(255,138,117,0.1)_0%,transparent_70%)] opacity-50 pointer-events-none" />
+                        
+                        <div className="flex items-center justify-between mb-2">
+                           <div className="flex items-center gap-3">
+                              <div className="h-8 w-8 rounded-xl bg-white flex items-center justify-center shadow-sm border border-[#FF8A75]/10">
+                                 <FileText className="w-4 h-4 text-[#FF8A75]" />
+                              </div>
+                              <h4 className="text-[10px] lg:text-[11px] font-black uppercase tracking-[0.3em] text-slate-800">Curator Inscription</h4>
+                           </div>
+                           <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-white rounded-full border border-slate-100 shadow-sm">
+                              <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                              <span className="text-[7px] font-black uppercase tracking-widest text-slate-400">Auto-Saving</span>
+                           </div>
+                        </div>
+                        <textarea 
+                           value={notes}
+                           onChange={(e) => setNotes(e.target.value)}
+                           placeholder="Inscribe observations on the seeker's evolution..."
+                           className="flex-1 bg-transparent border-none p-2 text-base lg:text-lg font-medium text-slate-700 focus:ring-0 resize-none min-h-[140px] placeholder:text-slate-300 placeholder:italic placeholder:font-serif leading-relaxed relative z-10"
+                        />
                      </div>
-                     <div className="flex items-center justify-between">
-                        <h4 className="text-[8px] lg:text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75] opacity-40 capitalize">{selectedStudent?.full_name}'s Record</h4>
-                        <div className="hidden sm:flex items-center gap-3">
-                           <div className="h-1 lg:h-1.5 w-1 lg:w-1.5 rounded-full bg-[#FF8A75] animate-pulse" />
-                           <span className="text-[7px] lg:text-[8px] font-black uppercase tracking-widest text-slate-300 whitespace-nowrap">Auto-Synced</span>
+
+                     {/* Artifacts placed gracefully inside the grid */}
+                     <div className="bg-white rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-8 border border-[#FF8A75]/10 shadow-[0_8px_40px_rgb(0,0,0,0.04)] flex flex-col min-h-[200px]">
+                        <div className="flex items-center justify-between mb-6 shrink-0 border-b border-slate-100 pb-4">
+                           <div>
+                              <h3 className="text-xl font-serif text-slate-900 tracking-tight">Artifacts</h3>
+                              <p className="text-[8px] font-black uppercase tracking-[0.3em] text-slate-400 mt-1">Shared Resources</p>
+                           </div>
+                           <button
+                              onClick={() => fileInputRef.current?.click()}
+                              disabled={isUploading}
+                              className="group relative h-10 w-10 lg:h-12 lg:w-12 rounded-xl lg:rounded-2xl bg-[#1a1a1a] text-white flex items-center justify-center hover:bg-[#FF8A75] transition-all shadow-md overflow-hidden disabled:opacity-70 disabled:cursor-not-allowed"
+                           >
+                              {isUploading ? <Loader2 className="w-4 h-4 animate-spin relative z-10" /> : <Plus className="w-5 h-5 relative z-10 group-hover:rotate-90 transition-transform duration-300" />}
+                           </button>
+                           <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-2">
+                           <AnimatePresence>
+                              {resources.map((res, i) => (
+                                 <motion.button 
+                                    initial={{ opacity: 0, x: 10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: i * 0.05 }}
+                                    key={res.id} 
+                                    onClick={() => window.open(res.file_url, '_blank')}
+                                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-slate-50/80 border border-slate-100 hover:border-[#FF8A75]/30 hover:bg-white hover:shadow-lg hover:shadow-[#FF8A75]/5 transition-all text-left group"
+                                 >
+                                    <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center text-[#1a1a1a] group-hover:text-[#FF8A75] group-hover:scale-110 transition-all shadow-sm shrink-0">
+                                       {res.content_type?.includes('image') ? <ImageIcon className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                       <p className="text-xs lg:text-sm font-bold text-slate-800 truncate group-hover:text-[#FF8A75] transition-colors">{res.file_name}</p>
+                                       <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 mt-0.5">Stored Node</p>
+                                    </div>
+                                    <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0">
+                                       <Download className="w-3.5 h-3.5 text-[#FF8A75]" />
+                                    </div>
+                                 </motion.button>
+                              ))}
+                           </AnimatePresence>
+                           {resources.length === 0 && (
+                              <div className="h-full flex flex-col items-center justify-center opacity-40 py-8">
+                                 <div className="h-16 w-16 bg-slate-100 rounded-full flex items-center justify-center mb-3">
+                                    <FolderOpen className="w-6 h-6 text-slate-400" />
+                                 </div>
+                                 <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Repository Empty</p>
+                              </div>
+                           )}
                         </div>
                      </div>
-                     <textarea 
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                        placeholder="Observe the seeker's evolution..."
-                        className="flex-1 bg-transparent border-none p-0 text-lg lg:text-xl font-medium text-slate-700 focus:ring-0 resize-none min-h-[140px] lg:min-h-[160px] placeholder:text-slate-200 placeholder:italic leading-relaxed"
-                     />
                   </div>
                </div>
-            </div>
+            </motion.div>
 
-            <div className="flex-1 lg:flex-[0.35] flex flex-col overflow-hidden p-6 lg:p-12 lg:pt-8 gap-8 lg:gap-12 bg-white/20 lg:bg-transparent">
-               <div className="flex-1 bg-[#1a1a1a] border border-white/5 rounded-[2.5rem] lg:rounded-[4.5rem] p-6 lg:p-10 flex flex-col relative shadow-2xl shadow-slate-900/40 min-h-[500px] lg:min-h-0">
-                  <div className="flex items-center justify-between mb-6 lg:mb-8 shrink-0">
+            {/* RIGHT COLUMN */}
+            <motion.div 
+               initial={{ opacity: 0, x: 20 }}
+               animate={{ opacity: 1, x: 0 }}
+               transition={{ delay: 0.2 }}
+               className="hidden lg:flex lg:flex-[0.4] flex-col overflow-hidden p-6 lg:p-8 gap-6 bg-white/30 backdrop-blur-3xl border-l border-[#FF8A75]/10 relative z-20"
+            >
+               {/* Sync Portal */}
+               <div className="flex-1 bg-black border border-white/5 rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-8 flex flex-col relative shadow-2xl shadow-black/40 h-full min-h-[600px]">
+                  <div className="flex items-center justify-between mb-6 shrink-0 border-b border-white/5 pb-4">
                      <div className="space-y-1">
-                        <h3 className="text-xl lg:text-2xl font-serif text-white tracking-tight">Portal</h3>
-                        <p className="text-[8px] lg:text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75] opacity-80">Sync Portal</p>
+                        <h3 className="text-xl font-serif text-white tracking-tight flex items-center gap-3">
+                           Portal <span className="flex h-2 w-2 relative rounded-full bg-emerald-500"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span></span>
+                        </h3>
+                        <p className="text-[8px] font-black uppercase tracking-[0.3em] text-[#FF8A75] opacity-80">Direct Encrypted Channel</p>
                      </div>
-                     <div className="h-10 lg:h-12 w-10 lg:w-12 bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl flex items-center justify-center text-[#FF8A75]">
-                        <MessageSquare className="w-5 lg:w-6 h-5 lg:h-6" />
+                     <div className="h-10 w-10 bg-white/5 rounded-full flex items-center justify-center text-[#FF8A75] border border-white/10">
+                        <MessageSquare className="w-4 h-4" />
                      </div>
                   </div>
 
-                  <div className="flex-1 overflow-hidden">
-                     <div className="h-full relative">
-                        {selectedStudent && selectedStudent.conversationId ? (
-                           <ChatWindow
-                              conversationId={selectedStudent.conversationId}
-                              currentUser={currentUser}
-                              conversationType="direct"
-                              title={selectedStudent.full_name}
-                              otherParticipant={{ id: selectedStudent.id, full_name: selectedStudent.full_name, avatar_url: selectedStudent.avatar_url, email: selectedStudent.email } as Profile}
-                              className="h-full"
-                              hideHeader={true}
-                              isMultiParty={true}
-                              dark={true}
-                           />
-                        ) : (
-                           <div className="h-full flex flex-col items-center justify-center p-8 text-center">
-                              <div className="h-12 w-12 lg:h-16 lg:w-16 rounded-2xl lg:rounded-[2rem] bg-white/5 border border-white/10 flex items-center justify-center text-[#FF8A75] mb-6 animate-bounce">
-                                 <Zap className="w-6 lg:w-8 h-6 lg:h-8" />
-                              </div>
-                              <p className="text-[8px] lg:text-[10px] font-black uppercase tracking-[0.4em] text-white/20 mb-6">Portal Locked</p>
-                              <button
-                                 onClick={handleStartChat}
-                                 className="h-12 lg:h-14 px-8 lg:px-10 rounded-2xl lg:rounded-[2rem] bg-[#FF8A75] text-white text-[8px] lg:text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all"
-                              >
-                                 Open Channel
-                              </button>
+                  <div className="flex-1 overflow-hidden relative">
+                     {selectedStudent && selectedStudent.conversationId ? (
+                        <ChatWindow
+                           conversationId={selectedStudent.conversationId}
+                           currentUser={currentUser}
+                           conversationType="direct"
+                           title={selectedStudent.full_name}
+                           otherParticipant={{ id: selectedStudent.id, full_name: selectedStudent.full_name, avatar_url: selectedStudent.avatar_url, email: selectedStudent.email } as Profile}
+                           className="h-full bg-transparent"
+                           hideHeader={true}
+                           isMultiParty={true}
+                           dark={true}
+                        />
+                     ) : (
+                        <div className="h-full flex flex-col items-center justify-center p-6 text-center">
+                           <div className="h-16 w-16 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center text-[#FF8A75] mb-6 relative group overflow-hidden">
+                              <div className="absolute inset-0 bg-[#FF8A75]/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                              <Zap className="w-6 h-6 relative z-10" />
                            </div>
-                        )}
-                     </div>
-                  </div>
-               </div>
-
-               <div className="flex-[0.6] bg-white rounded-[2.5rem] lg:rounded-[4.5rem] p-6 lg:p-10 border border-[#FF8A75]/10 shadow-xl flex flex-col min-h-[300px] lg:min-h-0 mb-12 lg:mb-0">
-                  <div className="flex items-center justify-between mb-8 shrink-0">
-                     <div className="space-y-1">
-                        <h3 className="text-lg lg:text-xl font-serif text-slate-900 tracking-tight">Artifacts</h3>
-                        <p className="text-[8px] lg:text-[9px] font-black uppercase tracking-[0.4em] text-[#FF8A75] opacity-60">Documentation</p>
-                     </div>
-                     <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className="h-10 lg:h-12 w-10 lg:w-12 rounded-xl lg:rounded-2xl bg-[#1a1a1a] text-white flex items-center justify-center hover:bg-[#FF8A75] transition-all"
-                     >
-                        {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 lg:w-6 h-5 lg:h-6" />}
-                     </button>
-                     <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
-                  </div>
-
-                  <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-2">
-                     {resources.map((res) => (
-                        <button 
-                           key={res.id} 
-                           onClick={() => window.open(res.file_url, '_blank')}
-                           className="w-full flex items-center gap-4 lg:gap-6 p-4 lg:p-6 rounded-2xl lg:rounded-[2.5rem] bg-slate-50 border border-transparent hover:border-[#FF8A75]/20 hover:bg-white transition-all text-left group"
-                        >
-                           <div className="h-10 lg:h-12 w-10 lg:w-12 rounded-xl bg-white flex items-center justify-center text-[#FF8A75] shadow-sm shrink-0">
-                              {res.content_type?.includes('image') ? <ImageIcon className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
-                           </div>
-                           <div className="min-w-0 flex-1">
-                              <p className="text-sm lg:text-base font-bold text-slate-800 truncate">{res.file_name}</p>
-                              <p className="text-[7px] lg:text-[8px] font-black uppercase tracking-widest text-[#FF8A75]/40 mt-1">Resource</p>
-                           </div>
-                           <Download className="w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </button>
-                     ))}
-                     {resources.length === 0 && (
-                        <div className="h-full flex flex-col items-center justify-center opacity-10 py-12">
-                           <FolderOpen className="w-10 h-10 mb-4" />
-                           <p className="text-[8px] font-black uppercase tracking-widest">No Artifacts</p>
+                           <h4 className="text-sm font-bold text-white mb-2">Portal Dormant</h4>
+                           <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-6 max-w-[200px] leading-relaxed">Awaken the connection to begin direct synchronization.</p>
+                           <button
+                              onClick={handleStartChat}
+                              className="px-8 py-4 rounded-2xl bg-[#FF8A75] hover:bg-white hover:text-slate-900 text-[#1a1a1a] text-[9px] font-black uppercase tracking-widest transition-all duration-300 shadow-xl shadow-[#FF8A75]/20"
+                           >
+                              Initialize Connection
+                           </button>
                         </div>
                      )}
                   </div>
                </div>
-            </div>
+            </motion.div>
          </main>
       </div>
 
+      {/* MOBILE FAB FOR CHAT */}
+      <button 
+         onClick={() => setIsMobileChatOpen(true)}
+         className="lg:hidden fixed bottom-6 right-6 h-16 w-16 rounded-[2rem] bg-black text-[#FF8A75] flex items-center justify-center shadow-2xl z-40 border border-white/10 hover:scale-105 transition-transform"
+      >
+         <MessageSquare className="w-6 h-6" />
+         {selectedStudent?.conversationId && (
+            <span className="absolute -top-1 -right-1 flex h-4 w-4">
+               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+               <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 border-2 border-black"></span>
+            </span>
+         )}
+      </button>
+
+      {/* MOBILE CHAT OVERLAY */}
+      <AnimatePresence>
+         {isMobileChatOpen && (
+            <>
+               <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] lg:hidden"
+                  onClick={() => setIsMobileChatOpen(false)}
+               />
+               <motion.div 
+                  initial={{ y: "100%" }}
+                  animate={{ y: 0 }}
+                  exit={{ y: "100%" }}
+                  transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                  className="fixed inset-x-0 bottom-0 top-[10%] z-[100] bg-black flex flex-col lg:hidden rounded-t-[2rem] border-t border-white/10 shadow-2xl overflow-hidden"
+               >
+                  <div className="flex items-center justify-between p-6 border-b border-white/10 shrink-0">
+                     <div className="space-y-1">
+                        <h3 className="text-xl font-serif text-white tracking-tight flex items-center gap-3">
+                           Portal <span className="flex h-2 w-2 relative rounded-full bg-emerald-500"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span></span>
+                        </h3>
+                        <p className="text-[8px] font-black uppercase tracking-[0.3em] text-[#FF8A75] opacity-80">Direct Encrypted Channel</p>
+                     </div>
+                     <button onClick={() => setIsMobileChatOpen(false)} className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 hover:scale-110 active:scale-95 transition-all shadow-lg border border-white/10">
+                        <X className="w-5 h-5" />
+                     </button>
+                  </div>
+               
+               <div className="flex-1 overflow-hidden relative">
+                  {selectedStudent && selectedStudent.conversationId ? (
+                     <ChatWindow
+                        conversationId={selectedStudent.conversationId}
+                        currentUser={currentUser}
+                        conversationType="direct"
+                        title={selectedStudent.full_name}
+                        otherParticipant={{ id: selectedStudent.id, full_name: selectedStudent.full_name, avatar_url: selectedStudent.avatar_url, email: selectedStudent.email } as Profile}
+                        className="h-full bg-transparent"
+                        hideHeader={true}
+                        isMultiParty={true}
+                        dark={true}
+                     />
+                  ) : (
+                     <div className="h-full flex flex-col items-center justify-center p-6 text-center">
+                        <div className="h-16 w-16 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center text-[#FF8A75] mb-6 relative group overflow-hidden">
+                           <Zap className="w-6 h-6 relative z-10" />
+                        </div>
+                        <h4 className="text-sm font-bold text-white mb-2">Portal Dormant</h4>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-6 max-w-[200px] leading-relaxed">Awaken the connection to begin direct synchronization.</p>
+                        <button
+                           onClick={handleStartChat}
+                           className="px-8 py-4 rounded-2xl bg-[#FF8A75] text-[#1a1a1a] text-[9px] font-black uppercase tracking-widest"
+                        >
+                           Initialize Connection
+                        </button>
+                     </div>
+                  )}
+               </div>
+            </motion.div>
+            </>
+         )}
+      </AnimatePresence>
+
       <AnimatePresence>
         {showScheduleModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 lg:p-8 bg-[#1a1a1a]/40 backdrop-blur-xl">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 lg:p-8 bg-[#1a1a1a]/60 backdrop-blur-2xl">
             <motion.div 
-               initial={{ scale: 0.9, opacity: 0 }}
-               animate={{ scale: 1, opacity: 1 }}
-               exit={{ scale: 0.9, opacity: 0 }}
-               className="w-full max-w-lg bg-[#FFFAF7] rounded-[3rem] lg:rounded-[4rem] p-8 lg:p-16 relative overflow-hidden shadow-2xl"
+               initial={{ scale: 0.95, opacity: 0, y: 20 }}
+               animate={{ scale: 1, opacity: 1, y: 0 }}
+               exit={{ scale: 0.95, opacity: 0, y: 20 }}
+               transition={{ type: "spring", damping: 25, stiffness: 300 }}
+               className="w-full max-w-md bg-white rounded-[3rem] p-8 lg:p-12 relative overflow-hidden shadow-2xl border border-white/20"
             >
+               {/* Decorative elements */}
+               <div className="absolute -top-32 -right-32 w-64 h-64 bg-[#FF8A75]/10 rounded-full blur-3xl pointer-events-none" />
+               <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-[#FF6B4E]/5 rounded-full blur-3xl pointer-events-none" />
+
                <button 
                   onClick={() => setShowScheduleModal(false)}
-                  className="absolute top-8 lg:top-12 right-8 lg:right-12 text-slate-300 hover:text-primary transition-colors"
+                  className="absolute top-6 right-6 h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-200 transition-colors z-10"
                >
-                  <X className="w-6 h-6 lg:w-8 lg:h-8" />
+                  <X className="w-4 h-4" />
                </button>
 
-               <div className="space-y-8 lg:space-y-12 text-center">
-                  <div>
-                     <h3 className="text-3xl lg:text-4xl font-serif text-slate-900 mb-2">Scheduling</h3>
-                     <p className="text-[8px] lg:text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75]">Sync Temporal Spot</p>
+               <div className="space-y-8 relative z-10">
+                  <div className="text-center">
+                     <div className="h-16 w-16 bg-[#1a1a1a] rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-xl shadow-slate-900/20 rotate-3">
+                        <Calendar className="w-7 h-7 text-[#FF8A75]" />
+                     </div>
+                     <h3 className="text-3xl font-serif text-slate-900 mb-2 tracking-tight">Temporal Node</h3>
+                     <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">Lock Synchronization</p>
                   </div>
 
                   <div className="space-y-6">
-                     <div className="space-y-2 text-left">
-                        <label className="text-[9px] font-black tracking-widest uppercase text-[#FF8A75] ml-4 lg:ml-6">Guided Soul</label>
-                        <div className="h-14 lg:h-18 px-6 lg:px-8 rounded-2xl lg:rounded-3xl bg-white border border-[#FF8A75]/10 flex items-center text-base lg:text-md font-bold text-slate-900 capitalize italic">{selectedStudent?.full_name}</div>
+                     <div className="space-y-2">
+                        <label className="text-[9px] font-black tracking-[0.2em] uppercase text-slate-400 ml-4">Target Resonance</label>
+                        <div className="h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-3">
+                           <div className="h-8 w-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-[#FF8A75] font-serif font-bold text-sm">
+                              {selectedStudent?.full_name[0]}
+                           </div>
+                           <span className="text-sm font-bold text-slate-900 capitalize">{selectedStudent?.full_name}</span>
+                        </div>
                      </div>
                      
-                     <div className="space-y-2 text-left">
-                        <label className="text-[9px] font-black tracking-widest uppercase text-[#FF8A75] ml-4 lg:ml-6">Selection</label>
+                     <div className="space-y-2">
+                        <label className="text-[9px] font-black tracking-[0.2em] uppercase text-slate-400 ml-4">Window</label>
                         <input 
                            type="datetime-local" 
-                           className="h-14 lg:h-18 w-full px-6 lg:px-8 rounded-2xl lg:rounded-3xl bg-white border border-[#FF8A75]/10 text-base lg:text-md font-bold focus:ring-4 focus:ring-[#FF8A75]/5 outline-none transition-all" 
+                           className="h-14 w-full px-5 rounded-2xl bg-white border border-slate-200 text-sm font-bold text-slate-700 focus:border-[#FF8A75]/30 focus:ring-4 focus:ring-[#FF8A75]/10 outline-none transition-all shadow-sm" 
                         />
                      </div>
                   </div>
 
-                  <button className="w-full h-16 lg:h-20 rounded-2xl lg:rounded-[2.5rem] bg-[#1a1a1a] text-white text-[10px] lg:text-[12px] font-black uppercase tracking-[0.4em] hover:bg-[#FF8A75] transition-all">
-                     Confirm Slot
+                  <button className="w-full h-14 rounded-2xl bg-[#1a1a1a] text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-[#FF8A75] hover:shadow-xl hover:shadow-[#FF8A75]/20 group transition-all mt-4 relative overflow-hidden">
+                     <span className="relative z-10 group-hover:scale-105 inline-block transition-transform duration-300">Set Anchor</span>
+                     <div className="absolute inset-0 bg-[#FF8A75] -translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-out" />
                   </button>
                </div>
             </motion.div>
@@ -447,7 +593,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,138,117,0.1); border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,138,117,0.2); }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,138,117,0.3); }
       `}</style>
     </div>
   );
