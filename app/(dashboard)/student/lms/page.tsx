@@ -10,15 +10,22 @@ export default async function StudentLmsPage() {
 
   const admin = createAdminClient();
 
+  const today = new Date().toISOString().split('T')[0];
+
   // 1. Fetch Profile & Subscription in parallel
   const [profile, { data: subscriptions }] = await Promise.all([
     getServerProfile(user.id),
     admin
       .from('subscriptions')
-      .select('plan_variant, status')
+      .select('plan_variant, status, created_at, end_date')
       .eq('student_id', user.id)
-      .eq('status', 'active'),
+      .eq('status', 'active')
+      .or(`end_date.is.null,end_date.gte.${today}`)
+      .order('created_at', { ascending: false })
+      .limit(1),
   ]);
+
+  const subscriptionStartDate = subscriptions?.[0]?.created_at || null;
 
   const isAdmin = ['admin', 'instructor', 'staff', 'client_management'].includes(profile?.role || '');
   const hasActiveSub = (subscriptions && subscriptions.length > 0) || isAdmin;

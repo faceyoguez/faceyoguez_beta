@@ -33,9 +33,23 @@ export default async function StudentBroadcastsPage() {
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
+  const today = new Date().toISOString().split('T')[0];
+
+  // Fetch subscription for expiry pill
+  const { data: sub } = await supabase
+    .from('subscriptions')
+    .select('created_at, end_date')
+    .eq('student_id', user.id)
+    .eq('status', 'active')
+    .or(`end_date.is.null,end_date.gte.${today}`)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
   return (
     <StudentBroadcastClient
       notifications={notifications || []}
+      subscriptionStartDate={sub?.created_at || null}
     />
   );
 }

@@ -272,7 +272,7 @@ export async function getInstructorBatches(instructorId: string) {
                 id,
                 student_id,
                 status,
-                student:profiles!student_id(id, full_name, avatar_url)
+                student:profiles!student_id(id, full_name, avatar_url, phone)
             ),
             instructor:profiles!instructor_id(id, full_name, avatar_url)
         `);
@@ -417,7 +417,7 @@ export async function getWaitingQueueStudents() {
         .from('waiting_queue')
         .select(`
             *,
-            student:profiles!student_id(id, full_name, email, avatar_url),
+            student:profiles!student_id(id, full_name, email, avatar_url, phone),
             subscription:subscriptions!subscription_id(id, plan_type, duration_months, status)
         `)
         .eq('status', 'waiting')
@@ -496,7 +496,7 @@ export async function getWaitingQueue() {
         .from('waiting_queue')
         .select(`
             *,
-            student:profiles!student_id(id, full_name, avatar_url)
+            student:profiles!student_id(id, full_name, avatar_url, phone)
         `)
         .eq('status', 'waiting')
         .order('requested_at', { ascending: true });

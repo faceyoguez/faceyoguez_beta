@@ -9,6 +9,7 @@ import { getJourneyLogs, saveDailyCheckIn, type JourneyLog } from '@/lib/actions
 import { toast } from 'sonner';
 import { ImageComparison } from '@/components/ui/image-comparison-slider';
 import { JourneyProgress, JOURNEY_MILESTONES } from '@/components/ui/journey-progress';
+import { PlanExpiryPill } from '@/components/ui/plan-expiry-pill';
 import {
   Video,
   FileText,
@@ -61,17 +62,22 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
 
   const activeLog = journeyLogs.find(l => l.day_number === activeDay);
   const day1Log = journeyLogs.find(l => l.day_number === 1);
-  const beforeImage = day1Log?.photo_url || 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800&sat=-100';
-  let afterImage = activeLog?.photo_url || selectedImageBase64 || 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800';
+  const hasDay1Photo = !!day1Log?.photo_url;
+  
+  // Use professional placeholders from assets
+  const placeholderBefore = '/assets/before_img.png';
+  const placeholderAfter = '/assets/after_img.png';
 
-  if (!activeLog?.photo_url && !selectedImageBase64) {
-    const logsWithPhotos = [...journeyLogs]
-      .filter(l => l.photo_url)
-      .sort((a, b) => b.day_number - a.day_number);
-    if (logsWithPhotos.length > 0) {
-      afterImage = logsWithPhotos[0].photo_url as string;
-    }
+  const beforeImage = day1Log?.photo_url || placeholderBefore;
+  let afterImage = activeLog?.photo_url || selectedImageBase64 || (activeDay >= 7 ? placeholderAfter : beforeImage);
+
+  // Special logic for Day 1 placeholders
+  if (activeDay === 1 && !hasDay1Photo) {
+     afterImage = placeholderAfter;
   }
+
+  // Slider is active on Day 1 (before upload) and Day 7+
+  const isSliderActive = (activeDay === 1 && !hasDay1Photo) || (activeDay >= 7);
 
   useEffect(() => {
     if (hasSubscription && currentUser) {
@@ -153,7 +159,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
   }, [activeDay, activeLog]);
 
   const isPhotoDay = JOURNEY_MILESTONES.includes(((activeDay - 1) % 30) + 1) && !activeLog?.photo_url;
-  const isSliderActive = currentDay >= 7;
+  // const isSliderActive is now defined above for unified logic
   const studentMeetings = upcomingMeetings.filter(m => m.meeting_type === 'one_on_one');
   const nextMeeting = studentMeetings.length > 0 ? studentMeetings[0] : null;
   const [isJoinEnabled, setIsJoinEnabled] = useState(false);
@@ -178,6 +184,13 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
         <div className="absolute top-0 right-0 w-[80%] h-[80%] bg-[radial-gradient(circle_at_center,rgba(255,138,117,0.04)_0%,transparent_70%)] blur-3xl opacity-60" />
         <div className="absolute bottom-0 left-0 w-[60%] h-[60%] bg-[radial-gradient(circle_at_center,rgba(0,0,0,0.02)_0%,transparent_60%)] blur-3xl opacity-40" />
       </div>
+
+      {subscriptionStartDate && (
+        <PlanExpiryPill 
+          subscriptionStartDate={subscriptionStartDate} 
+          planName="One-on-One Mastery"
+        />
+      )}
 
       <div className="relative z-10 p-4 lg:p-6 flex-1 flex flex-col min-h-0 gap-6">
         <header className="shrink-0 flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-[#FF8A75]/10 mt-0">
@@ -239,11 +252,14 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center gap-4 p-8 sm:p-10 rounded-[2.5rem] sm:rounded-[3.5rem] bg-white/40 backdrop-blur-3xl border border-[#FF8A75]/5 text-[#6B7280] w-full min-h-[180px] sm:min-h-[200px] shadow-sm">
-                  <div className="h-12 w-12 rounded-2xl bg-white border border-[#FF8A75]/10 flex items-center justify-center shadow-sm">
-                    <Video className="w-5 h-5 text-[#FF8A75]/30" />
+                <div className="group relative overflow-hidden rounded-[2.5rem] sm:rounded-[3.5rem] w-full min-h-[180px] sm:min-h-[220px] shadow-sm border border-[#FF8A75]/20 flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-[#FF8A75]/15 via-white to-[#FF8A75]/15">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,138,117,0.05)_0%,transparent_70%)]" />
+                  <div className="relative z-10 flex flex-col items-center justify-center gap-4">
+                    <div className="h-12 w-12 rounded-2xl bg-white/90 backdrop-blur-md border border-[#FF8A75]/20 flex items-center justify-center shadow-md">
+                      <Video className="w-5 h-5 text-[#FF8A75]/60" />
+                    </div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF8A75]/80 text-center">No Sessions Scheduled</p>
                   </div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF8A75]/40 text-center">No Sessions Scheduled</p>
                 </div>
               )}
             </div>
@@ -282,11 +298,27 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
               <div className="grid grid-cols-1 xl:grid-cols-2 items-stretch gap-8 sm:gap-10 relative z-10">
                 <div className="flex flex-col">
                   <div className="rounded-[1.5rem] sm:rounded-[2.5rem] overflow-hidden border border-[#FF8A75]/5 bg-black h-[260px] sm:h-[320px] relative shadow-2xl flex-1">
-                    <ImageComparison
-                      beforeImage={beforeImage}
-                      afterImage={afterImage}
-                      disabled={!isSliderActive}
-                    />
+                    {isSliderActive ? (
+                      <ImageComparison
+                        beforeImage={beforeImage}
+                        afterImage={afterImage}
+                        disabled={false}
+                      />
+                    ) : (
+                      <div className="w-full h-full relative group">
+                        <img 
+                          src={afterImage} 
+                          alt={`Progress Day ${activeDay}`} 
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+                        <div className="absolute bottom-6 left-6 z-10">
+                           <div className="px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/20 text-white text-[9px] font-black uppercase tracking-widest">
+                              {activeDay === 1 ? "Day 1 Baseline" : `Day ${activeDay} Progress`}
+                           </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
 

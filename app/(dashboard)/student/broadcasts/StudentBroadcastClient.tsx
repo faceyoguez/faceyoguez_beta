@@ -5,15 +5,23 @@ import {
 } from 'lucide-react';
 import { markNotificationAsRead } from '@/lib/actions/broadcast';
 import { cn } from '@/lib/utils';
+import { PlanExpiryPill } from '@/components/ui/plan-expiry-pill';
 
 interface StudentBroadcastClientProps {
     notifications: any[];
+    subscriptionStartDate?: string | null;
 }
 
-export function StudentBroadcastClient({ notifications }: StudentBroadcastClientProps) {
+export function StudentBroadcastClient({ notifications, subscriptionStartDate }: StudentBroadcastClientProps) {
 
     return (
         <div className="min-h-screen bg-background p-6 lg:p-12 space-y-12 font-sans overflow-hidden animate-in fade-in duration-1000">
+            {subscriptionStartDate && (
+                <PlanExpiryPill 
+                    subscriptionStartDate={subscriptionStartDate} 
+                    planName="Updates & Announcements"
+                />
+            )}
             
             {/* Header Section */}
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">

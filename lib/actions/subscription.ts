@@ -149,11 +149,14 @@ export async function getStudentSubscriptions(studentId?: string) {
         userId = user.id;
     }
 
+    const today = new Date().toISOString().split('T')[0];
+
     const { data, error } = await admin
         .from('subscriptions')
         .select('*')
         .eq('student_id', userId)
         .eq('status', 'active')
+        .or(`end_date.is.null,end_date.gte.${today}`)
         .order('created_at', { ascending: false });
 
     if (error) {

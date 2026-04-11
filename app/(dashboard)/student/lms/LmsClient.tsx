@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { CourseCard } from '@/components/lms/CourseCard';
 import { BookOpen, Sparkles, Layout } from 'lucide-react';
+import { PlanExpiryPill } from '@/components/ui/plan-expiry-pill';
 import type { Profile } from '@/types/database';
 
 interface LmsClientProps {
@@ -20,8 +21,9 @@ export function LmsClient({
   courses,
   hasActiveSub,
   hasLevel2,
-  isAdmin
-}: LmsClientProps) {
+  isAdmin,
+  subscriptionStartDate
+}: LmsClientProps & { subscriptionStartDate?: string | null }) {
   const router = useRouter();
   const supabase = createClient();
 
@@ -50,6 +52,13 @@ export function LmsClient({
   return (
     <div className="relative min-h-[100dvh] bg-[#FFFAF7] text-slate-900 font-sans selection:bg-[#FF8A75]/20 overflow-x-hidden pb-32">
       
+      {subscriptionStartDate && (
+        <PlanExpiryPill 
+          subscriptionStartDate={subscriptionStartDate} 
+          planName="Course Curriculum"
+        />
+      )}
+
       {/* ── Website Style Auroras ── */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[140%] h-[60%] bg-[radial-gradient(circle_at_center,rgba(255,138,117,0.08)_0%,transparent_50%)] blur-3xl opacity-60" />

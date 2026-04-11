@@ -14,7 +14,8 @@ import { getBatchPollsMap, getPollById, votePoll } from '../../../../lib/actions
 import { getJourneyLogs, saveDailyCheckIn, type JourneyLog } from '../../../../lib/actions/journey';
 import { getUpcomingMeetingsForStudent, getBatchRecordedSessions } from '../../../../lib/actions/meetings';
 import { ImageComparison } from '../../../../components/ui/image-comparison-slider';
-import { JourneyProgress, JOURNEY_MAX_DAY } from '../../../../components/ui/journey-progress';
+import { JourneyProgress, JOURNEY_MAX_DAY, JOURNEY_MILESTONES } from '../../../../components/ui/journey-progress';
+import { PlanExpiryPill } from '../../../../components/ui/plan-expiry-pill';
 import { PollCard } from '../../../../components/ui/poll-card';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -53,9 +54,22 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
 
     const activeLog = journeyLogs.find(l => l.day_number === activeStepDay);
     const day1Log = journeyLogs.find(l => l.day_number === 1);
-    const day25Log = journeyLogs.find(l => l.day_number === 25);
-    const beforeImage = day1Log?.photo_url || 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800&sat=-100';
-    let afterImage = day25Log?.photo_url || selectedImageBase64 || null;
+    const hasDay1Photo = !!day1Log?.photo_url;
+    
+    // Use professional placeholders from assets
+    const placeholderBefore = '/assets/before_img.png';
+    const placeholderAfter = '/assets/after_img.png';
+
+    const beforeImage = day1Log?.photo_url || placeholderBefore;
+    let afterImage = activeLog?.photo_url || selectedImageBase64 || (activeStepDay >= 7 ? placeholderAfter : beforeImage);
+
+    // Special logic for Day 1 placeholders
+    if (activeStepDay === 1 && !hasDay1Photo) {
+        afterImage = placeholderAfter;
+    }
+
+    // Slider is active on Day 1 (before upload) and Day 7+
+    const isSliderActive = (activeStepDay === 1 && !hasDay1Photo) || (activeStepDay >= 7);
 
     const currentDay = React.useMemo(() => {
         const anchorDateStr = activeBatch?.start_date || subscriptionStartDate;
@@ -322,6 +336,13 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
         <div className="flex h-screen w-full flex-col overflow-hidden bg-background animate-in fade-in duration-1000 relative">
             <div className="fixed top-0 right-0 w-[50vw] h-[50vh] bg-primary/2 rounded-full blur-[120px] -z-10" />
 
+            {subscriptionStartDate && (
+                <PlanExpiryPill 
+                    subscriptionStartDate={subscriptionStartDate} 
+                    planName={activeBatch?.name || "The Circle"}
+                />
+            )}
+
             {isTrialAccess && (
                 <div className="relative z-10 flex items-center justify-center gap-2 bg-foreground text-background px-4 py-1.5 shrink-0 text-[10px] font-bold uppercase tracking-widest">
                     <Sparkles className="w-3 h-3 text-primary" />
@@ -425,9 +446,17 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                             </div>
                         </div>
                     ) : (
-                        <div className="w-full h-32 surface-container rounded-3xl border border-outline-variant/10 flex flex-col items-center justify-center gap-2 bg-white/40 backdrop-blur-xl shrink-0 opacity-50">
-                            <Video className="w-6 h-6 text-foreground/20" />
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/20">No Live Sessions</p>
+                        <div className="group relative overflow-hidden rounded-[2.5rem] w-full min-h-[180px] sm:min-h-[220px] border border-outline-variant/10 flex flex-col items-center justify-center gap-5 shadow-sm bg-gradient-to-br from-[#FF8A75]/15 via-white to-[#FF8A75]/15">
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,138,117,0.08)_0%,transparent_70%)]" />
+                            <div className="relative z-10 flex flex-col items-center justify-center gap-4">
+                                <div className="h-14 w-14 rounded-2xl bg-white/90 backdrop-blur-md border border-outline-variant/10 flex items-center justify-center shadow-md transition-transform duration-500 group-hover:scale-110">
+                                    <Video className="w-6 h-6 text-primary/60" />
+                                </div>
+                                <div className="space-y-1 text-center">
+                                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF8A75]/80">No Sessions Scheduled</p>
+                                    <p className="text-[9px] font-bold text-foreground/20 uppercase tracking-widest">Your Zoom link will appear here</p>
+                                </div>
+                            </div>
                         </div>
                     )}
 
@@ -441,21 +470,30 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-10 items-center">
                             <div className="relative aspect-video rounded-3xl overflow-hidden border border-outline-variant/10 shadow-lg bg-surface-container-highest">
-                                {activeStepDay === 25 && afterImage ? (
-                                    <ImageComparison beforeImage={beforeImage} afterImage={afterImage as string} altBefore="Origin" altAfter="Transcendence" />
+                                {isSliderActive ? (
+                                    <ImageComparison beforeImage={beforeImage} afterImage={afterImage as string} altBefore="Baseline" altAfter="Progress" />
                                 ) : (
-                                    <img src={activeLog?.photo_url || (activeStepDay === 25 ? (afterImage as string ?? beforeImage) : beforeImage)} alt={`Day ${activeStepDay}`} className="w-full h-full object-cover" />
+                                    <div className="w-full h-full relative group">
+                                        <img 
+                                            src={afterImage as string} 
+                                            alt={`Progress Day ${activeStepDay}`} 
+                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+                                        <div className="absolute bottom-4 left-4 z-10 flex items-center gap-2">
+                                            <div className="bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full text-[8.5px] font-bold text-white uppercase tracking-widest border border-white/10">
+                                                {activeStepDay === 1 ? "Day 1 Baseline" : `Day ${activeStepDay} Progress`}
+                                            </div>
+                                        </div>
+                                    </div>
                                 )}
-                                <div className="absolute top-4 left-4 z-10">
-                                    <div className="bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-full text-[8.5px] font-bold text-white uppercase tracking-widest border border-white/10">Day {activeStepDay}</div>
-                                </div>
                             </div>
                             <div className="space-y-6">
                                 <div className="space-y-2 text-center md:text-left">
                                     <h4 className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">Daily Snapshot</h4>
-                                    <p className="text-xs sm:text-sm text-foreground/40 font-medium leading-relaxed">Required on Day 1 and Day 25 to track your evolution.</p>
+                                    <p className="text-xs sm:text-sm text-foreground/40 font-medium leading-relaxed">Capture your evolution on milestone days.</p>
                                 </div>
-                                {(activeStepDay === 1 || activeStepDay === 25) ? (
+                                {(activeStepDay === 1 || activeStepDay === 7 || activeStepDay === 14 || activeStepDay === 21 || activeStepDay === 25 || JOURNEY_MILESTONES.includes(activeStepDay)) ? (
                                     <div className="flex flex-col gap-3">
                                         <input type="file" ref={fileInputRef} onChange={handlePhotoSelect} accept="image/*" className="hidden" />
                                         <button onClick={() => fileInputRef.current?.click()} className="h-14 w-full rounded-2xl bg-white border border-outline-variant/10 shadow-sm flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-widest hover:border-primary/20 transition-all">

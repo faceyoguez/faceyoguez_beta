@@ -28,10 +28,23 @@ const formSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
+const COUNTRY_CODES = [
+  { code: '+91', label: 'IN (+91)' },
+  { code: '+1', label: 'US/CA (+1)' },
+  { code: '+44', label: 'UK (+44)' },
+  { code: '+61', label: 'AU (+61)' },
+  { code: '+971', label: 'UAE (+971)' },
+  { code: '+65', label: 'SG (+65)' },
+  { code: '+81', label: 'JP (+81)' },
+  { code: '+49', label: 'DE (+49)' },
+  { code: '+33', label: 'FR (+33)' },
+];
+
 export default function SignUpForm() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [countryCode, setCountryCode] = useState('+91');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -63,7 +76,7 @@ export default function SignUpForm() {
       options: {
         data: {
           full_name: fullName,
-          phone: phone || undefined,
+          phone: phone ? `${countryCode}${phone.replace(/[^0-9]/g, '')}` : undefined,
           role: 'student',
         },
       },
@@ -152,14 +165,34 @@ export default function SignUpForm() {
           error={errors.email}
         />
 
-        <AuthInput
-          label="Phone Number"
-          type="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="Phone (Optional)"
-          error={errors.phone}
-        />
+        <div className="space-y-2 w-full group">
+          <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-warm-gray/80 transition-colors group-focus-within:text-primary pl-1">
+            Phone Number <span className="opacity-50">(Optional)</span>
+          </label>
+          <div className="flex bg-white/40 sm:bg-white/50 backdrop-blur-md border border-outline-variant rounded-2xl overflow-hidden focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/5 transition-all shadow-sm">
+            <select
+              value={countryCode}
+              onChange={(e) => setCountryCode(e.target.value)}
+              className="bg-transparent text-sm sm:text-base font-medium text-foreground outline-none py-3.5 sm:py-4 pl-4 pr-2 border-r border-outline-variant/50 focus:bg-white/50 cursor-pointer"
+            >
+              {COUNTRY_CODES.map((c) => (
+                <option key={c.code} value={c.code}>{c.label}</option>
+              ))}
+            </select>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="98765 43210"
+              className="flex-1 bg-transparent text-sm sm:text-base text-foreground placeholder:text-warm-gray/30 outline-none px-4 py-3.5 sm:py-4"
+            />
+          </div>
+          {errors.phone && (
+            <p className="text-[11px] font-bold text-red-500 pl-2 mt-1">
+              {errors.phone}
+            </p>
+          )}
+        </div>
 
         <AuthInput
           label="Password"

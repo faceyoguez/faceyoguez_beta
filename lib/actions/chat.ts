@@ -565,6 +565,7 @@ export async function fetchActiveOneOnOneStudents(instructorId: string) {
         id,
         full_name,
         email,
+        phone,
         avatar_url
       )
     `)

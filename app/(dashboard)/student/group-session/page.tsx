@@ -16,6 +16,8 @@ export default async function StudentGroupPage() {
 
     const admin = createAdminClient();
 
+    const today = new Date().toISOString().split('T')[0];
+
     // Find the student's active batch enrollments (including trial access)
     const { data: enrollments } = await admin
         .from('batch_enrollments')
@@ -26,6 +28,7 @@ export default async function StudentGroupPage() {
         `)
         .eq('student_id', user.id)
         .in('status', ['active', 'extended'])
+        .or(`effective_end_date.is.null,effective_end_date.gte.${today}`)
         .order('created_at', { ascending: false });
 
     // Prioritize an 'active' batch over 'upcoming' or others
@@ -43,6 +46,7 @@ export default async function StudentGroupPage() {
         .eq('student_id', user.id)
         .eq('plan_type', 'group_session')
         .eq('status', 'active')
+        .or(`end_date.is.null,end_date.gte.${today}`)
         .limit(1)
         .maybeSingle();
 
