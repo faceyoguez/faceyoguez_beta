@@ -1,5 +1,6 @@
 'use server';
 
+import { createAdminClient, createServerSupabaseClient } from '@/lib/supabase/server';
 import { getServerUser, getServerProfile } from '@/lib/data/auth';
 import Razorpay from 'razorpay';
 
@@ -13,7 +14,7 @@ export async function requireAdminAccess() {
   }
 
   const profile = await getServerProfile(user.id);
-  if (!profile || profile.role !== 'admin') {
+  if (!profile || !['admin', 'staff', 'client_management'].includes(profile.role)) {
     throw new Error('Unauthorized Access: Admin role required.');
   }
 
@@ -21,134 +22,110 @@ export async function requireAdminAccess() {
 }
 
 /**
- * Pull Financial Data from Razorpay.
+ * Fetches all student data enriched with subscription history for the management board.
  */
-export async function getRazorpayStats() {
+export async function getAdminStudentData() {
   await requireAdminAccess();
+  const admin = createAdminClient();
 
-  if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
-    throw new Error('Razorpay keys are missing.');
-  }
+  // 1. Fetch data in parallel for performance
+  const [profilesRes, subsRes, queueRes] = await Promise.all([
+    admin.from('profiles').select('*').eq('role', 'student').order('created_at', { ascending: false }),
+    admin.from('subscriptions').select('*').order('created_at', { ascending: false }),
+    admin.from('waiting_queue').select('student_id, status').eq('status', 'waiting')
+  ]);
 
+  if (profilesRes.error) throw new Error('Failed to fetch student profiles');
+  if (subsRes.error) throw new Error('Failed to fetch subscription records');
+
+  const profiles = profilesRes.data || [];
+  const subscriptions = subsRes.data || [];
+  const queueEntries = queueRes.data || [];
+
+  const today = new Date().toISOString().split('T')[0];
+  const queueSet = new Set(queueEntries.map((q: any) => q.student_id));
+
+  // 2. Transform and enrich data
+  const students = profiles.map((profile: any) => {
+    const userSubs = subscriptions.filter((s: any) => s.student_id === profile.id);
+    const activeSub = userSubs.find((s: any) => s.status === 'active' && s.end_date && s.end_date >= today);
+    const pendingSub = userSubs.find((s: any) => s.status === 'pending');
+    
+    // Logic for "Renewed": More than 1 paid (non-trial) subscription
+    const paidSubs = userSubs.filter((s: any) => !s.is_trial);
+    const isRenewed = paidSubs.length > 1;
+
+    // Latest subscription info
+    const latestSub = userSubs[0] || null;
+    const couponUsed = latestSub?.metadata?.couponCode || null;
+    const totalPaid = paidSubs.reduce((acc: number, s: any) => acc + (s.amount || 0), 0);
+
+    return {
+      id: profile.id,
+      name: profile.full_name,
+      email: profile.email,
+      phone: profile.phone,
+      joinDate: profile.created_at,
+      subscriptionEnd: activeSub?.end_date || latestSub?.end_date || null,
+      plan: activeSub?.plan_type || latestSub?.plan_type || 'unsubscribed',
+      planVariant: activeSub?.plan_variant || latestSub?.plan_variant || null,
+      amountPaid: totalPaid,
+      couponCode: couponUsed,
+      isRenewed,
+      isTrial: activeSub?.is_trial || latestSub?.is_trial || false,
+      status: activeSub ? 'active' : (queueSet.has(profile.id) || pendingSub ? 'queue' : 'inactive')
+    };
+  });
+
+  return students;
+}
+
+/**
+ * Admin action to fetch detailed Razorpay metrics.
+ */
+export async function getRazorpayMetrics() {
+  await requireAdminAccess();
+  
   const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET,
+    key_id: process.env.RAZORPAY_KEY_ID!,
+    key_secret: process.env.RAZORPAY_KEY_SECRET!,
   });
 
   try {
-    // Fetch recent payments. limit: 100
-    const paymentsResponse = await razorpay.payments.all({ count: 100 });
-    const payments = paymentsResponse.items;
+    const today = Math.floor(Date.now() / 1000);
+    const thirtyDaysAgo = today - (30 * 24 * 60 * 60);
 
-    let totalRevenue = 0;
-    let newRevenueThisMonth = 0;
-    const recentTransactions: any[] = [];
-    const uniqueEmails = new Set<string>();
+    // Fetch payments
+    const payments = await razorpay.payments.all({
+      from: thirtyDaysAgo,
+      to: today,
+      count: 100
+    });
 
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-
-    // Setup chart data map for the last 6 months
-    const chartDataMap = new Map<string, number>();
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(currentYear, currentMonth - i, 1);
-      const monthName = d.toLocaleString('default', { month: 'short' });
-      chartDataMap.set(monthName, 0);
-    }
-
-    for (const p of payments) {
-      if (p.status === 'captured' || p.status === 'authorized') {
-        const amountInINR = Number(p.amount) / 100; // amount is in paise
-        totalRevenue += amountInINR;
-
-        // Razorpay created_at is a unix timestamp in seconds
-        const pDate = new Date(Number(p.created_at) * 1000);
-        if (pDate.getMonth() === currentMonth && pDate.getFullYear() === currentYear) {
-          newRevenueThisMonth += amountInINR;
-        }
-
-        const pMonthName = pDate.toLocaleString('default', { month: 'short' });
-        if (chartDataMap.has(pMonthName)) {
-          chartDataMap.set(pMonthName, chartDataMap.get(pMonthName)! + amountInINR);
-        }
-
-        if (p.email) {
-          uniqueEmails.add(p.email);
-        }
-      }
-
-      // Add to recent transactions (top 5)
-      if (recentTransactions.length < 5) {
-        recentTransactions.push({
-          id: p.id,
-          amount: `₹ ${(Number(p.amount) / 100).toLocaleString('en-IN')}`,
-          email: p.email || 'guest@example.com',
-          date: new Date(Number(p.created_at) * 1000).toLocaleString('en-IN', {
-            day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
-          }),
-          status: p.status
-        });
-      }
-    }
-
-    const chartData = Array.from(chartDataMap.entries()).map(([name, revenue]) => ({ name, revenue }));
+    // Simple aggregation for the dashboard
+    const totalRevenue = payments.items
+      .filter(p => p.status === 'captured')
+      .reduce((acc, p) => acc + (Number(p.amount) / 100), 0);
 
     return {
-      totalRevenue: `₹ ${totalRevenue.toLocaleString('en-IN')}`,
-      newRevenueThisMonth: `₹ ${newRevenueThisMonth.toLocaleString('en-IN')}`,
-      activeSubscriptions: uniqueEmails.size,
-      newStudentsThisMonth: Math.floor(uniqueEmails.size * 0.15), // Approximation
-      renewalRate: 'N/A', // Subscription tracking requires Razorpay Subscriptions API
-      chartData,
-      recentTransactions,
+      totalRevenue,
+      paymentCount: payments.items.length,
+      recentPayments: payments.items.slice(0, 5).map(p => ({
+        id: p.id,
+        amount: Number(p.amount) / 100,
+        currency: p.currency,
+        status: p.status,
+        email: p.email,
+        method: p.method,
+        created: p.created_at
+      }))
     };
   } catch (error) {
-    console.error('Razorpay Error:', error);
-    throw new Error('Failed to fetch data from Razorpay.');
+    console.error('Razorpay fetch error:', error);
+    return {
+      totalRevenue: 0,
+      paymentCount: 0,
+      recentPayments: []
+    };
   }
-}
-
-/**
- * Placeholder logic for pulling Google Analytics Data
- */
-export async function getAnalyticsStats() {
-  await requireAdminAccess();
-
-  // Fake Network Delay
-  await new Promise((resolve) => setTimeout(resolve, 700));
-
-  return {
-    totalVisitors30d: 4890,
-    activeUsersNow: 15,
-    avgSessionDuration: '3m 12s',
-    bounceRate: '42%',
-    trafficSources: [
-      { name: 'Direct', value: 1200 },
-      { name: 'Organic Search', value: 2400 },
-      { name: 'Social (IG)', value: 900 },
-      { name: 'Referral', value: 390 },
-    ]
-  };
-}
-
-/**
- * Placeholder logic for pulling Instagram / Meta Data
- */
-export async function getSocialStats() {
-  await requireAdminAccess();
-
-  // Fake Network Delay
-  await new Promise((resolve) => setTimeout(resolve, 600));
-
-  return {
-    followersCount: '12.4K',
-    followerGrowth30d: '+420',
-    totalReach30d: '45,000',
-    profileViews30d: '1,200',
-    pixelData: {
-      checkoutsInitiated: 89,
-      purchasesConverted: 12,
-    }
-  };
 }

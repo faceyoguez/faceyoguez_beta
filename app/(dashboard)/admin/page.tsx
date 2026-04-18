@@ -2,12 +2,18 @@
 
 import { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, CartesianGrid } from 'recharts';
-import { Activity, DollarSign, Users, RefreshCw, ChevronRight, LogOut, Search, MapPin, Smartphone, Chrome, PlayCircle, Eye, MousePointerClick, DownloadCloud, Globe, Instagram, Mail, TrendingUp, Layers, CheckCircle } from 'lucide-react';
+import { Activity, DollarSign, Users, RefreshCw, ChevronRight, LogOut, Search, MapPin, Smartphone, Chrome, PlayCircle, Eye, MousePointerClick, DownloadCloud, Globe, Instagram, Mail, TrendingUp, Layers, CheckCircle, Clock } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 const MetaAnalyticsWidget = dynamic(() => import('@/components/dashboard/admin/MetaAnalyticsWidget'), {
   loading: () => <div className="flex items-center justify-center min-h-[400px]"><div className="w-6 h-6 border-2 border-[#E1306C] border-t-transparent rounded-full animate-spin" /></div>,
+  ssr: false,
+});
+
+const StudentManagement = dynamic(() => import('@/components/dashboard/admin/students/StudentManagement'), {
+  loading: () => <div className="p-20 flex justify-center"><div className="w-10 h-10 border-4 border-[#FF8A75] border-t-transparent rounded-full animate-spin" /></div>,
   ssr: false,
 });
 
@@ -56,6 +62,13 @@ const GA_MOCK_DATA = {
     videoPlays: 3200,
     siteSearches: [ { query: 'glowing skin', count: 145 }, { query: 'double chin', count: 98 }, { query: 'wrinkles', count: 87 } ]
   },
+  events_raw: [
+    { name: 'page_view', count: 12450 },
+    { name: 'session_start', count: 3200 },
+    { name: 'user_engagement', count: 2800 },
+    { name: 'scroll', count: 8500 },
+    { name: 'purchase', count: 145 },
+  ],
   customConversions: [
     { name: 'Buy Plan Clicked', count: 450 },
     { name: 'Subscription Purchased', count: 145 },
@@ -70,207 +83,118 @@ const GA_MOCK_DATA = {
 
 export default function AdminDashboard() {
   const [data] = useState(GA_MOCK_DATA);
-  const searchParams = useSearchParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const rawTab = searchParams.get('tab');
-  const activeTab = (rawTab === 'meta' ? 'meta' : (rawTab === 'razorpay' ? 'razorpay' : 'google')) as 'google' | 'razorpay' | 'meta';
-
-  // Redirect to dedicated razorpay page if tab is set to razorpay
-  useEffect(() => {
-    if (rawTab === 'razorpay') {
-      router.push('/admin/razorpay-analytics');
-    }
-  }, [rawTab, router]);
+  const activeTab = (rawTab === 'meta' ? 'meta' : (rawTab === 'students' ? 'students' : 'ecosystem')) as 'ecosystem' | 'meta' | 'students';
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'google':
+      case 'ecosystem':
         return (
-          <div className="space-y-6">
-            {/* Global Overview Row */}
-            <section>
-              <div className="flex items-end justify-between mb-4">
-                 <div>
-                    <h2 className="text-lg font-bold text-slate-900 uppercase tracking-tight">Traffic Control</h2>
-                    <p className="text-[10px] font-medium text-slate-400">Core ecosystem dynamics</p>
-                 </div>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                <StatCard title="Realtime Active" value={data.overview.realtime.toString()} icon={<Activity className="text-emerald-500" />} trend="Live" highlight />
-                <StatCard title="Visitors Today" value={data.overview.visitorsToday.toString()} icon={<Users />} />
-                <StatCard title="Weekly Velocity" value={data.overview.visitorsWeek.toString()} icon={<TrendingUp />} />
-                <StatCard title="Bounce Rate" value={data.behavior.bounceRate} icon={<RefreshCw />} />
-                <StatCard title="Avg Session" value={data.behavior.avgSessionDuration} icon={<Search />} />
-              </div>
-            </section>
-
-            {/* User Context & Tech Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              
-              {/* Acquisition */}
-              <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-                 <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><Globe className="w-3 h-3"/> Traffic Sources</h3>
-                 <div className="space-y-3">
-                    {data.acquisition.map(src => (
-                       <div key={src.name} className="flex flex-col gap-1">
-                         <div className="flex justify-between items-center">
-                            <span className="text-[11px] font-semibold text-slate-700">{src.name}</span>
-                            <div className="flex items-center gap-2">
-                               <span className="text-[9px] font-bold text-emerald-500 bg-emerald-50 px-1 rounded">{src.trend}</span>
-                               <span className="text-xs font-bold text-slate-900">{src.value}</span>
-                            </div>
-                         </div>
-                         <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-slate-300" style={{ width: `${(src.value / 3400) * 100}%` }} />
-                         </div>
-                       </div>
-                    ))}
-                 </div>
-              </div>
-
-              {/* Geography */}
-              <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-                 <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><MapPin className="w-3 h-3"/> Top Cities</h3>
-                 <div className="flex h-[180px] w-full items-end gap-2">
-                    {data.location.map((loc, i) => (
-                      <div key={loc.city} className="flex-1 flex flex-col items-center justify-end gap-2 group">
-                        <span className="text-xs font-bold text-slate-900 opacity-0 group-hover:opacity-100 transition-opacity">{loc.users}</span>
-                        <div className="w-full bg-slate-900 rounded-t-sm transition-all opacity-80 group-hover:opacity-100" style={{ height: `${(loc.users / 1240) * 100}%` }}></div>
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest rotate-[-45deg] origin-top-left mt-2">{loc.city}</span>
-                      </div>
-                    ))}
-                 </div>
-              </div>
-
-              {/* Device & Browser */}
-              <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-                 <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2"><Smartphone className="w-3 h-3"/> Tech Stack</h3>
-                 
-                 <div className="space-y-4">
-                   <div>
-                      <div className="flex justify-between text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">
-                         <span>Mobile / Desktop</span>
-                         <span>{data.tech.device[0].value}% / {data.tech.device[1].value}%</span>
-                      </div>
-                      <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden flex">
-                         <div className="h-full bg-slate-900" style={{ width: `${data.tech.device[0].value}%` }} />
-                         <div className="h-full bg-slate-300" style={{ width: `${data.tech.device[1].value}%` }} />
-                      </div>
-                   </div>
-
-                   <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100">
-                      <div>
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Browser</span>
-                        {data.tech.browser.map(b => (
-                          <div key={b.name} className="flex justify-between text-[11px] font-semibold text-slate-700 py-0.5">
-                            <span>{b.name}</span><span>{b.value}%</span>
-                          </div>
-                        ))}
-                      </div>
-                      <div>
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-2">OS</span>
-                        {data.tech.os.slice(0,3).map(o => (
-                          <div key={o.name} className="flex justify-between text-[11px] font-semibold text-slate-700 py-0.5">
-                            <span>{o.name}</span><span>{o.value}%</span>
-                          </div>
-                        ))}
-                      </div>
-                   </div>
-                 </div>
-              </div>
-
+          <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            {/* Header Trace */}
+            <div className="flex items-end justify-between border-b border-slate-100 pb-8">
+               <div className="space-y-1.5">
+                  <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Traffic Control</h2>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Core ecosystem domain telemetry</p>
+               </div>
+               <div className="px-5 py-2.5 bg-slate-950 text-white rounded-lg flex items-center gap-4 border border-slate-800 shadow-2xl">
+                  <div className="size-2 bg-emerald-500 rounded-full animate-pulse" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em]">{data.overview.realtime} Active Now</span>
+               </div>
             </div>
 
-            {/* Deep Engagement Metrics */}
-            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden text-sm">
-               <div className="grid grid-cols-1 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-slate-100">
-                  
-                  <div className="p-5">
-                     <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2"><Layers className="w-3 h-3"/> Scroll Depth</h3>
-                     <div className="space-y-2">
-                       {Object.entries(data.events.scrolls).map(([depth, count]) => (
-                         <div key={depth} className="flex items-center justify-between">
-                            <span className="text-[11px] font-bold text-slate-900 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">{depth} Down</span>
-                            <span className="text-xs font-semibold text-slate-500">{count} views</span>
-                         </div>
-                       ))}
-                     </div>
-                  </div>
+            {/* Matrix Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-slate-100 border border-slate-100 rounded-2xl overflow-hidden">
+               <StatCard title="Total Visitors" value={data.overview.visitorsToday.toString()} icon={<Users className="w-4 h-4" />} />
+               <StatCard title="Weekly Velocity" value={data.overview.visitorsWeek.toString()} icon={<TrendingUp className="w-4 h-4" />} />
+               <StatCard title="Bounce Rate" value={data.behavior.bounceRate} icon={<RefreshCw className="w-4 h-4" />} />
+               <StatCard title="Avg Session" value={data.behavior.avgSessionDuration} icon={<Clock className="w-4 h-4" />} />
+            </div>
 
-                  <div className="p-5">
-                     <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2"><PlayCircle className="w-3 h-3"/> Engagement</h3>
-                     <div className="space-y-4">
-                        <div className="flex justify-between items-center text-slate-700">
-                           <span className="flex items-center gap-2 text-xs"><PlayCircle className="w-3.5 h-3.5 text-slate-400"/> Video Plays</span>
-                           <span className="font-bold">{data.events.videoPlays}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-slate-700">
-                           <span className="flex items-center gap-2 text-xs"><DownloadCloud className="w-3.5 h-3.5 text-slate-400"/> PDF Downloads</span>
-                           <span className="font-bold">{data.events.downloads}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-slate-700">
-                           <span className="flex items-center gap-2 text-xs"><MousePointerClick className="w-3.5 h-3.5 text-slate-400"/> Outbound Clicks</span>
-                           <span className="font-bold">{data.events.outboundClicks}</span>
-                        </div>
-                     </div>
-                  </div>
-
-                  <div className="p-5 md:col-span-2">
-                     <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2"><Search className="w-3 h-3"/> Top Site Searches</h3>
-                     <div className="flex flex-wrap gap-2">
-                        {data.events.siteSearches.map(s => (
-                           <div key={s.query} className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-full flex items-center gap-2">
-                              <span className="text-xs text-slate-700 font-medium">"{s.query}"</span>
-                              <span className="text-[10px] font-bold text-slate-400 bg-white px-1.5 py-0.5 rounded-full">{s.count}</span>
+            {/* Channels & Geos */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+               <div className="bg-white rounded-2xl border border-slate-100 p-8 shadow-sm">
+                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-8">Channel Attribution</h3>
+                  <div className="space-y-6">
+                     {data.acquisition.map(src => (
+                        <div key={src.name} className="space-y-2.5">
+                           <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-700">
+                              <span>{src.name}</span>
+                              <span className="text-slate-900">{src.value}</span>
                            </div>
-                        ))}
-                     </div>
+                           <div className="w-full h-1 bg-slate-50 rounded-full overflow-hidden">
+                              <div className="h-full bg-slate-900" style={{ width: `${(src.value / 3400) * 100}%` }} />
+                           </div>
+                        </div>
+                     ))}
                   </div>
-
                </div>
-            </section>
+
+               <div className="bg-white rounded-2xl border border-slate-100 p-8 shadow-sm lg:col-span-2">
+                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-8">Regional Pulse</h3>
+                  <div className="flex h-[220px] items-end justify-between px-6">
+                     {data.location.map((loc) => (
+                       <div key={loc.city} className="flex-1 flex flex-col items-center justify-end px-3">
+                         <div className="w-full bg-slate-900 rounded-t-sm transition-all hover:bg-[#FF8A75] opacity-90" style={{ height: `${(loc.users / 1240) * 100}%` }} />
+                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-4 truncate w-full text-center">{loc.city}</span>
+                       </div>
+                    ))}
+                  </div>
+               </div>
+            </div>
           </div>
         );
-      case 'razorpay':
-        return null; // Redirected via useEffect
       case 'meta':
-        return <MetaAnalyticsWidget />;
+        return (
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+             <div className="flex items-end justify-between border-b border-slate-100 pb-8">
+                <div className="space-y-1.5">
+                   <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Social Intelligence</h2>
+                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Meta advertising Performance & Spend Tracking</p>
+                </div>
+             </div>
+             <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl overflow-hidden min-h-[600px]">
+                <MetaAnalyticsWidget />
+             </div>
+          </div>
+        );
+      case 'students':
+        return (
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+             <div className="flex items-end justify-between border-b border-slate-100 pb-8">
+                <div className="space-y-1.5">
+                   <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Student Directory</h2>
+                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Comprehensive scannable student ledger</p>
+                </div>
+             </div>
+             <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl overflow-hidden min-h-[600px]">
+                <StudentManagement />
+             </div>
+          </div>
+        );
+      default:
+        return null;
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans antialiased text-slate-900">
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-x-hidden min-w-0 pb-20">
-         {/* Top bar */}
-         <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100 px-6 h-12 flex items-center justify-between">
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight flex items-center gap-2">
-               <div className="size-1.5 bg-emerald-500 rounded-full animate-pulse" /> Live Telemetry Connected
-            </div>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 text-[9px] font-bold text-slate-600 bg-white border border-slate-200 rounded uppercase tracking-tight hover:bg-slate-50 transition-colors shadow-sm">
-               <RefreshCw className="h-3 w-3" /> Re-Sync
-            </button>
-         </header>
-
-         {/* Extracted Component Render */}
-         <div className="p-4 md:p-8 max-w-[1200px] mx-auto">
-            {renderContent()}
-         </div>
-      </main>
+    <div className="p-4 md:p-8 lg:p-12">
+       {renderContent()}
     </div>
   );
 }
 
-function StatCard({ title, value, icon, trend, highlight = false }: { title: string, value: string, icon: React.ReactNode, trend?: string, highlight?: boolean }) {
+function StatCard({ title, value, icon }: { title: string, value: string, icon: React.ReactNode }) {
   return (
-    <div className={`p-4 rounded-xl border transition-colors shadow-sm ${highlight ? 'bg-slate-900 border-slate-800 text-white' : 'bg-white border-slate-200'}`}>
-      <div className="flex items-center gap-2 mb-2 opacity-80">
-         <div className="scale-75 origin-left">{icon}</div>
-         <p className={`text-[9px] font-bold uppercase tracking-widest ${highlight ? 'text-slate-300' : 'text-slate-400'}`}>{title}</p>
+    <div className="bg-white p-8 flex flex-col gap-10 group hover:bg-slate-50/50 transition-colors cursor-default border-slate-100">
+      <div className="flex items-center justify-between">
+         <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300 group-hover:text-slate-500 transition-colors">{title}</p>
+         <div className="text-slate-200 group-hover:text-[#FF8A75] transition-colors">{icon}</div>
       </div>
-      <div className="flex items-baseline justify-between gap-1">
-         <p className="text-2xl font-black tracking-tight">{value}</p>
-         {trend && <span className={`text-[10px] font-black uppercase tracking-wider ${highlight ? 'text-emerald-400' : 'text-emerald-500'}`}>{trend}</span>}
+      <div className="flex items-baseline gap-2">
+         <p className="text-5xl font-black tracking-tighter text-slate-900">{value}</p>
       </div>
     </div>
   );

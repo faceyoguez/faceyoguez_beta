@@ -7,6 +7,7 @@ import { assignInstructor } from '@/lib/actions/subscription';
 import { getJourneyLogs, type JourneyLog } from '@/lib/actions/journey';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
+import { sendWhatsAppMessage } from '@/lib/actions/whatsapp';
 import {
   Search,
   MessageSquare,
@@ -355,11 +356,31 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                     </div>
                     {student.phone && (
                       <button
-                        onClick={(e) => {
+                        onClick={async (e) => {
                           e.stopPropagation();
                           const msg = `Hi ${student.full_name.split(' ')[0]}! This is the Faceyoguez team. We are reaching out regarding your session...`;
-                          const cleanPhone = student.phone?.replace(/[^0-9]/g, '');
-                          window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+                          
+                          // Check if we can use the official API (server-side)
+                          // For now, we attempt server-side send, and fallback to wa.me if not configured
+                          // Note: In production, you'd check a flag or env-based config
+                          const loadingToast = toast.loading('Sending WhatsApp...');
+                          
+                          try {
+                            if (!student.phone) throw new Error('No phone number');
+                            const result = await sendWhatsAppMessage(student.phone, msg);
+                            if (result.success) {
+                              toast.success('Message sent via Official API', { id: loadingToast });
+                            } else {
+                              // Fallback to wa.me if API not configured or failed
+                              toast.dismiss(loadingToast);
+                              const cleanPhone = student.phone?.replace(/[^0-9]/g, '');
+                              window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+                            }
+                          } catch (err) {
+                            toast.dismiss(loadingToast);
+                            const cleanPhone = student.phone?.replace(/[^0-9]/g, '');
+                            window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+                          }
                         }}
                         className="h-8 w-8 rounded-full bg-[#25D366]/10 text-[#25D366] flex flex-shrink-0 items-center justify-center hover:bg-[#25D366] hover:text-white transition-all shadow-sm z-10"
                         title="Message on WhatsApp"

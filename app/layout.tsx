@@ -84,10 +84,10 @@ export default function RootLayout({
           <MetaPixel />
         </Suspense>
         
-        {/* Abstract Glow (Simplified to reduce lag) */}
+        {/* Abstract Glow (Optimized for performance) */}
         <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-          <div className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] bg-rose-100/30 rounded-full blur-[120px] mix-blend-multiply opacity-50" />
-          <div className="absolute top-[20%] right-[-10%] w-[60vw] h-[60vw] bg-orange-100/20 rounded-full blur-[100px] mix-blend-multiply opacity-40" />
+          <div className="absolute top-[-10%] left-[-5%] w-[50vw] h-[50vw] bg-rose-100/20 rounded-full blur-[80px] mix-blend-multiply opacity-30 will-change-transform" />
+          <div className="absolute top-[10%] right-[-5%] w-[40vw] h-[40vw] bg-orange-100/15 rounded-full blur-[70px] mix-blend-multiply opacity-25 will-change-transform" />
         </div>
         
         <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false} disableTransitionOnChange>

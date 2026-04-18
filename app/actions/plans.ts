@@ -42,7 +42,7 @@ export async function activateTrial(userId: string) {
   
   const startDate = new Date();
   const endDate = new Date();
-  endDate.setDate(startDate.getDate() + 3);
+  endDate.setDate(startDate.getDate() + 1);
 
   const { data, error } = await admin
     .from('subscriptions')

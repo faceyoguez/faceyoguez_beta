@@ -64,6 +64,7 @@ const navConfig = {
     { label: 'Google Analytics', icon: Globe, path: '/admin?tab=google' },
     { label: 'Razorpay Analytics', icon: CreditCard, path: '/admin/razorpay-analytics' },
     { label: 'Meta Analytics', icon: Instagram, path: '/admin?tab=meta' },
+    { label: 'Student Directory', icon: Users, path: '/admin?tab=students' },
   ],
   staff: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/staff/dashboard' },

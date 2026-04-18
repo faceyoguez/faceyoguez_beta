@@ -89,7 +89,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
         try {
             const res = await activateTrial(userId);
             if (res.success) {
-                toast.success('Trial activated! You have 3 days of full access. 🧘‍♂️');
+                toast.success('Trial activated! You have 1 day of full access. 🧘‍♂️');
                 setHasUsedTrial(true);
                 router.refresh();
                 router.push('/student/dashboard');
@@ -614,7 +614,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                 )}
                             </button>
 
-                            {!hasUsedTrial && (
+                            {!hasUsedTrial && currentPlan.hasTrial && (
                                 hasActiveSubscription ? (
                                     // Student has active paid plan — trial not available
                                     <div className="w-full py-2.5 flex items-center justify-center gap-2 rounded-xl bg-amber-50 border border-amber-100 text-[9px] font-bold text-amber-600 uppercase tracking-widest">

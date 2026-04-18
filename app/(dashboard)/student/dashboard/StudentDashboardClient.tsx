@@ -141,7 +141,7 @@ export function StudentDashboardClient({
 
 
   return (
-    <div className="min-h-[100dvh] lg:h-[100dvh] relative flex flex-col bg-[#FFFAF7] text-slate-900 font-sans selection:bg-[#FF8A75]/20 overflow-x-hidden lg:overflow-hidden">
+    <div className="min-h-[100dvh] relative flex flex-col bg-[#FFFAF7] text-slate-900 font-sans selection:bg-[#FF8A75]/20 overflow-x-hidden">
 
       {/* ── Sanctuary Style Auroras ── */}
       <div className="fixed inset-0 z-0 pointer-events-none">
@@ -149,10 +149,10 @@ export function StudentDashboardClient({
         <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-[radial-gradient(circle_at_center,rgba(255,138,117,0.04)_0%,transparent_60%)] translate-y-1/2 translate-x-1/4 blur-3xl rounded-full" />
       </div>
 
-      <div className="relative z-10 flex flex-col h-full overflow-hidden">
+      <div className="relative z-10 flex flex-col h-full overflow-y-auto">
 
         {/* ── Sanctuary Header ── */}
-        <header className="shrink-0 px-5 sm:px-8 lg:px-12 py-5 lg:py-8 flex items-center justify-between border-b border-[#FF8A75]/5">
+        <header className="shrink-0 px-5 sm:px-6 md:px-8 lg:px-12 py-5 md:py-6 lg:py-8 flex items-center justify-between border-b border-[#FF8A75]/5" style={{ paddingTop: 'max(1.25rem, env(safe-area-inset-top))' }}>
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -160,13 +160,13 @@ export function StudentDashboardClient({
           >
             <div className="inline-flex items-center gap-2 lg:gap-3 px-3 lg:px-4 py-1.5 rounded-full bg-white/40 backdrop-blur-3xl border border-[#FF8A75]/10 shadow-sm self-start">
               <div className="h-1.5 w-1.5 rounded-full bg-[#FF8A75] shadow-[0_0_8px_#FF8A75]" />
-              <span className="text-[8px] lg:text-[9px] font-black uppercase tracking-[0.2em] lg:tracking-[0.3em] text-[#FF8A75] leading-none">Curator Presence Active</span>
+              <span className="text-[10px] md:text-[10px] lg:text-[9px] font-black uppercase tracking-[0.2em] lg:tracking-[0.3em] text-[#FF8A75] leading-none">Curator Presence Active</span>
             </div>
             <div>
-              <h1 className="text-3xl sm:text-4xl lg:text-6xl font-serif tracking-tight text-[#1a1a1a] leading-none">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-serif tracking-tight text-[#1a1a1a] leading-none">
                 {firstName}&apos;s <span className="text-[#FF8A75] underline decoration-[#FF8A75]/20 underline-offset-4 lg:underline-offset-8">Sanctuary</span>
               </h1>
-              <p className="text-[9px] lg:text-[10px] font-black uppercase tracking-[0.3em] lg:tracking-[0.4em] text-slate-400 mt-1.5 lg:mt-2 opacity-80">
+              <p className="text-[10px] md:text-[10px] lg:text-[10px] font-black uppercase tracking-[0.3em] lg:tracking-[0.4em] text-slate-400 mt-1.5 lg:mt-2 opacity-80">
                 {format(new Date(), 'EEEE, MMMM do')}
               </p>
             </div>
@@ -179,23 +179,23 @@ export function StudentDashboardClient({
         </header>
 
         {/* ── Main Canvas ── */}
-        <main className="flex-1 px-5 sm:px-8 lg:px-12 pb-5 lg:pb-8 flex flex-col gap-4 lg:gap-8 overflow-y-auto lg:overflow-hidden mt-2 no-scrollbar">
+        <main className="flex-1 px-5 sm:px-6 md:px-8 lg:px-12 pb-5 md:pb-6 lg:pb-8 flex flex-col gap-4 md:gap-6 lg:gap-8 overflow-y-auto mt-2 no-scrollbar" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
 
           {/* Hero Row (Synchronicity & Mirror) */}
-          <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-10 items-stretch min-h-0">
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 lg:gap-10 items-stretch min-h-0">
 
             {/* Synchronicity (Left - 35%) */}
             <motion.section
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="lg:col-span-4 flex flex-col min-h-0"
+              className="md:col-span-5 lg:col-span-4 flex flex-col min-h-0"
             >
               <div className="flex-1 bg-white/40 backdrop-blur-3xl border border-[#FF8A75]/5 rounded-[2rem] lg:rounded-[3.5rem] p-6 lg:p-10 flex flex-col overflow-hidden relative group">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#FF8A75]/5 to-transparent rounded-tr-[2rem] lg:rounded-tr-[3.5rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                 
                 <div className="flex items-center justify-between mb-5 lg:mb-8 shrink-0 relative pb-4 border-b border-[#FF8A75]/5">
                   <div className="flex items-center gap-4 lg:gap-6">
-                    <div className="h-10 w-10 lg:h-14 lg:w-14 rounded-xl lg:rounded-2xl bg-[#FF8A75] flex items-center justify-center shadow-lg shadow-[#FF8A75]/20">
+                    <div className="h-11 w-11 md:h-12 md:w-12 lg:h-14 lg:w-14 rounded-xl lg:rounded-2xl bg-[#FF8A75] flex items-center justify-center shadow-lg shadow-[#FF8A75]/20">
                       <Clock className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
                     </div>
                     <div>
@@ -249,15 +249,16 @@ export function StudentDashboardClient({
                               </span>
                             </div>
                             <h4 className="text-sm font-bold text-slate-900 truncate mb-1">{meeting.topic}</h4>
-                            <p className="text-[8px] font-black uppercase tracking-wider text-slate-400">
+                            <p className="text-[10px] md:text-[10px] font-black uppercase tracking-wider text-slate-400">
                               Guided by {meeting.host?.full_name || 'Master Instructor'}
                             </p>
                           </div>
+                          {/* Min 44px touch target for mobile accessibility */}
                           <a
                             href={meeting.join_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="h-10 w-10 lg:h-12 lg:w-12 flex items-center justify-center rounded-xl lg:rounded-2xl bg-slate-900 text-white hover:bg-[#FF8A75] transition-all group-hover:scale-105 shadow-lg shadow-slate-900/10"
+                            className="h-11 w-11 min-h-[44px] min-w-[44px] lg:h-12 lg:w-12 flex items-center justify-center rounded-xl lg:rounded-2xl bg-slate-900 text-white hover:bg-[#FF8A75] transition-all group-hover:scale-105 shadow-lg shadow-slate-900/10"
                           >
                             <ArrowUpRight className="w-4 h-4 lg:w-5 lg:h-5" />
                           </a>
@@ -274,7 +275,7 @@ export function StudentDashboardClient({
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 }}
-              className="lg:col-span-8 flex flex-col min-h-0"
+              className="md:col-span-7 lg:col-span-8 flex flex-col min-h-0"
             >
               <div className="flex-1 bg-white/40 backdrop-blur-3xl border border-[#FF8A75]/5 rounded-[2rem] lg:rounded-[3.5rem] p-6 lg:p-10 flex flex-col relative overflow-hidden group">
                 <div className="flex items-center justify-between mb-5 lg:mb-8 shrink-0 pb-4 border-b border-[#FF8A75]/5">
@@ -316,7 +317,7 @@ export function StudentDashboardClient({
           </div>
 
           {/* Active Offerings / Rituals Area */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
             {/* Live Group Ritual Card */}
             {(activePlanTypes.includes('group_session') || isTrial) && (
               <motion.div

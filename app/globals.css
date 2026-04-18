@@ -1,5 +1,36 @@
 @import "tailwindcss";
 
+/* ── Safe Area Insets (iPhone notch/Dynamic Island, Samsung punch-hole) ── */
+@supports (padding: env(safe-area-inset-top)) {
+  :root {
+    --safe-area-top: env(safe-area-inset-top);
+    --safe-area-bottom: env(safe-area-inset-bottom);
+    --safe-area-left: env(safe-area-inset-left);
+    --safe-area-right: env(safe-area-inset-right);
+  }
+}
+
+/* ── Dynamic Viewport Height (mobile Safari address bar) ── */
+@supports (height: 100dvh) {
+  .min-h-screen-safe { min-height: 100dvh; }
+  .h-screen-safe { height: 100dvh; }
+}
+
+/* ── Scroll Behavior ── */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem; /* Account for fixed headers */
+  -webkit-text-size-adjust: 100%; /* Prevent iOS font size inflation */
+}
+
+/* ── Touch Target Minimums (WCAG 2.5.8) ── */
+@media (pointer: coarse) {
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
 :root {
   --background: #FFFAF7;
   --foreground: #1a1a1a;

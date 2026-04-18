@@ -60,7 +60,7 @@ export default async function CourseViewerPage({ params }: PageProps) {
   const hasLevel2 = activeSubscriptions?.some(s => s.plan_variant?.includes('Level 2')) || isAdmin;
 
   const isLevelAllowed = isAdmin || (course.level === 1 
-    ? hasActiveSub 
+    ? true 
     : (hasActiveSub && hasLevel2));
 
   if (!isLevelAllowed) redirect('/student/lms');
@@ -114,6 +114,7 @@ export default async function CourseViewerPage({ params }: PageProps) {
         <CourseViewer
           courseId={course.id}
           courseTitle={course.title}
+          courseLevel={course.level}
           modules={sortedModules}
           completedModuleIds={completedModuleIds}
           studentId={user.id}

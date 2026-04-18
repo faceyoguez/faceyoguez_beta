@@ -1,8 +1,9 @@
 'use server';
 
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import type { AudienceType, MessageContentType } from '@/types/database';
+import { sendWhatsAppMessage } from './whatsapp';
 
 export async function sendBroadcastAction(formData: {
   title: string;
@@ -12,6 +13,7 @@ export async function sendBroadcastAction(formData: {
   file_url?: string;
   file_name?: string;
   content_type?: MessageContentType;
+  send_whatsapp?: boolean;
 }) {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -113,6 +115,27 @@ export async function sendBroadcastAction(formData: {
       .insert(notificationsData);
 
     if (notifError) throw notifError;
+
+    // 4. Optional WhatsApp Broadcast
+    if (formData.send_whatsapp) {
+      // Get phone numbers for all target users
+      const admin = createAdminClient();
+      const { data: profiles } = await admin
+        .from('profiles')
+        .select('phone')
+        .in('id', targetUserIds)
+        .not('phone', 'is', null);
+
+      if (profiles && profiles.length > 0) {
+        // Send asynchronously to avoid blocking the main broadcast action
+        // In a real production app, you'd use a background queue (like Inngest or Upstash)
+        Promise.all(
+          profiles.map(p => 
+            p.phone ? sendWhatsAppMessage(p.phone, `*${formData.title}*\n\n${formData.content}`) : Promise.resolve()
+          )
+        ).catch(err => console.error('WhatsApp Broadcast Failure:', err));
+      }
+    }
 
     revalidatePath('/instructor/broadcast');
     return { success: true, count: targetUserIds.length };

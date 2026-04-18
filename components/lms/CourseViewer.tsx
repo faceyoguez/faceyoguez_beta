@@ -44,6 +44,7 @@ interface CourseViewerProps {
   modules: Module[];
   completedModuleIds: Set<string>;
   studentId: string;
+  courseLevel: number;
   isTrial?: boolean;
 }
 
@@ -53,6 +54,7 @@ export function CourseViewer({
   modules,
   completedModuleIds: initialCompleted,
   studentId,
+  courseLevel,
   isTrial = false
 }: CourseViewerProps) {
   const [completedIds, setCompletedIds] = useState<Set<string>>(initialCompleted);
@@ -395,8 +397,14 @@ export function CourseViewer({
             {modules.map((m, index) => {
               const isCompleted = completedIds.has(m.id);
               const isActive = activeModuleId === m.id;
-              // Trial users only get the first video. Non-trial users get unlocked sequentially.
-              const isUnlocked = isTrial ? index === 0 : (index === 0 || completedIds.has(modules[index - 1].id));
+              
+              // NEW LOGIC: 
+              // 1. Level 1, Module 1 is always unlocked.
+              // 2. Otherwise, check trial or sequential completion.
+              const isFirstModule = index === 0;
+              const isUnlocked = (courseLevel === 1 && isFirstModule) 
+                ? true 
+                : (isTrial ? isFirstModule : (isFirstModule || completedIds.has(modules[index - 1].id)));
 
               return (
                 <button

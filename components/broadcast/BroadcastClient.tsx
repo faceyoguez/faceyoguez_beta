@@ -29,6 +29,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
     const [fileUrl, setFileUrl] = useState<string>('');
     const [fileName, setFileName] = useState<string>('');
     const [contentType, setContentType] = useState<MessageContentType>('text');
+    const [sendWhatsApp, setSendWhatsApp] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -84,7 +85,8 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
             target_batch_id: targetBatchId || undefined,
             file_url: fileUrl,
             file_name: fileName,
-            content_type: contentType
+            content_type: contentType,
+            send_whatsapp: sendWhatsApp
         });
 
         if (result.success) {
@@ -94,6 +96,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
             setFileUrl('');
             setFileName('');
             setContentType('text');
+            setSendWhatsApp(false);
         } else {
             alert(`Failed to send broadcast: ${result.error}`);
         }
@@ -294,6 +297,29 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
 
                         <div className="px-10 py-10 bg-foreground shrink-0 flex items-center justify-between group/footer">
                             <div className="flex items-center gap-4">
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <div className="relative">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={sendWhatsApp}
+                                            onChange={(e) => setSendWhatsApp(e.target.checked)}
+                                            className="sr-only"
+                                        />
+                                        <div className={cn(
+                                            "w-10 h-6 rounded-full transition-colors",
+                                            sendWhatsApp ? "bg-[#25D366]" : "bg-white/10"
+                                        )} />
+                                        <div className={cn(
+                                            "absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform",
+                                            sendWhatsApp ? "translate-x-4" : ""
+                                        )} />
+                                    </div>
+                                    <span className={cn(
+                                        "text-[9px] font-black uppercase tracking-widest transition-colors",
+                                        sendWhatsApp ? "text-[#25D366]" : "text-background/30"
+                                    )}>WhatsApp Sync</span>
+                                </label>
+                                <div className="h-4 w-[1px] bg-background/10 mx-2" />
                                 <Sparkles className="h-5 w-5 text-background/20" />
                                 <p className="text-[10px] font-medium text-background/30 tracking-widest uppercase">Wisdom will be preserved in student archives.</p>
                             </div>

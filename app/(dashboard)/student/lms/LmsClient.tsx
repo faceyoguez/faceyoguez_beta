@@ -89,7 +89,7 @@ export function LmsClient({
             let isUnlocked = false;
             
             if (course.level === 1) {
-              isUnlocked = hasActiveSub;
+              isUnlocked = true;
             } else if (course.level === 2) {
               const level1Course = courses.find(c => c.level === 1);
               const level1Completed = level1Course?.isFullyCompleted || false;

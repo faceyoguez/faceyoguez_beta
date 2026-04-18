@@ -12,6 +12,7 @@ import { Plans } from './Plans';
 import { GoogleReview } from './GoogleReview';
 import { FooterCTA } from './FooterCTA';
 import { LuxuryBackground } from './LuxuryBackground';
+import { FloatingEnquiry } from './FloatingEnquiry';
 
 export function LandingPage() {
   const [loaderDone, setLoaderDone] = useState(false);
@@ -37,6 +38,7 @@ export function LandingPage() {
               <Plans />
               <GoogleReview />
               <FooterCTA />
+              <FloatingEnquiry />
             </>
           )}
         </div>

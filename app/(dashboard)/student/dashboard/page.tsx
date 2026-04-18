@@ -13,54 +13,55 @@ export default async function StudentDashboardPage() {
   const profile = await getServerProfile(user.id);
   if (!profile || profile.role !== 'student') redirect('/auth/login');
 
-  // ─── Fetch subscriptions ───
-  const { data: subscriptions } = await admin
-    .from('subscriptions')
-    .select('*')
-    .eq('student_id', user.id)
-    .in('status', ['active', 'pending'])
-    .order('start_date', { ascending: true });
-
-  // ─── Fetch enrollments ───
-  const { data: enrollments } = await admin
-    .from('batch_enrollments')
-    .select('batch_id')
-    .eq('student_id', user.id)
-    .in('status', ['active', 'extended']);
-
-  // ─── Fetch journey photos ───
-  const { data: firstPhoto } = await admin
-    .from('journey_logs')
-    .select('*')
-    .eq('student_id', user.id)
-    .not('photo_url', 'is', null)
-    .order('day_number', { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  const { data: latestPhoto } = await admin
-    .from('journey_logs')
-    .select('*')
-    .eq('student_id', user.id)
-    .not('photo_url', 'is', null)
-    .order('day_number', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  // ─── Fetch ALL upcoming meetings (1-on-1 + group) using admin client ───
-  // Use a 2-hour lookback so active meetings don't vanish
+  // ─── Batch 1: Fire all independent queries in parallel ───
   const windowStart = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
 
-  const { data: oneOnOneMeetings } = await admin
-    .from('meetings')
-    .select('*, host:profiles!meetings_host_id_fkey(full_name, avatar_url)')
-    .eq('student_id', user.id)
-    .eq('meeting_type', 'one_on_one')
-    .gte('start_time', windowStart)
-    .order('start_time', { ascending: true });
+  const [subsResult, enrollResult, firstPhotoResult, latestPhotoResult, oneOnOneResult] = await Promise.all([
+    admin
+      .from('subscriptions')
+      .select('*')
+      .eq('student_id', user.id)
+      .in('status', ['active', 'pending'])
+      .order('start_date', { ascending: true }),
+    admin
+      .from('batch_enrollments')
+      .select('batch_id')
+      .eq('student_id', user.id)
+      .in('status', ['active', 'extended']),
+    admin
+      .from('journey_logs')
+      .select('*')
+      .eq('student_id', user.id)
+      .not('photo_url', 'is', null)
+      .order('day_number', { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+    admin
+      .from('journey_logs')
+      .select('*')
+      .eq('student_id', user.id)
+      .not('photo_url', 'is', null)
+      .order('day_number', { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    admin
+      .from('meetings')
+      .select('*, host:profiles!meetings_host_id_fkey(full_name, avatar_url)')
+      .eq('student_id', user.id)
+      .eq('meeting_type', 'one_on_one')
+      .gte('start_time', windowStart)
+      .order('start_time', { ascending: true }),
+  ]);
+
+  const subscriptions = subsResult.data;
+  const enrollments = enrollResult.data;
+  const firstPhoto = firstPhotoResult.data;
+  const latestPhoto = latestPhotoResult.data;
+  const oneOnOneMeetings = oneOnOneResult.data;
 
   const batchIds = (enrollments || []).map((e: { batch_id: string }) => e.batch_id);
 
+  // ─── Batch 2: Group meetings (depends on batchIds from batch 1) ───
   let groupMeetings: any[] = [];
   if (batchIds.length > 0) {
     const { data: gMeetings } = await admin
@@ -75,6 +76,7 @@ export default async function StudentDashboardPage() {
 
   const todaysMeetings = [...(oneOnOneMeetings || []), ...groupMeetings]
     .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+
 
   // ─── Compute derived state ───
   const activeSubs = subscriptions || [];

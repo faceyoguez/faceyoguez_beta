@@ -9,6 +9,7 @@ export const PLANS_DATA = [
         color: 'rose',
         note: 'Best for personalised results',
         hasTrial: true,
+        trialDays: 1,
         tiers: [
             { id: '1_month', label: '1 Month', originalPrice: 8000, discountedPrice: 5499, note: 'PLAN 1' },
             { id: '3_months', label: '3 Months', originalPrice: 24000, discountedPrice: 11000, badge: 'MOST POPULAR', note: 'PLAN 2' },
@@ -30,12 +31,10 @@ export const PLANS_DATA = [
         icon: Users,
         color: 'teal',
         note: 'Best for accountability & community',
-        hasTrial: true,
+        hasTrial: false,
         tiers: [
             { id: '1_month_12d', label: '1 Month (12-Day Recording)', originalPrice: 4400, discountedPrice: 1499, note: 'EARLY BIRD' },
-            { id: '1_month_lifetime', label: '1 Month (Lifetime Recording)', originalPrice: 4400, discountedPrice: 1998, badge: 'LIFETIME ACCESS', note: 'KEEP FOREVER' },
-            { id: '3_months_12d', label: '3 Months (12-Day Recording)', originalPrice: 12999, discountedPrice: 3499, note: 'EXTENDED' },
-            { id: '3_months_lifetime', label: '3 Months (Lifetime Recording)', originalPrice: 12999, discountedPrice: 4348, badge: 'TOTAL VALUE', note: 'BEST FOR RESULTS' }
+            { id: '3_months_12d', label: '3 Months (12-Day Recording)', originalPrice: 12999, discountedPrice: 3499, note: 'EXTENDED' }
         ],
         features: [
             '21 Days Live Group Classes',
@@ -52,7 +51,7 @@ export const PLANS_DATA = [
         icon: BookOpen,
         color: 'indigo',
         note: 'Best for self-learners',
-        hasTrial: true,
+        hasTrial: false,
         tiers: [
             { id: 'level_1', label: 'Level 1', originalPrice: 1999, discountedPrice: 999, note: '50% OFF' },
             { id: 'level_1_2', label: 'Level 1 + 2', originalPrice: 3999, discountedPrice: 1499, badge: 'MASTER PACK', note: '62.5% OFF' }

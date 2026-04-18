@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { User, Users, BookOpen, Sparkles, ArrowRight } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { trackConversionEvent } from '@/lib/conversionTracking';
 import { PersonalPlanModal } from './PersonalPlanModal';
 import { GroupPlanModal } from './GroupPlanModal';
@@ -44,6 +45,7 @@ export function Plans() {
   const [showPersonalModal, setShowPersonalModal] = useState(false);
   const [showGroupModal, setShowGroupModal] = useState(false);
   const [showVideoModal, setShowVideoModal] = useState(false);
+  const router = useRouter();
   const containerRef = useRef(null);
   const isInView = useInView(containerRef, { once: true, amount: 0.2 });
 
@@ -73,9 +75,9 @@ export function Plans() {
       className="px-6 md:px-12 py-24 md:py-40 relative overflow-hidden"
       style={{ backgroundColor: 'transparent' }}
     >
-      {/* Decorative Blur Orbs */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#E07A5F]/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#446187]/5 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+      {/* Decorative Blur Orbs (Optimized) */}
+      <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#E07A5F]/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 pointer-events-none will-change-transform" />
+      <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-[#446187]/5 rounded-full blur-[70px] translate-y-1/2 -translate-x-1/2 pointer-events-none will-change-transform" />
 
       <div className="max-w-7xl mx-auto relative z-10" ref={containerRef}>
         <motion.div 
@@ -113,19 +115,15 @@ export function Plans() {
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                if (plan.id === 'one_on_one') setShowPersonalModal(true);
-                if (plan.id === 'group_session') setShowGroupModal(true);
-                if (plan.id === 'lms') setShowVideoModal(true);
+                if (plan.id === 'one_on_one') router.push('/plans/personal-classes');
+                if (plan.id === 'group_session') router.push('/plans/live-group');
+                if (plan.id === 'lms') router.push('/plans/video-courses');
               }}
               className={`group p-8 md:p-10 rounded-[3rem] transition-colors duration-500 relative cursor-pointer ${
                 plan.popular ? 'bg-white shadow-[0_32px_64px_rgba(44,37,37,0.04)]' : 'bg-[#fcf8f7]/60 border border-[#2c2525]/5'
               }`}
             >
-              {plan.popular && (
-                <div className="absolute top-6 right-8 bg-[#9b452e] text-[#FAF9F6] text-[8px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg shadow-[#9b452e]/20">
-                  <Sparkles className="w-2.5 h-2.5" /> Most Popular
-                </div>
-              )}
+
 
               <div className="space-y-8">
                 <div 
