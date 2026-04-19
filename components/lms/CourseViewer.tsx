@@ -421,7 +421,7 @@ export function CourseViewer({
                   )}
                 >
                   <div className={cn(
-                    "flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-700 shadow-sm",
+                    "flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-700 shadow-sm relative",
                     isActive ? "bg-[#FF8A75] text-white" : isCompleted ? "bg-[#FF8A75]/10 text-[#FF8A75]" : "bg-slate-900/5 text-slate-400 group-hover:bg-[#FF8A75]/10 group-hover:text-[#FF8A75]"
                   )}>
                     {isCompleted ? (
@@ -430,6 +430,11 @@ export function CourseViewer({
                       <Lock className="w-5 h-5 opacity-40" />
                     ) : (
                       <Play className={cn("w-5 h-5", isActive ? "fill-white" : "fill-current translate-x-0.5")} />
+                    )}
+                    
+                    {/* Free Preview badge for Level 1, Module 1 */}
+                    {courseLevel === 1 && index === 0 && !isCompleted && !isActive && (
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#FF8A75] rounded-full border border-white animate-pulse" />
                     )}
                   </div>
 
@@ -445,6 +450,12 @@ export function CourseViewer({
                           "text-[9px] font-black uppercase tracking-[0.2em]",
                           isActive ? "text-[#FF8A75]/80" : "text-slate-400"
                        )}>Phase {index + 1}</span>
+                       {courseLevel === 1 && index === 0 && (
+                         <span className={cn(
+                           "text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded bg-[#FF8A75]/10 text-[#FF8A75]",
+                           isActive && "bg-white/20 text-white"
+                         )}>Free Preview</span>
+                       )}
                     </div>
                   </div>
 

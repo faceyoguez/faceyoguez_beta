@@ -97,17 +97,23 @@ export function LmsClient({
             }
 
             return (
-              <CourseCard
-                key={course.id}
-                id={course.id}
-                title={course.title}
-                level={course.level}
-                thumbnail={course.thumbnail_url}
-                isUnlocked={isUnlocked}
-                isCompleted={course.isFullyCompleted}
-                progress={course.progressPercent}
-                moduleCount={course.totalModules}
-              />
+              <div key={course.id} className="relative group">
+                {course.level === 1 && (
+                  <div className="absolute -top-3 left-8 z-20 px-4 py-1.5 bg-[#FF8A75] text-white text-[9px] font-black uppercase tracking-[0.2em] rounded-full shadow-lg shadow-[#FF8A75]/20">
+                    Free Rituals
+                  </div>
+                )}
+                <CourseCard
+                  id={course.id}
+                  title={course.title}
+                  level={course.level}
+                  thumbnail={course.thumbnail_url}
+                  isUnlocked={isUnlocked}
+                  isCompleted={course.isFullyCompleted}
+                  progress={course.progressPercent}
+                  moduleCount={course.totalModules}
+                />
+              </div>
             );
           })}
 

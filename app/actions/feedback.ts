@@ -3,6 +3,7 @@
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
 import { getServerUser, getServerProfile } from '@/lib/data/auth';
 import { revalidatePath } from 'next/cache';
+import { sendFeedbackThankYouEmail } from '@/lib/email/sender';
 
 export async function submitExitFeedback(data: {
   plan_taken: string;
@@ -26,9 +27,35 @@ export async function submitExitFeedback(data: {
     throw new Error('Database Error: ' + error.message);
   }
 
+  // ── Send feedback thank-you email (non-blocking) ──────────────
+  try {
+    const admin = createAdminClient();
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('full_name, email')
+      .eq('id', user.id)
+      .single();
+
+    const userEmail = profile?.email || user.email;
+    const rawName = profile?.full_name || 'there';
+    const firstName = rawName.split(' ')[0];
+
+    if (userEmail) {
+      sendFeedbackThankYouEmail(userEmail, {
+        firstName: firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase(),
+        rating: data.rating,
+        comments: data.comments,
+        planTaken: data.plan_taken,
+      }).catch(err => console.error('[Email] Feedback thank-you failed (non-fatal):', err));
+    }
+  } catch (emailErr) {
+    console.error('[Email] Feedback email setup failed (non-fatal):', emailErr);
+  }
+
   revalidatePath('/staff/feedbacks');
   return { success: true };
 }
+
 
 export async function getExitFeedbacks() {
   const admin = createAdminClient();

@@ -5,6 +5,8 @@ import { revalidatePath } from 'next/cache';
 import { enrollInWaitingQueue } from '@/lib/actions/batches';
 import { z } from 'zod';
 import { rateLimit } from '@/lib/rate-limit';
+import { sendInvoiceEmail } from '@/lib/email/sender';
+
 
 // ── Validation Schema ───────────────────────────────────────────────────────
 const verifySchema = z.object({
@@ -219,6 +221,37 @@ export async function POST(request: NextRequest) {
     } catch (notifErr) {
       console.error('[Razorpay] Notification insert failed (non-fatal):', notifErr);
     }
+
+    // ── 6b. Send invoice email ────────────────────────────────────────────
+    try {
+      const { data: profile } = await admin
+        .from('profiles')
+        .select('full_name, email')
+        .eq('id', user.id)
+        .single();
+
+      const userEmail = profile?.email || user.email;
+      const rawName = profile?.full_name || user.user_metadata?.full_name || 'there';
+      const firstName = rawName.split(' ')[0];
+
+      if (userEmail) {
+        sendInvoiceEmail(userEmail, {
+          firstName: firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase(),
+          planType,
+          planVariant,
+          amount,
+          paymentId: razorpay_payment_id,
+          orderId: razorpay_order_id,
+          purchasedAt: new Date(),
+          couponCode: couponCode || null,
+          couponDiscount: couponDiscount || 0,
+          durationMonths: durationMonths || 1,
+        }).catch(err => console.error('[Email] Invoice send failed (non-fatal):', err));
+      }
+    } catch (emailErr) {
+      console.error('[Email] Invoice email setup failed (non-fatal):', emailErr);
+    }
+
 
     // ── 7. Track conversion event ────────────────────────────────────────
     try {

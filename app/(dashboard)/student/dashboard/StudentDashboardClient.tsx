@@ -341,26 +341,32 @@ export function StudentDashboardClient({
             )}
 
             {/* Video Course Ritual Card */}
-            {activePlanTypes.includes('lms') && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                onClick={() => router.push('/student/lms')}
-                className="group relative p-6 lg:p-8 bg-white/60 backdrop-blur-3xl border border-[#FF8A75]/10 rounded-[2rem] lg:rounded-[3rem] hover:bg-white transition-all cursor-pointer shadow-sm hover:shadow-xl hover:shadow-[#FF8A75]/5"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="h-12 w-12 rounded-2xl bg-[#5a6343]/10 text-[#5a6343] flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <BookOpen className="w-6 h-6" />
-                  </div>
-                  <ArrowUpRight className="w-4 h-4 text-slate-300 group-hover:text-[#5a6343] transition-colors" />
+            {/* Video Course Ritual Card - Always Show for Free Level 1 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              onClick={() => router.push('/student/lms')}
+              className="group relative p-6 lg:p-8 bg-white/60 backdrop-blur-3xl border border-[#FF8A75]/10 rounded-[2rem] lg:rounded-[3rem] hover:bg-white transition-all cursor-pointer shadow-sm hover:shadow-xl hover:shadow-[#FF8A75]/5 overflow-hidden"
+            >
+              {/* Free Access Badge for non-subscribers */}
+              {!activePlanTypes.includes('lms') && (
+                <div className="absolute top-4 right-4 px-2 py-0.5 bg-[#FF8A75]/10 rounded-md border border-[#FF8A75]/20">
+                  <span className="text-[7px] font-black uppercase tracking-widest text-[#FF8A75]">Free Access</span>
                 </div>
-                <div>
-                  <h3 className="text-xl font-serif text-[#1a1a1a] tracking-tight">Video Courses</h3>
-                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#5a6343] mt-1">Self-Paced Mastery</p>
+              )}
+              
+              <div className="flex items-center justify-between mb-4">
+                <div className="h-12 w-12 rounded-2xl bg-[#5a6343]/10 text-[#5a6343] flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <BookOpen className="w-6 h-6" />
                 </div>
-              </motion.div>
-            )}
+                <ArrowUpRight className="w-4 h-4 text-slate-300 group-hover:text-[#5a6343] transition-colors" />
+              </div>
+              <div>
+                <h3 className="text-xl font-serif text-[#1a1a1a] tracking-tight">Video Courses</h3>
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#5a6343] mt-1">Self-Paced Mastery</p>
+              </div>
+            </motion.div>
 
             {/* Coming Soon / Placeholder (Level 2) - Premium Look */}
             {!activePlanTypes.includes('level_2') && (

@@ -115,9 +115,14 @@ export default function SignUpForm() {
     toast.success('Account created successfully!', {
       description: 'Welcome to Faceyoguez.',
     });
+
+    // Fire welcome email — non-blocking, doesn't delay login redirect
+    fetch('/api/auth/welcome', { method: 'POST' }).catch(() => {});
+
     const redirectPath = getRoleRedirectPath('student');
     router.push(redirectPath);
     router.refresh();
+
   }
 
   const handleOAuthSignup = async (provider: string) => {
