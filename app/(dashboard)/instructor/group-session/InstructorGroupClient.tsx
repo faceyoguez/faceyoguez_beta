@@ -590,7 +590,8 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                                 <div className="h-12 w-12 shrink-0 flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-xl shadow-inner">
                                     <Video className="h-6 w-6" />
                                 </div>
-                                <div className="flex flex-                                    <span className="font-aktiv font-bold text-sm text-blue-900">Zoom API Integration active</span>
+                                <div className="flex flex-col">
+                                    <span className="font-aktiv font-bold text-sm text-blue-900">Zoom API Integration active</span>
                                     <span className="text-xs font-jakarta text-blue-700/80 mt-0.5 leading-relaxed">This meeting will be generated instantly and added to the batch dashboard.</span>
                                 </div>
                             </div>
