@@ -171,14 +171,14 @@ export default function SignUpForm() {
         />
 
         <div className="space-y-2 w-full group">
-          <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-warm-gray/80 transition-colors group-focus-within:text-primary pl-1">
-            Phone Number <span className="opacity-50">(Optional)</span>
+          <label className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-warm-gray/80 transition-colors group-focus-within:text-primary pl-1">
+            Phone Number <span className="opacity-50 font-jakarta">(Optional)</span>
           </label>
           <div className="flex bg-white/40 sm:bg-white/50 backdrop-blur-md border border-outline-variant rounded-2xl overflow-hidden focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/5 transition-all shadow-sm">
             <select
               value={countryCode}
               onChange={(e) => setCountryCode(e.target.value)}
-              className="bg-transparent text-sm sm:text-base font-medium text-foreground outline-none py-3.5 sm:py-4 pl-4 pr-2 border-r border-outline-variant/50 focus:bg-white/50 cursor-pointer"
+              className="bg-transparent text-sm sm:text-base font-jakarta font-medium text-foreground outline-none py-3.5 sm:py-4 pl-4 pr-2 border-r border-outline-variant/50 focus:bg-white/50 cursor-pointer"
             >
               {COUNTRY_CODES.map((c) => (
                 <option key={c.code} value={c.code}>{c.label}</option>
@@ -189,7 +189,7 @@ export default function SignUpForm() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="98765 43210"
-              className="flex-1 bg-transparent text-sm sm:text-base text-foreground placeholder:text-warm-gray/30 outline-none px-4 py-3.5 sm:py-4"
+              className="flex-1 bg-transparent text-sm sm:text-base font-jakarta text-foreground placeholder:text-warm-gray/30 outline-none px-4 py-3.5 sm:py-4"
             />
           </div>
           {errors.phone && (
@@ -230,7 +230,7 @@ export default function SignUpForm() {
           <span className="w-full border-t border-outline-variant/60" />
         </div>
         <div className="relative flex justify-center text-[10px] uppercase">
-          <span className="bg-background px-4 text-warm-gray font-black tracking-widest">Or continue with</span>
+          <span className="bg-background px-4 text-warm-gray font-aktiv font-black tracking-widest">Or continue with</span>
         </div>
       </div>
 
@@ -268,10 +268,10 @@ export default function SignUpForm() {
       <div className="text-center pt-2">
         <Link
           href="/auth/login"
-          className="text-sm text-warm-gray hover:text-primary transition-colors block"
+          className="text-sm font-jakarta text-warm-gray hover:text-primary transition-colors block"
         >
           Already have an account?{' '}
-          <span className="font-bold text-primary underline underline-offset-4 decoration-primary/20 hover:decoration-primary">Sign In</span>
+          <span className="font-aktiv font-bold text-primary underline underline-offset-4 decoration-primary/20 hover:decoration-primary">Sign In</span>
         </Link>
       </div>
     </AuthLayout>

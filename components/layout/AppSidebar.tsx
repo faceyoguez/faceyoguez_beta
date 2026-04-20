@@ -149,7 +149,7 @@ export function AppSidebar({
 
   return (
     <SidebarContext.Provider value={{ collapsed, toggle, setCollapsed }}>
-      <div className="flex h-[100dvh] overflow-hidden bg-[#FFFAF7] selection:bg-[#FF8A75]/20 selection:text-[#FF8A75] font-sans">
+      <div className="flex h-[100dvh] overflow-hidden bg-[#FFFAF7] selection:bg-[#FF8A75]/20 selection:text-[#FF8A75] font-jakarta">
 
         {/* ── MOBILE HEADER ─────────────────────────────────────────── */}
         <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/70 backdrop-blur-3xl border-b border-[#FF8A75]/10 z-[70] flex items-center justify-between px-5 sm:px-6">
@@ -157,7 +157,7 @@ export function AppSidebar({
             <div className="h-9 w-9 flex items-center justify-center rounded-xl bg-[#1a1a1a] text-white shadow-lg">
               <Flower2 className="h-4 w-4" />
             </div>
-            <span className="text-lg font-serif tracking-tight text-[#1a1a1a] leading-none">
+            <span className="text-lg font-sooner tracking-tight text-[#1a1a1a] leading-none">
               {isAdmin ? 'Intelligence' : 'Faceyoguez'}
             </span>
           </Link>
@@ -232,7 +232,7 @@ export function AppSidebar({
                     className="flex flex-col overflow-hidden"
                   >
                     <span className={cn(
-                      'text-base font-serif tracking-tight leading-none whitespace-nowrap',
+                      'text-base font-sooner tracking-tight leading-none whitespace-nowrap',
                       isAdmin ? 'text-white' : 'text-[#1a1a1a]'
                     )}>
                       {isAdmin ? 'Intelligence' : 'Faceyoguez'}
@@ -361,7 +361,7 @@ export function AppSidebar({
                             transition={{ duration: 0.2 }}
                             className="flex-1 flex items-center justify-between overflow-hidden whitespace-nowrap"
                           >
-                            <span className="text-[13px] font-semibold tracking-tight">{label}</span>
+                            <span className="text-[13px] font-aktiv font-bold tracking-tight">{label}</span>
                             <span className="flex items-center gap-1.5 ml-2 shrink-0">
                               {isLocked && <ShieldCheck className="h-3 w-3 text-slate-300" />}
                               {label === 'Updates' && unreadNotificationsCount > 0 && (
@@ -381,7 +381,7 @@ export function AppSidebar({
                         role="tooltip"
                         className={cn(
                           'pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 z-[200]',
-                          'px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap',
+                          'px-3 py-1.5 rounded-xl text-xs font-aktiv font-bold whitespace-nowrap',
                           'opacity-0 translate-x-[-4px]',
                           'group-hover/item:opacity-100 group-hover/item:translate-x-0',
                           'transition-all duration-150 ease-out',

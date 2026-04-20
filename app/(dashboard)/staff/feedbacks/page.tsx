@@ -17,7 +17,7 @@ export default async function StaffFeedbackPage() {
   const feedbacks = await getExitFeedbacks();
 
   return (
-    <div className="min-h-screen bg-[#FFFAF7] p-8 lg:p-12 font-sans">
+    <div className="min-h-screen bg-[#FFFAF7] p-8 lg:p-12 font-jakarta">
       <div className="max-w-6xl mx-auto space-y-12">
         
         {/* Header */}
@@ -26,7 +26,7 @@ export default async function StaffFeedbackPage() {
             <div className="h-1.5 w-1.5 rounded-full bg-[#FF8A75] animate-pulse" />
             <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">Student Insights</span>
           </div>
-          <h1 className="text-5xl lg:text-6xl font-serif tracking-tight text-[#1a1a1a]">
+          <h1 className="text-5xl lg:text-6xl font-aktiv font-bold tracking-tight text-[#1a1a1a]">
             Student <span className="text-[#FF8A75]">Reflections</span>
           </h1>
           <p className="text-sm text-slate-400 font-medium max-w-xl">
@@ -74,7 +74,7 @@ export default async function StaffFeedbackPage() {
                 <div className="flex-1 min-w-0 flex items-center gap-4 w-full lg:w-auto">
                   <div className="h-8 w-px bg-[#FF8A75]/10 hidden lg:block" />
                   <div className="relative group/text flex-1">
-                    <p className="text-[12px] italic font-serif text-slate-600 line-clamp-1 lg:pr-10">
+                    <p className="text-[12px] italic font-aktiv text-slate-600 line-clamp-1 lg:pr-10">
                       &ldquo;{fb.comments}&rdquo;
                     </p>
                     {/* Tooltip on hover if they want to see more? Or just keep it as is */}

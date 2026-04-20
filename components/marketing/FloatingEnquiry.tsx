@@ -93,7 +93,7 @@ export function FloatingEnquiry() {
           animate={{ opacity: 1, x: 0 }}
           className="absolute right-20 top-1/2 -translate-y-1/2 pointer-events-none"
         >
-          <div className="bg-[#2c2525] text-white text-[9px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-full whitespace-nowrap shadow-xl">
+          <div className="bg-[#2c2525] text-white text-[9px] font-jakarta font-black uppercase tracking-[0.3em] px-4 py-2 rounded-full whitespace-nowrap shadow-xl">
             Enquiry
           </div>
         </motion.div>

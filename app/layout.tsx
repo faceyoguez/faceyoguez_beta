@@ -1,26 +1,50 @@
 import type { Metadata } from 'next';
-import { Rubik, Cormorant_Garamond, DM_Sans } from 'next/font/google';
+import { Plus_Jakarta_Sans } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 
-const rubik = Rubik({
+const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  variable: '--font-rubik',
+  variable: '--font-jakarta',
   display: 'swap',
-  weight: ['300', '400', '500', '600', '700', '800', '900'],
 });
 
-const cormorant = Cormorant_Garamond({
-  subsets: ['latin'],
-  variable: '--font-cormorant',
+const aktivGrotesk = localFont({
+  src: [
+    {
+      path: './(dashboard)/assets/Aktiv Grotesk/Aktiv Grotesk/OTF/AktivGrotesk-Regular.otf',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: './(dashboard)/assets/Aktiv Grotesk/Aktiv Grotesk/OTF/AktivGrotesk-Italic.otf',
+      weight: '400',
+      style: 'italic',
+    },
+    {
+      path: './(dashboard)/assets/Aktiv Grotesk/Aktiv Grotesk/OTF/AktivGrotesk-Medium.otf',
+      weight: '500',
+      style: 'normal',
+    },
+    {
+      path: './(dashboard)/assets/Aktiv Grotesk/Aktiv Grotesk/OTF/AktivGrotesk-Bold.otf',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: './(dashboard)/assets/Aktiv Grotesk/Aktiv Grotesk/OTF/AktivGrotesk-Black.otf',
+      weight: '900',
+      style: 'normal',
+    },
+  ],
+  variable: '--font-aktiv',
   display: 'swap',
-  weight: ['300', '400', '500', '600', '700'],
 });
 
-const dmSans = DM_Sans({
-  subsets: ['latin'],
-  variable: '--font-dm-sans',
+const sooner = localFont({
+  src: './(dashboard)/assets/sooner.otf',
+  variable: '--font-sooner',
   display: 'swap',
-  weight: ['400', '500'],
 });
 
 import { ThemeProvider } from '@/components/theme-provider';
@@ -59,7 +83,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" translate="no" suppressHydrationWarning data-scroll-behavior="smooth" className={`${rubik.variable} ${cormorant.variable} ${dmSans.variable}`}>
+    <html lang="en" translate="no" suppressHydrationWarning data-scroll-behavior="smooth" className={`${plusJakartaSans.variable} ${aktivGrotesk.variable} ${sooner.variable}`}>
       <head>
         <Script
           strategy="afterInteractive"

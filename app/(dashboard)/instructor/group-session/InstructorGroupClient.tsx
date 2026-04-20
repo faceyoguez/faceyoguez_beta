@@ -180,39 +180,39 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
     };
 
     return (
-        <div className="flex-1 overflow-hidden p-4 h-[calc(100vh-64px)] relative z-0">
+        <div className="flex-1 overflow-hidden p-4 h-[calc(100vh-64px)] relative z-0 font-jakarta">
             <div className="grid grid-cols-12 gap-4 h-full max-w-[1800px] mx-auto">
 
                 {/* Left Sidebar Management */}
                 <div className="col-span-12 lg:col-span-2 flex flex-col gap-4 h-full">
-                    <nav className="rounded-xl border border-white/60 bg-white/65 p-3 shadow-sm backdrop-blur-xl flex flex-col gap-1 h-full">
-                        <p className="text-[10px] uppercase tracking-wider text-gray-500 font-bold px-3 py-2 mb-1 opacity-70">Management</p>
+                    <nav className="rounded-xl border border-white/60 bg-white/65 p-3 shadow-sm backdrop-blur-xl flex flex-col gap-1 h-full font-jakarta">
+                        <p className="text-[10px] uppercase tracking-wider text-gray-500 font-aktiv font-bold px-3 py-2 mb-1 opacity-70">Management</p>
 
                         <button
                             onClick={() => setIsCreateBatchModalOpen(true)}
                             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white bg-pink-600 shadow-md hover:bg-pink-700 transition-all group mb-2"
                         >
                             <Plus className="h-5 w-5" />
-                            <span className="text-sm font-bold">New Batch</span>
+                            <span className="text-sm font-aktiv font-bold">New Batch</span>
                         </button>
 
-                        <a className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-500 hover:bg-pink-50 hover:text-pink-600 transition-all group" href="#">
+                        <a className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-500 hover:bg-pink-50 hover:text-pink-600 transition-all group font-jakarta" href="#">
                             <LayoutDashboard className="h-5 w-5 group-hover:scale-110 transition-transform" />
                             <span className="text-sm font-medium">Dashboard</span>
                         </a>
-                        <a className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-500 hover:bg-pink-50 hover:text-pink-600 transition-all group" href="/instructor/one-on-one">
+                        <a className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-500 hover:bg-pink-50 hover:text-pink-600 transition-all group font-jakarta" href="/instructor/one-on-one">
                             <User className="h-5 w-5 group-hover:scale-110 transition-transform" />
                             <span className="text-sm font-medium">1-on-1</span>
                         </a>
-                        <a className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-pink-600 border-l-4 border-pink-500 font-bold shadow-sm bg-white/50" href="#">
+                        <a className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-pink-600 border-l-4 border-pink-500 font-aktiv font-bold shadow-sm bg-white/50" href="#">
                             <Users className="h-5 w-5" />
                             <span className="text-sm">Group Session</span>
                         </a>
-                        <a className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-500 hover:bg-pink-50 hover:text-pink-600 transition-all group" href="#">
+                        <a className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-500 hover:bg-pink-50 hover:text-pink-600 transition-all group font-jakarta" href="#">
                             <GraduationCap className="h-5 w-5 group-hover:scale-110 transition-transform" />
                             <span className="text-sm font-medium">LMS</span>
                         </a>
-                        <a className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-500 hover:bg-pink-50 hover:text-pink-600 transition-all group" href="#">
+                        <a className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-500 hover:bg-pink-50 hover:text-pink-600 transition-all group font-jakarta" href="#">
                             <LineChart className="h-5 w-5 group-hover:scale-110 transition-transform" />
                             <span className="text-sm font-medium">Analytics</span>
                         </a>
@@ -222,11 +222,11 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                             <div className="bg-gradient-to-br from-pink-50 to-pink-100/50 border border-pink-100 rounded-lg p-3">
                                 <div className="flex items-center justify-between mb-2">
                                     <Award className="h-4 w-4 text-pink-500" />
-                                    <span className="text-[10px] font-bold text-green-600 bg-white/60 px-1.5 py-0.5 rounded-full border border-green-100">Live</span>
+                                    <span className="text-[10px] font-aktiv font-bold text-green-600 bg-white/60 px-1.5 py-0.5 rounded-full border border-green-100">Live</span>
                                 </div>
-                                <h4 className="text-xs font-bold text-gray-900">{activeBatch ? activeBatch.name : 'No Active Batch'}</h4>
-                                <p className="text-[10px] text-gray-500 mb-2 truncate">Select from {batches.length} batches</p>
-                                <button className="w-full py-1.5 rounded-md bg-white text-pink-600 hover:bg-pink-600 hover:text-white transition-all text-[10px] font-bold shadow-sm border border-pink-100 flex items-center justify-center gap-1">
+                                <h4 className="text-xs font-aktiv font-bold text-gray-900">{activeBatch ? activeBatch.name : 'No Active Batch'}</h4>
+                                <p className="text-[10px] text-gray-500 mb-2 truncate font-jakarta">Select from {batches.length} batches</p>
+                                <button className="w-full py-1.5 rounded-md bg-white text-pink-600 hover:bg-pink-600 hover:text-white transition-all text-[10px] font-aktiv font-bold shadow-sm border border-pink-100 flex items-center justify-center gap-1">
                                     <Settings className="h-3 w-3" />
                                     Manage Batch
                                 </button>
@@ -250,16 +250,16 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                                             <>
                                                 <div className="flex items-center gap-2 mb-1.5">
                                                     <span className="flex h-2 w-2 bg-green-500 rounded-full shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
-                                                    <span className="text-green-400 text-xs font-bold uppercase tracking-wider">Upcoming Session</span>
+                                                    <span className="text-green-400 text-xs font-aktiv font-bold uppercase tracking-wider">Upcoming Session</span>
                                                 </div>
-                                                <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">{nextMeeting.topic}</h2>
-                                                <div className="flex gap-3">
-                                                    <div className="bg-black/30 backdrop-blur-md px-3 py-1 rounded-md border border-white/10 flex items-center gap-2">
+                                                <h2 className="text-2xl font-aktiv font-bold text-white mb-2 tracking-tight">{nextMeeting.topic}</h2>
+                                                 <div className="flex gap-3">
+                                                    <div className="bg-black/30 backdrop-blur-md px-3 py-1 rounded-md border border-white/10 flex items-center gap-2 font-jakarta">
                                                         <span className="text-white text-xs font-medium">
                                                             {new Date(nextMeeting.start_time).toLocaleDateString()} at {new Date(nextMeeting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                         </span>
                                                     </div>
-                                                    <div className="bg-black/30 backdrop-blur-md px-3 py-1 rounded-md border border-white/10 flex items-center gap-2">
+                                                    <div className="bg-black/30 backdrop-blur-md px-3 py-1 rounded-md border border-white/10 flex items-center gap-2 font-jakarta">
                                                         <span className="text-white text-xs font-medium">{activeBatch?.name || 'Group Session'}</span>
                                                     </div>
                                                 </div>
@@ -271,9 +271,9 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                                         <>
                                             <div className="flex items-center gap-2 mb-1.5">
                                                 <span className="flex h-2 w-2 bg-gray-400 rounded-full shadow-[0_0_8px_rgba(156,163,175,0.6)]"></span>
-                                                <span className="text-gray-300 text-xs font-bold uppercase tracking-wider">No Scheduled Sessions</span>
+                                                <span className="text-gray-300 text-xs font-aktiv font-bold uppercase tracking-wider">No Scheduled Sessions</span>
                                             </div>
-                                            <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Schedule Your Next Live Class</h2>
+                                            <h2 className="text-2xl font-aktiv font-bold text-white mb-2 tracking-tight">Schedule Your Next Live Class</h2>
                                             <div className="flex gap-3">
                                                 <div className="bg-black/30 backdrop-blur-md px-3 py-1 rounded-md border border-white/10 flex items-center gap-2">
                                                     <span className="text-white text-xs font-medium">{activeBatch?.name || 'Group Session'}</span>
@@ -290,7 +290,7 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                                             <button
                                                 disabled={!isJoinEnabled}
                                                 onClick={() => window.open(nextMeeting.start_url, '_blank')}
-                                                className={`px-6 py-2.5 rounded-lg font-bold flex items-center justify-center gap-2 transition-all text-sm w-full shadow-[0_0_15px_rgba(219,39,119,0.4)] ${isJoinEnabled ? 'bg-pink-600 hover:bg-pink-700 text-white hover:-translate-y-0.5' : 'bg-gray-700 text-gray-400 cursor-not-allowed shadow-none border border-gray-600'}`}
+                                                className={`px-6 py-2.5 rounded-lg font-aktiv font-bold flex items-center justify-center gap-2 transition-all text-sm w-full shadow-[0_0_15px_rgba(219,39,119,0.4)] ${isJoinEnabled ? 'bg-pink-600 hover:bg-pink-700 text-white hover:-translate-y-0.5' : 'bg-gray-700 text-gray-400 cursor-not-allowed shadow-none border border-gray-600'}`}
                                             >
                                                 {isJoinEnabled ? <><Video className="h-5 w-5 fill-current" /> Start Zoom <ArrowUpRight className="h-4 w-4" /></> : 'Starts 5 min before'}
                                             </button>
@@ -298,7 +298,7 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                                     }
                                     return null;
                                 })()}
-                                <button onClick={() => setShowScheduleModal(true)} disabled={!activeBatch} className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-4 py-2 rounded-lg font-bold flex items-center justify-center gap-2 backdrop-blur-sm transition-all text-xs w-full disabled:opacity-50 disabled:cursor-not-allowed">
+                                <button onClick={() => setShowScheduleModal(true)} disabled={!activeBatch} className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-4 py-2 rounded-lg font-aktiv font-bold flex items-center justify-center gap-2 backdrop-blur-sm transition-all text-xs w-full disabled:opacity-50 disabled:cursor-not-allowed">
                                     <CalendarPlus className="h-4 w-4" />
                                     Schedule Next Session
                                 </button>
@@ -311,11 +311,11 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                         <div className="col-span-12 md:col-span-7 rounded-xl border border-white/60 bg-white/65 p-4 shadow-sm backdrop-blur-xl flex flex-col justify-between">
                             <div className="flex justify-between items-start mb-2">
                                 <div>
-                                    <h4 className="font-bold text-gray-900 text-sm flex items-center gap-2">
+                                    <h4 className="font-aktiv font-bold text-gray-900 text-sm flex items-center gap-2">
                                         <Radio className="h-4 w-4 text-pink-500" />
                                         Broadcast Resources
                                     </h4>
-                                    <p className="text-[10px] text-gray-500 mt-1">Share handouts or guides with the current batch instantly.</p>
+                                    <p className="text-[10px] text-gray-500 mt-1 font-jakarta font-medium">Share handouts or guides with the current batch instantly.</p>
                                 </div>
                                 <div className="h-8 w-8 rounded-lg bg-pink-50 flex items-center justify-center text-pink-500">
                                     <FileText className="h-4 w-4" />
@@ -329,14 +329,14 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                                         <FileText className="h-5 w-5" />
                                     </div>
                                     <div>
-                                        <p className="text-xs font-bold text-gray-900">{selectedFile ? selectedFile.name : 'Select File to Broadcast'}</p>
-                                        <p className="text-[10px] text-gray-500">{selectedFile ? `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB • Ready` : 'Max 5MB (PDF/Images)'}</p>
+                                        <p className="text-xs font-jakarta font-bold text-gray-900">{selectedFile ? selectedFile.name : 'Select File to Broadcast'}</p>
+                                        <p className="text-[10px] font-aktiv font-bold text-gray-500">{selectedFile ? `${(selectedFile.size / 1024 / 1024).toFixed(2)} MB • Ready` : 'Max 5MB (PDF/Images)'}</p>
                                     </div>
                                 </div>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); handleFileUpload(); }}
                                     disabled={!selectedFile || isUploading || !activeBatch}
-                                    className="bg-pink-600 text-white text-[10px] font-bold px-3 py-1.5 rounded shadow-sm hover:bg-pink-700 transition-colors flex items-center gap-1 disabled:opacity-50"
+                                    className="bg-pink-600 text-white text-[10px] font-aktiv font-bold px-3 py-1.5 rounded shadow-sm hover:bg-pink-700 transition-colors flex items-center gap-1 disabled:opacity-50"
                                 >
                                     {isUploading ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Send to Batch'} {!isUploading && <Send className="h-3 w-3" />}
                                 </button>
@@ -348,26 +348,26 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                             <div className="absolute inset-0 opacity-5" style={{ backgroundImage: "radial-gradient(#ee2b7c 1px, transparent 1px)", backgroundSize: "20px 20px" }}></div>
                             <div className="relative z-10 flex flex-col h-full">
                                 <div className="flex justify-between items-center mb-1">
-                                    <h4 className="font-bold text-gray-900 text-sm">Batch Status</h4>
-                                    <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-green-200 flex items-center gap-1">
+                                    <h4 className="font-aktiv font-bold text-gray-900 text-sm">Batch Status</h4>
+                                    <span className="bg-green-100 text-green-700 text-[10px] font-aktiv font-bold px-2 py-0.5 rounded-full border border-green-200 flex items-center gap-1">
                                         <span className="h-1.5 w-1.5 bg-green-600 rounded-full animate-pulse"></span> Active
                                     </span>
                                 </div>
                                 <div className="flex items-end gap-2 my-2">
-                                    <span className="text-3xl font-bold text-gray-900">24</span>
-                                    <span className="text-sm text-gray-500 font-bold mb-1">/ 42 Online</span>
+                                    <span className="text-3xl font-aktiv font-bold text-gray-900">24</span>
+                                    <span className="text-sm text-gray-500 font-aktiv font-bold mb-1">/ 42 Online</span>
                                 </div>
                                 <div className="w-full bg-gray-200 rounded-full h-1.5 mb-3 overflow-hidden">
                                     <div className="bg-pink-500 h-1.5 rounded-full" style={{ width: '57%' }}></div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-2 mt-auto">
                                     <div className="bg-white/50 rounded p-2 border border-pink-100 text-center">
-                                        <p className="text-[10px] text-gray-500 uppercase">Engagement</p>
-                                        <p className="text-sm font-bold text-pink-600">High</p>
+                                        <p className="text-[10px] text-gray-500 uppercase font-aktiv font-bold">Engagement</p>
+                                        <p className="text-sm font-aktiv font-bold text-pink-600">High</p>
                                     </div>
                                     <div className="bg-white/50 rounded p-2 border border-pink-100 text-center">
-                                        <p className="text-[10px] text-gray-500 uppercase">Avg Time</p>
-                                        <p className="text-sm font-bold text-pink-600">42m</p>
+                                        <p className="text-[10px] text-gray-500 uppercase font-aktiv font-bold">Avg Time</p>
+                                        <p className="text-sm font-aktiv font-bold text-pink-600">42m</p>
                                     </div>
                                 </div>
                             </div>
@@ -376,7 +376,7 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
 
                     <div className="flex-1 rounded-xl border border-white/60 bg-white/65 shadow-sm backdrop-blur-xl flex flex-col overflow-hidden">
                         <div className="flex items-center justify-between p-3 border-b border-pink-100/50">
-                            <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
+                            <h3 className="font-aktiv font-bold text-sm text-gray-900 flex items-center gap-2">
                                 <PlayCircle className="h-4 w-4 text-pink-500" />
                                 Recorded Daily Archives
                             </h3>
@@ -400,10 +400,10 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                                     </div>
                                     <div className="p-3 flex flex-col flex-1">
                                         <div className="flex justify-between items-start mb-1">
-                                            <span className="text-[10px] text-pink-600 font-bold bg-pink-50 px-1.5 rounded">Day {12 - i}</span>
-                                            <span className="text-[10px] text-gray-500">Oct {25 - i}</span>
+                                            <span className="text-[10px] text-pink-600 font-aktiv font-bold bg-pink-50 px-1.5 rounded">Day {12 - i}</span>
+                                            <span className="text-[10px] font-aktiv font-bold text-gray-500">Oct {25 - i}</span>
                                         </div>
-                                        <h4 className="font-bold text-gray-900 text-xs line-clamp-2">Face Yoga Session</h4>
+                                        <h4 className="font-aktiv font-bold text-gray-900 text-xs line-clamp-2">Face Yoga Session</h4>
                                     </div>
                                 </div>
                             ))}
@@ -417,11 +417,11 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                     <div className="rounded-xl border border-white/60 bg-white/65 shadow-sm backdrop-blur-xl h-full flex flex-col">
                         <div className="p-3 border-b border-pink-100/50 flex justify-between items-center">
                             <div>
-                                <h3 className="font-bold text-sm text-gray-900 flex items-center gap-2">
+                                <h3 className="font-aktiv font-bold text-sm text-gray-900 flex items-center gap-2">
                                     Batch Chat
-                                    <span className="bg-pink-100 text-pink-600 text-[9px] font-bold px-1.5 rounded border border-pink-200">ADMIN</span>
+                                    <span className="bg-pink-100 text-pink-600 text-[9px] font-aktiv font-bold px-1.5 rounded border border-pink-200">ADMIN</span>
                                 </h3>
-                                <p className="text-[10px] text-gray-500 font-medium">24 Online • Mod Mode Active</p>
+                                <p className="text-[10px] text-gray-500 font-aktiv font-bold">24 Online • Mod Mode Active</p>
                             </div>
                             <div className="flex gap-1">
                                 <button className="p-1.5 rounded-lg hover:bg-white text-gray-500 transition-colors"><SettingsIcon className="h-4 w-4" /></button>
@@ -433,7 +433,7 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                         <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-gradient-to-b from-white/30 to-white/60">
                             {/* System message/pin */}
                             <div className="flex justify-center mb-2">
-                                <div className="bg-pink-50 border border-pink-100 rounded-full pl-3 pr-1 py-1 text-[10px] font-bold text-pink-600 flex items-center gap-2">
+                                <div className="bg-pink-50 border border-pink-100 rounded-full pl-3 pr-1 py-1 text-[10px] font-aktiv font-bold text-pink-600 flex items-center gap-2">
                                     <Pin className="h-3 w-3" />
                                     You pinned a message
                                     <span className="bg-white/80 rounded-full p-0.5 hover:text-red-500 cursor-pointer"><X className="h-3 w-3" /></span>
@@ -443,8 +443,8 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                             <div className="flex gap-2">
                                 <div className="h-6 w-6 rounded-full bg-pink-200"></div>
                                 <div className="flex flex-col max-w-[85%]">
-                                    <span className="font-bold text-[10px] text-gray-900 ml-1">Emily R.</span>
-                                    <div className="bg-white px-3 py-2 rounded-2xl rounded-tl-none shadow-sm text-xs mt-0.5 border border-pink-50">
+                                    <span className="font-aktiv font-bold text-[10px] text-gray-900 ml-1">Emily R.</span>
+                                    <div className="bg-white px-3 py-2 rounded-2xl rounded-tl-none shadow-sm text-xs mt-0.5 border border-pink-50 font-jakarta">
                                         <p className="text-gray-800">Is anyone else feeling the burn from yesterday? 🔥</p>
                                     </div>
                                 </div>
@@ -452,10 +452,10 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
 
                             <div className="flex gap-2 flex-row-reverse">
                                 <div className="flex flex-col items-end max-w-[85%]">
-                                    <span className="font-bold text-[10px] text-gray-500 mr-1 flexitems-center gap-1">
+                                    <span className="font-aktiv font-bold text-[10px] text-gray-500 mr-1 flex items-center gap-1">
                                         YOU <Check className="h-3 w-3 inline text-green-500" />
                                     </span>
-                                    <div className="bg-pink-500 text-white px-3 py-2 rounded-2xl rounded-tr-none shadow-sm text-xs mt-0.5">
+                                    <div className="bg-pink-500 text-white px-3 py-2 rounded-2xl rounded-tr-none shadow-sm text-xs mt-0.5 font-jakarta">
                                         <p>Absolutely! Keep it up team!</p>
                                     </div>
                                 </div>
@@ -483,8 +483,8 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
 
                         <div className="flex items-center justify-between p-5 border-b border-pink-100/50 bg-white/50 backdrop-blur-xl flex-shrink-0">
                             <div>
-                                <h3 className="text-xl font-bold text-gray-900">Create New Batch</h3>
-                                <p className="text-xs text-gray-500">Set up a new group session schedule</p>
+                                <h3 className="text-xl font-aktiv font-bold text-gray-900">Create New Batch</h3>
+                                <p className="text-xs font-jakarta font-medium text-gray-500">Set up a new group session schedule</p>
                             </div>
                             <button onClick={() => setIsCreateBatchModalOpen(false)} className="p-2 hover:bg-red-50 text-gray-500 hover:text-red-500 rounded-full transition-colors">
                                 <X className="h-5 w-5" />
@@ -493,18 +493,18 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
 
                         <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-white/20">
                             <div className="space-y-2">
-                                <label className="text-xs font-bold text-gray-900 uppercase tracking-wide">Batch Name</label>
-                                <input value={batchName} onChange={(e) => setBatchName(e.target.value)} className="w-full rounded-lg border-pink-200 bg-white focus:ring-pink-500 focus:border-pink-500 px-4 py-2 text-sm shadow-sm" placeholder="e.g. Morning Glow - Nov 2023" type="text" />
+                                <label className="text-xs font-aktiv font-bold text-gray-900 uppercase tracking-wide">Batch Name</label>
+                                <input value={batchName} onChange={(e) => setBatchName(e.target.value)} className="w-full rounded-lg border-pink-200 bg-white font-jakarta focus:ring-pink-500 focus:border-pink-500 px-4 py-2 text-sm shadow-sm" placeholder="e.g. Morning Glow - Nov 2023" type="text" />
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold text-gray-900 uppercase tracking-wide">Start Date</label>
-                                    <input value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full rounded-lg border-pink-200 bg-white focus:ring-pink-500 focus:border-pink-500 px-4 py-2 text-sm shadow-sm" type="date" />
+                                    <label className="text-xs font-aktiv font-bold text-gray-900 uppercase tracking-wide">Start Date</label>
+                                    <input value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full rounded-lg border-pink-200 bg-white font-jakarta focus:ring-pink-500 focus:border-pink-500 px-4 py-2 text-sm shadow-sm" type="date" />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-xs font-bold text-gray-900 uppercase tracking-wide">End Date</label>
-                                    <input value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full rounded-lg border-pink-200 bg-white focus:ring-pink-500 focus:border-pink-500 px-4 py-2 text-sm shadow-sm" type="date" />
+                                    <label className="text-xs font-aktiv font-bold text-gray-900 uppercase tracking-wide">End Date</label>
+                                    <input value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full rounded-lg border-pink-200 bg-white font-jakarta focus:ring-pink-500 focus:border-pink-500 px-4 py-2 text-sm shadow-sm" type="date" />
                                 </div>
                             </div>
 
@@ -590,34 +590,32 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                                 <div className="h-12 w-12 shrink-0 flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-xl shadow-inner">
                                     <Video className="h-6 w-6" />
                                 </div>
-                                <div className="flex flex-col">
-                                    <span className="font-bold text-sm text-blue-900">Zoom API Integration active</span>
-                                    <span className="text-xs text-blue-700/80 mt-0.5 leading-relaxed">This meeting will be generated instantly and added to the batch dashboard.</span>
+                                <div className="flex flex-                                    <span className="font-aktiv font-bold text-sm text-blue-900">Zoom API Integration active</span>
+                                    <span className="text-xs font-jakarta text-blue-700/80 mt-0.5 leading-relaxed">This meeting will be generated instantly and added to the batch dashboard.</span>
                                 </div>
                             </div>
-
                             <div className="group">
-                                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-indigo-500 transition-colors">Topic</label>
+                                <label className="block text-[11px] font-aktiv font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-indigo-500 transition-colors">Topic</label>
                                 <div className="relative">
-                                    <input value={meetingTopic} onChange={(e) => setMeetingTopic(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-bold text-gray-900 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all" placeholder={`e.g. Day 1: ${activeBatch?.name}`} type="text" />
+                                    <input value={meetingTopic} onChange={(e) => setMeetingTopic(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-aktiv font-bold text-gray-900 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all" placeholder={`e.g. Day 1: ${activeBatch?.name}`} type="text" />
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-5">
                                 <div className="group">
-                                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-indigo-500 transition-colors">Start Date</label>
-                                    <input value={meetingDate} onChange={(e) => setMeetingDate(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all" type="date" />
+                                    <label className="block text-[11px] font-aktiv font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-indigo-500 transition-colors">Start Date</label>
+                                    <input value={meetingDate} onChange={(e) => setMeetingDate(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-jakarta font-medium text-gray-900 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all" type="date" />
                                 </div>
                                 <div className="group">
-                                    <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-indigo-500 transition-colors">Start Time</label>
-                                    <input value={meetingTime} onChange={(e) => setMeetingTime(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-bold text-gray-900 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all" type="time" />
+                                    <label className="block text-[11px] font-aktiv font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-indigo-500 transition-colors">Start Time</label>
+                                    <input value={meetingTime} onChange={(e) => setMeetingTime(e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-aktiv font-bold text-gray-900 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all" type="time" />
                                 </div>
                             </div>
 
                             <div className="group">
-                                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-indigo-500 transition-colors">Duration</label>
+                                <label className="block text-[11px] font-aktiv font-bold uppercase tracking-wider text-gray-500 mb-2 group-focus-within:text-indigo-500 transition-colors">Duration</label>
                                 <div className="relative">
-                                    <select value={meetingDuration} onChange={(e) => setMeetingDuration(e.target.value)} className="w-full appearance-none rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all">
+                                    <select value={meetingDuration} onChange={(e) => setMeetingDuration(e.target.value)} className="w-full appearance-none rounded-xl border border-gray-200 bg-white/80 px-4 py-3 text-sm font-jakarta font-medium text-gray-900 shadow-sm focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all">
                                         <option value="30">30 Minutes</option>
                                         <option value="45">45 Minutes</option>
                                         <option value="60">1 Hour</option>
@@ -632,14 +630,13 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="flex gap-3 justify-end items-center bg-gray-50/80 p-6 border-t border-gray-100">
-                            <button onClick={() => setShowScheduleModal(false)} className="px-5 py-2.5 font-bold text-gray-500 hover:text-gray-900 hover:bg-gray-200/50 rounded-xl transition-all text-sm">Cancel</button>
-                            <button onClick={handleScheduleMeeting} disabled={isScheduling} className="relative flex items-center gap-2 px-6 py-2.5 font-bold text-white bg-gradient-to-r from-indigo-500 to-blue-600 rounded-xl transition-all shadow-[0_4px_14px_0_rgba(79,70,229,0.39)] hover:shadow-[0_6px_20px_rgba(79,70,229,0.23)] hover:scale-[1.02] disabled:opacity-70 disabled:hover:scale-100 disabled:cursor-not-allowed text-sm active:scale-95">
+                        <div className="flex gap-3 justify-end items-center bg-gray-50/80 p-6 border-t border-gray-100 font-jakarta">
+                            <button onClick={() => setShowScheduleModal(false)} className="px-5 py-2.5 font-aktiv font-bold text-gray-500 hover:text-gray-900 hover:bg-gray-200/50 rounded-xl transition-all text-sm">Cancel</button>
+                            <button onClick={handleScheduleMeeting} disabled={isScheduling} className="relative flex items-center gap-2 px-6 py-2.5 font-aktiv font-bold text-white bg-gradient-to-r from-indigo-500 to-blue-600 rounded-xl transition-all shadow-[0_4px_14px_0_rgba(79,70,229,0.39)] hover:shadow-[0_6px_20px_rgba(79,70,229,0.23)] hover:scale-[1.02] disabled:opacity-70 disabled:hover:scale-100 disabled:cursor-not-allowed text-sm active:scale-95">
                                 {isScheduling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Video className="h-4 w-4" />}
                                 Schedule on Zoom
                             </button>
                         </div>
-
                     </div>
                 </div>
             )}

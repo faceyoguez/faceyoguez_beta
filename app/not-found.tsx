@@ -52,7 +52,7 @@ export default function NotFound() {
         {/* 404 number — large, editorial */}
         <div className="relative mb-3">
           <span
-            className="block leading-none font-black text-[#1a1a1a] select-none"
+            className="block leading-none font-sooner text-[#1a1a1a] select-none"
             style={{
               fontSize: 'clamp(6rem, 18vw, 11rem)',
               letterSpacing: '-0.04em',
@@ -69,18 +69,18 @@ export default function NotFound() {
         {/* Badge */}
         <div className="inline-flex items-center gap-2 bg-[rgba(255,138,117,0.1)] border border-[rgba(255,138,117,0.25)] rounded-full px-4 py-1.5 mb-5">
           <span className="w-1.5 h-1.5 rounded-full bg-[#FF8A75] animate-pulse" />
-          <span className="text-[11px] font-bold uppercase tracking-widest text-[#FF7051]">
+          <span className="text-[11px] font-aktiv font-bold uppercase tracking-widest text-[#FF7051]">
             Page not found
           </span>
         </div>
 
         {/* Headline */}
-        <h1 className="text-3xl md:text-4xl font-extrabold text-[#1a1a1a] leading-tight tracking-tight mb-4">
+        <h1 className="text-3xl md:text-4xl font-aktiv font-extrabold text-[#1a1a1a] leading-tight tracking-tight mb-4">
           You&apos;ve wandered off the path
         </h1>
 
         {/* Body */}
-        <p className="text-base text-[#6b6b6b] leading-relaxed max-w-sm mx-auto mb-8">
+        <p className="text-base font-jakarta text-[#6b6b6b] leading-relaxed max-w-sm mx-auto mb-8">
           This page doesn&apos;t exist — or it may have moved. Let&apos;s guide you back to
           your practice and the places you know.
         </p>
@@ -110,7 +110,7 @@ export default function NotFound() {
 
         {/* Quick links */}
         <div className="border-t border-black/6 pt-7">
-          <p className="text-xs font-semibold uppercase tracking-widest text-[#aaa] mb-4">Quick links</p>
+          <p className="text-xs font-aktiv font-black uppercase tracking-widest text-[#aaa] mb-4">Quick links</p>
           <div className="flex flex-wrap justify-center gap-2">
             {[
               { label: 'Face Yoga Classes', href: '/#classes' },
@@ -121,7 +121,7 @@ export default function NotFound() {
               <Link
                 key={label}
                 href={href}
-                className="text-sm text-[#6b6b6b] hover:text-[#FF8A75] bg-white/60 border border-black/6 rounded-full px-4 py-1.5 transition-colors duration-200"
+                className="text-sm font-jakarta text-[#6b6b6b] hover:text-[#FF8A75] bg-white/60 border border-black/6 rounded-full px-4 py-1.5 transition-colors duration-200"
               >
                 {label}
               </Link>

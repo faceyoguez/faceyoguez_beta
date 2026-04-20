@@ -95,14 +95,14 @@ function PurchaseSuccessContent() {
     }
 
     return (
-        <div className="min-h-screen bg-[#FFFAF7]/40 flex items-center justify-center p-6 font-sans selection:bg-[#FF8A75]/20">
+        <div className="min-h-screen bg-[#FFFAF7]/40 flex items-center justify-center p-6 font-jakarta selection:bg-[#FF8A75]/20">
             <div className="max-w-xl w-full space-y-10 animate-in fade-in slide-in-from-bottom-5 duration-700">
                 {/* Success Header */}
                 <div className="text-center space-y-4">
                     <div className="inline-flex items-center justify-center w-24 h-24 rounded-[3rem] bg-[#FF8A75] text-white shadow-xl shadow-[#FF8A75]/20 mb-4 animate-bounce">
                         <CheckCircle2 className="w-12 h-12" strokeWidth={1.5} />
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-bold text-[#1a1a1a]">Transformation Awaits!</h1>
+                    <h1 className="text-4xl md:text-5xl font-aktiv font-bold text-[#1a1a1a]">Transformation Awaits!</h1>
                     <p className="text-[#6B7280] font-medium max-w-sm mx-auto">Your journey to a natural facelift and glowing skin has officially begun.</p>
                 </div>
 
@@ -112,11 +112,11 @@ function PurchaseSuccessContent() {
                         <div className="flex justify-between items-start">
                             <div className="space-y-1">
                                 <span className="text-[10px] font-black uppercase tracking-widest text-[#FF8A75]">Your Selection</span>
-                                <h2 className="text-2xl font-bold text-[#1a1a1a]">Order Summary</h2>
+                                <h2 className="text-2xl font-aktiv font-bold text-[#1a1a1a]">Order Summary</h2>
                             </div>
                             <div className="text-right">
                                 <span className="text-[10px] font-black uppercase tracking-widest text-[#6B7280]">Total Paid</span>
-                                <div className="text-2xl font-bold text-[#1a1a1a]">₹{totalAmount}</div>
+                                <div className="text-2xl font-aktiv font-bold text-[#1a1a1a]">₹{totalAmount}</div>
                             </div>
                         </div>
                     </div>

@@ -58,7 +58,7 @@ export function Philosophy() {
           {SCRAMBLED_LINES.map((line, i) => (
             <div key={i} style={{ overflow: 'hidden' }}>
               <p style={{
-                fontFamily: "'Cormorant Garamond', Georgia, serif",
+                fontFamily: "var(--font-aktiv), serif",
                 fontSize: isMobile ? 'clamp(1.6rem, 8vw, 2.5rem)' : 'clamp(2rem, 5.2vw, 4.8rem)',
                 fontWeight: 400,
                 lineHeight: 1.15,
@@ -85,7 +85,7 @@ export function Philosophy() {
             transition: 'all 1s cubic-bezier(0.22,1,0.36,1) 0.5s',
           }}>
             <p style={{
-              fontFamily: 'var(--font-dm-sans, "DM Sans", sans-serif)',
+              fontFamily: 'var(--font-jakarta), "Plus Jakarta Sans", sans-serif',
               fontSize: isMobile ? '0.875rem' : '0.95rem',
               lineHeight: 1.8,
               color: 'rgba(42, 32, 25, 0.55)',

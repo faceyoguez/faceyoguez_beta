@@ -40,8 +40,8 @@ export function Header() {
             <Flower2 className="h-4 w-4" strokeWidth={1.5} style={{ color: 'rgb(249, 109, 65)' }} />
           </div>
           <span
-            className="text-sm font-bold tracking-tight"
-            style={{ color: 'rgb(44, 37, 37)', fontFamily: 'Inter, sans-serif' }}
+            className="text-lg font-sooner tracking-tight"
+            style={{ color: 'rgb(44, 37, 37)' }}
           >
             Faceyoguez
           </span>
@@ -55,9 +55,9 @@ export function Header() {
               href={link.href}
               className="relative group transition-colors duration-200"
               style={{
-                fontFamily: '"Cormorant Garamond", "Georgia", serif',
-                fontSize: '16px',
-                fontWeight: 500,
+                fontFamily: 'var(--font-aktiv)',
+                fontSize: '15px',
+                fontWeight: 600,
                 color: 'rgb(44, 37, 37)',
               }}
             >
@@ -76,9 +76,9 @@ export function Header() {
             href="/auth/login"
             className="transition-colors duration-200"
             style={{
-              fontFamily: '"Cormorant Garamond", "Georgia", serif',
-              fontSize: '15px',
-              fontWeight: 500,
+              fontFamily: 'var(--font-aktiv)',
+              fontSize: '14px',
+              fontWeight: 600,
               color: 'rgb(44, 37, 37)',
             }}
             onMouseEnter={(e) => { e.currentTarget.style.color = 'rgb(249, 109, 65)'; }}
@@ -90,8 +90,8 @@ export function Header() {
             href="/auth/signup"
             className="px-5 py-2.5 rounded-full text-[13px] tracking-[0.05em] transition-all duration-300 hover:scale-[1.03]"
             style={{
-              fontFamily: 'Inter, sans-serif',
-              fontWeight: 500,
+              fontFamily: 'var(--font-jakarta)',
+              fontWeight: 700,
               backgroundColor: 'rgb(44, 37, 37)',
               color: 'rgb(252, 244, 235)',
             }}
@@ -132,9 +132,9 @@ export function Header() {
                 href={link.href}
                 onClick={() => setMenuOpen(false)}
                 style={{
-                  fontFamily: '"Cormorant Garamond", "Georgia", serif',
-                  fontSize: '20px',
-                  fontWeight: 400,
+                  fontFamily: 'var(--font-aktiv)',
+                  fontSize: '24px',
+                  fontWeight: 600,
                   color: 'rgb(44, 37, 37)',
                 }}
               >
@@ -146,8 +146,9 @@ export function Header() {
               href="/auth/login"
               className="text-center"
               style={{
-                fontFamily: '"Cormorant Garamond", "Georgia", serif',
-                fontSize: '16px',
+                fontFamily: 'var(--font-aktiv)',
+                fontSize: '18px',
+                fontWeight: 600,
                 color: 'rgb(44, 37, 37)',
               }}
             >
@@ -157,8 +158,8 @@ export function Header() {
               href="/auth/signup"
               className="px-6 py-3.5 rounded-full text-center text-[13px] tracking-[0.05em]"
               style={{
-                fontFamily: 'Inter, sans-serif',
-                fontWeight: 500,
+                fontFamily: 'var(--font-jakarta)',
+                fontWeight: 700,
                 backgroundColor: 'rgb(44, 37, 37)',
                 color: 'rgb(252, 244, 235)',
               }}

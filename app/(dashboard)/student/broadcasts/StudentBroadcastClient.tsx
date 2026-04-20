@@ -15,7 +15,7 @@ interface StudentBroadcastClientProps {
 export function StudentBroadcastClient({ notifications, subscriptionStartDate }: StudentBroadcastClientProps) {
 
     return (
-        <div className="min-h-screen bg-background p-6 lg:p-12 space-y-12 font-sans overflow-hidden animate-in fade-in duration-1000">
+        <div className="min-h-screen bg-background p-6 lg:p-12 space-y-12 font-jakarta overflow-hidden animate-in fade-in duration-1000">
             {subscriptionStartDate && (
                 <PlanExpiryPill 
                     subscriptionStartDate={subscriptionStartDate} 
@@ -30,7 +30,7 @@ export function StudentBroadcastClient({ notifications, subscriptionStartDate }:
                         <Megaphone className="w-3 h-3" />
                         Announcements
                     </div>
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gradient-zen tracking-tight">
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-aktiv font-bold text-gradient-zen tracking-tight">
                         Instructor Broadcasts
                     </h1>
                     <p className="text-lg text-foreground/60 font-medium max-w-lg">
@@ -47,7 +47,7 @@ export function StudentBroadcastClient({ notifications, subscriptionStartDate }:
                 {notifications.length === 0 ? (
                     <div className="flex h-[400px] flex-col items-center justify-center rounded-[3rem] liquid-glass border border-outline-variant/10 shadow-sm bg-white/40">
                         <Sparkles className="mb-6 h-16 w-16 text-primary/10 animate-pulse" />
-                        <h3 className="text-xl font-bold text-foreground">No Announcements Yet</h3>
+                        <h3 className="text-xl font-aktiv font-bold text-foreground">No Announcements Yet</h3>
                         <p className="mt-2 text-sm text-foreground/40 font-medium">No new announcements yet.</p>
                     </div>
                 ) : (
@@ -105,8 +105,8 @@ export function StudentBroadcastClient({ notifications, subscriptionStartDate }:
                                         </div>
 
                                         <div className="space-y-4 mb-8">
-                                            <h3 className="text-xl font-bold text-foreground leading-tight">"{notif.title}"</h3>
-                                            <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/60 font-medium font-sans">
+                                            <h3 className="text-xl font-aktiv font-bold text-foreground leading-tight">"{notif.title}"</h3>
+                                            <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/60 font-medium font-jakarta">
                                                 {notif.message}
                                             </p>
                                         </div>

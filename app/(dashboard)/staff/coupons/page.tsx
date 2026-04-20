@@ -132,12 +132,12 @@ export default function CouponManagement() {
     );
 
     return (
-        <div className="min-h-screen bg-[#FFFAF7]/40 p-6 lg:p-10 font-sans">
+        <div className="min-h-screen bg-[#FFFAF7]/40 p-6 lg:p-10 font-jakarta">
             <div className="max-w-6xl mx-auto space-y-8">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold text-[#1a1a1a]">Coupon Management</h1>
+                        <h1 className="text-3xl font-aktiv font-bold text-[#1a1a1a]">Coupon Management</h1>
                         <p className="text-sm text-[#6B7280] font-medium mt-1">Generate and manage promotional discounts</p>
                     </div>
                     <button 
@@ -297,7 +297,7 @@ export default function CouponManagement() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setIsCreating(false)} />
                     <div className="relative bg-white w-full max-w-md rounded-[3rem] border border-[#FF8A75]/20 p-8 shadow-xl animate-in scale-in-95 duration-200">
-                        <h2 className="text-2xl font-bold mb-2">Create New Coupon</h2>
+                        <h2 className="text-2xl font-aktiv font-bold mb-2">Create New Coupon</h2>
                         <p className="text-xs text-[#6B7280] mb-6">Set up your promotional offer and restrictions.</p>
 
                         <form onSubmit={handleCreateCoupon} className="space-y-5">

@@ -15,7 +15,7 @@ interface AuthLayoutProps {
 
 const AuthLayout = ({ children, title, subtitle, isSignup = false }: AuthLayoutProps) => {
   return (
-    <div className="flex min-h-[100dvh] bg-background font-sans overflow-hidden selection:bg-primary/20 selection:text-primary">
+    <div className="flex min-h-[100dvh] bg-background font-jakarta overflow-hidden selection:bg-primary/20 selection:text-primary">
       {/* Dynamic Background Elements (Always present) */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="aura-glow-original opacity-20 lg:opacity-30" />
@@ -59,9 +59,9 @@ const AuthLayout = ({ children, title, subtitle, isSignup = false }: AuthLayoutP
             </div>
             
             <div className="space-y-6">
-              <h2 className="text-5xl xl:text-7xl font-bold leading-[1.02] text-foreground tracking-[-0.03em]">
+              <h2 className="text-5xl xl:text-7xl font-aktiv font-bold leading-[1.02] text-foreground tracking-[-0.03em]">
                 {isSignup ? "Start your" : "Elevate your"} <br />
-                <span className="text-primary italic font-serif">
+                <span className="text-primary italic">
                   {isSignup ? "transformation." : "natural glow."}
                 </span>
               </h2>
@@ -121,13 +121,13 @@ const AuthLayout = ({ children, title, subtitle, isSignup = false }: AuthLayoutP
                 <div className="h-10 w-10 sm:h-12 sm:w-12 flex items-center justify-center rounded-2xl bg-primary/10 text-primary transition-all group-hover:scale-110 group-hover:bg-primary group-hover:text-white shadow-lg shadow-primary/5">
                   <Flower2 className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.5} />
                 </div>
-                <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground transition-all group-hover:opacity-80">Faceyoguez</span>
+                <span className="text-xl sm:text-2xl font-sooner tracking-tight text-foreground transition-all group-hover:opacity-80">Faceyoguez</span>
               </Link>
             </div>
 
             <div className={cn("space-y-2", isSignup ? "lg:space-y-3" : "space-y-3")}>
               <h1 className={cn(
-                "font-bold tracking-tight text-foreground leading-tight",
+                "font-aktiv font-bold tracking-tight text-foreground leading-tight",
                 isSignup ? "text-2xl sm:text-3xl xl:text-4xl" : "text-3xl sm:text-4xl xl:text-5xl"
               )} style={{ letterSpacing: '-0.03em' }}>
                 {title}

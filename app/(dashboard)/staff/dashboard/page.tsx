@@ -42,7 +42,7 @@ export default async function StaffDashboardPage() {
   ];
 
   return (
-    <div className="min-h-[100dvh] bg-[#FFFAF7] text-[#1a1a1a] font-sans overflow-x-hidden">
+    <div className="min-h-[100dvh] bg-[#FFFAF7] text-[#1a1a1a] font-jakarta overflow-x-hidden">
 
       {/* Aura backgrounds */}
       <div className="fixed inset-0 z-0 pointer-events-none" aria-hidden="true">
@@ -62,13 +62,13 @@ export default async function StaffDashboardPage() {
                 Sanctuary Sentinel
               </div>
             </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-slate-900 tracking-tight leading-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-aktiv font-bold text-slate-900 tracking-tight leading-tight">
               Collective Resonance
             </h1>
           </div>
 
           <div className="flex items-center gap-4 p-4 sm:p-5 bg-white/60 backdrop-blur-2xl rounded-2xl border border-[#FF8A75]/10 self-start sm:self-auto">
-            <div className="h-11 w-11 rounded-xl bg-[#1a1a1a] flex items-center justify-center text-white font-serif text-lg overflow-hidden relative flex-shrink-0">
+            <div className="h-11 w-11 rounded-xl bg-[#1a1a1a] flex items-center justify-center text-white font-aktiv font-bold text-lg overflow-hidden relative flex-shrink-0">
               <div className="absolute inset-0 bg-gradient-to-tr from-[#FF8A75]/20 to-transparent opacity-40" />
               <span className="relative z-10">{profile.full_name?.charAt(0) || 'A'}</span>
             </div>
@@ -91,7 +91,7 @@ export default async function StaffDashboardPage() {
               </div>
               <div>
                 <p className="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75] opacity-60">{stat.label}</p>
-                <p className="text-2xl sm:text-3xl lg:text-4xl font-serif text-slate-900 tracking-tighter mt-1 leading-none">{stat.value}</p>
+                <p className="text-2xl sm:text-3xl lg:text-4xl font-aktiv font-bold text-slate-900 tracking-tighter mt-1 leading-none">{stat.value}</p>
               </div>
             </div>
           ))}
@@ -104,7 +104,7 @@ export default async function StaffDashboardPage() {
           <div className="p-6 sm:p-8 lg:p-10 rounded-[2.5rem] sm:rounded-[3rem] bg-white/40 backdrop-blur-3xl border border-[#FF8A75]/10 space-y-6">
             <div className="space-y-1">
               <h3 className="text-[9px] font-black uppercase tracking-[0.4em] text-[#FF8A75] opacity-60">Operations</h3>
-              <p className="text-2xl sm:text-3xl font-serif text-slate-900">Manifestation Portal</p>
+              <p className="text-2xl sm:text-3xl font-aktiv font-bold text-slate-900">Manifestation Portal</p>
             </div>
 
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
@@ -127,7 +127,7 @@ export default async function StaffDashboardPage() {
           <div className="p-6 sm:p-8 lg:p-10 rounded-[2.5rem] sm:rounded-[3rem] bg-white/40 backdrop-blur-3xl border border-[#FF8A75]/10 space-y-6">
             <div className="space-y-1">
               <h3 className="text-[9px] font-black uppercase tracking-[0.4em] text-[#FF8A75] opacity-60">Intelligence</h3>
-              <p className="text-2xl sm:text-3xl font-serif text-slate-900">Growth Pulse</p>
+              <p className="text-2xl sm:text-3xl font-aktiv font-bold text-slate-900">Growth Pulse</p>
             </div>
 
             <div className="space-y-5">

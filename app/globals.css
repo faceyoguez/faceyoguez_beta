@@ -95,7 +95,7 @@ html {
   body {
     color: var(--foreground);
     background: var(--background);
-    font-family: var(--font-rubik), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-family: var(--font-jakarta), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     /* Prevent horizontal scroll caused by layout shifts */
@@ -103,7 +103,7 @@ html {
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-rubik);
+    font-family: var(--font-aktiv);
     line-height: 1.15;
   }
 
@@ -156,8 +156,11 @@ html {
 
 @theme {
   --color-destructive-foreground: var(--destructive-foreground);
-  --font-sans: "Outfit", var(--font-rubik), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Outfit", serif;
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-aktiv), serif;
+  --font-sooner: var(--font-sooner), cursive;
+  --font-aktiv: var(--font-aktiv), sans-serif;
+  --font-jakarta: var(--font-jakarta), sans-serif;
 
   --color-primary: var(--primary);
   --color-primary-container: var(--primary-container);
@@ -336,6 +339,10 @@ html {
   .text-body-sm   { font-size: 0.8125rem; line-height: 1.6; }  /* 13px */
   .text-body      { font-size: 0.875rem;  line-height: 1.6; }  /* 14px */
   .text-body-lg   { font-size: 1rem;      line-height: 1.6; }  /* 16px */
+
+  .font-sooner { font-family: var(--font-sooner); }
+  .font-aktiv { font-family: var(--font-aktiv); }
+  .font-jakarta { font-family: var(--font-jakarta); }
 }
 
 @keyframes aurora-corner-1 {

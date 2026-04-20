@@ -72,9 +72,9 @@ export function Loader({ onComplete }: LoaderProps) {
         pointerEvents: 'none',
       }} />
       <p style={{
-        fontFamily: "'Cormorant Garamond', serif",
-        fontSize: '1.6rem', letterSpacing: '0.35em',
-        textTransform: 'lowercase', color: '#2a2019', opacity: 0.6,
+        fontFamily: 'var(--font-sooner)',
+        fontSize: '1.8rem', letterSpacing: '0.05em',
+        textTransform: 'lowercase', color: '#2a2019', opacity: 0.8,
         marginBottom: '2.5rem',
       }}>
         faceyoguez
@@ -104,9 +104,10 @@ export function Loader({ onComplete }: LoaderProps) {
          }} />
        </div>
       <p style={{
-        fontFamily: "'Cormorant Garamond', serif",
+        fontFamily: 'var(--font-jakarta)',
         fontSize: '0.78rem', letterSpacing: '0.18em',
         color: 'rgba(42,32,25,0.3)', marginTop: '1rem',
+        fontWeight: 700,
         fontVariantNumeric: 'tabular-nums',
       }}>
         {progress}%

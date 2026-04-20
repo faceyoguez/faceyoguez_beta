@@ -165,7 +165,7 @@ export default async function InstructorDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFFAF7] p-8 lg:p-16 space-y-16 selection:bg-[#FF8A75]/10 font-sans animate-in fade-in slide-in-from-bottom-4 duration-1000 relative">
+    <div className="min-h-screen bg-[#FFFAF7] p-8 lg:p-16 space-y-16 selection:bg-[#FF8A75]/10 font-jakarta animate-in fade-in slide-in-from-bottom-4 duration-1000 relative">
 
       {/* Background Zen Elements */}
       <div className="fixed inset-0 z-0 pointer-events-none">
@@ -177,7 +177,7 @@ export default async function InstructorDashboardPage() {
       <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-10 relative z-10">
         <div className="space-y-4">
           
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-serif text-[#1a1a1a] tracking-tight leading-[1.05]">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-aktiv font-bold text-[#1a1a1a] tracking-tight leading-[1.05]">
             Greetings, {firstName}
           </h1>
           <p className="text-lg md:text-xl text-slate-400 font-medium max-w-2xl leading-relaxed">
@@ -215,7 +215,7 @@ export default async function InstructorDashboardPage() {
                 <div className="h-1 w-8 bg-[#FF8A75]/20 rounded-full group-hover:w-12 transition-all duration-500" />
                 <h3 className="text-[9px] font-black text-slate-300 uppercase tracking-[0.3em]">{stat.label}</h3>
               </div>
-              <p className="text-6xl font-serif text-[#1a1a1a] tracking-tighter leading-none">{stat.val}</p>
+              <p className="text-6xl font-aktiv font-bold text-[#1a1a1a] tracking-tighter leading-none">{stat.val}</p>
               <p className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.4em] opacity-40">{stat.sub}</p>
             </div>
           </div>
@@ -228,7 +228,7 @@ export default async function InstructorDashboardPage() {
         <section className="xl:col-span-8 flex flex-col gap-10">
           <div className="flex items-center justify-between">
             <div className="space-y-2">
-              <h2 className="text-3xl lg:text-4xl font-serif text-[#1a1a1a] tracking-tight">Today&apos;s Radiance</h2>
+              <h2 className="text-3xl lg:text-4xl font-aktiv font-bold text-[#1a1a1a] tracking-tight">Today&apos;s Radiance</h2>
               <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75] opacity-60">Temporal Alignments</p>
             </div>
             <div className="px-6 py-3 bg-white/60 backdrop-blur-3xl rounded-2xl border border-[#FF8A75]/10 shadow-sm">
@@ -244,7 +244,7 @@ export default async function InstructorDashboardPage() {
                 <div className="h-20 w-20 rounded-full bg-white border border-[#FF8A75]/5 flex items-center justify-center mx-auto text-[#FF8A75]/20">
                   <Calendar className="w-10 h-10" />
                 </div>
-                <p className="text-xl font-serif text-slate-300">The ritual schedule is pristine for today.</p>
+                <p className="text-xl font-aktiv font-bold text-slate-300">The ritual schedule is pristine for today.</p>
               </div>
             ) : (
               todaysMeetings.map((meeting) => {
@@ -262,7 +262,7 @@ export default async function InstructorDashboardPage() {
 
                     <div className="flex-1 flex flex-col gap-3 text-center md:text-left min-w-0">
                       <div className="flex items-center justify-center md:justify-start gap-4">
-                        <h4 className="text-3xl font-serif text-[#1a1a1a] tracking-tight truncate">{meeting.topic}</h4>
+                        <h4 className="text-3xl font-aktiv font-bold text-[#1a1a1a] tracking-tight truncate">{meeting.topic}</h4>
                         {isLive && (
                           <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1a1a1a] text-white text-[8px] font-black uppercase tracking-[0.2em] shadow-lg shadow-[#1a1a1a]/20">
                             <div className="h-1.5 w-1.5 rounded-full bg-[#FF8A75] animate-pulse shadow-[0_0_8px_#FF8A75]" />
@@ -305,7 +305,7 @@ export default async function InstructorDashboardPage() {
         {/* ─── 4. SOUL COMMENCEMENT (NEW STUDENTS) ─── */}
         <section className="xl:col-span-4 flex flex-col gap-10">
           <div className="space-y-2">
-            <h2 className="text-3xl lg:text-4xl font-serif text-[#1a1a1a] tracking-tight">New Souls</h2>
+            <h2 className="text-3xl lg:text-4xl font-aktiv font-bold text-[#1a1a1a] tracking-tight">New Souls</h2>
             <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75] opacity-60">Cycle Intake Portfolio</p>
           </div>
 
@@ -325,7 +325,7 @@ export default async function InstructorDashboardPage() {
                         {student?.avatar_url ? (
                           <img src={student.avatar_url} className="w-full h-full object-cover group-hover:rotate-3 transition-transform duration-700" />
                         ) : (
-                          <span className="text-2xl font-serif">{student?.full_name?.charAt(0)}</span>
+                          <span className="text-2xl font-aktiv font-bold">{student?.full_name?.charAt(0)}</span>
                         )}
                       </div>
                       <div className="space-y-1">

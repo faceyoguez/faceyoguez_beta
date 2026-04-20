@@ -196,7 +196,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
    const afterImage = activeLog?.photo_url || 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800';
 
    return (
-      <div className="flex flex-col h-screen bg-[#FFFAF7] text-[#1a1a1a] selection:bg-[#FF8A75]/10 overflow-hidden font-sans animate-in fade-in duration-1000 relative">
+      <div className="flex flex-col h-screen bg-[#FFFAF7] text-[#1a1a1a] selection:bg-[#FF8A75]/10 overflow-hidden font-jakarta animate-in fade-in duration-1000 relative">
 
          {/* Kinetic Aura Background */}
          <div className="fixed inset-0 z-0 pointer-events-none">
@@ -211,7 +211,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                <div className="flex items-center gap-4 lg:gap-6">
                   <div className="h-10 w-1.5 bg-[#FF8A75] rounded-full shadow-[0_0_12px_#FF8A75]" />
                   <div>
-                     <h1 className="text-3xl font-serif tracking-tight text-[#1a1a1a]">Collective Sanctuary</h1>
+                     <h1 className="text-3xl font-aktiv font-bold tracking-tight text-[#1a1a1a]">Collective Sanctuary</h1>
                      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75] mt-1 opacity-60">Architect of Resonance</p>
                   </div>
                </div>
@@ -286,7 +286,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                               </div>
                               <div className="space-y-1">
                                  <div className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75] opacity-60">Meeting Portal Spectrum</div>
-                                 <h2 className="text-3xl font-serif tracking-tight text-[#1a1a1a] leading-tight capitalize">{selectedBatch?.name || 'Infinite Sanctuary'}</h2>
+                                 <h2 className="text-3xl font-aktiv font-bold tracking-tight text-[#1a1a1a] leading-tight capitalize">{selectedBatch?.name || 'Infinite Sanctuary'}</h2>
                               </div>
                            </div>
                            <button
@@ -326,7 +326,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                           {student.avatar_url ? (
                                              <img src={student.avatar_url} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700" />
                                           ) : (
-                                             <div className="h-full w-full flex items-center justify-center text-lg font-serif text-[#FF8A75]">{student.full_name[0]}</div>
+                                            <div className="h-full w-full flex items-center justify-center text-lg font-aktiv font-bold text-[#FF8A75]">{student.full_name[0]}</div>
                                           )}
                                        </div>
                                         <div className="text-left min-w-0 flex-1">
@@ -360,7 +360,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                            <div className="flex items-center justify-between mb-8 shrink-0">
                               <div className="flex items-center gap-5">
                                  <div className="space-y-1">
-                                    <h3 className="text-2xl font-serif text-white tracking-tight">Communion Pulse</h3>
+                                    <h3 className="text-2xl font-aktiv font-bold text-white tracking-tight">Communion Pulse</h3>
                                     <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75] opacity-80">Spectrum Feed Active</p>
                                  </div>
                                  {!selectedBatch?.is_chat_enabled && (
@@ -471,7 +471,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                      <div className="bg-white rounded-[3rem] lg:rounded-[4.5rem] p-6 lg:p-10 shadow-2xl shadow-[#FF8A75]/5 border border-[#FF8A75]/10 relative overflow-hidden flex flex-col gap-8 shrink-0 min-h-[400px] lg:h-[480px]">
                         <div className="flex items-center justify-between relative z-10">
                            <div className="space-y-1">
-                              <h3 className="text-2xl font-serif text-slate-900 tracking-tight">{selectedStudent?.full_name || 'Identity Mirror'}</h3>
+                              <h3 className="text-2xl font-aktiv font-bold text-slate-900 tracking-tight">{selectedStudent?.full_name || 'Identity Mirror'}</h3>
                               <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75]">Evolution Spectrum Echo</p>
                            </div>
                            {selectedStudent && (
@@ -542,7 +542,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                   <div className="absolute top-0 right-0 w-40 h-40 bg-[#FF8A75]/10 rounded-full blur-3xl -translate-y-20 translate-x-20" />
 
                   <button onClick={() => setIsCreateBatchOpen(false)} className="absolute top-6 right-6 lg:top-12 lg:right-12 text-[#1a1a1a]/20 hover:text-[#FF8A75] transition-colors"><X className="w-6 h-6 lg:w-8 lg:h-8" /></button>
-                  <h3 className="text-3xl lg:text-4xl font-serif text-slate-900 mb-2">Manifest Path</h3>
+                  <h3 className="text-3xl lg:text-4xl font-aktiv font-bold text-slate-900 mb-2">Manifest Path</h3>
                   <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75] mb-8 lg:mb-12">New Collective Node Calibration</p>
 
                   <div className="space-y-6 relative z-10">
@@ -631,7 +631,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                   >
                      <div className="flex items-center justify-between p-6 border-b border-white/10 shrink-0">
                         <div className="space-y-1">
-                           <h3 className="text-xl font-serif text-white tracking-tight flex items-center gap-3">
+                           <h3 className="text-xl font-aktiv font-bold text-white tracking-tight flex items-center gap-3">
                               Communion Pulse <span className="flex h-2 w-2 relative rounded-full bg-emerald-500"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span></span>
                            </h3>
                            <p className="text-[8px] font-black uppercase tracking-[0.3em] text-[#FF8A75] opacity-80">Spectrum Feed Active</p>

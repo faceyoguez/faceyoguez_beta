@@ -41,7 +41,7 @@ export function GoogleReview() {
           </div>
           <span
             className="text-[12px] tracking-[0.15em]"
-            style={{ fontFamily: 'Inter, sans-serif', color: 'rgba(252, 244, 235, 0.6)' }}
+            style={{ fontFamily: 'var(--font-jakarta), sans-serif', color: 'rgba(252, 244, 235, 0.6)' }}
           >
             5.0 on Google
           </span>
@@ -50,7 +50,7 @@ export function GoogleReview() {
         <h3
           className="leading-[1.2]"
           style={{
-            fontFamily: '"Cormorant Garamond", "Georgia", serif',
+            fontFamily: 'var(--font-aktiv), serif',
             fontSize: 'clamp(1.8rem, 3.5vw, 2.5rem)',
             fontWeight: 400,
             color: 'rgb(252, 244, 235)',
@@ -61,7 +61,7 @@ export function GoogleReview() {
         <p
           className="leading-relaxed"
           style={{
-            fontFamily: '"Cormorant Garamond", "Georgia", serif',
+            fontFamily: 'var(--font-jakarta), sans-serif',
             fontSize: '1.05rem',
             color: 'rgba(252, 244, 235, 0.7)',
           }}
@@ -74,7 +74,7 @@ export function GoogleReview() {
           href="#"
           className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-[13px] tracking-[0.1em] uppercase transition-all duration-300 hover:scale-[1.02] mt-4"
           style={{
-            fontFamily: 'Inter, sans-serif',
+            fontFamily: 'var(--font-jakarta), sans-serif',
             fontWeight: 500,
             backgroundColor: 'rgb(252, 244, 235)',
             color: 'rgb(44, 37, 37)',

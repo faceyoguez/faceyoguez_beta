@@ -179,7 +179,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-[#FFFAF7] selection:bg-[#FF8A75]/20 font-sans text-[#1a1a1a] relative">
+    <div className="flex flex-col h-screen overflow-hidden bg-[#FFFAF7] selection:bg-[#FF8A75]/20 font-jakarta text-[#1a1a1a] relative">
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div className="absolute top-0 right-0 w-[80%] h-[80%] bg-[radial-gradient(circle_at_center,rgba(255,138,117,0.04)_0%,transparent_70%)] blur-3xl opacity-60" />
         <div className="absolute bottom-0 left-0 w-[60%] h-[60%] bg-[radial-gradient(circle_at_center,rgba(0,0,0,0.02)_0%,transparent_60%)] blur-3xl opacity-40" />
@@ -196,7 +196,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
         <header className="shrink-0 flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-[#FF8A75]/10 mt-0">
           <div className="space-y-3 flex-1">
             <div className="space-y-0.5">
-              <h1 className="text-2xl lg:text-3xl font-serif text-[#1a1a1a] tracking-tight leading-[1.1]">
+              <h1 className="text-2xl lg:text-3xl font-aktiv font-bold text-[#1a1a1a] tracking-tight leading-[1.1]">
                 Your Dedicated Path
               </h1>
               <p className="text-xs font-medium text-[#6B7280]/80 max-w-xl leading-relaxed">
@@ -223,7 +223,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                       <div className="h-1.5 w-1.5 rounded-full bg-[#FF8A75] animate-pulse shadow-[0_0_8px_#FF8A75]" />
                       Upcoming Session
                     </div>
-                    <h3 className="text-xl sm:text-3xl font-serif text-[#1a1a1a] tracking-tight leading-tight truncate">{nextMeeting.topic}</h3>
+                    <h3 className="text-xl sm:text-3xl font-aktiv font-bold text-[#1a1a1a] tracking-tight leading-tight truncate">{nextMeeting.topic}</h3>
                     <div className="flex items-center gap-8 pt-6 border-t border-[#FF8A75]/10">
                       <div className="space-y-1">
                         <p className="text-[9px] uppercase font-black tracking-[0.3em] text-[#6B7280]/40 leading-none">Session Date</p>
@@ -272,7 +272,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                     <TrendingUp className="w-3 h-3" />
                     Progress Tracker
                   </div>
-                  <h3 className="text-2xl sm:text-4xl font-serif text-[#1a1a1a] tracking-tight leading-none">Your Progress</h3>
+                  <h3 className="text-2xl sm:text-4xl font-aktiv font-bold text-[#1a1a1a] tracking-tight leading-none">Your Progress</h3>
                 </div>
                 <div className="flex gap-3 sm:gap-4">
                   <div className="px-4 sm:px-6 h-12 sm:h-14 bg-white/60 border border-[#FF8A75]/10 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center shadow-sm">
@@ -328,7 +328,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                       <Edit3 className="w-5 sm:w-6 h-5 sm:h-6" />
                     </div>
                     <div>
-                      <h5 className="text-2xl sm:text-3xl font-serif text-[#1a1a1a] tracking-tight">Your Notes</h5>
+                      <h5 className="text-2xl sm:text-3xl font-aktiv font-bold text-[#1a1a1a] tracking-tight">Your Notes</h5>
                       <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75]">Day {activeDay}</p>
                     </div>
                   </div>
@@ -337,7 +337,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                     <textarea
                       value={notesInput}
                       onChange={(e) => setNotesInput(e.target.value)}
-                      className="w-full h-full resize-none bg-transparent text-slate-700 text-sm font-medium outline-none border-none focus:ring-0 custom-scrollbar font-sans"
+                      className="w-full h-full resize-none bg-transparent text-slate-700 text-sm font-medium outline-none border-none focus:ring-0 custom-scrollbar font-jakarta"
                       placeholder="How are you feeling today? Note any changes you noticed."
                     />
                   </div>
@@ -444,7 +444,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                            <MessageSquare className="w-5 h-5" />
                         </div>
                         <div>
-                           <h3 className="text-lg font-serif">Instructor Chat</h3>
+                           <h3 className="text-lg font-aktiv font-bold">Instructor Chat</h3>
                            <p className="text-[8px] font-black uppercase tracking-widest text-[#FF8A75]">Private Channel</p>
                         </div>
                      </div>

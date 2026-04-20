@@ -16,7 +16,7 @@ export default function GlobalError({
 
   return (
     <html lang="en">
-      <body style={{ margin: 0, fontFamily: 'system-ui, sans-serif', background: '#FFFAF7' }}>
+      <body style={{ margin: 0, fontFamily: 'var(--font-jakarta)', background: '#FFFAF7' }}>
         <ErrorUI error={error} reset={reset} />
       </body>
     </html>
@@ -108,8 +108,9 @@ function ErrorUI({ error, reset }: { error: Error & { digest?: string }; reset: 
             border: '1px solid rgba(255,138,117,0.25)',
             borderRadius: '100px',
             padding: '4px 16px',
+            fontFamily: 'var(--font-aktiv)',
             fontSize: '11px',
-            fontWeight: '700',
+            fontWeight: '900',
             letterSpacing: '0.12em',
             textTransform: 'uppercase',
             color: '#FF7051',
@@ -122,6 +123,7 @@ function ErrorUI({ error, reset }: { error: Error & { digest?: string }; reset: 
         {/* Headline */}
         <h1
           style={{
+            fontFamily: 'var(--font-aktiv)',
             fontSize: 'clamp(2rem, 5vw, 3rem)',
             fontWeight: '800',
             lineHeight: '1.1',
@@ -136,6 +138,7 @@ function ErrorUI({ error, reset }: { error: Error & { digest?: string }; reset: 
         {/* Body copy */}
         <p
           style={{
+            fontFamily: 'var(--font-jakarta)',
             fontSize: '1rem',
             color: '#6b6b6b',
             lineHeight: '1.7',
@@ -155,7 +158,7 @@ function ErrorUI({ error, reset }: { error: Error & { digest?: string }; reset: 
             style={{
               fontSize: '11px',
               color: '#aaa',
-              fontFamily: 'monospace',
+              fontFamily: 'var(--font-jakarta)',
               marginBottom: '2rem',
               letterSpacing: '0.05em',
             }}

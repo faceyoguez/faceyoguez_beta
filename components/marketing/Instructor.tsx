@@ -51,7 +51,7 @@ export function Instructor() {
         {/* Left — text */}
         <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
           <h2 style={{
-            fontFamily: "'Cormorant Garamond', serif",
+            fontFamily: "var(--font-aktiv), serif",
             fontSize: isMobile ? '2.5rem' : 'clamp(2.8rem,5vw,4.8rem)',
             fontWeight: 400, lineHeight: 1.05, color: '#2a2019',
             marginBottom: isMobile ? '1.5rem' : '2.5rem',
@@ -74,14 +74,14 @@ export function Instructor() {
 
           <div style={{ maxWidth: isMobile ? '100%' : 520, margin: isMobile ? '1.5rem auto' : '0', ...rv(0.25) }}>
             <p style={{
-              fontFamily: 'var(--font-dm-sans, "DM Sans", sans-serif)',
+              fontFamily: "var(--font-jakarta), sans-serif",
               fontSize: isMobile ? '0.9rem' : '0.98rem', lineHeight: 1.85,
               color: 'rgba(42,32,25,0.65)', marginBottom: '1.8rem',
             }}>
               Every face is unique and deserves special attention. We work with passion, enthusiasm and a sincere desire to help each and everyone who wants to feel and see a real change on their face.
             </p>
             <p style={{
-              fontFamily: 'var(--font-dm-sans, "DM Sans", sans-serif)',
+              fontFamily: "var(--font-jakarta), sans-serif",
               fontSize: isMobile ? '0.9rem' : '0.98rem', lineHeight: 1.85,
               color: 'rgba(42,32,25,0.65)',
             }}>
@@ -106,7 +106,7 @@ export function Instructor() {
           <div style={{ width: '100%', height: 1, background: 'rgba(42,32,25,0.08)', marginBottom: '1.8rem' }} />
 
           <blockquote style={{
-            fontFamily: 'var(--font-dm-sans, "DM Sans", sans-serif)',
+            fontFamily: "var(--font-jakarta), sans-serif",
             fontSize: isMobile ? '0.85rem' : '0.92rem', lineHeight: 1.8,
             color: 'rgba(42,32,25,0.55)',
             margin: '0 0 2rem', padding: 0, border: 'none',
@@ -118,7 +118,7 @@ export function Instructor() {
 
           <div style={{ ...rv(0.4) }}>
             <h3 style={{
-              fontFamily: "'Cormorant Garamond', serif",
+              fontFamily: "var(--font-aktiv), serif",
               fontSize: isMobile ? '1.2rem' : '1.4rem', fontWeight: 600,
               letterSpacing: '0.12em', textTransform: 'uppercase',
               color: '#8B6914', marginBottom: '0.5rem',
@@ -126,7 +126,7 @@ export function Instructor() {
               HARSIMRAT
             </h3>
             <p style={{
-              fontFamily: 'var(--font-dm-sans, "DM Sans", sans-serif)',
+              fontFamily: "var(--font-jakarta), sans-serif",
               fontSize: '0.8rem', color: 'rgba(42,32,25,0.45)', lineHeight: 1.6,
             }}>
               instructor of facial yoga and natural<br />facial rejuvenation techniques

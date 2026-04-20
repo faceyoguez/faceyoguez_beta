@@ -50,7 +50,7 @@ export function LmsClient({
   }, [supabase, currentUser.id, router]);
 
   return (
-    <div className="relative min-h-[100dvh] bg-[#FFFAF7] text-slate-900 font-sans selection:bg-[#FF8A75]/20 overflow-x-hidden pb-32">
+    <div className="relative min-h-[100dvh] bg-[#FFFAF7] text-slate-900 font-jakarta selection:bg-[#FF8A75]/20 overflow-x-hidden pb-32">
       
       {subscriptionStartDate && (
         <PlanExpiryPill 
@@ -74,7 +74,7 @@ export function LmsClient({
             Program Curriculum
           </div>
           <div className="space-y-4">
-             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-slate-900 tracking-tight leading-none font-serif">
+             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-slate-900 tracking-tight leading-none font-aktiv">
                Your <span className="text-[#FF8A75]">Journey</span>
              </h1>
              <p className="text-base md:text-lg text-slate-500 font-medium max-w-xl mx-auto leading-relaxed">
@@ -124,7 +124,7 @@ export function LmsClient({
                 <Sparkles className="w-8 h-8" />
               </div>
               <div className="space-y-4">
-                <h4 className="font-serif font-bold text-3xl text-slate-900 tracking-tight">The Next Horizon</h4>
+                <h4 className="font-aktiv font-bold text-3xl text-slate-900 tracking-tight">The Next Horizon</h4>
                 <p className="text-[10px] text-[#FF8A75] font-black uppercase tracking-[0.2em] leading-relaxed max-w-[240px] mx-auto">
                   Complete Level 1 Rituals to unlock Advanced Immersion.
                 </p>
@@ -139,7 +139,7 @@ export function LmsClient({
                 <BookOpen className="w-10 h-10" />
               </div>
               <div className="space-y-2">
-                <p className="text-3xl font-serif font-bold text-slate-900">Program Loading...</p>
+                <p className="text-3xl font-aktiv font-bold text-slate-900">Program Loading...</p>
                 <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Your path is being prepared</p>
               </div>
            </div>

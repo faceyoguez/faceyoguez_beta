@@ -71,13 +71,13 @@ export function Testimonials() {
           <div>
             <span
               className="block mb-4 text-[11px] tracking-[0.35em] uppercase"
-              style={{ fontFamily: 'Inter, sans-serif', color: 'rgb(153, 143, 132)' }}
+              style={{ fontFamily: 'var(--font-jakarta), sans-serif', color: 'rgb(153, 143, 132)' }}
             >
               Transformations
             </span>
             <h2
               style={{
-                fontFamily: '"Cormorant Garamond", "Georgia", serif',
+                fontFamily: 'var(--font-aktiv), serif',
                 fontSize: 'clamp(2.5rem, 5vw, 4rem)',
                 fontWeight: 400,
                 color: 'rgb(44, 37, 37)',
@@ -155,7 +155,7 @@ export function Testimonials() {
                 <blockquote
                   className="leading-[1.4] mb-12"
                   style={{
-                    fontFamily: '"Cormorant Garamond", "Georgia", serif',
+                    fontFamily: 'var(--font-aktiv), serif',
                     fontSize: 'clamp(1.5rem, 3vw, 2.5rem)',
                     fontWeight: 400,
                     color: 'rgb(44, 37, 37)',
@@ -172,13 +172,13 @@ export function Testimonials() {
                   <div>
                     <p
                       className="text-[13px] tracking-[0.15em] uppercase font-bold mb-1"
-                      style={{ fontFamily: 'Inter, sans-serif', color: 'rgb(44, 37, 37)' }}
+                      style={{ fontFamily: 'var(--font-jakarta), sans-serif', color: 'rgb(44, 37, 37)' }}
                     >
                       {activeTestimonial.name} {activeTestimonial.surname}
                     </p>
                     <p 
                       className="text-[11px] tracking-[0.1em] uppercase"
-                      style={{ fontFamily: 'Inter, sans-serif', color: 'rgb(153, 143, 132)' }}
+                      style={{ fontFamily: 'var(--font-jakarta), sans-serif', color: 'rgb(153, 143, 132)' }}
                     >
                       {activeTestimonial.program}
                     </p>

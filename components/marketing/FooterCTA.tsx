@@ -50,17 +50,15 @@ export function FooterCTA() {
                   <Flower2 className="h-5 w-5" strokeWidth={1.5} style={{ color: 'rgb(249, 109, 65)' }} />
                 </div>
                 <span
-                  className="text-lg font-bold tracking-tight"
-                  style={{ color: 'rgb(44, 37, 37)', fontFamily: 'Inter, sans-serif' }}
+                  className="text-2xl font-sooner tracking-tight"
+                  style={{ color: 'rgb(44, 37, 37)' }}
                 >
                   Faceyoguez
                 </span>
               </Link>
               <p
-                className="leading-relaxed max-w-xs"
+                className="leading-relaxed max-w-xs font-jakarta text-base"
                 style={{
-                  fontFamily: '"Cormorant Garamond", "Georgia", serif',
-                  fontSize: '1rem',
                   color: 'rgb(153, 143, 132)',
                 }}
               >
@@ -97,19 +95,17 @@ export function FooterCTA() {
             {/* Middle - Site links */}
             <div className="space-y-5">
               <h4
-                className="text-[11px] tracking-[0.35em] uppercase mb-6"
-                style={{ fontFamily: 'Inter, sans-serif', color: 'rgb(153, 143, 132)' }}
+                className="text-[11px] font-aktiv tracking-[0.35em] uppercase mb-6"
+                style={{ color: 'rgb(153, 143, 132)' }}
               >
-                Faceyoguez
+                Brand
               </h4>
               {siteLinks.map((link) => (
-                <Link
+                 <Link
                   key={link.label}
                   href={link.href}
-                  className="block transition-colors duration-200"
+                  className="block font-jakarta text-[1.05rem] transition-colors duration-200"
                   style={{
-                    fontFamily: '"Cormorant Garamond", "Georgia", serif',
-                    fontSize: '1.05rem',
                     color: 'rgb(44, 37, 37)',
                   }}
                   onMouseEnter={(e) => { e.currentTarget.style.color = 'rgb(249, 109, 65)'; }}
@@ -124,8 +120,8 @@ export function FooterCTA() {
             {schoolLinks.length > 0 && (
               <div className="space-y-5">
                 <h4
-                  className="text-[11px] tracking-[0.35em] uppercase mb-6"
-                  style={{ fontFamily: 'Inter, sans-serif', color: 'rgb(153, 143, 132)' }}
+                  className="text-[11px] font-aktiv tracking-[0.35em] uppercase mb-6"
+                  style={{ color: 'rgb(153, 143, 132)' }}
                 >
                   School of Face
                 </h4>
@@ -133,10 +129,8 @@ export function FooterCTA() {
                   <Link
                     key={link.label}
                     href={link.href}
-                    className="block transition-colors duration-200"
+                    className="block font-jakarta text-[1.05rem] transition-colors duration-200"
                     style={{
-                      fontFamily: '"Cormorant Garamond", "Georgia", serif',
-                      fontSize: '1.05rem',
                       color: 'rgb(44, 37, 37)',
                     }}
                     onMouseEnter={(e) => { e.currentTarget.style.color = 'rgb(249, 109, 65)'; }}
@@ -150,8 +144,8 @@ export function FooterCTA() {
             
             <div className="space-y-6">
               <h4
-                className="text-[11px] tracking-[0.35em] uppercase mb-6"
-                style={{ fontFamily: 'Inter, sans-serif', color: 'rgb(153, 143, 132)' }}
+                className="text-[11px] font-aktiv font-bold tracking-[0.35em] uppercase mb-6"
+                style={{ color: 'rgb(153, 143, 132)' }}
               >
                 Inquiries
               </h4>
@@ -168,11 +162,11 @@ export function FooterCTA() {
                   type="email" 
                   placeholder="Your Email" 
                   required
-                  className="w-full bg-white/50 border border-black/5 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-pink-300 transition-colors"
+                  className="w-full bg-white/50 border border-black/5 rounded-xl px-4 py-2.5 text-sm font-jakarta focus:outline-none focus:border-pink-300 transition-colors"
                 />
                 <button 
                   type="submit"
-                  className="w-full bg-[#2c2525] text-white text-[11px] font-black uppercase tracking-widest py-3 rounded-xl hover:bg-pink-500 transition-all duration-300"
+                  className="w-full bg-[#2c2525] text-white text-[11px] font-black font-aktiv uppercase tracking-widest py-3 rounded-xl hover:bg-pink-500 transition-all duration-300"
                 >
                   Send Message
                 </button>
@@ -189,15 +183,15 @@ export function FooterCTA() {
       >
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <p
-            className="text-[12px] tracking-wide"
-            style={{ fontFamily: 'Inter, sans-serif', color: 'rgb(153, 143, 132)' }}
+            className="text-[12px] font-jakarta tracking-wide"
+            style={{ color: 'rgb(153, 143, 132)' }}
           >
             © 2026 Faceyoguez. All rights reserved.
           </p>
           <Link
             href="#"
-            className="text-[12px] tracking-wide transition-colors"
-            style={{ fontFamily: 'Inter, sans-serif', color: 'rgb(153, 143, 132)' }}
+            className="text-[12px] font-jakarta tracking-wide transition-colors"
+            style={{ color: 'rgb(153, 143, 132)' }}
           >
             Privacy Policy
           </Link>

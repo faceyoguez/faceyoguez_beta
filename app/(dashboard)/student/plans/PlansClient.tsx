@@ -446,13 +446,13 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
     const cardBg = "bg-white border border-[#FF8A75]/10";
 
     return (
-        <div className="min-h-screen relative font-sans text-[#374151] selection:bg-[#FF8A75]/20 overflow-hidden bg-[#FFFAF7]/40">
+        <div className="min-h-screen relative font-jakarta text-[#374151] selection:bg-[#FF8A75]/20 overflow-hidden bg-[#FFFAF7]/40">
             {/* Desktop Professional Layout */}
             <div className="hidden lg:grid grid-cols-12 gap-5 p-8 h-screen max-w-[1500px] mx-auto overflow-hidden">
                 {/* Panel 1: Ritual Selector */}
                 <div className="col-span-3 flex flex-col gap-5 h-full overflow-hidden">
                     <div className="flex-shrink-0">
-                         <h1 className="text-3xl font-bold leading-none tracking-tight text-[#1a1a1a]">Choose Your Plan</h1>
+                         <h1 className="text-3xl font-aktiv font-bold leading-none tracking-tight text-[#1a1a1a]">Choose Your Plan</h1>
                          <p className="mt-2 text-[8px] font-black uppercase tracking-[0.4em] text-[#FF8A75]">Face yoga plans for every goal</p>
                     </div>
 
@@ -486,7 +486,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                         {plan.id === 'one_on_one' ? <Star className="w-4.5 h-4.5" /> : plan.id === 'lms' ? <BookOpen className="w-4.5 h-4.5" /> : <Users className="w-4.5 h-4.5" />}
                                     </div>
                                     <div>
-                                        <h2 className="text-base font-bold tracking-tight text-[#1a1a1a]">{plan.title.split(' ')[0]}</h2>
+                                        <h2 className="text-base font-aktiv font-bold tracking-tight text-[#1a1a1a]">{plan.title.split(' ')[0]}</h2>
                                         <p className="text-[8px] font-black uppercase tracking-widest text-[#FF8A75]">{plan.id.replace('_', ' ')}</p>
                                     </div>
                                 </div>
@@ -510,7 +510,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                     <div className={`flex-1 p-7 rounded-[2rem] flex flex-col gap-5 relative overflow-hidden ${cardBg}`}>
                         <div className="space-y-1.5">
                             <span className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.3em]">Details</span>
-                            <h2 className="text-2xl font-bold text-[#1a1a1a] leading-tight">{currentMeta?.hook}</h2>
+                            <h2 className="text-2xl font-aktiv font-bold text-[#1a1a1a] leading-tight">{currentMeta?.hook}</h2>
                             <p className="text-xs font-medium leading-relaxed max-w-lg opacity-80">{currentMeta?.problem}</p>
                         </div>
 
@@ -577,7 +577,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                              >
                                  <div className="flex justify-between items-center gap-2">
                                      <div className="min-w-0">
-                                         <h5 className="font-bold text-xs tracking-tight text-[#1a1a1a] truncate">{tier.label}</h5>
+                                         <h5 className="font-aktiv font-bold text-xs tracking-tight text-[#1a1a1a] truncate">{tier.label}</h5>
                                          {tier.badge && (
                                             <span className="text-[7px] font-black text-[#FF8A75] uppercase tracking-widest">{tier.badge}</span>
                                          )}
@@ -586,7 +586,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                          {tier.originalPrice && (
                                              <span className="text-[8px] text-[#FF8A75]/40 line-through font-bold block mb-0.5">₹{tier.originalPrice}</span>
                                          )}
-                                         <span className={`text-lg font-bold ${selectedTierId === tier.id ? 'text-[#FF8A75]' : 'text-[#1a1a1a]'}`}>₹{tier.discountedPrice}</span>
+                                         <span className={`text-lg font-aktiv font-bold ${selectedTierId === tier.id ? 'text-[#FF8A75]' : 'text-[#1a1a1a]'}`}>₹{tier.discountedPrice}</span>
                                      </div>
                                  </div>
                              </button>
@@ -597,7 +597,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                         <div className="flex items-center justify-between">
                             <div>
                                 <div className="text-[7px] font-black text-[#FF8A75] uppercase tracking-[0.2em] mb-0.5">Total Price</div>
-                                <div className="text-2xl font-bold text-[#1a1a1a]">₹{currentTier.discountedPrice}</div>
+                                <div className="text-2xl font-aktiv font-bold text-[#1a1a1a]">₹{currentTier.discountedPrice}</div>
                             </div>
                             <div className="p-3 rounded-xl bg-[#FF8A75]/5 text-[#FF8A75] border border-[#FF8A75]/10">
                                 <Heart className="w-4 h-4 fill-current" />
@@ -641,7 +641,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
             {/* Mobile Professional Layout */}
             <div className="lg:hidden flex flex-col h-screen overflow-hidden bg-white">
                 <header className={`p-5 pt-12 flex-shrink-0 border-b bg-white`}>
-                     <h1 className="text-2xl font-bold leading-none tracking-tight text-[#1a1a1a]">Choose Your Plan</h1>
+                     <h1 className="text-2xl font-aktiv font-bold leading-none tracking-tight text-[#1a1a1a]">Choose Your Plan</h1>
                      <div className="flex gap-2 mt-4 overflow-x-auto pb-1 scrollbar-hide">
                          {PLANS_DATA.map((plan) => (
                              <button
@@ -679,7 +679,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                      {mobileTab === 'data' ? (
                          <div className="space-y-3">
                              <div className={`p-6 rounded-2xl space-y-3 bg-white border border-[#FF8A75]/10`}>
-                                 <h3 className="text-lg font-bold leading-none tracking-tight text-[#1a1a1a]">{currentPlan.title}</h3>
+                                 <h3 className="text-lg font-aktiv font-bold leading-none tracking-tight text-[#1a1a1a]">{currentPlan.title}</h3>
                                  <p className="text-[#FF8A75] text-[9px] font-black uppercase tracking-widest">{currentPlan.subtitle}</p>
                                  <p className="text-[12px] font-medium text-[#6B7280] leading-relaxed">{currentMeta?.solution}</p>
                              </div>
@@ -742,7 +742,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                         </div>
                         <div className="text-right">
                              <span className="text-[7px] font-black text-[#6B7280] uppercase tracking-widest">Total</span>
-                             <p className="text-lg font-bold text-[#FF8A75]">₹{currentTier.discountedPrice}</p>
+                             <p className="text-lg font-aktiv font-bold text-[#FF8A75]">₹{currentTier.discountedPrice}</p>
                         </div>
                     </div>
                     
@@ -786,7 +786,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                         <div className="p-8 pb-0 flex justify-between items-start">
                             <div>
                                 <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">Your Ritual</span>
-                                <h2 className="text-3xl font-bold text-[#1a1a1a]">Checkout</h2>
+                                <h2 className="text-3xl font-aktiv font-bold text-[#1a1a1a]">Checkout</h2>
                             </div>
                             <button onClick={() => setShowCheckout(false)} className="p-2 hover:bg-[#FF8A75]/10 rounded-full transition-colors text-[#6B7280]">
                                 <XCircle className="w-6 h-6" />
@@ -801,7 +801,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                     <p className="text-sm font-bold text-[#1a1a1a]">{currentTier.label}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-lg font-bold text-[#FF8A75]">₹{currentTier.discountedPrice}</p>
+                                    <p className="text-lg font-aktiv font-bold text-[#FF8A75]">₹{currentTier.discountedPrice}</p>
                                 </div>
                             </div>
 
@@ -909,7 +909,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                             <div className="flex justify-between items-end">
                                 <div>
                                     <p className="text-[10px] font-black text-[#6B7280] uppercase tracking-widest mb-1">Final Amount</p>
-                                    <h3 className="text-4xl font-bold text-[#1a1a1a]">₹{calculateTotal()}</h3>
+                                    <h3 className="text-4xl font-aktiv font-bold text-[#1a1a1a]">₹{calculateTotal()}</h3>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Secure Checkout</p>

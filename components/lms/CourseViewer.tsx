@@ -232,7 +232,7 @@ export function CourseViewer({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 min-h-[calc(100vh-200px)] pb-10 animate-in fade-in duration-1000 font-sans relative z-10">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 min-h-[calc(100vh-200px)] pb-10 animate-in fade-in duration-1000 font-jakarta relative z-10">
       
       {/* ── VIDEO PLAYER SIDE (8 cols) ── */}
       <div className="lg:col-span-8 space-y-8">
@@ -252,7 +252,7 @@ export function CourseViewer({
 
           {/* Status Badge */}
           <div className="absolute top-6 left-8 z-30 pointer-events-none">
-             <div className="bg-white/10 backdrop-blur-xl text-white text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-[0.2em] border border-white/10 flex items-center gap-2.5">
+             <div className="bg-white/10 backdrop-blur-xl text-white text-[9px] font-aktiv font-black px-4 py-1.5 rounded-full uppercase tracking-[0.2em] border border-white/10 flex items-center gap-2.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#FF8A75] animate-pulse" />
                 Focus Mode
              </div>
@@ -346,16 +346,16 @@ export function CourseViewer({
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-10 relative z-10">
             <div className="space-y-6">
               <div className="flex flex-wrap items-center gap-4">
-                 <span className="bg-[#FF8A75]/10 text-[#FF8A75] text-[10px] font-black px-5 py-2 rounded-full uppercase tracking-[0.2em] border border-[#FF8A75]/10">Curriculum Pillar</span>
+                 <span className="bg-[#FF8A75]/10 text-[#FF8A75] text-[10px] font-aktiv font-black px-5 py-2 rounded-full uppercase tracking-[0.2em] border border-[#FF8A75]/10">Curriculum Pillar</span>
                  <div className="flex items-center gap-3 px-5 py-2 rounded-full bg-slate-900/5 border border-slate-900/5">
                     <Video className="w-4 h-4 text-slate-400" />
-                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Step { (modules.findIndex(m => m.id === activeModuleId) + 1) } of {modules.length}</p>
+                    <p className="text-[10px] text-slate-500 font-aktiv font-bold uppercase tracking-[0.2em]">Step { (modules.findIndex(m => m.id === activeModuleId) + 1) } of {modules.length}</p>
                  </div>
               </div>
-              <h1 className="text-4xl lg:text-5xl font-serif font-bold text-slate-900 tracking-tight leading-tight">
+              <h1 className="text-4xl lg:text-5xl font-aktiv font-bold text-slate-900 tracking-tight leading-tight">
                 {activeModule?.title || 'Loading content...'}
               </h1>
-              <p className="text-[10px] font-black text-[#FF8A75] uppercase tracking-[0.4em] flex items-center gap-3">
+              <p className="text-[10px] font-aktiv font-black text-[#FF8A75] uppercase tracking-[0.4em] flex items-center gap-3">
                 <Layout className="w-5 h-5" />
                 Expert Guided Ritual
               </p>
@@ -367,8 +367,8 @@ export function CourseViewer({
                   <CheckCircle2 className="w-7 h-7" />
                 </div>
                 <div>
-                  <span className="font-black text-[10px] uppercase tracking-[0.3em] block leading-none">Lesson Mastery</span>
-                  <span className="text-[12px] font-bold text-[#FF8A75]/80 mt-2 block uppercase tracking-tight">Ritual Complete</span>
+                  <span className="font-aktiv font-black text-[10px] uppercase tracking-[0.3em] block leading-none">Lesson Mastery</span>
+                  <span className="text-[12px] font-aktiv font-bold text-[#FF8A75]/80 mt-2 block uppercase tracking-tight">Ritual Complete</span>
                 </div>
               </div>
             )}
@@ -382,11 +382,11 @@ export function CourseViewer({
           
           <div className="p-8 lg:p-10 border-b border-slate-900/5 flex items-center justify-between">
             <div className="space-y-2">
-              <h2 className="font-black text-slate-400 uppercase tracking-[0.3em] text-[10px] flex items-center gap-3">
+              <h2 className="font-aktiv font-black text-slate-400 uppercase tracking-[0.3em] text-[10px] flex items-center gap-3">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#FF8A75]" />
                 Path Progress
               </h2>
-              <p className="text-3xl font-serif font-bold text-slate-900 leading-none">Rituals</p>
+              <p className="text-3xl font-aktiv font-bold text-slate-900 leading-none">Rituals</p>
             </div>
             <div className="h-14 w-14 rounded-2xl bg-white flex items-center justify-center shadow-xl shadow-[#FF8A75]/5 border border-[#FF8A75]/10">
                 <Award className="w-7 h-7 text-[#FF8A75]" />
@@ -440,19 +440,19 @@ export function CourseViewer({
 
                   <div className="flex-1 min-w-0 pr-2">
                     <p className={cn(
-                      "text-[13px] font-bold truncate leading-tight transition-colors mb-1 tracking-tight",
+                      "text-[13px] font-aktiv font-bold truncate leading-tight transition-colors mb-1 tracking-tight",
                       isActive ? "text-white" : "text-slate-900"
                     )}>
                       {m.title}
                     </p>
                     <div className="flex items-center gap-2">
                        <span className={cn(
-                          "text-[9px] font-black uppercase tracking-[0.2em]",
+                          "text-[9px] font-aktiv font-black uppercase tracking-[0.2em]",
                           isActive ? "text-[#FF8A75]/80" : "text-slate-400"
                        )}>Phase {index + 1}</span>
                        {courseLevel === 1 && index === 0 && (
                          <span className={cn(
-                           "text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded bg-[#FF8A75]/10 text-[#FF8A75]",
+                           "text-[7px] font-aktiv font-black uppercase tracking-widest px-1.5 py-0.5 rounded bg-[#FF8A75]/10 text-[#FF8A75]",
                            isActive && "bg-white/20 text-white"
                          )}>Free Preview</span>
                        )}
@@ -475,10 +475,10 @@ export function CourseViewer({
 
              <div className="flex justify-between items-end mb-5 relative z-10">
                 <div className="space-y-1">
-                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] block leading-none">Total Radiance</span>
-                   <span className="text-4xl font-serif font-bold text-[#FF8A75] leading-none">{Math.round((completedIds.size / modules.length) * 100)}%</span>
+                   <span className="text-[10px] font-aktiv font-black text-slate-400 uppercase tracking-[0.3em] block leading-none">Total Radiance</span>
+                   <span className="text-4xl font-aktiv font-bold text-[#FF8A75] leading-none">{Math.round((completedIds.size / modules.length) * 100)}%</span>
                 </div>
-                <div className="text-[10px] font-black text-slate-500 uppercase bg-white/80 px-4 py-2 rounded-xl border border-white shadow-sm tracking-[0.2em] leading-none">
+                <div className="text-[10px] font-aktiv font-black text-slate-500 uppercase bg-white/80 px-4 py-2 rounded-xl border border-white shadow-sm tracking-[0.2em] leading-none">
                     {completedIds.size} / {modules.length} Rituals
                 </div>
              </div>

@@ -222,7 +222,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground selection:bg-primary/20 overflow-hidden font-sans">
+    <div className="flex flex-col h-screen bg-background text-foreground selection:bg-primary/20 overflow-hidden font-jakarta">
 
       {/* Background decoration */}
       <div className="fixed top-0 right-0 w-[50vw] h-[50vh] bg-primary/2 rounded-full blur-[120px] -z-10" />
@@ -231,8 +231,8 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
       <header className="shrink-0 p-6 lg:p-10 flex items-center justify-between relative z-50">
         <div className="flex items-center gap-12">
           <div className="space-y-1">
-            <h1 className="text-4xl font-bold tracking-tight text-foreground">Registry</h1>
-            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-foreground/30">Soul Management Hub</p>
+            <h1 className="text-4xl font-aktiv font-bold tracking-tight text-foreground">Registry</h1>
+            <p className="text-[10px] font-aktiv font-bold uppercase tracking-[0.3em] text-foreground/30">Soul Management Hub</p>
           </div>
 
           {/* Quick Metrics (Student Hub Style) */}
@@ -245,13 +245,13 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
               <div key={i} className="flex flex-col gap-1.5">
                 <div className="flex items-center gap-1.5 ml-1">
                   <div className="h-1 w-1 rounded-full bg-primary/40" />
-                  <p className="text-[8px] font-black uppercase tracking-[0.2em] text-foreground/40 leading-none">{stat.label}</p>
+                  <p className="text-[8px] font-aktiv font-black uppercase tracking-[0.2em] text-foreground/40 leading-none">{stat.label}</p>
                 </div>
                 <div className="flex items-center gap-3 bg-white/50 backdrop-blur-xl px-4 py-2.5 rounded-2xl border border-outline-variant/10 shadow-sm min-w-[120px] transition-all hover:bg-white/80">
                   <div className={cn("h-7 w-7 rounded-lg flex items-center justify-center border transition-transform hover:scale-110 shrink-0", stat.bg, stat.color, "border-current/5")}>
                     <stat.icon className="w-4 h-4" />
                   </div>
-                  <p className="text-xl font-bold text-primary leading-none tracking-tight">
+                  <p className="text-xl font-aktiv font-bold text-primary leading-none tracking-tight">
                     {stat.value}
                   </p>
                 </div>
@@ -266,7 +266,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
             <input
               type="text"
               placeholder="Search students..."
-              className="h-12 w-64 pl-12 pr-6 rounded-xl bg-white/50 backdrop-blur-xl border border-outline-variant/10 focus:ring-2 focus:ring-primary/10 text-[12px] font-medium placeholder:text-foreground/20 transition-all shadow-sm"
+              className="h-12 w-64 pl-12 pr-6 rounded-xl bg-white/50 backdrop-blur-xl border border-outline-variant/10 focus:ring-2 focus:ring-primary/10 text-[12px] font-jakarta font-medium placeholder:text-foreground/20 transition-all shadow-sm"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -299,14 +299,14 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                 )}
               >
                 <span>{f.label}</span>
-                <span className="text-[7px] opacity-40 px-1 py-0.5 bg-foreground/5 rounded-md">{f.count}</span>
+                <span className="text-[7px] font-jakarta opacity-40 px-1 py-0.5 bg-foreground/5 rounded-md">{f.count}</span>
               </button>
             ))}
           </div>
 
           <div className="flex-1 bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col min-h-0 overflow-hidden">
             <div className="p-8 border-b border-outline-variant/5">
-              <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Directory</h3>
+              <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Directory</h3>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
@@ -337,16 +337,16 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <h4 className={cn("text-sm font-bold truncate transition-colors", isEmergency ? "text-red-600 group-hover:text-red-700" : "text-foreground group-hover:text-primary")}>
+                        <h4 className={cn("text-sm font-aktiv font-bold truncate transition-colors", isEmergency ? "text-red-600 group-hover:text-red-700" : "text-foreground group-hover:text-primary")}>
                           {student.full_name}
                         </h4>
                         {student.isTrial && (
-                          <span className="text-[8px] font-black uppercase text-white bg-red-500 px-1.5 py-0.5 rounded shadow-sm leading-none whitespace-nowrap">
+                          <span className="text-[8px] font-aktiv font-black uppercase text-white bg-red-500 px-1.5 py-0.5 rounded shadow-sm leading-none whitespace-nowrap">
                             Trial
                           </span>
                         )}
                       </div>
-                      <p className={cn("text-[8px] font-bold uppercase tracking-widest mt-0.5 truncate", isEmergency ? "text-red-500/70" : "text-foreground/30")}>
+                      <p className={cn("text-[8px] font-aktiv font-bold uppercase tracking-widest mt-0.5 truncate", isEmergency ? "text-red-500/70" : "text-foreground/30")}>
                         {isEmergency
                           ? `Day ${elapsedDays}: Ending Soon`
                           : (student.isTrial
@@ -426,10 +426,10 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                         )}
                       </div>
                       <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-foreground/30">
+                        <div className="flex items-center gap-2 text-[10px] font-aktiv font-bold uppercase tracking-widest text-foreground/30">
                           <Clock className="w-3.5 h-3.5" /> Start: {selectedStudent.startDate ? new Date(selectedStudent.startDate).toLocaleDateString() : 'Unmanifested'}
                         </div>
-                        <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-foreground/30">
+                        <div className="flex items-center gap-2 text-[10px] font-aktiv font-bold uppercase tracking-widest text-foreground/30">
                           <ShieldCheck className={cn("w-3.5 h-3.5", selectedStudent.isTrial ? "text-primary/60" : "text-brand-emerald/60")} /> {selectedStudent.isTrial ? "Trial Access" : "Full Alignment"}
                         </div>
                       </div>
@@ -439,7 +439,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => setShowAssignModal(true)}
-                      className="h-12 px-6 rounded-xl bg-white border border-outline-variant/10 text-[10px] font-bold uppercase tracking-widest hover:border-primary/20 hover:scale-[1.02] transition-all flex items-center gap-2 shadow-sm"
+                      className="h-12 px-6 rounded-xl bg-white border border-outline-variant/10 text-[10px] font-aktiv font-bold uppercase tracking-widest hover:border-primary/20 hover:scale-[1.02] transition-all flex items-center gap-2 shadow-sm"
                     >
                       <UserPlus className="w-4 h-4 text-primary" />
                       {selectedStudent.assignedInstructorId ? 'Re-align Guide' : 'Assign Guide'}
@@ -453,8 +453,8 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                   {/* Journey Progress */}
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Transformation Path</h3>
-                      <span className="text-[10px] font-bold text-primary bg-primary/5 px-3 py-1 rounded-full uppercase tracking-widest">Day {activeStepDay} of {JOURNEY_MAX_DAY}</span>
+                      <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Transformation Path</h3>
+                      <span className="text-[10px] font-aktiv font-bold text-primary bg-primary/5 px-3 py-1 rounded-full uppercase tracking-widest">Day {activeStepDay} of {JOURNEY_MAX_DAY}</span>
                     </div>
                     <JourneyProgress
                       currentDay={selectedStudent.startDate
@@ -470,7 +470,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                     <div className="space-y-6">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Photo Progress</h3>
+                        <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Photo Progress</h3>
                         <div className="flex items-center gap-2">
                           <div className="h-1.5 w-1.5 rounded-full bg-brand-emerald animate-pulse" />
                           <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20 text-right">Manifestation comparison</span>
@@ -513,13 +513,13 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                     </div>
 
                     <div className="space-y-6">
-                      <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Soul Chronicles</h3>
+                      <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Soul Chronicles</h3>
                       <div className="bg-white/40 backdrop-blur-md rounded-[2.5rem] p-8 border border-outline-variant/5 min-h-[300px] flex flex-col">
                         {activeLog ? (
                           <div className="flex-1 flex flex-col">
                             <div className="flex items-center justify-between mb-6">
-                              <span className="text-[9px] font-bold uppercase tracking-widest text-primary">Observation {activeStepDay}</span>
-                              <span className="text-[8px] text-foreground/20">{new Date(activeLog.created_at).toLocaleDateString()}</span>
+                              <span className="text-[9px] font-aktiv font-bold uppercase tracking-widest text-primary">Observation {activeStepDay}</span>
+                              <span className="text-[8px] font-jakarta text-foreground/20">{new Date(activeLog.created_at).toLocaleDateString()}</span>
                             </div>
                             <p className="text-sm font-medium leading-relaxed text-foreground/70 whitespace-pre-wrap flex-1">
                               "{activeLog.notes || 'The silence speaks of unspoken progress.'}"
@@ -544,7 +544,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                   {/* Moved Registry Artifacts (Update PDF) Section */}
                   <div className="bg-white/40 backdrop-blur-md p-8 rounded-[2.5rem] border border-outline-variant/10 shadow-lg flex flex-col -mt-6">
                     <div className="flex items-center justify-between mb-8 shrink-0">
-                      <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Registry Artifacts</h3>
+                      <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Registry Artifacts</h3>
                       <button
                         disabled={!selectedStudent || isUploading}
                         onClick={() => fileInputRef.current?.click()}
@@ -564,8 +564,8 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                               <style.icon className="w-4 h-4" />
                             </div>
                             <div className="min-w-0">
-                              <p className="text-xs font-bold text-foreground truncate">{res.file_name}</p>
-                              <p className="text-[9px] font-bold text-foreground/20 uppercase tracking-widest mt-0.5">{formatFileSize(res.file_size)}</p>
+                              <p className="text-xs font-jakarta font-bold text-foreground truncate">{res.file_name}</p>
+                              <p className="text-[9px] font-aktiv font-bold text-foreground/20 uppercase tracking-widest mt-0.5">{formatFileSize(res.file_size)}</p>
                             </div>
                           </button>
                         );
@@ -573,7 +573,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                       {resources.length === 0 && (
                         <div className="h-40 flex flex-col items-center justify-center opacity-20 bg-foreground/[0.02] border border-dashed border-outline-variant/20 rounded-2xl">
                           <FolderOpen className="w-6 h-6 mb-2" />
-                          <p className="text-[9px] font-bold uppercase tracking-widest">Registry pristine</p>
+                          <p className="text-[9px] font-aktiv font-bold uppercase tracking-widest">Registry pristine</p>
                         </div>
                       )}
                     </div>
@@ -583,7 +583,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
             ) : (
               <div className="h-full flex flex-col items-center justify-center opacity-10 grayscale">
                 <Users className="w-16 h-16 mb-6" />
-                <p className="text-[14px] font-bold uppercase tracking-widest">Select a soul to begin management</p>
+                <p className="text-[14px] font-aktiv font-bold uppercase tracking-widest">Select a soul to begin management</p>
               </div>
             )}
           </div>
@@ -596,8 +596,8 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
           <div className="flex-1 bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col overflow-hidden">
             <div className="p-8 border-b border-outline-variant/5 flex items-center justify-between shrink-0 bg-white/20">
               <div className="space-y-1">
-                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-foreground/30">Chat</h3>
-                <p className="text-sm font-bold text-foreground">Direct Sequence</p>
+                <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Chat</h3>
+                <p className="text-sm font-aktiv font-bold text-foreground">Direct Sequence</p>
               </div>
               <div className={cn("h-2.5 w-2.5 rounded-full border-2 border-white", selectedStudent ? "bg-brand-emerald animate-pulse" : "bg-foreground/10")} />
             </div>
@@ -618,12 +618,12 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
               ) : (
                 <div className="h-full flex flex-col items-center justify-center p-12 text-center opacity-20">
                   <MessageSquare className="w-10 h-10 mb-4" />
-                  <p className="text-[10px] font-bold uppercase tracking-widest">Initialize dialogue below</p>
+                  <p className="text-[10px] font-aktiv font-bold uppercase tracking-widest">Initialize dialogue below</p>
                   {selectedStudent && (
                     <button
                       onClick={() => handleStartChatWithStudent(selectedStudent.id)}
                       disabled={isStartingChat}
-                      className="mt-6 h-10 px-6 rounded-xl bg-foreground text-background text-[9px] font-bold uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2"
+                      className="mt-6 h-10 px-6 rounded-xl bg-foreground text-background text-[9px] font-aktiv font-bold uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2"
                     >
                       {isStartingChat ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3 text-primary" />}
                       Ignite
@@ -643,7 +643,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
           <div className="absolute inset-0 bg-foreground/20 backdrop-blur-md" onClick={() => setShowAssignModal(false)} />
           <div className="w-full max-w-xl rounded-[2.5rem] bg-white border border-outline-variant/10 shadow-2xl relative z-10 overflow-hidden p-12 space-y-10 animate-in zoom-in-95 duration-500">
             <header className="space-y-3 text-center">
-              <h3 className="text-3xl font-bold text-foreground tracking-tight">Align New Guide</h3>
+              <h3 className="text-3xl font-aktiv font-bold text-foreground tracking-tight">Align New Guide</h3>
               <p className="text-sm text-foreground/40 font-medium">Loading chat for {selectedStudent?.full_name}</p>
             </header>
 
@@ -669,8 +669,8 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                     )}
                   </div>
                   <div className="flex-1 text-left min-w-0">
-                    <p className="text-sm font-bold truncate">{instructor.full_name}</p>
-                    <p className={cn("text-[10px] font-bold truncate mt-0.5 opacity-40", selectedInstructorId === instructor.id ? "text-background" : "text-foreground")}>
+                    <p className="text-sm font-aktiv font-bold truncate">{instructor.full_name}</p>
+                    <p className={cn("text-[10px] font-aktiv font-bold truncate mt-0.5 opacity-40", selectedInstructorId === instructor.id ? "text-background" : "text-foreground")}>
                       {instructor.email}
                     </p>
                   </div>
@@ -684,14 +684,14 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
             <div className="flex gap-4 pt-4">
               <button
                 onClick={() => setShowAssignModal(false)}
-                className="flex-1 h-14 rounded-2xl text-[10px] font-bold uppercase tracking-widest text-foreground/40 hover:text-foreground transition-all"
+                className="flex-1 h-14 rounded-2xl text-[10px] font-aktiv font-bold uppercase tracking-widest text-foreground/40 hover:text-foreground transition-all"
               >
                 Relinquish
               </button>
               <button
                 onClick={handleAssignInstructor}
                 disabled={isAssigning || !selectedInstructorId}
-                className="flex-[2] h-14 rounded-2xl bg-foreground text-background text-[10px] font-bold uppercase tracking-widest shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-20 disabled:scale-100"
+                className="flex-[2] h-14 rounded-2xl bg-foreground text-background text-[10px] font-aktiv font-bold uppercase tracking-widest shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-20 disabled:scale-100"
               >
                 {isAssigning ? 'Synchronizing...' : (
                   <div className="flex items-center justify-center gap-2">

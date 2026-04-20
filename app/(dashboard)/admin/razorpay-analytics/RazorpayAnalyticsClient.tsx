@@ -60,11 +60,11 @@ const GlassCard = ({ children, className = '', id = '' }: { children: React.Reac
 
 
 const MetricCard = ({ label, value, trend, trendValue, subtext, icon, loading }: any) => (
-  <GlassCard className="flex flex-col justify-between py-4 group">
+  <GlassCard className="flex flex-col justify-between py-4 group font-jakarta">
     <div className="flex justify-between items-center mb-3">
-      <p className="text-[11px] uppercase tracking-tight text-slate-400 font-bold">{label}</p>
+      <p className="text-[11px] uppercase tracking-tight text-slate-400 font-aktiv font-bold">{label}</p>
       {trend && (
-        <div className={`flex items-center gap-1 text-[10px] font-bold ${trend === 'up' ? 'text-emerald-600' : 'text-rose-600'}`}>
+        <div className={`flex items-center gap-1 text-[10px] font-aktiv font-bold ${trend === 'up' ? 'text-emerald-600' : 'text-rose-600'}`}>
           {trend === 'up' ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
           {trendValue}%
         </div>
@@ -75,9 +75,9 @@ const MetricCard = ({ label, value, trend, trendValue, subtext, icon, loading }:
         {loading ? (
           <div className="h-7 w-24 bg-slate-100 animate-pulse rounded" />
         ) : (
-          <h3 className="text-xl font-bold text-slate-900">{value}</h3>
+          <h3 className="text-xl font-aktiv font-bold text-slate-900">{value}</h3>
         )}
-        {subtext && <p className="text-[10px] text-slate-400 mt-1 font-medium">{subtext}</p>}
+        {subtext && <p className="text-[10px] text-slate-400 mt-1 font-jakarta font-medium">{subtext}</p>}
       </div>
       <div className="text-slate-300">
         {icon}
@@ -257,20 +257,20 @@ export default function RazorpayAnalyticsClient() {
   }
 
   return (
-    <div className="relative min-h-screen bg-slate-50 p-6 lg:p-8 font-sans selection:bg-slate-900 selection:text-white">
+    <div className="relative min-h-screen bg-slate-50 p-6 lg:p-8 font-jakarta selection:bg-slate-900 selection:text-white">
       {/* Header */}
       <header id="intelligence" className="mb-8">
         <div className="flex flex-col md:flex-row justify-between items-start gap-6 mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 mb-2">
-              Business Intelligence <span className="text-slate-400 font-medium">v2.0</span>
+            <h1 className="text-2xl font-aktiv font-bold text-slate-900 mb-2">
+              Business Intelligence <span className="text-slate-400 font-jakarta font-medium">v2.0</span>
             </h1>
             <div className="flex items-center gap-4">
-               <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-tight">
+               <div className="flex items-center gap-2 text-[10px] font-aktiv font-bold text-slate-500 uppercase tracking-tight">
                   <div className="size-1.5 bg-emerald-500 rounded-full" />
                   Live System Connected
                </div>
-               <button onClick={fetchData} className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-tight hover:text-slate-900 transition-colors">
+               <button onClick={fetchData} className="flex items-center gap-1.5 text-[10px] font-aktiv font-bold text-slate-400 uppercase tracking-tight hover:text-slate-900 transition-colors">
                   <RefreshCw className={`size-3 ${loading ? 'animate-spin' : ''}`} /> Refresh
                </button>
             </div>
@@ -315,8 +315,8 @@ export default function RazorpayAnalyticsClient() {
         <section id="funnel" className="scroll-mt-24">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
             <div>
-              <h2 className="text-lg font-bold text-slate-900 uppercase tracking-tight">Checkout Funnel</h2>
-              <p className="text-[10px] font-medium text-slate-400">Conversion velocity metrics</p>
+              <h2 className="text-lg font-aktiv font-bold text-slate-900 uppercase tracking-tight">Checkout Funnel</h2>
+              <p className="text-[10px] font-jakarta font-medium text-slate-400">Conversion velocity metrics</p>
             </div>
             {isDemoMode && (
               <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded text-[9px] font-bold uppercase tracking-tight border border-amber-100">
@@ -468,7 +468,7 @@ export default function RazorpayAnalyticsClient() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
              <GlassCard className="col-span-1">
-                <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-tight mb-8">Share Analysis</h3>
+                <h3 className="text-[10px] font-aktiv font-bold text-slate-400 uppercase tracking-tight mb-8">Share Analysis</h3>
                 <div className="h-[250px]">
                    <ResponsiveContainer width="100%" height="100%">
                      <PieChart>
@@ -726,14 +726,14 @@ export default function RazorpayAnalyticsClient() {
         <section id="customers" className="scroll-mt-24">
           <div className="flex items-end justify-between mb-8">
             <div>
-              <h2 className="text-lg font-bold text-slate-900 uppercase tracking-tight">Customer Analytics</h2>
-              <p className="text-[10px] font-medium text-slate-400">High-LTV profile streaming</p>
+              <h2 className="text-lg font-aktiv font-bold text-slate-900 uppercase tracking-tight">Customer Analytics</h2>
+              <p className="text-[10px] font-jakarta font-medium text-slate-400">High-LTV profile streaming</p>
             </div>
           </div>
           
           <GlassCard className="p-0 overflow-hidden">
              <div className="p-4 border-b border-slate-50 flex justify-between items-center">
-                <h3 className="text-[10px] font-bold text-slate-900">Top Strategic Partners</h3>
+                <h3 className="text-[10px] font-aktiv font-bold text-slate-900">Top Strategic Partners</h3>
              </div>
              <div className="overflow-x-auto">
                 <table className="w-full text-left">
@@ -775,8 +775,8 @@ export default function RazorpayAnalyticsClient() {
         <section id="failures" className="scroll-mt-24">
           <div className="flex items-end justify-between mb-4">
             <div>
-              <h2 className="text-xl font-extrabold text-gray-800 mb-0.5">Failure & Refund Analysis</h2>
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Pain points and recovery opportunities</p>
+              <h2 className="text-xl font-aktiv font-bold text-slate-900 mb-0.5">Failure & Refund Analysis</h2>
+              <p className="text-[10px] text-slate-400 font-jakarta font-bold uppercase tracking-widest">Pain points and recovery opportunities</p>
             </div>
           </div>
 
@@ -788,7 +788,7 @@ export default function RazorpayAnalyticsClient() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <GlassCard>
-               <h3 className="font-extrabold text-gray-800 text-sm mb-6">Failure Reasons</h3>
+               <h3 className="font-aktiv font-extrabold text-gray-800 text-sm mb-6">Failure Reasons</h3>
                <div className="space-y-4">
                   {Object.entries(data?.failed?.byReason || {}).map(([reason, count]: any, idx) => {
                      const percentage = (count / (data?.failed?.total || 1)) * 100;
@@ -812,7 +812,7 @@ export default function RazorpayAnalyticsClient() {
 
             <GlassCard className="p-0 overflow-hidden">
                <div className="p-6 border-b border-white/60">
-                 <h3 className="font-extrabold text-gray-800 text-sm">Abandoned (Never Completed)</h3>
+                 <h3 className="font-aktiv font-bold text-slate-900 text-sm">Abandoned (Never Completed)</h3>
                </div>
                <div className="max-h-[300px] overflow-y-auto p-2">
                  {(data?.failed?.abandonedStudents || []).length > 0 ? (
@@ -844,8 +844,8 @@ export default function RazorpayAnalyticsClient() {
         <section id="settlements" className="scroll-mt-24">
           <div className="flex items-end justify-between mb-4">
             <div>
-              <h2 className="text-xl font-extrabold text-gray-800 mb-0.5">Settlement Cycles</h2>
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Bank transfers and payout history</p>
+              <h2 className="text-xl font-aktiv font-bold text-slate-900 mb-0.5">Settlement Cycles</h2>
+              <p className="text-[10px] text-slate-400 font-jakarta font-bold uppercase tracking-widest">Bank transfers and payout history</p>
             </div>
           </div>
 
@@ -861,14 +861,14 @@ export default function RazorpayAnalyticsClient() {
         <section id="tax" className="scroll-mt-24">
           <div className="flex items-end justify-between mb-4">
             <div>
-              <h2 className="text-xl font-extrabold text-gray-800 mb-0.5">Tax & Compliance</h2>
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Financial year summary and fees</p>
+              <h2 className="text-xl font-aktiv font-bold text-slate-900 mb-0.5">Tax & Compliance</h2>
+              <p className="text-[10px] text-slate-400 font-jakarta font-bold uppercase tracking-widest">Financial year summary and fees</p>
             </div>
           </div>
           
           <GlassCard className="p-0 overflow-hidden">
              <div className="p-6 border-b border-white/60">
-                <h3 className="font-extrabold text-gray-800 text-sm">Monthly Breakdown</h3>
+                <h3 className="font-aktiv font-bold text-slate-900 text-sm">Monthly Breakdown</h3>
              </div>
              <div className="overflow-x-auto">
                 <table className="w-full text-left">
@@ -903,8 +903,8 @@ export default function RazorpayAnalyticsClient() {
         <section id="disputes" className="scroll-mt-24">
           <div className="flex items-end justify-between mb-4">
             <div>
-              <h2 className="text-xl font-extrabold text-gray-800 mb-0.5">Disputes & Chargebacks</h2>
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Customer payment disputes</p>
+              <h2 className="text-xl font-aktiv font-bold text-slate-900 mb-0.5">Disputes & Chargebacks</h2>
+              <p className="text-[10px] text-slate-400 font-jakarta font-bold uppercase tracking-widest">Customer payment disputes</p>
             </div>
           </div>
           
@@ -912,8 +912,8 @@ export default function RazorpayAnalyticsClient() {
              {!data?.disputes?.available ? (
                 <div className="text-center py-12">
                    <ShieldCheck className="size-12 text-gray-300 mx-auto mb-4" />
-                   <h3 className="text-lg font-extrabold text-gray-800 mb-2">No Dispute Data</h3>
-                   <p className="text-sm text-gray-500 font-medium max-w-md mx-auto">
+                   <h3 className="text-lg font-aktiv font-bold text-slate-900 mb-2">No Dispute Data</h3>
+                   <p className="text-sm text-gray-500 font-jakarta font-medium max-w-md mx-auto">
                       Disputes API is either not enabled for your Razorpay merchant account, or you have zero historical disputes. Good job!
                    </p>
                 </div>
@@ -935,8 +935,8 @@ export default function RazorpayAnalyticsClient() {
                     <Download className="size-5" />
                  </div>
                  <div>
-                    <h3 className="text-sm font-bold uppercase tracking-tight">Intelligence Archive</h3>
-                    <p className="text-[10px] font-medium text-slate-400">Download system data snapshots</p>
+                    <h3 className="text-sm font-aktiv font-bold uppercase tracking-tight">Intelligence Archive</h3>
+                    <p className="text-[10px] font-jakarta font-medium text-slate-400">Download system data snapshots</p>
                  </div>
               </div>
               <div className="flex flex-wrap gap-3">

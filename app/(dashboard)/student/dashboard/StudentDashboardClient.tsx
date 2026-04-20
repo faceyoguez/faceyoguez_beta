@@ -141,7 +141,7 @@ export function StudentDashboardClient({
 
 
   return (
-    <div className="min-h-[100dvh] relative flex flex-col bg-[#FFFAF7] text-slate-900 font-sans selection:bg-[#FF8A75]/20 overflow-x-hidden">
+    <div className="min-h-[100dvh] relative flex flex-col bg-[#FFFAF7] text-slate-900 font-jakarta selection:bg-[#FF8A75]/20 overflow-x-hidden">
 
       {/* ── Sanctuary Style Auroras ── */}
       <div className="fixed inset-0 z-0 pointer-events-none">
@@ -152,7 +152,7 @@ export function StudentDashboardClient({
       <div className="relative z-10 flex flex-col h-full overflow-y-auto">
 
         {/* ── Sanctuary Header ── */}
-        <header className="shrink-0 px-5 sm:px-6 md:px-8 lg:px-12 py-5 md:py-6 lg:py-8 flex items-center justify-between border-b border-[#FF8A75]/5" style={{ paddingTop: 'max(1.25rem, env(safe-area-inset-top))' }}>
+        <header className="shrink-0 px-5 sm:px-6 md:px-8 lg:px-12 py-3 md:py-4 lg:py-5 flex items-center justify-between border-b border-[#FF8A75]/5" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -163,7 +163,7 @@ export function StudentDashboardClient({
               <span className="text-[10px] md:text-[10px] lg:text-[9px] font-black uppercase tracking-[0.2em] lg:tracking-[0.3em] text-[#FF8A75] leading-none">Curator Presence Active</span>
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-serif tracking-tight text-[#1a1a1a] leading-none">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-aktiv tracking-tight text-[#1a1a1a] leading-none">
                 {firstName}&apos;s <span className="text-[#FF8A75] underline decoration-[#FF8A75]/20 underline-offset-4 lg:underline-offset-8">Sanctuary</span>
               </h1>
               <p className="text-[10px] md:text-[10px] lg:text-[10px] font-black uppercase tracking-[0.3em] lg:tracking-[0.4em] text-slate-400 mt-1.5 lg:mt-2 opacity-80">
@@ -179,7 +179,7 @@ export function StudentDashboardClient({
         </header>
 
         {/* ── Main Canvas ── */}
-        <main className="flex-1 px-5 sm:px-6 md:px-8 lg:px-12 pb-5 md:pb-6 lg:pb-8 flex flex-col gap-4 md:gap-6 lg:gap-8 overflow-y-auto mt-2 no-scrollbar" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
+        <main className="flex-1 px-5 sm:px-6 md:px-8 lg:px-12 pb-3 md:pb-4 lg:pb-5 flex flex-col gap-2 md:gap-3 lg:gap-4 overflow-y-auto mt-1 no-scrollbar" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
 
           {/* Hero Row (Synchronicity & Mirror) */}
           <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 lg:gap-10 items-stretch min-h-0">
@@ -188,9 +188,9 @@ export function StudentDashboardClient({
             <motion.section
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="md:col-span-5 lg:col-span-4 flex flex-col min-h-0"
+              className="md:col-span-6 lg:col-span-6 flex flex-col min-h-0"
             >
-              <div className="flex-1 bg-white/40 backdrop-blur-3xl border border-[#FF8A75]/5 rounded-[2rem] lg:rounded-[3.5rem] p-6 lg:p-10 flex flex-col overflow-hidden relative group">
+              <div className="flex-1 bg-white/40 backdrop-blur-3xl border border-[#FF8A75]/5 rounded-[2rem] lg:rounded-[3rem] p-4 lg:p-6 flex flex-col overflow-hidden relative group">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#FF8A75]/5 to-transparent rounded-tr-[2rem] lg:rounded-tr-[3.5rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                 
                 <div className="flex items-center justify-between mb-5 lg:mb-8 shrink-0 relative pb-4 border-b border-[#FF8A75]/5">
@@ -199,12 +199,12 @@ export function StudentDashboardClient({
                       <Clock className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
                     </div>
                     <div>
-                      <h2 className="text-2xl lg:text-4xl font-serif text-[#1a1a1a] tracking-tight">Synchronicity</h2>
-                      <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75] mt-1 opacity-60">Live Experience</p>
+                      <h2 className="text-2xl lg:text-4xl font-aktiv font-bold text-[#1a1a1a] tracking-tight">Synchronicity</h2>
+                      <p className="text-[9px] font-aktiv font-black uppercase tracking-[0.3em] text-[#FF8A75] mt-1 opacity-60">Live Experience</p>
                     </div>
                   </div>
                   {meetings.length > 0 && (
-                    <span className="px-3 py-1 bg-slate-900 text-white text-[9px] font-black uppercase rounded-full">
+                    <span className="px-3 py-1 bg-slate-900 text-white text-[9px] font-aktiv font-black uppercase rounded-full">
                       {meetings.length}
                     </span>
                   )}
@@ -217,8 +217,8 @@ export function StudentDashboardClient({
                         <Radio className="w-6 h-6 lg:w-8 lg:h-8 text-[#FF8A75]/20" />
                       </div>
                       <div className="space-y-2">
-                        <h3 className="text-lg lg:text-xl font-serif text-[#1a1a1a] tracking-tight leading-tight">No Synchronicity Found</h3>
-                        <p className="text-[10px] font-bold text-slate-400 max-w-xs uppercase tracking-widest leading-loose">
+                        <h3 className="text-lg lg:text-xl font-aktiv font-bold text-[#1a1a1a] tracking-tight leading-tight">No Synchronicity Found</h3>
+                        <p className="text-[10px] font-aktiv font-bold text-slate-400 max-w-xs uppercase tracking-widest leading-loose">
                           Breathe and check back soon for live sessions.
                         </p>
                       </div>
@@ -241,15 +241,15 @@ export function StudentDashboardClient({
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                              <p className="text-[10px] font-black uppercase tracking-widest text-[#FF8A75]">
+                              <p className="text-[10px] font-aktiv font-black uppercase tracking-widest text-[#FF8A75]">
                                 {format(new Date(meeting.start_time), 'MMM d, h:mm a')}
                               </p>
-                              <span className="text-[9px] font-black px-2 py-0.5 bg-[#FF8A75]/10 rounded-full text-[#FF8A75] border border-[#FF8A75]/10">
+                              <span className="text-[9px] font-aktiv font-black px-2 py-0.5 bg-[#FF8A75]/10 rounded-full text-[#FF8A75] border border-[#FF8A75]/10">
                                 {meeting.duration_minutes || 45}m ritual
                               </span>
                             </div>
-                            <h4 className="text-sm font-bold text-slate-900 truncate mb-1">{meeting.topic}</h4>
-                            <p className="text-[10px] md:text-[10px] font-black uppercase tracking-wider text-slate-400">
+                            <h4 className="text-sm font-aktiv font-bold text-slate-900 truncate mb-1">{meeting.topic}</h4>
+                            <p className="text-[10px] md:text-[10px] font-aktiv font-black uppercase tracking-wider text-slate-400">
                               Guided by {meeting.host?.full_name || 'Master Instructor'}
                             </p>
                           </div>
@@ -275,25 +275,25 @@ export function StudentDashboardClient({
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.1 }}
-              className="md:col-span-7 lg:col-span-8 flex flex-col min-h-0"
+              className="md:col-span-6 lg:col-span-6 flex flex-col min-h-0"
             >
-              <div className="flex-1 bg-white/40 backdrop-blur-3xl border border-[#FF8A75]/5 rounded-[2rem] lg:rounded-[3.5rem] p-6 lg:p-10 flex flex-col relative overflow-hidden group">
+              <div className="flex-1 bg-white/40 backdrop-blur-3xl border border-[#FF8A75]/5 rounded-[2rem] lg:rounded-[3rem] p-4 lg:p-6 flex flex-col relative overflow-hidden group">
                 <div className="flex items-center justify-between mb-5 lg:mb-8 shrink-0 pb-4 border-b border-[#FF8A75]/5">
                   <div className="flex items-center gap-4 lg:gap-6">
                     <div className="h-10 w-10 lg:h-14 lg:w-14 rounded-xl lg:rounded-2xl bg-[#1a1a1a] flex items-center justify-center shadow-lg shadow-[#1a1a1a]/20">
                       <TrendingUp className="w-5 h-5 lg:w-6 lg:h-6 text-[#FF8A75]" />
                     </div>
                     <div>
-                      <h2 className="text-xl sm:text-2xl lg:text-4xl font-serif text-[#1a1a1a] tracking-tight">Transformation Mirror</h2>
-                      <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75] mt-1 opacity-60">Aura Progression</p>
+                      <h2 className="text-xl sm:text-2xl lg:text-4xl font-aktiv font-bold text-[#1a1a1a] tracking-tight">Transformation Mirror</h2>
+                      <p className="text-[9px] font-aktiv font-black uppercase tracking-[0.3em] text-[#FF8A75] mt-1 opacity-60">Aura Progression</p>
                     </div>
                   </div>
-                  <div className="px-3 lg:px-5 py-1.5 lg:py-2 bg-white/80 backdrop-blur-md border border-[#FF8A75]/10 rounded-full shadow-sm text-[10px] lg:text-[11px] font-black uppercase text-[#FF8A75] tracking-widest">
+                  <div className="px-3 lg:px-5 py-1.5 lg:py-2 bg-white/80 backdrop-blur-md border border-[#FF8A75]/10 rounded-full shadow-sm text-[10px] lg:text-[11px] font-aktiv font-black uppercase text-[#FF8A75] tracking-widest shrink-0">
                     Day {journeyDay}
                   </div>
                 </div>
 
-                <div className="flex-1 relative rounded-[1.5rem] lg:rounded-[3rem] overflow-hidden bg-white/30 border-[6px] lg:border-[10px] border-white shadow-2xl min-h-[200px] lg:min-h-0">
+                <div className="flex-1 relative rounded-[1.5rem] lg:rounded-[2.5rem] overflow-hidden bg-white/30 border-[4px] lg:border-[6px] border-white shadow-2xl mx-auto aspect-square max-h-[350px] lg:max-h-[420px]">
                   {latestPhoto?.photo_url ? (
                     <ImageComparison
                       beforeImage={firstPhoto?.photo_url || '/placeholder-before.jpg'}
@@ -306,7 +306,7 @@ export function StudentDashboardClient({
                       <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-[1.5rem] lg:rounded-[2.5rem] bg-white/60 backdrop-blur-md border border-white flex items-center justify-center shadow-lg">
                         <Sparkles className="w-6 h-6 lg:w-8 lg:h-8 text-[#FF8A75]/30" />
                       </div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 max-w-xs leading-relaxed">
+                      <p className="text-[10px] font-aktiv font-black uppercase tracking-[0.3em] text-slate-400 max-w-xs leading-relaxed">
                         Capturing your progressive radiance...
                       </p>
                     </div>
@@ -325,7 +325,7 @@ export function StudentDashboardClient({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
                 onClick={() => router.push('/student/group-session')}
-                className="group relative p-6 lg:p-8 bg-white/60 backdrop-blur-3xl border border-[#FF8A75]/10 rounded-[2rem] lg:rounded-[3rem] hover:bg-white transition-all cursor-pointer shadow-sm hover:shadow-xl hover:shadow-[#FF8A75]/5"
+                className="group relative p-4 lg:p-6 bg-white/60 backdrop-blur-3xl border border-[#FF8A75]/10 rounded-[1.8rem] lg:rounded-[2.5rem] hover:bg-white transition-all cursor-pointer shadow-sm hover:shadow-xl hover:shadow-[#FF8A75]/5 font-jakarta"
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="h-12 w-12 rounded-2xl bg-[#446187]/10 text-[#446187] flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -334,51 +334,10 @@ export function StudentDashboardClient({
                   <ArrowUpRight className="w-4 h-4 text-slate-300 group-hover:text-[#446187] transition-colors" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-serif text-[#1a1a1a] tracking-tight">Live Group</h3>
-                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#446187] mt-1">21-Day Ritual Hub</p>
+                  <h3 className="text-xl font-aktiv font-bold text-[#1a1a1a] tracking-tight">Live Group</h3>
+                  <p className="text-[9px] font-aktiv font-black uppercase tracking-[0.2em] text-[#446187] mt-1">21-Day Ritual Hub</p>
                 </div>
               </motion.div>
-            )}
-
-            {/* Video Course Ritual Card */}
-            {/* Video Course Ritual Card - Always Show for Free Level 1 */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              onClick={() => router.push('/student/lms')}
-              className="group relative p-6 lg:p-8 bg-white/60 backdrop-blur-3xl border border-[#FF8A75]/10 rounded-[2rem] lg:rounded-[3rem] hover:bg-white transition-all cursor-pointer shadow-sm hover:shadow-xl hover:shadow-[#FF8A75]/5 overflow-hidden"
-            >
-              {/* Free Access Badge for non-subscribers */}
-              {!activePlanTypes.includes('lms') && (
-                <div className="absolute top-4 right-4 px-2 py-0.5 bg-[#FF8A75]/10 rounded-md border border-[#FF8A75]/20">
-                  <span className="text-[7px] font-black uppercase tracking-widest text-[#FF8A75]">Free Access</span>
-                </div>
-              )}
-              
-              <div className="flex items-center justify-between mb-4">
-                <div className="h-12 w-12 rounded-2xl bg-[#5a6343]/10 text-[#5a6343] flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <BookOpen className="w-6 h-6" />
-                </div>
-                <ArrowUpRight className="w-4 h-4 text-slate-300 group-hover:text-[#5a6343] transition-colors" />
-              </div>
-              <div>
-                <h3 className="text-xl font-serif text-[#1a1a1a] tracking-tight">Video Courses</h3>
-                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#5a6343] mt-1">Self-Paced Mastery</p>
-              </div>
-            </motion.div>
-
-            {/* Coming Soon / Placeholder (Level 2) - Premium Look */}
-            {!activePlanTypes.includes('level_2') && (
-              <div className="group relative p-6 lg:p-8 bg-white/40 backdrop-blur-xl border border-white/60 rounded-[2rem] lg:rounded-[3rem] opacity-60 flex flex-col justify-center">
-                <div className="h-12 w-12 rounded-2xl bg-slate-900/5 text-slate-400 flex items-center justify-center mb-4">
-                   <Sparkles className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-serif text-slate-400 tracking-tight">Advanced Era</h3>
-                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-300 mt-1">Level 2 Rituals</p>
-                </div>
-              </div>
             )}
           </div>
 
@@ -390,14 +349,14 @@ export function StudentDashboardClient({
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="sm:w-48 lg:w-56 h-20 lg:h-24 rounded-[2rem] lg:rounded-[2.5rem] bg-white border border-[#FF8A75]/10 shadow-xl shadow-[#FF8A75]/5 flex items-center justify-center relative overflow-hidden group"
+              className="sm:w-40 lg:w-48 h-16 lg:h-20 rounded-[1.5rem] lg:rounded-[2rem] bg-white border border-[#FF8A75]/10 shadow-xl shadow-[#FF8A75]/5 flex items-center justify-center relative overflow-hidden group"
             >
-              <div className="absolute top-0 right-0 p-3 opacity-5 group-hover:opacity-10 transition-opacity">
-                 <Activity className="w-16 h-16 text-[#1a1a1a]" />
+              <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
+                 <Activity className="w-12 h-12 text-[#1a1a1a]" />
               </div>
               <div className="relative z-10 flex flex-col items-center">
-                <p className="text-4xl lg:text-5xl font-serif text-[#1a1a1a] tracking-tighter leading-none">{journeyDay}</p>
-                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75]/80 mt-1">Ritual Streak</p>
+                <p className="text-3xl lg:text-4xl font-aktiv font-bold text-[#1a1a1a] tracking-tighter leading-none">{journeyDay}</p>
+                <p className="text-[8px] font-aktiv font-black uppercase tracking-[0.2em] text-[#FF8A75]/80 mt-1">Ritual Streak</p>
               </div>
             </motion.div>
 
@@ -406,33 +365,33 @@ export function StudentDashboardClient({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="flex-1 min-h-[5rem] lg:h-24 px-5 lg:px-10 py-4 lg:py-0 bg-white/60 backdrop-blur-3xl rounded-[2rem] lg:rounded-[2.5rem] flex items-center justify-between border border-[#FF8A75]/10 shadow-xl shadow-[#FF8A75]/5 relative overflow-hidden group gap-4"
+              className="flex-1 min-h-[4rem] lg:h-20 px-4 lg:px-8 py-3 lg:py-0 bg-white/60 backdrop-blur-3xl rounded-[1.5rem] lg:rounded-[2rem] flex items-center justify-between border border-[#FF8A75]/10 shadow-xl shadow-[#FF8A75]/5 relative overflow-hidden group gap-3"
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF8A75]/5 rounded-full blur-2xl -translate-y-12 translate-x-12 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="absolute top-0 right-0 w-24 h-24 bg-[#FF8A75]/5 rounded-full blur-2xl -translate-y-10 translate-x-10 opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="absolute top-0 left-0 w-1 lg:w-1.5 h-full bg-[#FF8A75]/60" />
-              <div className="flex items-center gap-4 lg:gap-6 overflow-hidden relative z-10 flex-1">
-                <div className="h-10 w-10 lg:h-12 lg:w-12 rounded-xl lg:rounded-2xl bg-[#FF8A75]/10 flex items-center justify-center shrink-0">
-                  <Sparkles className="w-5 h-5 lg:w-6 lg:h-6 text-[#FF8A75]" />
+              <div className="flex items-center gap-3 lg:gap-5 overflow-hidden relative z-10 flex-1">
+                <div className="h-8 w-8 lg:h-10 lg:w-10 rounded-lg lg:rounded-xl bg-[#FF8A75]/10 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-4 h-4 lg:w-5 lg:h-5 text-[#FF8A75]" />
                 </div>
                 <div className="overflow-hidden">
-                  <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75] opacity-60 mb-1">Elite Wisdom</p>
-                  <p className="text-base lg:text-xl xl:text-2xl font-serif text-[#1a1a1a] leading-tight line-clamp-2 lg:line-clamp-1">
+                  <p className="text-[8px] font-aktiv font-black uppercase tracking-[0.2em] text-[#FF8A75] opacity-60 mb-0.5">Elite Wisdom</p>
+                  <p className="text-sm lg:text-lg xl:text-xl font-jakarta text-[#1a1a1a] leading-tight line-clamp-1 italic">
                     &ldquo;{quote}&rdquo;
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 lg:gap-6 shrink-0 relative z-10">
+              <div className="flex items-center gap-2 lg:gap-5 shrink-0 relative z-10">
                 <div className="hidden sm:flex flex-col items-end text-right">
-                  <p className="text-[8px] font-black uppercase tracking-[0.3em] text-[#1a1a1a]/40">Sanctuary Plan</p>
+                  <p className="text-[7px] font-aktiv font-black uppercase tracking-[0.2em] text-[#1a1a1a]/40">Sanctuary Plan</p>
                   <p className={cn(
-                    "text-[10px] font-black uppercase tracking-widest mt-0.5",
+                    "text-[9px] font-aktiv font-black uppercase tracking-widest mt-0.5",
                     daysLeft <= 5 ? 'text-rose-500 animate-pulse' : 'text-[#FF8A75]'
                   )}>
                     {daysLeft === -1 ? 'Eternal Access' : `${daysLeft} Days Left`}
                   </p>
                 </div>
-                <div className="h-10 w-10 lg:h-12 lg:w-12 rounded-[1rem] lg:rounded-[1.25rem] bg-[#1a1a1a] flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-500">
-                  <Zap className="w-4 h-4 lg:w-5 lg:h-5 text-[#FF8A75]" />
+                <div className="h-8 w-8 lg:h-10 lg:w-10 rounded-lg lg:rounded-xl bg-[#1a1a1a] flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-500">
+                  <Zap className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-[#FF8A75]" />
                 </div>
               </div>
             </motion.div>

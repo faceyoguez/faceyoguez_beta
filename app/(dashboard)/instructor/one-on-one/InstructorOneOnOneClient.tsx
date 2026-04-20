@@ -148,7 +148,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
   let afterImage = activeLog?.photo_url || 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800';
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-[#FFFAF7] text-[#1a1a1a] selection:bg-[#FF8A75]/10 overflow-hidden font-sans relative">
+    <div className="flex flex-col h-[100dvh] bg-[#FFFAF7] text-[#1a1a1a] selection:bg-[#FF8A75]/10 overflow-hidden font-jakarta relative">
       <div className="fixed inset-0 z-0 pointer-events-none">
          <div className="absolute top-[-10%] right-[-10%] w-[60vw] h-[60vh] bg-[radial-gradient(circle_at_center,rgba(255,138,117,0.08)_0%,transparent_60%)] rounded-full blur-[100px] animate-pulse" style={{ animationDuration: '8s' }} />
          <div className="absolute bottom-[-10%] left-[-10%] w-[50vw] h-[50vh] bg-[radial-gradient(circle_at_center,rgba(255,107,78,0.05)_0%,transparent_60%)] rounded-full blur-[100px] animate-pulse" style={{ animationDuration: '12s', animationDelay: '2s' }} />
@@ -168,7 +168,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                   <div className="h-8 lg:h-10 w-[3px] bg-[#FF8A75] rounded-full shadow-[0_0_12px_#FF8A75]/50" />
                   <div>
                      <div className="flex items-center gap-2">
-                       <h1 className="text-xl lg:text-3xl font-serif text-slate-900 tracking-tight leading-none">Curator</h1>
+                       <h1 className="text-xl lg:text-3xl font-aktiv font-bold text-slate-900 tracking-tight leading-none">Curator</h1>
                        <span className="px-2 py-0.5 bg-[#FF8A75]/10 border border-[#FF8A75]/20 rounded-full text-[8px] font-black uppercase tracking-widest text-[#FF8A75]">Master</span>
                      </div>
                      <p className="hidden sm:block text-[8px] lg:text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mt-1.5 opacity-80 text-nowrap">Unified Command Hub</p>
@@ -203,7 +203,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
          )}>
             <div className="flex lg:hidden items-center justify-between py-8 px-2 border-b border-[#FF8A75]/10 mb-4">
-               <span className="text-xl font-serif font-bold tracking-tight">Soul Compass</span>
+               <span className="text-xl font-aktiv font-bold tracking-tight">Soul Compass</span>
                <button onClick={() => setIsSidebarOpen(false)}><X className="w-6 h-6 text-slate-400" /></button>
             </div>
             
@@ -234,7 +234,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                            {student.avatar_url ? (
                               <img src={student.avatar_url} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
                            ) : (
-                              <span className={cn("text-sm font-serif font-bold", isSelected ? "text-[#FF8A75]" : "text-slate-400")}>{student.full_name[0]}</span>
+                              <span className={cn("text-sm font-aktiv font-bold", isSelected ? "text-[#FF8A75]" : "text-slate-400")}>{student.full_name[0]}</span>
                            )}
                         </div>
                         <div className="text-left flex-1 min-w-0">
@@ -267,7 +267,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
             >
                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0">
                   <div>
-                     <h2 className="text-3xl lg:text-4xl font-serif text-slate-900 tracking-tight">Transformation</h2>
+                     <h2 className="text-3xl lg:text-4xl font-aktiv font-bold text-slate-900 tracking-tight">Transformation</h2>
                      <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75] mt-2 opacity-80">Journey Context</p>
                   </div>
                   {selectedStudent?.startDate && (
@@ -334,7 +334,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                            value={notes}
                            onChange={(e) => setNotes(e.target.value)}
                            placeholder="Inscribe observations on the seeker's evolution..."
-                           className="flex-1 bg-transparent border-none p-2 text-base lg:text-lg font-medium text-slate-700 focus:ring-0 resize-none min-h-[140px] placeholder:text-slate-300 placeholder:italic placeholder:font-serif leading-relaxed relative z-10"
+                           className="flex-1 bg-transparent border-none p-2 text-base lg:text-lg font-medium text-slate-700 focus:ring-0 resize-none min-h-[140px] placeholder:text-slate-300 placeholder:italic placeholder:font-aktiv leading-relaxed relative z-10"
                         />
                      </div>
 
@@ -342,7 +342,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                      <div className="bg-white rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-8 border border-[#FF8A75]/10 shadow-[0_8px_40px_rgb(0,0,0,0.04)] flex flex-col min-h-[200px]">
                         <div className="flex items-center justify-between mb-6 shrink-0 border-b border-slate-100 pb-4">
                            <div>
-                              <h3 className="text-xl font-serif text-slate-900 tracking-tight">Artifacts</h3>
+                              <h3 className="text-xl font-aktiv font-bold text-slate-900 tracking-tight">Artifacts</h3>
                               <p className="text-[8px] font-black uppercase tracking-[0.3em] text-slate-400 mt-1">Shared Resources</p>
                            </div>
                            <button
@@ -404,7 +404,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                <div className="flex-1 bg-black border border-white/5 rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-8 flex flex-col relative shadow-2xl shadow-black/40 h-full min-h-[600px]">
                   <div className="flex items-center justify-between mb-6 shrink-0 border-b border-white/5 pb-4">
                      <div className="space-y-1">
-                        <h3 className="text-xl font-serif text-white tracking-tight flex items-center gap-3">
+                        <h3 className="text-xl font-aktiv font-bold text-white tracking-tight flex items-center gap-3">
                            Portal <span className="flex h-2 w-2 relative rounded-full bg-emerald-500"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span></span>
                         </h3>
                         <p className="text-[8px] font-black uppercase tracking-[0.3em] text-[#FF8A75] opacity-80">Direct Encrypted Channel</p>
@@ -483,7 +483,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                >
                   <div className="flex items-center justify-between p-6 border-b border-white/10 shrink-0">
                      <div className="space-y-1">
-                        <h3 className="text-xl font-serif text-white tracking-tight flex items-center gap-3">
+                        <h3 className="text-xl font-aktiv font-bold text-white tracking-tight flex items-center gap-3">
                            Portal <span className="flex h-2 w-2 relative rounded-full bg-emerald-500"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span></span>
                         </h3>
                         <p className="text-[8px] font-black uppercase tracking-[0.3em] text-[#FF8A75] opacity-80">Direct Encrypted Channel</p>
@@ -553,7 +553,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                      <div className="h-16 w-16 bg-[#1a1a1a] rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-xl shadow-slate-900/20 rotate-3">
                         <Calendar className="w-7 h-7 text-[#FF8A75]" />
                      </div>
-                     <h3 className="text-3xl font-serif text-slate-900 mb-2 tracking-tight">Temporal Node</h3>
+                     <h3 className="text-3xl font-aktiv font-bold text-slate-900 mb-2 tracking-tight">Temporal Node</h3>
                      <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">Lock Synchronization</p>
                   </div>
 
@@ -561,7 +561,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                      <div className="space-y-2">
                         <label className="text-[9px] font-black tracking-[0.2em] uppercase text-slate-400 ml-4">Target Resonance</label>
                         <div className="h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-3">
-                           <div className="h-8 w-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-[#FF8A75] font-serif font-bold text-sm">
+                            <div className="h-8 w-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-[#FF8A75] font-aktiv font-bold text-sm">
                               {selectedStudent?.full_name[0]}
                            </div>
                            <span className="text-sm font-bold text-slate-900 capitalize">{selectedStudent?.full_name}</span>

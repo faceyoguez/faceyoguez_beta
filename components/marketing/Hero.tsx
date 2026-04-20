@@ -75,7 +75,7 @@ export function Hero({ visible }: HeroProps) {
         className="fixed top-6 left-1/2 -translate-x-1/2 w-[92%] sm:w-[85%] z-[100]"
       >
         <div className="flex items-center justify-between px-6 py-4 rounded-full bg-white/40 backdrop-blur-xl border border-white/40 shadow-[0_8px_32px_rgba(255,138,117,0.08)]">
-          <div className="font-serif text-xl sm:text-2xl font-bold text-[#2a2019] italic leading-none flex items-center">
+          <div className="font-sooner text-2xl sm:text-3xl font-bold text-[#2a2019] leading-none flex items-center">
             faceyoguez
           </div>
 
@@ -101,7 +101,7 @@ export function Hero({ visible }: HeroProps) {
 
           <motion.h1
             variants={itemVariants}
-            className={`font-serif leading-[1.05] text-[#2a2019] ${isMobile ? 'text-[2.8rem] mb-6' : 'text-header lg:text-[5.5rem] mb-8'}`}
+            className={`font-aktiv leading-[1.05] text-[#2a2019] ${isMobile ? 'text-[2.8rem] mb-6' : 'text-header lg:text-[5.5rem] mb-8 font-bold'}`}
           >
             Restore your glow, <br />
             <span className="italic font-light opacity-80">breathe by breath.</span>
@@ -109,7 +109,7 @@ export function Hero({ visible }: HeroProps) {
 
           <motion.p
             variants={itemVariants}
-            className={`font-sans tracking-tight text-[#2a2019]/60 max-w-[500px] leading-relaxed ${isMobile ? 'mx-auto text-sm' : 'text-lg text-left'}`}
+            className={`font-jakarta tracking-tight text-[#2a2019]/60 max-w-[500px] leading-relaxed ${isMobile ? 'mx-auto text-sm' : 'text-lg text-left'}`}
           >
             Authentic face yoga helps you reclaim your natural radiance by releasing tension,
             sculpting contours, and inducing deep relaxation.

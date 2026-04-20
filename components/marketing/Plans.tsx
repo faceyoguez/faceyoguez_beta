@@ -90,12 +90,11 @@ export function Plans() {
             Pathways to Radiance
           </span>
           <h2
-            className="text-4xl md:text-6xl font-light leading-[1.1] text-[#2c2525]"
-            style={{ fontFamily: '"Cormorant Garamond", serif' }}
+            className="text-4xl md:text-6xl font-aktiv leading-[1.1] text-[#2c2525]"
           >
             Guided by Wisdom, <br /> Tailored for You
           </h2>
-          <p className="max-w-xl mx-auto text-sm md:text-base text-[#5d605c] font-medium leading-relaxed">
+          <p className="max-w-xl mx-auto text-sm md:text-base text-[#5d605c] font-jakarta font-medium leading-relaxed">
             Whether you seek personal mastery or collective energy, <br className="hidden md:block" /> 
             our rituals are designed to unveil your natural beauty.
           </p>
@@ -135,12 +134,11 @@ export function Plans() {
 
                 <div className="space-y-3">
                   <h3 
-                    className="text-2xl md:text-3xl font-light text-[#2c2525]"
-                    style={{ fontFamily: '"Cormorant Garamond", serif' }}
+                    className="text-2xl md:text-3xl font-aktiv text-[#2c2525]"
                   >
                     {plan.title}
                   </h3>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#9b452e]/60">
+                  <p className="text-[10px] font-jakarta font-black uppercase tracking-[0.2em] text-[#9b452e]/60">
                     {plan.subtitle}
                   </p>
                 </div>
@@ -170,8 +168,7 @@ export function Plans() {
         >
           <div className="flex flex-col items-center gap-4">
             <h4 
-              className="text-xl md:text-2xl font-light text-[#2c2525]"
-              style={{ fontFamily: '"Cormorant Garamond", serif' }}
+              className="text-xl md:text-2xl font-aktiv text-[#2c2525]"
             >
               Ready to start your practice?
             </h4>

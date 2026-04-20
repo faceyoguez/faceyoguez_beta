@@ -87,11 +87,11 @@ export function DashboardJourney({
   return (
     <section className="liquid-glass rounded-[2rem] p-6 md:p-8 shadow-sm lustre-border overflow-hidden relative">
       <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
+        <h2 className="text-2xl font-aktiv font-bold text-foreground flex items-center gap-2">
           <Star className="h-6 w-6 text-primary" />
           Transformation Journey
         </h2>
-        <span className="text-sm font-bold text-primary uppercase tracking-widest px-3 py-1 bg-primary/10 rounded-full shadow-sm">
+        <span className="text-sm font-aktiv font-bold text-primary uppercase tracking-widest px-3 py-1 bg-primary/10 rounded-full shadow-sm">
           Day {currentDay}
         </span>
       </div>
@@ -126,7 +126,7 @@ export function DashboardJourney({
               />
             )}
             <div className="absolute top-4 left-4 flex gap-2">
-              <span className="px-3 py-1 bg-black/40 backdrop-blur-md text-white text-[10px] font-bold uppercase tracking-widest rounded-full ring-1 ring-white/20 shadow-lg">
+              <span className="px-3 py-1 bg-black/40 backdrop-blur-md text-white text-[10px] font-aktiv font-bold uppercase tracking-widest rounded-full ring-1 ring-white/20 shadow-lg">
                 Day {activeStepDay} View
               </span>
             </div>
@@ -134,10 +134,10 @@ export function DashboardJourney({
 
           <div className="flex flex-col gap-6 justify-center items-center text-center px-4">
             <div className="space-y-2">
-              <h4 className="text-lg font-bold text-foreground">
+              <h4 className="text-lg font-aktiv font-bold text-foreground">
                 {activeStepDay === 1 ? 'Start Your Journey' : activeStepDay === 25 ? 'Final Comparison' : `Day ${activeStepDay} Progress`}
               </h4>
-              <p className="text-sm text-foreground/50 font-medium max-w-[200px]">
+              <p className="text-sm text-foreground/50 font-jakarta font-medium max-w-[200px]">
                 {activeStepDay === 1 || activeStepDay === 25
                   ? 'Capture your face yoga progress to see the visible results of your practice.'
                   : 'Maintain your consistent practice. Photo uploads are only required for Day 1 and Day 25.'}
@@ -155,7 +155,7 @@ export function DashboardJourney({
                 />
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center justify-center w-full gap-2 rounded-[1.25rem] bg-surface-container-highest/50 px-6 py-4 text-sm font-bold text-foreground shadow-sm ring-1 ring-outline-variant/20 transition-all hover:scale-[1.03] hover:bg-surface-container-highest hover:shadow-md active:scale-95"
+                  className="flex items-center justify-center w-full gap-2 rounded-[1.25rem] bg-surface-container-highest/50 px-6 py-4 text-sm font-aktiv font-bold text-foreground shadow-sm ring-1 ring-outline-variant/20 transition-all hover:scale-[1.03] hover:bg-surface-container-highest hover:shadow-md active:scale-95"
                 >
                   <Camera className="h-5 w-5 text-primary" />
                   Select Photo
@@ -164,7 +164,7 @@ export function DashboardJourney({
                   <button
                     onClick={handleSaveLog}
                     disabled={isSavingLog}
-                    className="flex w-full items-center justify-center gap-2 rounded-[1.25rem] bg-primary py-4 text-sm font-bold text-primary-on shadow-[0_8px_24px_rgba(232,152,142,0.3)] transition-all hover:scale-[1.03] hover:bg-primary/90 disabled:opacity-50 disabled:hover:scale-100 active:scale-95"
+                    className="flex w-full items-center justify-center gap-2 rounded-[1.25rem] bg-primary py-4 text-sm font-aktiv font-bold text-primary-on shadow-[0_8px_24px_rgba(232,152,142,0.3)] transition-all hover:scale-[1.03] hover:bg-primary/90 disabled:opacity-50 disabled:hover:scale-100 active:scale-95"
                   >
                     {isSavingLog ? (
                       <Loader2 className="h-5 w-5 animate-spin" />

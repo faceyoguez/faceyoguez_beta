@@ -87,7 +87,7 @@ export default async function CourseViewerPage({ params }: PageProps) {
   }
 
   return (
-    <div className="relative min-h-screen bg-[#FFFAF7] text-slate-900 font-sans selection:bg-[#FF8A75]/20 overflow-x-hidden pb-32">
+    <div className="relative min-h-screen bg-[#FFFAF7] text-slate-900 font-jakarta selection:bg-[#FF8A75]/20 overflow-x-hidden pb-32">
       
       {/* ── Website Style Auroras ── */}
       <div className="fixed inset-0 z-0 pointer-events-none">
@@ -107,7 +107,7 @@ export default async function CourseViewerPage({ params }: PageProps) {
           </Link>
           <div className="space-y-1">
             <p className="text-[10px] text-[#FF8A75] font-black uppercase tracking-[0.3em] leading-none">Currently Practicing</p>
-            <h2 className="text-2xl font-serif font-bold text-slate-900 tracking-tight leading-none">{course.title}</h2>
+            <h2 className="text-2xl font-aktiv font-bold text-slate-900 tracking-tight leading-none">{course.title}</h2>
           </div>
         </div>
 
