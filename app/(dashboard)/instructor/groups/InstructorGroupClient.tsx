@@ -8,8 +8,7 @@ import {
    FileText, Send, X,
    Download, 
    Loader2, ArrowUpRight,
-   ArrowRight, 
-   
+   ArrowRight, ChevronLeft, ChevronRight,   
    Activity, 
    
    ShieldCheck, ShieldAlert
@@ -57,6 +56,10 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
    const [formData, setFormData] = useState<Partial<CreateBatchInput>>({
       name: '', startDate: '', endDate: '', maxStudents: 30, instructorId: currentUser.id
    });
+
+   // Pagination for batches
+   const [batchPage, setBatchPage] = useState(0);
+   const BATCHES_PER_PAGE = 5;
 
    // ─── EFFECTS ───
    useEffect(() => {
@@ -187,7 +190,10 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
       return batches.filter((b: any) => b.name.toLowerCase().includes(searchQuery.toLowerCase()));
    }, [batches, searchQuery]);
 
-   const activeStudents = selectedBatch?.batch_enrollments?.map((e: any) => e.student) || [];
+   const activeStudents = selectedBatch?.batch_enrollments?.map((e: any) => ({
+      ...e.student,
+      subscription: e.subscription
+   })) || [];
 
    // Transformation Derived Data
    const day1Log = journeyLogs.find(l => l.day_number === 1);
@@ -211,8 +217,8 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                <div className="flex items-center gap-4 lg:gap-6">
                   <div className="h-10 w-1.5 bg-[#FF8A75] rounded-full shadow-[0_0_12px_#FF8A75]" />
                   <div>
-                     <h1 className="text-3xl font-aktiv font-bold tracking-tight text-[#1a1a1a]">Collective Sanctuary</h1>
-                     <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75] mt-1 opacity-60">Architect of Resonance</p>
+                     <h1 className="text-3xl font-aktiv font-bold tracking-tight text-[#1a1a1a]">Batch Portal</h1>
+                     <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75] mt-1 opacity-60">Admin Desk</p>
                   </div>
                </div>
 
@@ -221,7 +227,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-[#FF8A75] transition-colors" />
                      <input
                         type="text"
-                        placeholder="Seek resonance..."
+                        placeholder="Search students..."
                         className="h-12 w-full pl-12 pr-6 rounded-2xl bg-white/60 backdrop-blur-xl border border-[#FF8A75]/10 text-[11px] font-bold focus:ring-4 focus:ring-[#FF8A75]/5 outline-none transition-all"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -238,135 +244,89 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
 
             <main className="flex-1 flex flex-col overflow-hidden">
 
-               {/* 🗺️ Collective Compass Row (Active Batches) */}
-               <div className="shrink-0 h-20 px-6 lg:px-12 bg-white/20 backdrop-blur-md border-b border-[#FF8A75]/5 flex items-center z-50">
-                  <span className="hidden lg:block text-[9px] font-black uppercase tracking-[0.4em] text-[#FF8A75] shrink-0 mr-10">Compass Nodes:</span>
-                  <div className="flex items-center gap-4 overflow-x-auto no-scrollbar py-2">
-                     {filteredBatches.map((batch: any) => {
-                        const isSelected = selectedBatch?.id === batch.id;
-                        return (
-                           <button
-                              key={batch.id}
-                              onClick={() => handleBatchClick(batch)}
-                              className={cn(
-                                 "flex items-center gap-3 px-6 py-2 rounded-full transition-all shrink-0 border whitespace-nowrap group",
-                                 isSelected
-                                    ? "bg-white border-[#FF8A75]/30 shadow-xl shadow-[#FF8A75]/5 ring-4 ring-[#FF8A75]/5"
-                                    : "bg-transparent border-transparent opacity-40 hover:opacity-100"
-                              )}
+               {/* 🗺️ Batch Session Row (Active Batches & Join Session ) */}
+               <div className="shrink-0 h-20 px-6 lg:px-12 bg-white/20 backdrop-blur-md border-b border-[#FF8A75]/5 flex items-center justify-between z-50">
+                  <div className="flex items-center gap-4 min-w-0 overflow-hidden">
+                     <span className="hidden xl:block text-[9px] font-black uppercase tracking-[0.4em] text-[#FF8A75] shrink-0">Batches List:</span>
+                     
+                     <div className="flex items-center gap-2 overflow-hidden">
+                        {filteredBatches.slice(batchPage * BATCHES_PER_PAGE, (batchPage + 1) * BATCHES_PER_PAGE).map((batch: any) => {
+                           const isSelected = selectedBatch?.id === batch.id;
+                           return (
+                              <button
+                                 key={batch.id}
+                                 onClick={() => handleBatchClick(batch)}
+                                 className={cn(
+                                    "flex items-center gap-2 px-4 py-2 rounded-full transition-all shrink-0 border whitespace-nowrap group",
+                                    isSelected
+                                       ? "bg-white border-[#FF8A75]/30 shadow-md ring-2 ring-[#FF8A75]/5"
+                                       : "bg-transparent border-transparent opacity-40 hover:opacity-100"
+                                 )}
+                              >
+                                 <div className={cn(
+                                    "h-6 w-6 rounded-lg flex items-center justify-center transition-all",
+                                    isSelected ? "bg-[#FF8A75] text-white rotate-6" : "bg-[#FF8A75]/10 text-[#FF8A75] group-hover:rotate-6"
+                                 )}>
+                                    <Users className="w-3 h-3" />
+                                 </div>
+                                 <p className={cn("text-[10px] font-bold tracking-tight", isSelected ? "text-slate-900" : "text-slate-400")}>{batch.name}</p>
+                              </button>
+                           );
+                        })}
+                     </div>
+
+                     {filteredBatches.length > BATCHES_PER_PAGE && (
+                        <div className="flex items-center gap-1 shrink-0 ml-2">
+                           <button 
+                              onClick={() => setBatchPage(p => Math.max(0, p - 1))}
+                              disabled={batchPage === 0}
+                              className="w-8 h-8 rounded-full flex items-center justify-center bg-white/50 border border-[#FF8A75]/10 hover:bg-white disabled:opacity-30"
                            >
-                              <div className={cn(
-                                 "h-8 w-8 rounded-xl flex items-center justify-center transition-all",
-                                 isSelected ? "bg-[#FF8A75] text-white rotate-6" : "bg-[#FF8A75]/10 text-[#FF8A75] group-hover:rotate-6"
-                              )}>
-                                 <Users className="w-4 h-4" />
-                              </div>
-                              <p className={cn("text-[11px] font-bold tracking-tight", isSelected ? "text-slate-900" : "text-slate-400")}>{batch.name}</p>
+                              <ChevronLeft className="w-4 h-4 text-[#FF8A75]" />
                            </button>
-                        );
-                     })}
+                           <button 
+                              onClick={() => setBatchPage(p => p + 1)}
+                              disabled={(batchPage + 1) * BATCHES_PER_PAGE >= filteredBatches.length}
+                              className="w-8 h-8 rounded-full flex items-center justify-center bg-white/50 border border-[#FF8A75]/10 hover:bg-white disabled:opacity-30"
+                           >
+                              <ChevronRight className="w-4 h-4 text-[#FF8A75]" />
+                           </button>
+                        </div>
+                     )}
+                  </div>
+
+                  <div className="flex items-center gap-4 shrink-0">
+                     <button
+                        onClick={() => window.open('/instructor/broadcast', '_blank')}
+                        className="h-10 px-6 rounded-xl bg-[#1a1a1a] text-white text-[9px] font-black uppercase tracking-widest flex items-center gap-3 hover:bg-[#FF8A75] shadow-lg shadow-[#1a1a1a]/10 transition-all duration-500 group/btn"
+                     >
+                        <div className="h-2 w-2 rounded-full bg-[#FF8A75] animate-pulse group-hover:bg-white" />
+                        Join Live Session
+                        <ArrowUpRight className="w-4 h-4 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
+                     </button>
                   </div>
                </div>
 
-               <div className="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden p-6 lg:p-12 pt-6 lg:pt-10 gap-8 lg:gap-12 custom-scrollbar lg:no-scrollbar relative">
+               <div className="flex-1 flex flex-col lg:flex-row overflow-y-auto overflow-x-hidden p-4 lg:p-8 pt-4 lg:pt-6 gap-4 lg:gap-6 custom-scrollbar relative pb-24 lg:pb-12">
 
                   {/* LEFT MAJOR PANE (Master - 65%) */}
-                  <div className="w-full lg:flex-[0.65] flex flex-col gap-8 lg:gap-12 min-w-0">
+                  <div className="w-full lg:flex-[0.65] flex flex-col gap-4 lg:gap-6 min-w-0">
 
-                     {/* 1. Meeting Portal (Full Width Action Tile) */}
-                     <div className="shrink-0 w-full rounded-[2.5rem] lg:rounded-[3.5rem] bg-white border border-[#FF8A75]/10 shadow-2xl shadow-[#FF8A75]/5 relative overflow-hidden group p-6 lg:p-7 lg:px-10">
-                        <div className="absolute top-0 right-0 w-1/2 h-full bg-[radial-gradient(circle_at_top_right,rgba(255,138,117,0.15),transparent_70%)] blur-3xl" />
-                        <div className="relative flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-                           <div className="flex items-center gap-8">
-                              <div className="h-16 w-16 rounded-[2rem] bg-[#1a1a1a] flex items-center justify-center shadow-2xl relative group-hover:rotate-3 transition-transform duration-700">
-                                 <Video className="w-7 h-7 text-[#FF8A75]" />
-                                 <div className="absolute -top-1 -right-1 h-5 w-5 bg-[#FF8A75] rounded-full border-[3px] border-white flex items-center justify-center shadow-lg">
-                                    <div className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
-                                 </div>
-                              </div>
-                              <div className="space-y-1">
-                                 <div className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75] opacity-60">Meeting Portal Spectrum</div>
-                                 <h2 className="text-3xl font-aktiv font-bold tracking-tight text-[#1a1a1a] leading-tight capitalize">{selectedBatch?.name || 'Infinite Sanctuary'}</h2>
-                              </div>
-                           </div>
-                           <button
-                              onClick={() => window.open('/instructor/broadcast', '_blank')}
-                              className="h-14 px-10 rounded-[2rem] bg-[#1a1a1a] text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-4 hover:bg-[#FF8A75] hover:shadow-2xl hover:shadow-[#FF8A75]/30 transition-all duration-700 group/btn"
-                           >
-                              Initialize Portal
-                              <ArrowUpRight className="w-4 h-4 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
-                           </button>
-                        </div>
-                     </div>
+                     {/* 2. Collective Interaction (Chat | Roster Split) */}
+                     <div className="flex-1 min-h-[500px] flex flex-col lg:flex-row gap-4 lg:gap-6 overflow-visible">
 
-                     {/* 2. Collective Interaction (Roster | Chat Split) */}
-                     <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-8 lg:gap-10 overflow-visible lg:overflow-hidden">
-
-                        {/* Seeker Roster (Plain Vertical List) */}
-                        <div className="w-full lg:w-[30%] flex flex-col min-h-[300px] lg:min-h-0 lg:h-full">
-                           <div className="flex items-center justify-between mb-6 px-4">
-                              <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75]">Seeker Roster</h3>
-                              <span className="px-3 py-1 rounded-full bg-[#FF8A75]/5 text-[10px] font-black text-[#FF8A75] border border-[#FF8A75]/10">{activeStudents.length}</span>
-                           </div>
-                           <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-4">
-                              {activeStudents.map((student: any) => {
-                                 const isSelected = selectedStudent?.id === student.id;
-                                 return (
-                                    <button
-                                       key={student.id}
-                                       onClick={() => setSelectedStudent(student)}
-                                       className={cn(
-                                          "w-full p-5 rounded-[2.5rem] border transition-all flex items-center gap-5 group",
-                                          isSelected
-                                             ? "bg-white border-[#FF8A75]/30 shadow-xl shadow-[#FF8A75]/5 ring-4 ring-[#FF8A75]/5"
-                                             : "bg-transparent border-transparent hover:bg-white/60 hover:shadow-sm"
-                                       )}
-                                    >
-                                       <div className="h-12 w-12 rounded-2xl overflow-hidden ring-[3px] ring-white shadow-lg bg-slate-50 shrink-0">
-                                          {student.avatar_url ? (
-                                             <img src={student.avatar_url} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                          ) : (
-                                            <div className="h-full w-full flex items-center justify-center text-lg font-aktiv font-bold text-[#FF8A75]">{student.full_name[0]}</div>
-                                          )}
-                                       </div>
-                                        <div className="text-left min-w-0 flex-1">
-                                           <p className="text-base font-bold text-slate-800 truncate leading-none capitalize">{student.full_name.split(' ')[0]}</p>
-                                           <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#FF8A75] mt-1.5 opacity-60">Status: Active</p>
-                                        </div>
-                                        {student.phone && (
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              const msg = `Hi ${student.full_name.split(' ')[0]}! This is the Faceyoguez team. We are reaching out regarding your session...`;
-                                              const cleanPhone = student.phone?.replace(/[^0-9]/g, '');
-                                              window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
-                                            }}
-                                            className="h-8 w-8 rounded-full bg-[#25D366]/10 text-[#25D366] flex flex-shrink-0 items-center justify-center hover:bg-[#25D366] hover:text-white transition-all shadow-sm z-10"
-                                            title="Message on WhatsApp"
-                                          >
-                                             <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                                               <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
-                                             </svg>
-                                          </button>
-                                        )}
-                                    </button>
-                                 );
-                              })}
-                           </div>
-                        </div>
-
-                        {/* Communion Pulse (Chat - Compact Middle) */}
-                        <div className="hidden lg:flex flex-1 bg-[#1a1a1a] rounded-[4.5rem] p-10 flex-col h-full relative shadow-2xl shadow-slate-900/40">
-                           <div className="flex items-center justify-between mb-8 shrink-0">
-                              <div className="flex items-center gap-5">
+                        {/* Chat UI */}
+                        <div className="hidden lg:flex flex-[0.65] bg-white rounded-3xl p-6 flex-col relative shadow-sm border border-slate-100">
+                           <div className="flex items-center justify-between mb-4 shrink-0 border-b border-slate-100 pb-4">
+                              <div className="flex items-center gap-4">
                                  <div className="space-y-1">
-                                    <h3 className="text-2xl font-aktiv font-bold text-white tracking-tight">Communion Pulse</h3>
-                                    <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75] opacity-80">Spectrum Feed Active</p>
+                                    <h3 className="text-xl font-bold text-slate-800 tracking-tight">Group Chat</h3>
+                                    <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">Messages are live</p>
                                  </div>
                                  {!selectedBatch?.is_chat_enabled && (
-                                    <div className="px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 flex items-center gap-2">
-                                       <div className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_#ef4444]" />
-                                       <span className="text-[8px] font-black uppercase tracking-widest text-red-500">Node Restricted</span>
+                                    <div className="px-3 py-1 rounded-full bg-red-50 border border-red-100 flex items-center gap-2">
+                                       <div className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
+                                       <span className="text-[8px] font-bold uppercase tracking-widest text-red-500">Chat Disabled</span>
                                     </div>
                                  )}
                               </div>
@@ -377,7 +337,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                        const newStatus = !selectedBatch.is_chat_enabled;
                                        const res = await toggleBatchChat(selectedBatch.id, newStatus);
                                        if (res.success) {
-                                          toast.success(newStatus ? 'Sanctuary Node Unlocked' : 'Sanctuary Node Restricted');
+                                          toast.success(newStatus ? 'Chat Enabled' : 'Chat Disabled');
                                           const updatedBatches = await getInstructorBatches(currentUser.id);
                                           setBatches(updatedBatches);
                                           const current = updatedBatches.find((b: any) => b.id === selectedBatch.id);
@@ -385,19 +345,18 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                        }
                                     }}
                                     className={cn(
-                                       "h-11 px-6 rounded-2xl flex items-center gap-3 transition-all text-[9px] font-black uppercase tracking-widest border",
+                                       "h-9 px-4 rounded-xl flex items-center gap-2 transition-all text-[9px] font-bold uppercase tracking-widest border",
                                        selectedBatch?.is_chat_enabled
-                                          ? "bg-white/5 border-white/10 text-white/40 hover:text-[#FF8A75] hover:border-[#FF8A75]/30 hover:bg-white/10"
-                                          : "bg-[#FF8A75] border-[#FF8A75] text-white shadow-2xl shadow-[#FF8A75]/30"
+                                          ? "bg-slate-50 border-slate-200 text-slate-500 hover:text-[#FF8A75] hover:border-[#FF8A75]/30 hover:bg-white"
+                                          : "bg-[#FF8A75] border-[#FF8A75] text-white shadow-sm shadow-[#FF8A75]/30"
                                     )}
                                  >
                                     {selectedBatch?.is_chat_enabled ? <ShieldCheck className="w-4 h-4" /> : <ShieldAlert className="w-4 h-4" />}
-                                    {selectedBatch?.is_chat_enabled ? "Safe" : "Locked"}
+                                    {selectedBatch?.is_chat_enabled ? "Enabled" : "Disabled"}
                                  </button>
                               </div>
                            </div>
-
-                           <div ref={chatContainerRef} className="flex-1 space-y-5 overflow-y-auto mb-8 custom-scrollbar pr-3">
+                           <div ref={chatContainerRef} className="flex-1 space-y-4 overflow-y-auto mb-4 custom-scrollbar pr-3">
                                {messages.map((msg) => {
                                   const isMe = msg.sender_id === currentUser.id;
                                   const sender = msg.sender || {};
@@ -410,53 +369,129 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                   const roleLabel = roles[sender.role] || (msg.sender_id === selectedBatch?.instructor_id ? 'Instructor' : null);
 
                                   return (
-                                     <div key={msg.id} className={cn("flex flex-col gap-2", isMe ? "items-end" : "items-start")}>
+                                     <div key={msg.id} className={cn("flex flex-col gap-1", isMe ? "items-end" : "items-start")}>
                                         {!isMe && (
-                                           <div className="flex flex-col ml-4">
-                                              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#FF8A75] leading-none mb-1">{sender?.full_name}</span>
-                                              {roleLabel && <span className="text-[7px] font-black uppercase tracking-[0.1em] text-[#FF8A75]/40 leading-none">{roleLabel}</span>}
+                                           <div className="flex flex-col ml-2">
+                                              <span className="text-[10px] font-bold text-slate-800 leading-none mb-1">{sender?.full_name}</span>
+                                              {roleLabel && <span className="text-[8px] font-bold uppercase tracking-widest text-[#FF8A75] leading-none">{roleLabel}</span>}
                                            </div>
                                         )}
                                        <div className={cn(
-                                          "px-6 py-4 rounded-[2.5rem] text-[13px] font-medium max-w-[85%] leading-relaxed shadow-lg",
+                                          "px-4 py-2.5 rounded-2xl text-[13px] font-medium max-w-[85%] leading-relaxed shadow-sm",
                                           isMe
-                                             ? "bg-[#FF8A75] text-white rounded-tr-none shadow-[#FF8A75]/20"
-                                             : "bg-white/5 text-white/90 border border-white/5 rounded-tl-none backdrop-blur-xl"
+                                             ? "bg-[#FF8A75] text-white rounded-tr-none shadow-[#FF8A75]/10"
+                                             : "bg-slate-50 text-slate-800 border border-slate-100 rounded-tl-none"
                                        )}>
                                           {msg.content}
                                        </div>
                                     </div>
-                                 );
-                              })}
+                                  );
+                               })}
                            </div>
 
-                           <div className="relative mt-auto shrink-0 group">
+                           <div className="relative mt-auto shrink-0 group border-t border-slate-100 pt-4">
                               <input
                                  type="text"
                                  value={newMessage}
                                  onChange={(e) => setNewMessage(e.target.value)}
                                  onKeyDown={(e) => e.key === 'Enter' && selectedBatch?.is_chat_enabled && handleSendMessage()}
-                                 placeholder={selectedBatch?.is_chat_enabled ? "Enter resonance..." : "Sanctuary node is restricted"}
+                                 placeholder={selectedBatch?.is_chat_enabled ? "Type a message..." : "Chat is disabled"}
                                  disabled={!selectedBatch?.is_chat_enabled}
                                  className={cn(
-                                    "w-full h-16 rounded-[2rem] border-none pl-8 pr-16 text-sm font-medium transition-all outline-none",
+                                    "w-full h-12 rounded-2xl border-none pl-6 pr-14 text-sm font-medium transition-all outline-none",
                                     selectedBatch?.is_chat_enabled
-                                       ? "bg-white/10 text-white placeholder:text-white/20 focus:bg-white/15 focus:ring-4 focus:ring-[#FF8A75]/10"
-                                       : "bg-white/[0.02] text-white/10 placeholder:text-white/5 cursor-not-allowed"
+                                       ? "bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#FF8A75]/20 focus:outline outline-slate-200"
+                                       : "bg-slate-50 text-slate-400 cursor-not-allowed"
                                  )}
                               />
                               <button
                                  onClick={handleSendMessage}
                                  disabled={!selectedBatch?.is_chat_enabled}
                                  className={cn(
-                                    "absolute right-2 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full text-white flex items-center justify-center transition-all transform active:scale-90",
+                                    "absolute right-2 top-[calc(50%+8px)] -translate-y-1/2 h-8 w-8 rounded-xl flex items-center justify-center transition-all transform active:scale-90",
                                     selectedBatch?.is_chat_enabled
-                                       ? "bg-[#FF8A75] hover:bg-[#FF6B4E] shadow-xl shadow-[#FF8A75]/40"
-                                       : "bg-white/5 text-white/10 cursor-not-allowed"
+                                       ? "bg-[#FF8A75] text-white hover:bg-[#FF6B4E] shadow-md shadow-[#FF8A75]/20"
+                                       : "bg-slate-200 text-slate-400 cursor-not-allowed"
                                  )}
                               >
-                                 <Send className="w-5 h-5" />
+                                 <Send className="w-4 h-4" />
                               </button>
+                           </div>
+                        </div>
+
+                        {/* Student Register */}
+                        <div className="w-full lg:flex-[0.35] flex flex-col min-h-[300px] bg-white rounded-3xl border border-[#FF8A75]/10 shadow-sm p-4 lg:p-5">
+                           <div className="flex items-center justify-between mb-4 px-2">
+                              <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75]">Student Register</h3>
+                              <span className="px-3 py-1 rounded-full bg-[#FF8A75]/5 text-[10px] font-black text-[#FF8A75] border border-[#FF8A75]/10">{activeStudents.length}</span>
+                           </div>
+                           <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-2">
+                              {activeStudents.map((student: any) => {
+                                 const isSelected = selectedStudent?.id === student.id;
+                                 let planBadge = null;
+                                 if (student.subscription) {
+                                    if (student.subscription.status === 'expired') {
+                                       planBadge = <span className="text-[8px] font-black uppercase tracking-widest text-red-500 bg-red-50 px-2 py-0.5 rounded-full border border-red-100 mt-1 inline-block">Expired</span>;
+                                    } else if (student.subscription.status === 'active' && student.subscription.end_date) {
+                                       const end = new Date(student.subscription.end_date);
+                                       const todayAtMidnight = new Date();
+                                       todayAtMidnight.setHours(0,0,0,0);
+                                       
+                                       const diffTime = end.getTime() - todayAtMidnight.getTime();
+                                       const daysLeftValue = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+                                       if (daysLeftValue < 0) {
+                                          planBadge = <span className="text-[8px] font-black uppercase tracking-widest text-red-500 bg-red-50 px-2 py-0.5 rounded-full border border-red-100 mt-1 inline-block">Expired</span>;
+                                       } else if (daysLeftValue === 0) {
+                                          planBadge = <span className="text-[8px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 mt-1 inline-block">Expires Today</span>;
+                                       } else if (daysLeftValue <= 5) {
+                                          planBadge = <span className="text-[8px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 mt-1 inline-block">Expiring in {daysLeftValue} {daysLeftValue === 1 ? 'Day' : 'Days'}</span>;
+                                       } else {
+                                          planBadge = <span className="text-[8px] font-black uppercase tracking-widest text-[#FF8A75] bg-[#FF8A75]/5 px-2 py-0.5 rounded-full border border-[#FF8A75]/10 mt-1 inline-block">Active</span>;
+                                       }
+                                    }
+                                 }
+                                 return (
+                                    <button
+                                       key={student.id}
+                                       onClick={() => setSelectedStudent(student)}
+                                       className={cn(
+                                          "w-full p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 group",
+                                          isSelected
+                                             ? "bg-[#FFFAF7] border-[#FF8A75]/30 shadow-sm ring-2 ring-[#FF8A75]/5"
+                                             : "bg-transparent border-transparent hover:bg-slate-50 hover:shadow-sm"
+                                       )}
+                                    >
+                                       <div className="flex items-center gap-3 min-w-0">
+                                          <div className="h-10 w-10 rounded-xl overflow-hidden ring-[2px] ring-white shadow-sm bg-slate-50 shrink-0">
+                                             {student.avatar_url ? (
+                                                <img src={student.avatar_url} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                             ) : (
+                                               <div className="h-full w-full flex items-center justify-center text-lg font-aktiv font-bold text-[#FF8A75]">{student.full_name[0]}</div>
+                                             )}
+                                          </div>
+                                          <div className="text-left min-w-0 flex flex-col justify-center items-start">
+                                             <p className="text-[13px] text-slate-800 truncate leading-none capitalize">{student.full_name}</p>
+                                             {planBadge}
+                                          </div>
+                                       </div>
+                                       {student.phone && (
+                                          <a 
+                                             href={`https://wa.me/${student.phone.replace(/\D/g, '')}`} 
+                                             target="_blank" 
+                                             rel="noopener noreferrer"
+                                             onClick={(e) => e.stopPropagation()}
+                                             className="h-8 w-8 rounded-xl bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366] hover:text-white flex items-center justify-center transition-all shrink-0 outline-none hover:rotate-12"
+                                             title="Chat on WhatsApp"
+                                          >
+                                             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                                             </svg>
+                                          </a>
+                                       )}
+                                    </button>
+                                 );
+                              })}
                            </div>
                         </div>
 
@@ -465,64 +500,64 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                   </div>
 
                   {/* RIGHT MAJOR PANE (Focus - 35%) */}
-                  <div className="w-full lg:flex-[0.35] flex flex-col gap-8 lg:gap-12 min-h-0 min-w-0 pb-24 lg:pb-0">
+                  <div className="w-full lg:flex-[0.35] flex flex-col gap-4 lg:gap-6 min-w-0 pb-24 lg:pb-0">
 
                      {/* Seeker Focus (Transformation Mirror) */}
-                     <div className="bg-white rounded-[3rem] lg:rounded-[4.5rem] p-6 lg:p-10 shadow-2xl shadow-[#FF8A75]/5 border border-[#FF8A75]/10 relative overflow-hidden flex flex-col gap-8 shrink-0 min-h-[400px] lg:h-[480px]">
+                     <div className="bg-white rounded-3xl p-6 lg:p-8 shadow-sm border border-slate-100 relative overflow-hidden flex flex-col gap-6 shrink-0 min-h-[350px]">
                         <div className="flex items-center justify-between relative z-10">
                            <div className="space-y-1">
-                              <h3 className="text-2xl font-aktiv font-bold text-slate-900 tracking-tight">{selectedStudent?.full_name || 'Identity Mirror'}</h3>
-                              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75]">Evolution Spectrum Echo</p>
+                              <h3 className="text-xl font-bold text-slate-800 tracking-tight">{selectedStudent?.full_name || 'Progress Tracker'}</h3>
+                              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75]">Before/After Progress</p>
                            </div>
                            {selectedStudent && (
-                              <div className="h-10 px-5 rounded-[1.2rem] bg-[#FF8A75]/5 flex items-center gap-3 border border-[#FF8A75]/10">
-                                 <div className="h-2 w-2 rounded-full bg-[#FF8A75] animate-pulse" />
-                                 <span className="text-[10px] font-black uppercase tracking-widest text-[#FF8A75]">Focused</span>
+                              <div className="h-8 px-4 rounded-xl bg-[#FF8A75]/5 flex items-center gap-2 border border-[#FF8A75]/10">
+                                 <div className="h-1.5 w-1.5 rounded-full bg-[#FF8A75] animate-pulse" />
+                                 <span className="text-[9px] font-bold uppercase tracking-widest text-[#FF8A75]">Focused</span>
                               </div>
                            )}
                         </div>
 
-                        <div className="flex-1 rounded-[3rem] bg-[#FFFAF7] overflow-hidden relative border border-[#FF8A75]/10 group/mirror">
+                        <div className="flex-1 rounded-2xl bg-slate-50 overflow-hidden relative border border-slate-100 group/mirror">
                            {selectedStudent ? (
                               <ImageComparison beforeImage={beforeImage} afterImage={afterImage} />
                            ) : (
-                              <div className="h-full flex flex-col items-center justify-center opacity-20">
-                                 <Activity className="w-12 h-12 text-[#FF8A75] mb-4" />
-                                 <p className="text-[10px] font-black uppercase tracking-[0.4em] text-center">Awaiting Calibration</p>
+                              <div className="h-full flex flex-col items-center justify-center opacity-40">
+                                 <Activity className="w-10 h-10 text-slate-400 mb-3" />
+                                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Select a student</p>
                               </div>
                            )}
                         </div>
                      </div>
 
                      {/* Registry Chronicles (Resources) */}
-                     <div className="flex-1 bg-white/40 backdrop-blur-3xl rounded-[4.5rem] p-10 border border-[#FF8A75]/10 shadow-xl flex flex-col min-h-0">
-                        <div className="flex items-center justify-between mb-8 shrink-0 px-2">
-                           <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75]">Registry Chronicles</h3>
+                     <div className="flex-1 bg-white rounded-3xl p-6 lg:p-8 border border-slate-100 shadow-sm flex flex-col min-h-[300px]">
+                        <div className="flex items-center justify-between mb-6 shrink-0 px-2 lg:mt-2">
+                           <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75]">Shared Documents</h3>
                            <button
                               onClick={() => fileInputRef.current?.click()}
-                              className="h-10 w-10 rounded-2xl bg-white text-[#1a1a1a] shadow-lg border border-slate-100 flex items-center justify-center hover:bg-[#FF8A75] hover:text-white transition-all group/add"
+                              className="h-8 w-8 rounded-xl bg-slate-50 text-slate-600 shadow-sm border border-slate-200 flex items-center justify-center hover:bg-[#FF8A75] hover:text-white transition-all group/add"
                            >
-                              <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+                              <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
                            </button>
                            <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
                         </div>
-                        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-2">
+                        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-2">
                            {recordings.map((rec) => (
-                              <button key={rec.id} onClick={() => window.open(rec.play_url!, '_blank')} className="w-full flex items-center justify-between p-5 rounded-[2rem] bg-white border border-transparent hover:border-[#FF8A75]/20 group transition-all hover:translate-x-1">
-                                 <div className="flex items-center gap-5">
-                                    <div className="h-10 w-10 rounded-xl bg-[#FF8A75]/5 flex items-center justify-center text-[#FF8A75] group-hover:rotate-12 transition-all"><Play className="w-4 h-4 ml-0.5" /></div>
-                                    <p className="text-sm font-bold text-slate-800 tracking-tight">{rec.topic}</p>
+                              <button key={rec.id} onClick={() => window.open(rec.play_url!, '_blank')} className="w-full flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-[#FF8A75]/30 group transition-all hover:bg-white">
+                                 <div className="flex items-center gap-4">
+                                    <div className="h-8 w-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-[#FF8A75]"><Play className="w-3.5 h-3.5 ml-0.5" /></div>
+                                    <p className="text-[13px] font-bold text-slate-700 tracking-tight">{rec.topic}</p>
                                  </div>
-                                 <ArrowRight className="w-5 h-5 text-slate-200 group-hover:text-[#FF8A75] transition-all" />
+                                 <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-[#FF8A75] transition-all" />
                               </button>
                            ))}
                            {resources.map((res) => (
-                              <button key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="w-full flex items-center justify-between p-5 rounded-[2rem] bg-white border border-transparent hover:border-[#FF8A75]/20 group transition-all hover:translate-x-1">
-                                 <div className="flex items-center gap-5">
-                                    <div className="h-10 w-10 rounded-xl bg-[#FF8A75]/5 flex items-center justify-center text-[#FF8A75] group-hover:rotate-12 transition-all"><FileText className="w-4 h-4" /></div>
-                                    <p className="text-sm font-bold text-slate-800 tracking-tight">{res.file_name}</p>
+                              <button key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="w-full flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-[#FF8A75]/30 group transition-all hover:bg-white">
+                                 <div className="flex items-center gap-4">
+                                    <div className="h-8 w-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-[#FF8A75]"><FileText className="w-3.5 h-3.5" /></div>
+                                    <p className="text-[13px] font-bold text-slate-700 tracking-tight">{res.file_name}</p>
                                  </div>
-                                 <Download className="w-5 h-5 text-slate-200 group-hover:text-[#FF8A75] transition-all" />
+                                 <Download className="w-4 h-4 text-slate-300 group-hover:text-[#FF8A75] transition-all" />
                               </button>
                            ))}
                         </div>
@@ -535,19 +570,16 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
             </main>
          </div>
 
-         {/* Create Batch Modal */}
          {isCreateBatchOpen && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 lg:p-8 bg-[#1a1a1a]/30 backdrop-blur-3xl animate-in zoom-in-95 duration-500">
-               <div className="w-full max-w-lg bg-[#FFFAF7] rounded-[3rem] lg:rounded-[4rem] p-8 lg:p-16 relative overflow-y-auto max-h-screen shadow-2xl shadow-black/20 text-center border border-white/50">
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-[#FF8A75]/10 rounded-full blur-3xl -translate-y-20 translate-x-20" />
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 lg:p-8 bg-[#1a1a1a]/30 backdrop-blur-md animate-in zoom-in-95 duration-200">
+               <div className="w-full max-w-lg bg-white rounded-3xl p-8 lg:p-10 relative overflow-y-auto max-h-screen shadow-2xl">
+                  <button onClick={() => setIsCreateBatchOpen(false)} className="absolute top-6 right-6 text-slate-400 hover:text-[#FF8A75] transition-colors"><X className="w-6 h-6" /></button>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-1">Create New Batch</h3>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FF8A75] mb-8">Setup new group batch</p>
 
-                  <button onClick={() => setIsCreateBatchOpen(false)} className="absolute top-6 right-6 lg:top-12 lg:right-12 text-[#1a1a1a]/20 hover:text-[#FF8A75] transition-colors"><X className="w-6 h-6 lg:w-8 lg:h-8" /></button>
-                  <h3 className="text-3xl lg:text-4xl font-aktiv font-bold text-slate-900 mb-2">Manifest Path</h3>
-                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75] mb-8 lg:mb-12">New Collective Node Calibration</p>
-
-                  <div className="space-y-6 relative z-10">
-                     <div className="space-y-2 text-left">
-                        <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[#FF8A75] ml-4">Node Identity</label>
+                  <div className="space-y-5">
+                     <div className="space-y-1.5 text-left">
+                        <label className="text-[10px] font-bold uppercase tracking-wide text-slate-500 ml-2">Batch Name</label>
                         <input
                            type="text"
                            placeholder="e.g., Spring Equinox Sanctuary"
@@ -557,23 +589,23 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                         />
                      </div>
 
-                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-                        <div className="space-y-2 text-left">
-                           <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[#FF8A75] ml-4">Cycle Start</label>
+                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div className="space-y-1.5 text-left">
+                           <label className="text-[10px] font-bold uppercase tracking-wide text-slate-500 ml-2">Start Date</label>
                            <input
                               type="date"
                               value={formData.startDate}
                               onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                              className="h-16 lg:h-18 w-full px-6 lg:px-8 rounded-3xl bg-white border border-[#FF8A75]/10 text-base font-bold text-slate-900 focus:ring-8 focus:ring-[#FF8A75]/5 outline-none transition-all"
+                              className="h-12 w-full px-4 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#FF8A75]/20 focus:border-[#FF8A75]/50 outline-none transition-all"
                            />
                         </div>
-                        <div className="space-y-2 text-left">
-                           <label className="text-[9px] font-black uppercase tracking-[0.2em] text-[#FF8A75] ml-4">Cycle End</label>
+                        <div className="space-y-1.5 text-left">
+                           <label className="text-[10px] font-bold uppercase tracking-wide text-slate-500 ml-2">End Date</label>
                            <input
                               type="date"
                               value={formData.endDate}
                               onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                              className="h-16 lg:h-18 w-full px-6 lg:px-8 rounded-3xl bg-white border border-[#FF8A75]/10 text-base font-bold text-slate-900 focus:ring-8 focus:ring-[#FF8A75]/5 outline-none transition-all"
+                              className="h-12 w-full px-4 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#FF8A75]/20 focus:border-[#FF8A75]/50 outline-none transition-all"
                            />
                         </div>
                      </div>
@@ -581,14 +613,14 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                      <button
                         onClick={handleCreateBatch}
                         className={cn(
-                           "w-full h-16 lg:h-20 mt-4 lg:mt-8 rounded-[2.5rem] bg-[#1a1a1a] text-white text-[10px] lg:text-[12px] font-black uppercase tracking-[0.3em] hover:bg-[#FF8A75] shadow-2xl transition-all flex items-center justify-center gap-4 group/submit",
+                           "w-full h-14 mt-6 rounded-xl bg-[#1a1a1a] text-white text-[12px] font-bold uppercase tracking-widest hover:bg-[#FF8A75] shadow-md transition-all flex items-center justify-center gap-3 group/submit",
                            isPending && "opacity-50 pointer-events-none"
                         )}
                      >
-                        {isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : (
+                        {isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                            <>
-                              Commit Collective
-                              <ArrowRight className="w-5 h-5 group-hover/submit:translate-x-2 transition-transform" />
+                              Create Batch
+                              <ArrowRight className="w-4 h-4 group-hover/submit:translate-x-1 transition-transform" />
                            </>
                         )}
                      </button>
@@ -632,9 +664,9 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                      <div className="flex items-center justify-between p-6 border-b border-white/10 shrink-0">
                         <div className="space-y-1">
                            <h3 className="text-xl font-aktiv font-bold text-white tracking-tight flex items-center gap-3">
-                              Communion Pulse <span className="flex h-2 w-2 relative rounded-full bg-emerald-500"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span></span>
+                              Group Chat <span className="flex h-2 w-2 relative rounded-full bg-emerald-500"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span></span>
                            </h3>
-                           <p className="text-[8px] font-black uppercase tracking-[0.3em] text-[#FF8A75] opacity-80">Spectrum Feed Active</p>
+                           <p className="text-[8px] font-black uppercase tracking-[0.3em] text-[#FF8A75] opacity-80">Messages are live</p>
                         </div>
                         <button onClick={() => setIsMobileChatOpen(false)} className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 hover:scale-110 active:scale-95 transition-all shadow-lg border border-white/10">
                            <X className="w-5 h-5" />
@@ -658,10 +690,10 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                  </div>
                               )}
                               <div className={cn(
-                                 "px-5 py-3 rounded-[2rem] text-[13px] font-medium max-w-[85%] leading-relaxed shadow-lg",
+                                 "px-5 py-3 rounded-2xl text-[13px] font-medium max-w-[85%] leading-relaxed shadow-lg border border-white/5",
                                  isMe
                                     ? "bg-[#FF8A75] text-white rounded-tr-none shadow-[#FF8A75]/20"
-                                    : "bg-white/5 text-white/90 border border-white/5 rounded-tl-none backdrop-blur-xl"
+                                    : "bg-white/10 text-white/90 rounded-tl-none backdrop-blur-xl"
                               )}>
                                  {msg.content}
                               </div>
@@ -677,12 +709,12 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && selectedBatch?.is_chat_enabled && handleSendMessage()}
-                        placeholder={selectedBatch?.is_chat_enabled ? "Enter resonance..." : "Node restricted"}
+                        placeholder={selectedBatch?.is_chat_enabled ? "Type a message..." : "Chat disabled"}
                         disabled={!selectedBatch?.is_chat_enabled}
                         className={cn(
-                           "w-full h-14 rounded-[2rem] border-none pl-6 pr-14 text-sm font-medium transition-all outline-none",
+                           "w-full h-12 rounded-2xl border-none pl-6 pr-14 text-sm font-medium transition-all outline-none",
                            selectedBatch?.is_chat_enabled
-                              ? "bg-white/10 text-white placeholder:text-white/20 focus:bg-white/15 focus:ring-4 focus:ring-[#FF8A75]/10"
+                              ? "bg-white/10 text-white placeholder:text-white/20 focus:bg-white/15 focus:ring-2 focus:ring-[#FF8A75]/20"
                               : "bg-white/[0.02] text-white/10 placeholder:text-white/5 cursor-not-allowed"
                         )}
                      />
@@ -704,14 +736,14 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
             )}
          </AnimatePresence>
 
-         <style jsx global>{`
+         <style dangerouslySetInnerHTML={{ __html: `
            .no-scrollbar::-webkit-scrollbar { display: none; }
            .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
            .custom-scrollbar::-webkit-scrollbar { width: 5px; }
            .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
            .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,138,117,0.15); border-radius: 10px; }
            .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,138,117,0.3); }
-         `}</style>
+         `}} />
       </div>
    );
 }

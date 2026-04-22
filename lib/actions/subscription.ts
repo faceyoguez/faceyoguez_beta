@@ -243,44 +243,90 @@ export async function getLiveGrowthMetrics() {
     const admin = createAdminClient();
 
     const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-    const endOfWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    // Use ISO strings for accurate db filtering
+    const today = now.toISOString().split('T')[0];
+    const startOfMonthDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfMonth = startOfMonthDate.toISOString();
+    
+    const endOfWeekDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const endOfWeek = endOfWeekDate.toISOString().split('T')[0];
+    
+    const startOfPreviousMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const endOfPreviousMonthDate = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+    const startOfPreviousMonth = startOfPreviousMonthDate.toISOString();
+    const endOfPreviousMonth = endOfPreviousMonthDate.toISOString();
 
-    // New joinees this month (subscriptions created this month, not trial)
-    const { count: newJoinees } = await admin
+    const yesterdayDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const yesterday = yesterdayDate.toISOString().split('T')[0];
+
+    // Fetch all active subscriptions across the board
+    const { data: allActiveSubs } = await admin
         .from('subscriptions')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', startOfMonth)
-        .eq('is_trial', false)
+        .select('id, amount, created_at, start_date, end_date, is_trial, status')
         .eq('status', 'active');
+        
+    const subs = allActiveSubs || [];
 
-    // Renewals this month (subscriptions where start_date is this month but created_at is before this month)
-    const { count: renewals } = await admin
-        .from('subscriptions')
-        .select('*', { count: 'exact', head: true })
-        .gte('start_date', startOfMonth.split('T')[0])
-        .lt('created_at', startOfMonth)
-        .eq('status', 'active');
+    // Filter helpers
+    const isToday = (dateStr: string) => dateStr && dateStr.startsWith(today);
+    const isThisMonth = (dateStr: string) => dateStr && dateStr >= startOfMonth;
+    const isYesterday = (dateStr: string) => dateStr && dateStr.startsWith(yesterday);
+    const isPreviousMonth = (dateStr: string) => dateStr && dateStr >= startOfPreviousMonth && dateStr <= endOfPreviousMonth;
 
-    // Total active students
-    const { count: totalActive } = await admin
-        .from('subscriptions')
-        .select('student_id', { count: 'exact', head: true })
-        .eq('status', 'active')
-        .eq('is_trial', false);
+    // Base totals
+    const activeSeekers = subs.filter(s => !s.is_trial);
+    const totalActiveStudents = activeSeekers.length;
+    const activeTrials = subs.filter(s => s.is_trial).length;
 
-    // Expiring this week
-    const { count: expiringThisWeek } = await admin
-        .from('subscriptions')
-        .select('*', { count: 'exact', head: true })
-        .lte('end_date', endOfWeek)
-        .gte('end_date', now.toISOString().split('T')[0])
-        .eq('status', 'active');
+    // Joinees
+    const newJoineesMonthly = activeSeekers.filter(s => s.created_at && isThisMonth(s.created_at));
+    const newJoineesDaily = activeSeekers.filter(s => s.created_at && isToday(s.created_at));
+    const prevMonthlyJoinees = activeSeekers.filter(s => s.created_at && isPreviousMonth(s.created_at)).length;
+
+    // Renewals
+    const monthlyRenewals = subs.filter(s => s.start_date && s.created_at && s.start_date >= startOfMonth.split('T')[0] && s.created_at < startOfMonth);
+    const dailyRenewals = subs.filter(s => s.start_date && s.created_at && s.start_date === today && s.created_at < today);
+    const prevMonthlyRenewals = subs.filter(s => s.start_date && s.created_at && s.start_date >= startOfPreviousMonth.split('T')[0] && s.start_date <= endOfPreviousMonth.split('T')[0] && s.created_at < startOfPreviousMonth).length;
+
+    // Revenue
+    const sumRevenue = (arr: any[]) => arr.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+    const monthlyRevenue = sumRevenue(newJoineesMonthly) + sumRevenue(monthlyRenewals);
+    const dailyRevenue = sumRevenue(newJoineesDaily) + sumRevenue(dailyRenewals);
+    
+    const prevMonthNew = activeSeekers.filter(s => s.created_at && isPreviousMonth(s.created_at));
+    const prevMonthRenew = subs.filter(s => s.start_date && s.created_at && s.start_date >= startOfPreviousMonth.split('T')[0] && s.start_date <= endOfPreviousMonth.split('T')[0] && s.created_at < startOfPreviousMonth);
+    const prevMonthlyRevenue = sumRevenue(prevMonthNew) + sumRevenue(prevMonthRenew);
+
+    // Expiring
+    const expiringThisWeek = subs.filter(s => s.end_date && s.end_date >= today && s.end_date <= endOfWeek).length;
+
+    // Trend calculator
+    const calcTrend = (current: number, previous: number) => {
+        if (previous === 0) return current > 0 ? '+100%' : '0%';
+        const diff = current - previous;
+        const pct = Math.round((diff / previous) * 100);
+        return pct > 0 ? `+${pct}%` : `${pct}%`;
+    };
 
     return {
-        newJoineesThisMonth: newJoinees || 0,
-        renewalsThisMonth: renewals || 0,
-        totalActiveStudents: totalActive || 0,
-        expiringThisWeek: expiringThisWeek || 0,
+        totalActiveStudents,
+        activeTrials,
+        expiringThisWeek,
+
+        monthlyJoinees: newJoineesMonthly.length,
+        dailyJoinees: newJoineesDaily.length,
+        joineesTrend: calcTrend(newJoineesMonthly.length, prevMonthlyJoinees),
+
+        monthlyRenewals: monthlyRenewals.length,
+        dailyRenewals: dailyRenewals.length,
+        renewalsTrend: calcTrend(monthlyRenewals.length, prevMonthlyRenewals),
+
+        monthlyRevenue,
+        dailyRevenue,
+        revenueTrend: calcTrend(monthlyRevenue, prevMonthlyRevenue),
+        
+        // Aliases for compatibility
+        newJoineesThisMonth: newJoineesMonthly.length,
+        renewalsThisMonth: monthlyRenewals.length,
     };
 }

@@ -188,9 +188,9 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
       const result = await uploadResource(selectedStudent.id, file.name, file.type, file.size, base64Data);
       if (result.success && result.data) {
         setResources((prev) => [result.data!, ...prev]);
-        toast.success('Resource manifested successfully');
-      } else toast.error(result.error || 'Manifestation failed');
-    } catch (err) { toast.error('Failed to process offering'); }
+        toast.success('Document shared successfully');
+      } else toast.error(result.error || 'Failed to share');
+    } catch (err) { toast.error('Error sharing document'); }
     finally { setIsUploading(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
   };
 
@@ -199,10 +199,10 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
     setIsAssigning(true);
     try {
       await assignInstructor(selectedStudent.subscriptionId, selectedInstructorId);
-      toast.success('Guide aligned successfully!');
+      toast.success('Instructor assigned successfully!');
       setShowAssignModal(false);
       setSelectedStudent((prev) => prev ? { ...prev, assignedInstructorId: selectedInstructorId } : prev);
-    } catch (e: any) { toast.error(e.message || 'Failed to align guide'); }
+    } catch (e: any) { toast.error(e.message || 'Failed to assign instructor'); }
     setIsAssigning(false);
   };
 
@@ -231,16 +231,16 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
       <header className="shrink-0 p-6 lg:p-10 flex items-center justify-between relative z-50">
         <div className="flex items-center gap-12">
           <div className="space-y-1">
-            <h1 className="text-4xl font-aktiv font-bold tracking-tight text-foreground">Registry</h1>
-            <p className="text-[10px] font-aktiv font-bold uppercase tracking-[0.3em] text-foreground/30">Soul Management Hub</p>
+            <h1 className="text-4xl font-aktiv font-bold tracking-tight text-foreground">Student Register</h1>
+            <p className="text-[10px] font-aktiv font-bold uppercase tracking-[0.3em] text-foreground/30">Operations Control</p>
           </div>
 
           {/* Quick Metrics (Student Hub Style) */}
           <div className="hidden lg:flex items-center gap-6 ml-4">
             {[
-              { label: 'New Students', value: metrics.newJoineesThisMonth || 0, icon: Sparkles, bg: 'bg-primary/5', color: 'text-primary' },
-              { label: 'Alignments', value: metrics.renewalsThisMonth || 0, icon: Activity, bg: 'bg-brand-emerald/5', color: 'text-brand-emerald' },
-              { label: 'Total Active', value: metrics.totalActiveStudents || 0, icon: Users, bg: 'bg-foreground/5', color: 'text-foreground/60' }
+              { label: 'New Admissions', value: metrics.newJoineesThisMonth || 0, icon: Sparkles, bg: 'bg-primary/5', color: 'text-primary' },
+              { label: 'Total Enrolments', value: metrics.renewalsThisMonth || 0, icon: Activity, bg: 'bg-brand-emerald/5', color: 'text-brand-emerald' },
+              { label: 'Active Students', value: metrics.totalActiveStudents || 0, icon: Users, bg: 'bg-foreground/5', color: 'text-foreground/60' }
             ].map((stat, i) => (
               <div key={i} className="flex flex-col gap-1.5">
                 <div className="flex items-center gap-1.5 ml-1">
@@ -306,7 +306,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
 
           <div className="flex-1 bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col min-h-0 overflow-hidden">
             <div className="p-8 border-b border-outline-variant/5">
-              <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Directory</h3>
+              <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Student List</h3>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
@@ -427,10 +427,10 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                       </div>
                       <div className="flex items-center gap-6">
                         <div className="flex items-center gap-2 text-[10px] font-aktiv font-bold uppercase tracking-widest text-foreground/30">
-                          <Clock className="w-3.5 h-3.5" /> Start: {selectedStudent.startDate ? new Date(selectedStudent.startDate).toLocaleDateString() : 'Unmanifested'}
+                          <Clock className="w-3.5 h-3.5" /> Admission Date: {selectedStudent.startDate ? new Date(selectedStudent.startDate).toLocaleDateString() : 'Pending'}
                         </div>
                         <div className="flex items-center gap-2 text-[10px] font-aktiv font-bold uppercase tracking-widest text-foreground/30">
-                          <ShieldCheck className={cn("w-3.5 h-3.5", selectedStudent.isTrial ? "text-primary/60" : "text-brand-emerald/60")} /> {selectedStudent.isTrial ? "Trial Access" : "Full Alignment"}
+                          <ShieldCheck className={cn("w-3.5 h-3.5", selectedStudent.isTrial ? "text-primary/60" : "text-brand-emerald/60")} /> {selectedStudent.isTrial ? "Trial Access" : "Full Enrolment"}
                         </div>
                       </div>
                     </div>
@@ -442,7 +442,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                       className="h-12 px-6 rounded-xl bg-white border border-outline-variant/10 text-[10px] font-aktiv font-bold uppercase tracking-widest hover:border-primary/20 hover:scale-[1.02] transition-all flex items-center gap-2 shadow-sm"
                     >
                       <UserPlus className="w-4 h-4 text-primary" />
-                      {selectedStudent.assignedInstructorId ? 'Re-align Guide' : 'Assign Guide'}
+                      {selectedStudent.assignedInstructorId ? 'Change Instructor' : 'Assign Instructor'}
                     </button>
                     {/* Communion button removed as chat is now persistent on right */}
                   </div>
@@ -453,7 +453,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                   {/* Journey Progress */}
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Transformation Path</h3>
+                      <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Progress Tracking</h3>
                       <span className="text-[10px] font-aktiv font-bold text-primary bg-primary/5 px-3 py-1 rounded-full uppercase tracking-widest">Day {activeStepDay} of {JOURNEY_MAX_DAY}</span>
                     </div>
                     <JourneyProgress
@@ -470,17 +470,17 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                     <div className="space-y-6">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Photo Progress</h3>
+                        <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Before/After Progress</h3>
                         <div className="flex items-center gap-2">
                           <div className="h-1.5 w-1.5 rounded-full bg-brand-emerald animate-pulse" />
-                          <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20 text-right">Manifestation comparison</span>
+                          <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20 text-right">Progress comparison</span>
                         </div>
                       </div>
                       <div className="aspect-[4/5] rounded-[2.5rem] overflow-hidden border border-outline-variant/10 shadow-2xl bg-foreground">
                         <ImageComparison
                           beforeImage={beforeImage}
                           afterImage={afterImage}
-                          beforeLabel="Foundation"
+                          beforeLabel="Before"
                           afterLabel={`Day ${activeStepDay}`}
                         />
                       </div>
@@ -513,16 +513,16 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                     </div>
 
                     <div className="space-y-6">
-                      <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Soul Chronicles</h3>
+                      <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Daily Log</h3>
                       <div className="bg-white/40 backdrop-blur-md rounded-[2.5rem] p-8 border border-outline-variant/5 min-h-[300px] flex flex-col">
                         {activeLog ? (
                           <div className="flex-1 flex flex-col">
                             <div className="flex items-center justify-between mb-6">
-                              <span className="text-[9px] font-aktiv font-bold uppercase tracking-widest text-primary">Observation {activeStepDay}</span>
+                              <span className="text-[9px] font-aktiv font-bold uppercase tracking-widest text-primary">Day {activeStepDay} Notes</span>
                               <span className="text-[8px] font-jakarta text-foreground/20">{new Date(activeLog.created_at).toLocaleDateString()}</span>
                             </div>
                             <p className="text-sm font-medium leading-relaxed text-foreground/70 whitespace-pre-wrap flex-1">
-                              "{activeLog.notes || 'The silence speaks of unspoken progress.'}"
+                              "{activeLog.notes || 'No notes added for today.'}"
                             </p>
                             <div className="mt-8 pt-6 border-t border-outline-variant/5 flex items-center justify-between">
                               <div className="flex -space-x-2">
@@ -534,7 +534,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                         ) : (
                           <div className="flex-1 flex flex-col items-center justify-center text-center opacity-20">
                             <Sparkles className="w-12 h-12 mb-4" />
-                            <p className="text-[10px] font-bold uppercase tracking-widest">Day {activeStepDay} awaits manifestation</p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest">Awaiting daily update</p>
                           </div>
                         )}
                       </div>
@@ -544,7 +544,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                   {/* Moved Registry Artifacts (Update PDF) Section */}
                   <div className="bg-white/40 backdrop-blur-md p-8 rounded-[2.5rem] border border-outline-variant/10 shadow-lg flex flex-col -mt-6">
                     <div className="flex items-center justify-between mb-8 shrink-0">
-                      <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Registry Artifacts</h3>
+                      <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Shared Documents</h3>
                       <button
                         disabled={!selectedStudent || isUploading}
                         onClick={() => fileInputRef.current?.click()}
@@ -596,8 +596,8 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
           <div className="flex-1 bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col overflow-hidden">
             <div className="p-8 border-b border-outline-variant/5 flex items-center justify-between shrink-0 bg-white/20">
               <div className="space-y-1">
-                <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Chat</h3>
-                <p className="text-sm font-aktiv font-bold text-foreground">Direct Sequence</p>
+                <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Chat Window</h3>
+                <p className="text-sm font-aktiv font-bold text-foreground">Direct Message</p>
               </div>
               <div className={cn("h-2.5 w-2.5 rounded-full border-2 border-white", selectedStudent ? "bg-brand-emerald animate-pulse" : "bg-foreground/10")} />
             </div>
@@ -618,7 +618,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
               ) : (
                 <div className="h-full flex flex-col items-center justify-center p-12 text-center opacity-20">
                   <MessageSquare className="w-10 h-10 mb-4" />
-                  <p className="text-[10px] font-aktiv font-bold uppercase tracking-widest">Initialize dialogue below</p>
+                  <p className="text-[10px] font-aktiv font-bold uppercase tracking-widest">Start chat below</p>
                   {selectedStudent && (
                     <button
                       onClick={() => handleStartChatWithStudent(selectedStudent.id)}
@@ -626,7 +626,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                       className="mt-6 h-10 px-6 rounded-xl bg-foreground text-background text-[9px] font-aktiv font-bold uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2"
                     >
                       {isStartingChat ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3 text-primary" />}
-                      Ignite
+                      Start Message
                     </button>
                   )}
                 </div>
@@ -696,7 +696,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                 {isAssigning ? 'Synchronizing...' : (
                   <div className="flex items-center justify-center gap-2">
                     <Sparkles className="w-4 h-4 text-primary" />
-                    Commit Alignment
+                    Confirm Assignment
                   </div>
                 )}
               </button>

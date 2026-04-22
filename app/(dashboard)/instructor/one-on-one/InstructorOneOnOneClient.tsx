@@ -156,7 +156,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
 
       <div className="relative z-10 flex flex-col h-full overflow-hidden">
          {/* HEADER */}
-         <header className="shrink-0 h-20 lg:h-24 px-6 lg:px-12 flex items-center justify-between border-b border-[#FF8A75]/5 bg-white/40 backdrop-blur-3xl">
+         <header className="shrink-0 h-16 px-6 lg:px-10 flex items-center justify-between border-b border-[#FF8A75]/5 bg-white/40 backdrop-blur-3xl">
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-4 lg:gap-12">
                <button 
                   onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -168,10 +168,10 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                   <div className="h-8 lg:h-10 w-[3px] bg-[#FF8A75] rounded-full shadow-[0_0_12px_#FF8A75]/50" />
                   <div>
                      <div className="flex items-center gap-2">
-                       <h1 className="text-xl lg:text-3xl font-aktiv font-bold text-slate-900 tracking-tight leading-none">Curator</h1>
-                       <span className="px-2 py-0.5 bg-[#FF8A75]/10 border border-[#FF8A75]/20 rounded-full text-[8px] font-black uppercase tracking-widest text-[#FF8A75]">Master</span>
+                       <h1 className="text-lg lg:text-xl font-aktiv font-bold text-slate-900 tracking-tight leading-none">Instructor Portal</h1>
+                       <span className="px-2 py-0.5 bg-[#FF8A75]/10 border border-[#FF8A75]/20 rounded-full text-[7px] font-black uppercase tracking-widest text-[#FF8A75]">Lead</span>
                      </div>
-                     <p className="hidden sm:block text-[8px] lg:text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mt-1.5 opacity-80 text-nowrap">Unified Command Hub</p>
+                     <p className="hidden sm:block text-[7px] lg:text-[8px] font-black uppercase tracking-[0.4em] text-slate-400 mt-1 opacity-80 text-nowrap">Centralized Management Hub</p>
                   </div>
                </div>
             </motion.div>
@@ -181,33 +181,33 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-[#FF8A75] transition-colors" />
                   <input
                      type="text"
-                     placeholder="Seek resonance..."
-                     className="h-10 lg:h-12 w-full pl-12 pr-4 rounded-xl lg:rounded-2xl bg-white/60 backdrop-blur-xl border border-[#FF8A75]/10 text-xs font-bold text-slate-700 placeholder:text-slate-300 focus:bg-white focus:ring-4 focus:ring-[#FF8A75]/5 outline-none transition-all shadow-sm"
+                     placeholder="Student Search..."
+                     className="h-9 lg:h-10 w-full pl-10 pr-4 rounded-xl bg-white/60 backdrop-blur-xl border border-[#FF8A75]/10 text-[10px] font-bold text-slate-700 placeholder:text-slate-300 focus:bg-white focus:ring-4 focus:ring-[#FF8A75]/5 outline-none transition-all shadow-sm"
                      value={searchQuery}
                      onChange={(e) => setSearchQuery(e.target.value)}
                   />
                </div>
-               <button 
-                  onClick={() => setShowScheduleModal(true)}
-                  className="h-10 lg:h-12 px-5 lg:px-6 rounded-xl lg:rounded-2xl bg-slate-900 text-white flex items-center gap-3 hover:bg-[#FF8A75] hover:shadow-lg hover:shadow-[#FF8A75]/20 transition-all group whitespace-nowrap"
-               >
-                  <Calendar className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                  <span className="text-[9px] font-black uppercase tracking-[0.2em] leading-none hidden lg:block">Schedule</span>
-               </button>
+                <button 
+                   onClick={() => setShowScheduleModal(true)}
+                   className="h-9 lg:h-10 px-4 rounded-xl bg-slate-900 text-white flex items-center gap-2 hover:bg-[#FF8A75] hover:shadow-lg hover:shadow-[#FF8A75]/20 transition-all group whitespace-nowrap"
+                >
+                   <Calendar className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                   <span className="text-[8px] font-black uppercase tracking-[0.2em] leading-none hidden lg:block">Schedule</span>
+                </button>
             </motion.div>
          </header>
 
          {/* SIDEBAR */}
-         <nav className={cn(
-            "fixed inset-y-0 left-0 z-[60] w-72 bg-white/95 backdrop-blur-2xl border-r border-[#FF8A75]/5 transform transition-transform duration-500 lg:static lg:w-full lg:h-24 lg:bg-white/20 lg:backdrop-blur-md lg:border-b lg:border-white/40 lg:translate-x-0 flex flex-col lg:flex-row items-stretch lg:items-center px-6 lg:px-12",
+          <nav className={cn(
+            "fixed inset-y-0 left-0 z-[60] w-72 bg-white/95 backdrop-blur-2xl border-r border-[#FF8A75]/5 transform transition-transform duration-500 lg:static lg:w-full lg:h-16 lg:bg-white/10 lg:backdrop-blur-md lg:border-b lg:border-white/40 lg:translate-x-0 flex flex-col lg:flex-row items-stretch lg:items-center px-6 lg:px-10",
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
          )}>
             <div className="flex lg:hidden items-center justify-between py-8 px-2 border-b border-[#FF8A75]/10 mb-4">
-               <span className="text-xl font-aktiv font-bold tracking-tight">Soul Compass</span>
+               <span className="text-xl font-aktiv font-bold tracking-tight">Student Portal</span>
                <button onClick={() => setIsSidebarOpen(false)}><X className="w-6 h-6 text-slate-400" /></button>
             </div>
             
-            <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="hidden lg:block text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 shrink-0 mr-8">Compass</motion.span>
+            <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="hidden lg:block text-[8px] font-black uppercase tracking-[0.4em] text-slate-400 shrink-0 mr-6">Students</motion.span>
             <div className="flex-1 flex flex-col lg:flex-row items-stretch lg:items-center gap-3 overflow-y-auto lg:overflow-x-auto no-scrollbar py-2" ref={compassScrollRef}>
                {filteredStudents.map((student, idx) => {
                   const isSelected = selectedStudent?.id === student.id;
@@ -220,33 +220,33 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                         key={student.id}
                         onClick={() => setSelectedStudent(student)}
                         className={cn(
-                           "flex items-center gap-3 lg:gap-4 px-4 py-3 rounded-2xl transition-all shrink-0 border whitespace-nowrap group relative overflow-hidden",
+                           "flex items-center gap-2 lg:gap-3 px-3 py-2 rounded-xl transition-all shrink-0 border whitespace-nowrap group relative overflow-hidden",
                            isSelected 
-                              ? "bg-white border-[#FF8A75] shadow-xl shadow-[#FF8A75]/10 lg:w-64" 
-                              : "bg-white/40 border-transparent hover:bg-white/80 hover:border-[#FF8A75]/20 lg:w-56"
+                              ? "bg-white border-[#FF8A75] shadow-lg shadow-[#FF8A75]/5 lg:w-56" 
+                              : "bg-white/40 border-transparent hover:bg-white/80 hover:border-[#FF8A75]/10 lg:w-48"
                         )}
                      >
-                        {isSelected && <motion.div layoutId="activeStudentHighlight" className="absolute left-0 top-0 bottom-0 w-1 bg-[#FF8A75]" />}
-                        <div className={cn(
-                          "h-10 w-10 lg:h-12 lg:w-12 rounded-[14px] overflow-hidden shadow-inner flex items-center justify-center shrink-0 border border-white transition-all",
-                          isSelected ? "bg-[#FF8A75]/10" : "bg-slate-100"
-                        )}>
+                         {isSelected && <motion.div layoutId="activeStudentHighlight" className="absolute left-0 top-0 bottom-0 w-0.5 bg-[#FF8A75]" />}
+                         <div className={cn(
+                           "h-8 w-8 lg:h-9 lg:w-9 rounded-lg overflow-hidden shadow-inner flex items-center justify-center shrink-0 border border-white transition-all",
+                           isSelected ? "bg-[#FF8A75]/10" : "bg-slate-100"
+                         )}>
                            {student.avatar_url ? (
                               <img src={student.avatar_url} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
                            ) : (
                               <span className={cn("text-sm font-aktiv font-bold", isSelected ? "text-[#FF8A75]" : "text-slate-400")}>{student.full_name[0]}</span>
                            )}
                         </div>
-                        <div className="text-left flex-1 min-w-0">
-                           <p className={cn("text-xs lg:text-sm font-bold tracking-tight capitalize truncate", isSelected ? "text-slate-900" : "text-slate-600 group-hover:text-slate-800")}>
-                              {student.full_name}
-                           </p>
-                           <p className={cn(
-                             "text-[8px] lg:text-[9px] font-black uppercase tracking-widest mt-1",
-                             isSelected ? "text-[#FF8A75]" : "text-slate-400"
-                           )}>
-                              Day {currentDay} Evolution
-                           </p>
+                         <div className="text-left flex-1 min-w-0">
+                            <p className={cn("text-[10px] lg:text-[11px] font-bold tracking-tight capitalize truncate", isSelected ? "text-slate-900" : "text-slate-600 group-hover:text-slate-800")}>
+                               {student.full_name}
+                            </p>
+                            <p className={cn(
+                              "text-[7px] lg:text-[8px] font-black uppercase tracking-widest mt-0.5",
+                              isSelected ? "text-[#FF8A75]" : "text-slate-400"
+                            )}>
+                               Day {currentDay} Progress
+                            </p>
                         </div>
                      </motion.button>
                   );
@@ -260,29 +260,29 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                initial={{ opacity: 0, y: 20 }}
                animate={{ opacity: 1, y: 0 }}
                transition={{ delay: 0.1 }}
-               className={cn(
-                  "flex-1 flex flex-col overflow-y-auto custom-scrollbar p-6 lg:p-10 gap-8 transition-all relative z-10",
-                  "lg:max-w-[65%]"
-               )}
-            >
-               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0">
-                  <div>
-                     <h2 className="text-3xl lg:text-4xl font-aktiv font-bold text-slate-900 tracking-tight">Transformation</h2>
-                     <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75] mt-2 opacity-80">Journey Context</p>
-                  </div>
-                  {selectedStudent?.startDate && (
-                     <div className="px-6 py-3 bg-white/80 backdrop-blur-xl rounded-[2rem] border border-[#FF8A75]/10 shadow-[0_8px_30px_rgb(255,138,117,0.06)] text-center flex-shrink-0 flex items-center gap-4">
-                        <div className="h-2 w-2 rounded-full bg-[#FF8A75] animate-pulse" />
-                        <div className="text-left">
-                           <span className="text-[7px] font-black uppercase tracking-[0.3em] text-slate-400 block leading-none mb-1">Consistency</span>
-                           <span className="text-lg lg:text-xl font-bold text-slate-900 leading-none">Day {Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate).getTime()) / 86400000) + 1))}</span>
-                        </div>
-                     </div>
-                  )}
-               </div>
+                className={cn(
+                   "flex-1 flex flex-col overflow-y-auto custom-scrollbar p-6 lg:p-8 gap-6 transition-all relative z-10",
+                   "lg:max-w-[65%]"
+                )}
+             >
+                <div className="flex flex-col sm:flex-row items-end sm:items-center justify-between gap-4 shrink-0">
+                   <div>
+                      <h2 className="text-2xl lg:text-3xl font-aktiv font-bold text-slate-900 tracking-tight leading-none">Transformation</h2>
+                      <p className="text-[7px] font-black uppercase tracking-[0.3em] text-[#FF8A75] mt-1.5 opacity-80">Journey Context</p>
+                   </div>
+                   {selectedStudent?.startDate && (
+                      <div className="px-4 py-2 bg-white/80 backdrop-blur-xl rounded-2xl border border-[#FF8A75]/10 shadow-sm text-center flex-shrink-0 flex items-center gap-3">
+                         <div className="h-1.5 w-1.5 rounded-full bg-[#FF8A75] animate-pulse" />
+                         <div className="text-left">
+                            <span className="text-[6px] font-black uppercase tracking-[0.3em] text-slate-400 block leading-none mb-0.5">Consistency</span>
+                            <span className="text-base lg:text-lg font-bold text-slate-900 leading-none">Day {Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate).getTime()) / 86400000) + 1))}</span>
+                         </div>
+                      </div>
+                   )}
+                </div>
 
-               <div className="space-y-8 pb-12 lg:pb-0">
-                  <div className="bg-white/60 backdrop-blur-2xl p-6 lg:p-8 rounded-[2rem] lg:rounded-[2.5rem] border border-white shadow-xl shadow-[#FF8A75]/5">
+               <div className="space-y-6 pb-12 lg:pb-0">
+                  <div className="bg-white/60 backdrop-blur-2xl p-4 lg:p-6 rounded-2xl lg:rounded-3xl border border-white shadow-lg shadow-[#FF8A75]/5">
                      <JourneyProgress
                         currentDay={selectedStudent?.startDate
                            ? Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate).getTime()) / 86400000) + 1))
@@ -293,11 +293,11 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                      />
                   </div>
 
-                  <div className="aspect-[4/3] lg:aspect-[16/8] rounded-[2rem] lg:rounded-[3rem] bg-slate-100 shadow-2xl shadow-[#FF8A75]/10 overflow-hidden relative group p-2 bg-white/40 border border-white/60 backdrop-blur-sm">
-                     <div className="absolute top-6 left-6 z-20 px-4 py-1.5 rounded-full bg-slate-900/80 backdrop-blur-xl text-white text-[8px] font-black uppercase tracking-widest border border-white/10 shadow-lg">
+                  <div className="aspect-[16/7] lg:aspect-[16/7] rounded-3xl lg:rounded-[2rem] bg-slate-100 shadow-xl shadow-[#FF8A75]/5 overflow-hidden relative group p-1.5 bg-white/40 border border-white/60 backdrop-blur-sm">
+                     <div className="absolute top-4 left-4 z-20 px-3 py-1 rounded-full bg-slate-900/80 backdrop-blur-xl text-white text-[7px] font-black uppercase tracking-widest border border-white/10 shadow-lg">
                         Visual Registry - Day {activeStepDay}
                      </div>
-                     <div className="h-full w-full rounded-[1.5rem] lg:rounded-[2.5rem] overflow-hidden border border-white/40">
+                     <div className="h-full w-full rounded-2xl lg:rounded-[1.5rem] overflow-hidden border border-white/40">
                        {isLoading ? (
                           <div className="h-full w-full flex items-center justify-center bg-white/60 backdrop-blur-md">
                              <Loader2 className="w-8 h-8 animate-spin text-[#FF8A75]/50" />
@@ -313,66 +313,66 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                   </div>
                   
                   {/* Notes and Artifacts Grid */}
-                  <div className="grid grid-cols-1 2xl:grid-cols-1 gap-6 lg:gap-8">
-                     <div className="flex flex-col gap-4 p-8 lg:p-10 bg-[#FFFAF7] rounded-[2rem] lg:rounded-[3rem] shadow-inner border border-[#FF8A75]/10 relative overflow-hidden group">
+                  <div className="grid grid-cols-1 2xl:grid-cols-1 gap-6">
+                     <div className="flex flex-col gap-3 p-6 lg:p-8 bg-[#FFFAF7] rounded-2xl lg:rounded-3xl shadow-inner border border-[#FF8A75]/10 relative overflow-hidden group">
                         {/* Decorative subtle texture for the notes */}
                         <div className="absolute top-0 right-0 w-32 h-32 bg-[radial-gradient(circle_at_top_right,rgba(255,138,117,0.1)_0%,transparent_70%)] opacity-50 pointer-events-none" />
                         
-                        <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center justify-between mb-1">
                            <div className="flex items-center gap-3">
-                              <div className="h-8 w-8 rounded-xl bg-white flex items-center justify-center shadow-sm border border-[#FF8A75]/10">
-                                 <FileText className="w-4 h-4 text-[#FF8A75]" />
+                              <div className="h-7 w-7 rounded-lg bg-white flex items-center justify-center shadow-sm border border-[#FF8A75]/10">
+                                 <FileText className="w-3.5 h-3.5 text-[#FF8A75]" />
                               </div>
-                              <h4 className="text-[10px] lg:text-[11px] font-black uppercase tracking-[0.3em] text-slate-800">Curator Inscription</h4>
+                              <h4 className="text-[9px] lg:text-[10px] font-black uppercase tracking-[0.3em] text-slate-800">Instructor Notes</h4>
                            </div>
                            <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-white rounded-full border border-slate-100 shadow-sm">
-                              <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                              <span className="text-[7px] font-black uppercase tracking-widest text-slate-400">Auto-Saving</span>
+                              <div className="h-1 w-1 rounded-full bg-emerald-400 animate-pulse" />
+                              <span className="text-[6px] font-black uppercase tracking-widest text-slate-400">Auto-Saving</span>
                            </div>
                         </div>
                         <textarea 
                            value={notes}
                            onChange={(e) => setNotes(e.target.value)}
-                           placeholder="Inscribe observations on the seeker's evolution..."
-                           className="flex-1 bg-transparent border-none p-2 text-base lg:text-lg font-medium text-slate-700 focus:ring-0 resize-none min-h-[140px] placeholder:text-slate-300 placeholder:italic placeholder:font-aktiv leading-relaxed relative z-10"
+                           placeholder="Inscribe observations..."
+                           className="flex-1 bg-transparent border-none p-2 text-sm lg:text-base font-medium text-slate-700 focus:ring-0 resize-none min-h-[120px] placeholder:text-slate-300 placeholder:italic placeholder:font-aktiv leading-relaxed relative z-10"
                         />
                      </div>
 
                      {/* Artifacts placed gracefully inside the grid */}
-                     <div className="bg-white rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-8 border border-[#FF8A75]/10 shadow-[0_8px_40px_rgb(0,0,0,0.04)] flex flex-col min-h-[200px]">
-                        <div className="flex items-center justify-between mb-6 shrink-0 border-b border-slate-100 pb-4">
+                     <div className="bg-white rounded-2xl lg:rounded-3xl p-5 lg:p-6 border border-[#FF8A75]/10 shadow-sm flex flex-col min-h-[180px]">
+                        <div className="flex items-center justify-between mb-4 shrink-0 border-b border-slate-100 pb-3">
                            <div>
-                              <h3 className="text-xl font-aktiv font-bold text-slate-900 tracking-tight">Artifacts</h3>
-                              <p className="text-[8px] font-black uppercase tracking-[0.3em] text-slate-400 mt-1">Shared Resources</p>
+                               <h3 className="text-lg font-aktiv font-bold text-slate-900 tracking-tight leading-none">Student Documents</h3>
+                              <p className="text-[7px] font-black uppercase tracking-[0.3em] text-slate-400 mt-1">Shared Documents</p>
                            </div>
-                           <button
-                              onClick={() => fileInputRef.current?.click()}
-                              disabled={isUploading}
-                              className="group relative h-10 w-10 lg:h-12 lg:w-12 rounded-xl lg:rounded-2xl bg-[#1a1a1a] text-white flex items-center justify-center hover:bg-[#FF8A75] transition-all shadow-md overflow-hidden disabled:opacity-70 disabled:cursor-not-allowed"
-                           >
-                              {isUploading ? <Loader2 className="w-4 h-4 animate-spin relative z-10" /> : <Plus className="w-5 h-5 relative z-10 group-hover:rotate-90 transition-transform duration-300" />}
-                           </button>
+                            <button
+                               onClick={() => fileInputRef.current?.click()}
+                               disabled={isUploading}
+                               className="group relative h-9 w-9 lg:h-10 lg:w-10 rounded-lg lg:rounded-xl bg-[#1a1a1a] text-white flex items-center justify-center hover:bg-[#FF8A75] transition-all shadow-md overflow-hidden disabled:opacity-70 disabled:cursor-not-allowed"
+                            >
+                               {isUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin relative z-10" /> : <Plus className="w-4 h-4 relative z-10 group-hover:rotate-90 transition-transform duration-300" />}
+                            </button>
                            <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
                         </div>
 
                         <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-2">
                            <AnimatePresence>
                               {resources.map((res, i) => (
-                                 <motion.button 
-                                    initial={{ opacity: 0, x: 10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: i * 0.05 }}
-                                    key={res.id} 
-                                    onClick={() => window.open(res.file_url, '_blank')}
-                                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-slate-50/80 border border-slate-100 hover:border-[#FF8A75]/30 hover:bg-white hover:shadow-lg hover:shadow-[#FF8A75]/5 transition-all text-left group"
-                                 >
-                                    <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center text-[#1a1a1a] group-hover:text-[#FF8A75] group-hover:scale-110 transition-all shadow-sm shrink-0">
-                                       {res.content_type?.includes('image') ? <ImageIcon className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
-                                    </div>
-                                    <div className="min-w-0 flex-1">
-                                       <p className="text-xs lg:text-sm font-bold text-slate-800 truncate group-hover:text-[#FF8A75] transition-colors">{res.file_name}</p>
-                                       <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 mt-0.5">Stored Node</p>
-                                    </div>
+                                  <motion.button 
+                                     initial={{ opacity: 0, x: 10 }}
+                                     animate={{ opacity: 1, x: 0 }}
+                                     transition={{ delay: i * 0.05 }}
+                                     key={res.id} 
+                                     onClick={() => window.open(res.file_url, '_blank')}
+                                     className="w-full flex items-center gap-3 p-3 rounded-xl bg-slate-50/80 border border-slate-100 hover:border-[#FF8A75]/30 hover:bg-white hover:shadow-lg hover:shadow-[#FF8A75]/5 transition-all text-left group"
+                                  >
+                                     <div className="h-8 w-8 rounded-lg bg-white flex items-center justify-center text-[#1a1a1a] group-hover:text-[#FF8A75] group-hover:scale-110 transition-all shadow-sm shrink-0">
+                                        {res.content_type?.includes('image') ? <ImageIcon className="w-3.5 h-3.5" /> : <FileText className="w-3.5 h-3.5" />}
+                                     </div>
+                                     <div className="min-w-0 flex-1">
+                                        <p className="text-[11px] lg:text-xs font-bold text-slate-800 truncate group-hover:text-[#FF8A75] transition-colors">{res.file_name}</p>
+                                        <p className="text-[7px] font-black uppercase tracking-widest text-slate-400 mt-0.5">Physical Node</p>
+                                     </div>
                                     <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0">
                                        <Download className="w-3.5 h-3.5 text-[#FF8A75]" />
                                     </div>
@@ -398,13 +398,13 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                initial={{ opacity: 0, x: 20 }}
                animate={{ opacity: 1, x: 0 }}
                transition={{ delay: 0.2 }}
-               className="hidden lg:flex lg:flex-[0.4] flex-col overflow-hidden p-6 lg:p-8 gap-6 bg-white/30 backdrop-blur-3xl border-l border-[#FF8A75]/10 relative z-20"
+               className="hidden lg:flex lg:flex-[0.35] flex-col overflow-hidden p-6 lg:p-8 shrink-0 gap-6 bg-white/30 backdrop-blur-3xl border-l border-[#FF8A75]/10 relative z-20"
             >
                {/* Sync Portal */}
-               <div className="flex-1 bg-black border border-white/5 rounded-[2rem] lg:rounded-[3rem] p-6 lg:p-8 flex flex-col relative shadow-2xl shadow-black/40 h-full min-h-[600px]">
-                  <div className="flex items-center justify-between mb-6 shrink-0 border-b border-white/5 pb-4">
+               <div className="flex-1 bg-black border border-white/5 rounded-2xl lg:rounded-3xl p-5 lg:p-6 flex flex-col relative shadow-2xl shadow-black/40 h-full min-h-[500px]">
+                  <div className="flex items-center justify-between mb-4 shrink-0 border-b border-white/5 pb-3">
                      <div className="space-y-1">
-                        <h3 className="text-xl font-aktiv font-bold text-white tracking-tight flex items-center gap-3">
+                        <h3 className="text-lg font-aktiv font-bold text-white tracking-tight flex items-center gap-3 leading-none">
                            Portal <span className="flex h-2 w-2 relative rounded-full bg-emerald-500"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span></span>
                         </h3>
                         <p className="text-[8px] font-black uppercase tracking-[0.3em] text-[#FF8A75] opacity-80">Direct Encrypted Channel</p>
@@ -553,13 +553,13 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                      <div className="h-16 w-16 bg-[#1a1a1a] rounded-3xl mx-auto flex items-center justify-center mb-6 shadow-xl shadow-slate-900/20 rotate-3">
                         <Calendar className="w-7 h-7 text-[#FF8A75]" />
                      </div>
-                     <h3 className="text-3xl font-aktiv font-bold text-slate-900 mb-2 tracking-tight">Temporal Node</h3>
-                     <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">Lock Synchronization</p>
+                     <h3 className="text-3xl font-aktiv font-bold text-slate-900 mb-2 tracking-tight">Session Schedule</h3>
+                     <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">Sync Anchoring</p>
                   </div>
 
                   <div className="space-y-6">
                      <div className="space-y-2">
-                        <label className="text-[9px] font-black tracking-[0.2em] uppercase text-slate-400 ml-4">Target Resonance</label>
+                        <label className="text-[9px] font-black tracking-[0.2em] uppercase text-slate-400 ml-4">Target Student</label>
                         <div className="h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-3">
                             <div className="h-8 w-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-[#FF8A75] font-aktiv font-bold text-sm">
                               {selectedStudent?.full_name[0]}
@@ -569,7 +569,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                      </div>
                      
                      <div className="space-y-2">
-                        <label className="text-[9px] font-black tracking-[0.2em] uppercase text-slate-400 ml-4">Window</label>
+                        <label className="text-[9px] font-black tracking-[0.2em] uppercase text-slate-400 ml-4">Duration</label>
                         <input 
                            type="datetime-local" 
                            className="h-14 w-full px-5 rounded-2xl bg-white border border-slate-200 text-sm font-bold text-slate-700 focus:border-[#FF8A75]/30 focus:ring-4 focus:ring-[#FF8A75]/10 outline-none transition-all shadow-sm" 
@@ -578,7 +578,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                   </div>
 
                   <button className="w-full h-14 rounded-2xl bg-[#1a1a1a] text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-[#FF8A75] hover:shadow-xl hover:shadow-[#FF8A75]/20 group transition-all mt-4 relative overflow-hidden">
-                     <span className="relative z-10 group-hover:scale-105 inline-block transition-transform duration-300">Set Anchor</span>
+                     <span className="relative z-10 group-hover:scale-105 inline-block transition-transform duration-300">Set Schedule</span>
                      <div className="absolute inset-0 bg-[#FF8A75] -translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-out" />
                   </button>
                </div>

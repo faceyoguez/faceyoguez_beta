@@ -30,7 +30,7 @@ export function JourneyProgress({
       {/* Track + Milestones */}
       <div className="relative px-4">
         {/* Background track */}
-        <div className="absolute left-0 right-0 top-1/2 mx-4 h-1.5 -translate-y-1/2 overflow-hidden rounded-full bg-foreground/5">
+        <div className="absolute left-0 right-0 top-1/2 mx-4 h-1 -translate-y-1/2 overflow-hidden rounded-full bg-foreground/5">
           {/* Filled portion */}
           <div
             className="h-full rounded-full bg-gradient-to-r from-primary/40 via-primary to-primary/40 shadow-[0_0_15px_rgba(var(--primary),0.2)] transition-all duration-1000 ease-out"
@@ -54,7 +54,7 @@ export function JourneyProgress({
                 {/* Dot */}
                 <div
                   className={cn(
-                    "relative z-10 flex h-10 w-10 items-center justify-center rounded-2xl border transition-all duration-500 shadow-xl",
+                    "relative z-10 flex h-8 w-8 items-center justify-center rounded-xl border transition-all duration-500 shadow-lg",
                     isActive
                       ? "scale-105 border-foreground bg-foreground text-background"
                       : isCompleted
@@ -65,11 +65,11 @@ export function JourneyProgress({
                   )}
                 >
                   {isCompleted ? (
-                    <CheckCircle className="h-5 w-5" />
+                    <CheckCircle className="h-4 w-4" />
                   ) : isReached ? (
-                    <span className="text-[10px] font-black">{day}</span>
+                    <span className="text-[9px] font-black">{day}</span>
                   ) : (
-                    <span className="text-[10px] font-black opacity-60">{day}</span>
+                    <span className="text-[9px] font-black opacity-60">{day}</span>
                   )}
 
                   {/* Photo badge */}
@@ -83,7 +83,7 @@ export function JourneyProgress({
                 {/* Day label */}
                 <span
                   className={cn(
-                    "absolute top-12 whitespace-nowrap text-[8px] font-black uppercase tracking-[0.2em] transition-all duration-500",
+                    "absolute top-10 whitespace-nowrap text-[7px] font-black uppercase tracking-[0.2em] transition-all duration-500",
                     isReached
                       ? "text-foreground opacity-90"
                       : "text-foreground/20 opacity-0 group-hover:opacity-100"

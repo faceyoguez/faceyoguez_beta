@@ -15,9 +15,9 @@ export function StaffBroadcastClient({ currentUser, batches, initialBroadcasts }
             currentUser={currentUser}
             batches={batches}
             initialBroadcasts={initialBroadcasts}
-            title="Universal Broadcast"
-            subtitle="Orchestrate wisdom across the entire platform collective."
-            badge="Staff Command Center"
+            title="Platform Announcements"
+            subtitle="Send important updates and batch-wise notifications to students."
+            badge="Staff Admin Center"
         />
     );
 }

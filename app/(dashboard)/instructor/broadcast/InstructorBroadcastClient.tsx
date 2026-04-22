@@ -15,9 +15,9 @@ export function InstructorBroadcastClient({ currentUser, batches, initialBroadca
             currentUser={currentUser}
             batches={batches}
             initialBroadcasts={initialBroadcasts}
-            title="Master Broadcast"
-            subtitle="Channel master-level wisdom across the entire collective."
-            badge="Master Portal Connection"
+            title="Broadcast Portal"
+            subtitle="Channel administrative announcements across the collective."
+            badge="Information Centre"
         />
     );
 }

@@ -27,13 +27,13 @@ export default async function StaffLMSPage() {
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-rose/10 text-brand-rose text-[10px] font-black tracking-widest uppercase">
             <ShieldCheck className="w-3 h-3" />
-            Course Manager
+            Curriculum Admin
           </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gradient-zen tracking-tight">
-            Manage Courses
+            Curriculum Management
           </h1>
           <p className="text-lg text-foreground/60 font-medium max-w-lg">
-            Add, edit, and organise course content for students.
+            Add, edit, and organize the course curriculum.
           </p>
         </div>
 

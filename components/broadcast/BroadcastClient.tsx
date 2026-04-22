@@ -153,7 +153,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                             <div className="h-8 w-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
                                 <Filter className="w-4 h-4" />
                             </div>
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/30">Target System</h3>
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/30">Target Audience</h3>
                         </div>
 
                         <div className="space-y-3">
@@ -184,7 +184,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                         {targetAudience === 'group_session' && batches.length > 0 && (
                             <div className="pt-4 border-t border-primary/5 animate-in slide-in-from-top-4">
                                 <label className="mb-3 block text-[9px] font-bold uppercase tracking-widest text-primary/40">
-                                    Specific Collective Path
+                                    Specific Batch
                                 </label>
                                 <select
                                     value={targetBatchId}
@@ -207,7 +207,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                             <div className="h-8 w-8 rounded-xl bg-violet-500/10 text-violet-500 flex items-center justify-center">
                                 <UploadCloud className="w-4 h-4" />
                             </div>
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/30">Wisdom Registry</h3>
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/30">Resource Library</h3>
                         </div>
 
                         <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
@@ -245,13 +245,13 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                                     <Zap className="h-7 w-7" />
                                 </div>
                                 <div>
-                                    <h2 className="text-2xl font-bold text-foreground">Manifest Intent</h2>
+                                    <h2 className="text-2xl font-bold text-foreground">Compose Message</h2>
                                     <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-primary">Channeling to {targetAudience.replace('_', ' ')}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                                <span className="text-[10px] font-black uppercase tracking-widest text-primary/40">Broadcasting Life</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-primary/40">Broadcasting Live</span>
                             </div>
                         </div>
 
@@ -261,7 +261,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                                     type="text"
                                     value={broadcastTitle}
                                     onChange={(e) => setBroadcastTitle(e.target.value)}
-                                    placeholder="Enter Wisdom Subject..."
+                                    placeholder="Enter Broadcast Title..."
                                     className="w-full text-4xl font-bold text-foreground placeholder:text-foreground/5 bg-transparent outline-none tracking-tight border-b-2 border-transparent focus:border-primary/10 pb-4 transition-all"
                                 />
                             </div>
@@ -270,7 +270,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                                 <textarea
                                     value={content}
                                     onChange={(e) => setContent(e.target.value)}
-                                    placeholder="Unfold your message here... The collective is listening."
+                                    placeholder="Type your message here..."
                                     className="w-full h-full resize-none text-xl font-medium text-foreground/70 placeholder:text-foreground/5 bg-transparent outline-none leading-relaxed custom-scrollbar"
                                 />
                             </div>
@@ -321,7 +321,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                                 </label>
                                 <div className="h-4 w-[1px] bg-background/10 mx-2" />
                                 <Sparkles className="h-5 w-5 text-background/20" />
-                                <p className="text-[10px] font-medium text-background/30 tracking-widest uppercase">Wisdom will be preserved in student archives.</p>
+                                <p className="text-[10px] font-medium text-background/30 tracking-widest uppercase">Broadcast will be archived in student notifications.</p>
                             </div>
                             <button
                                 onClick={handleSendBroadcast}
@@ -329,7 +329,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                                 className="h-16 px-12 rounded-full bg-primary text-background flex items-center gap-4 transition-all hover:brightness-110 active:scale-95 disabled:opacity-20 relative overflow-hidden"
                             >
                                 <span className="relative z-10 text-[11px] font-black uppercase tracking-[0.3em]">
-                                    {sending ? 'Radiating...' : 'Release Broadcast'}
+                                    {sending ? 'Sending...' : 'Send Broadcast'}
                                 </span>
                                 <ArrowRight className="relative z-10 h-5 w-5 group-hover/footer:translate-x-2 transition-transform" />
                             </button>
@@ -343,7 +343,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                         <div className="p-6 border-b border-primary/5 shrink-0 flex items-center justify-between">
                             <div>
                                 <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/30">Past Broadcasts</h3>
-                                <p className="text-lg font-bold text-foreground">Chronicles</p>
+                                <p className="text-lg font-bold text-foreground">History</p>
                             </div>
                             <History className="h-5 w-5 text-primary/20" />
                         </div>

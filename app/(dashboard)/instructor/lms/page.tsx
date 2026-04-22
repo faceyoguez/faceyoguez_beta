@@ -19,9 +19,9 @@ export default async function InstructorLmsPage() {
   return (
     <div className="p-6 lg:p-10 space-y-8">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-extrabold text-foreground tracking-tight">LMS Management</h1>
+        <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Curriculum Management</h1>
         <p className="text-foreground/60 max-w-xl">
-          Course creation portal for Master Instructors. Sequential learning paths are automatically generated from YouTube playlists.
+          Course creation portal for Lead Instructors. Sequential learning paths are automatically generated from YouTube playlists.
         </p>
       </div>
 
