@@ -41,16 +41,22 @@ export default async function DashboardLayout({
   const activeSubscriptions = subscriptions?.filter(s => s.status === 'active') || [];
   activePlans = activeSubscriptions.map(sub => sub.plan_type);
 
-  // Calculate daysLeft for renewal pill
-  const furthestEndDate = activeSubscriptions.reduce((furthest: Date | null, sub: any) => {
-    if (!sub.end_date) return furthest;
+  // Only consider subs whose end_date is in the future (or null = lifetime)
+  const todayStr = new Date().toISOString().split('T')[0];
+  const validSubs = activeSubscriptions.filter(s => !s.end_date || s.end_date >= todayStr);
+
+  // Calculate daysLeft for renewal pill — use the furthest future end_date
+  const furthestEndDate = validSubs.reduce((furthest: Date | null, sub: any) => {
+    if (!sub.end_date) return furthest; // lifetime — handled below
     const d = new Date(`${sub.end_date}T23:59:59`);
     return !furthest || d > furthest ? d : furthest;
   }, null as Date | null);
 
+  const hasLifetimeSub = validSubs.some((s: any) => !s.end_date);
+
   const daysLeft = furthestEndDate
     ? Math.max(0, Math.ceil((furthestEndDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
-    : activeSubscriptions.some(s => !s.end_date) ? -1 : 0;
+    : hasLifetimeSub ? -1 : 0;
 
   // Check if there's an expired trial to show the "kind words" prompt
   const hasExpiredTrial = subscriptions?.some(s => s.is_trial && (s.status === 'expired' || (s.end_date && new Date(s.end_date) < new Date()))) || false;

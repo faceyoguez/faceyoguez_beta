@@ -23,6 +23,7 @@ import {
   Heart,
   Globe,
   Instagram,
+  MessageCircle,
 } from 'lucide-react';
 import type { Profile } from '@/types/database';
 import { cn } from '@/lib/utils';
@@ -51,6 +52,7 @@ const navConfig = {
     { label: 'Group Classes', icon: Users, path: '/student/group-session' },
     { label: 'Courses', icon: BookOpen, path: '/student/lms' },
     { label: 'Plans & Pricing', icon: CreditCard, path: '/student/plans' },
+    { label: 'Consultation', icon: MessageCircle, path: '/student/consultation' },
     { label: 'Updates', icon: Megaphone, path: '/student/broadcasts' },
   ],
   instructor: [
@@ -69,6 +71,7 @@ const navConfig = {
   staff: [
     { label: 'Operations Hub', icon: LayoutDashboard, path: '/staff/dashboard' },
     { label: '1:1 Guidance Support', icon: User, path: '/staff/one-on-one' },
+    { label: 'Consultation Queue', icon: MessageCircle, path: '/staff/consultations' },
     { label: 'Batch Operations', icon: Users, path: '/staff/groups' },
     { label: 'Notice Board', icon: Megaphone, path: '/staff/broadcast' },
     { label: 'Curriculum Library', icon: BookOpen, path: '/staff/lms' },
@@ -78,6 +81,7 @@ const navConfig = {
   client_management: [
     { label: 'Operations Hub', icon: LayoutDashboard, path: '/staff/dashboard' },
     { label: '1:1 Guidance Support', icon: User, path: '/staff/one-on-one' },
+    { label: 'Consultation Queue', icon: MessageCircle, path: '/staff/consultations' },
     { label: 'Batch Operations', icon: Users, path: '/staff/groups' },
     { label: 'Notice Board', icon: Megaphone, path: '/staff/broadcast' },
     { label: 'Curriculum Library', icon: BookOpen, path: '/staff/lms' },

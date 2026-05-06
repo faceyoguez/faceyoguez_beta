@@ -587,38 +587,54 @@ export async function fetchActiveOneOnOneStudents(instructorId: string) {
 
   if (!subscriptions || subscriptions.length === 0) return [];
 
-  // Build student list with subscription info
-  const studentsWithSubs = subscriptions.map((s: any) => {
-    const profile = Array.isArray(s.profiles) ? s.profiles[0] : s.profiles;
-    if (!profile) return null;
+  // Build student list — group all active subs per student, then pick the BEST one
+  // "Best" = not a trial (paid > trial), then furthest end_date (renewed sub wins)
+  const todayStr = new Date().toISOString().split('T')[0];
 
-    // Calculate days left
+  const subsByStudent = new Map<string, any[]>();
+  for (const s of subscriptions) {
+    const profile = Array.isArray(s.profiles) ? s.profiles[0] : s.profiles;
+    if (!profile) continue;
+    if (!subsByStudent.has(profile.id)) subsByStudent.set(profile.id, []);
+    subsByStudent.get(profile.id)!.push({ ...s, _profile: profile });
+  }
+
+  const uniqueStudentsWithSubs: any[] = [];
+  for (const [studentId, subs] of subsByStudent.entries()) {
+    // Among all active subs for this student, pick the best:
+    // 1. Prefer paid over trial
+    // 2. Among same tier, prefer furthest end_date (renewed = later date wins)
+    const best = subs.sort((a, b) => {
+      // paid before trial (normalize null/undefined to false)
+      const aTrial = !!a.is_trial;
+      const bTrial = !!b.is_trial;
+      if (aTrial !== bTrial) return aTrial ? 1 : -1;
+      
+      // later end_date wins (null = lifetime, treat as very far future)
+      const aEnd = a.end_date ? new Date(a.end_date).getTime() : Infinity;
+      const bEnd = b.end_date ? new Date(b.end_date).getTime() : Infinity;
+      return bEnd - aEnd;
+    })[0];
+
+    const profile = best._profile;
     let daysLeft: number | null = null;
-    if (s.end_date) {
-      const end = new Date(s.end_date);
+    if (best.end_date) {
+      const end = new Date(`${best.end_date}T23:59:59`);
       const now = new Date();
       daysLeft = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
     }
 
-    return {
+    uniqueStudentsWithSubs.push({
       ...profile,
-      subscriptionId: s.id,
-      isTrial: s.is_trial || false,
+      subscriptionId: best.id,
+      isTrial: best.is_trial || false,
       daysLeft,
-      assignedInstructorId: s.assigned_instructor_id,
-      startDate: s.start_date || null,
-    };
-  }).filter(Boolean);
+      assignedInstructorId: best.assigned_instructor_id,
+      startDate: best.start_date || null,
+    });
+  }
 
-  if (studentsWithSubs.length === 0) return [];
-
-  // Deduplicate by student ID to prevent React key errors in the hub
-  const seenIds = new Set();
-  const uniqueStudentsWithSubs = studentsWithSubs.filter(s => {
-    if (seenIds.has(s.id)) return false;
-    seenIds.add(s.id);
-    return true;
-  });
+  if (uniqueStudentsWithSubs.length === 0) return [];
 
   // 2. Find the shared direct conversation for each student.
   //    Staff AND master instructors must look up the conversation between the

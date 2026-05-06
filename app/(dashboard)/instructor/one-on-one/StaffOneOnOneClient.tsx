@@ -37,8 +37,9 @@ import {
   Filter
 } from 'lucide-react';
 import type { Profile, StudentResource, LiveGrowthMetrics } from '@/types/database';
-import { ImageComparison } from '@/components/ui/image-comparison-slider';
+import { AnglePhotoViewer } from '@/components/ui/angle-photo-tracker';
 import { JourneyProgress, JOURNEY_MAX_DAY } from '@/components/ui/journey-progress';
+import { PlanExpiryPill } from '@/components/ui/plan-expiry-pill';
 import { cn } from '@/lib/utils';
 
 interface StudentInfo {
@@ -78,13 +79,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
 
   // Derived journey variables
   const activeLog = journeyLogs.find((l) => l.day_number === activeStepDay);
-  const day1Log = journeyLogs.find((l) => l.day_number === 1);
-  const beforeImage = day1Log?.photo_url || 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800&sat=-100';
-  let afterImage = activeLog?.photo_url || 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800';
-  if (!activeLog?.photo_url) {
-    const logsWithPhotos = [...journeyLogs].filter(l => l.photo_url).sort((a, b) => b.day_number - a.day_number);
-    if (logsWithPhotos.length > 0) afterImage = logsWithPhotos[0].photo_url as string;
-  }
+  const day1Log   = journeyLogs.find((l) => l.day_number === 1);
 
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedInstructorId, setSelectedInstructorId] = useState('');
@@ -280,7 +275,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
       <main className="flex-1 flex overflow-hidden p-6 lg:p-10 gap-4 xl:gap-8 min-w-0">
 
         {/* LEFT: Registry List (Student Rail Style) */}
-        <div className="w-56 xl:w-64 flex flex-col gap-6 shrink-0 h-full min-w-0">
+        <div className="w-72 xl:w-80 flex flex-col gap-6 shrink-0 h-full min-w-0">
           {/* New row for filters outside directory card */}
           <div className="flex gap-1 bg-white/40 backdrop-blur-xl p-1 rounded-2xl border border-outline-variant/10 shadow-sm">
             {[
@@ -315,11 +310,14 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                 const isEmergency = elapsedDays >= 25;
 
                 return (
-                  <button
+                  <div
                     key={student.id}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setSelectedStudent(student)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedStudent(student); }}
                     className={cn(
-                      "w-full flex items-center gap-4 p-4 rounded-2xl transition-all text-left group",
+                      "w-full flex items-center gap-4 p-4 rounded-2xl transition-all text-left group cursor-pointer",
                       selectedStudent?.id === student.id
                         ? (isEmergency ? "bg-red-50/50 border border-red-500/20 shadow-md scale-[1.02]" : "bg-white border border-outline-variant/10 shadow-md scale-[1.02]")
                         : "bg-transparent border border-transparent hover:bg-white/40 hover:border-outline-variant/5"
@@ -390,7 +388,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                          </svg>
                       </button>
                     )}
-                  </button>
+                  </div>
                 );
               })}
             </div>
@@ -450,66 +448,44 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
 
                 {/* Journey & Transformation Focus */}
                 <div className="p-10 space-y-12">
-                  {/* Journey Progress */}
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Progress Tracking</h3>
-                      <span className="text-[10px] font-aktiv font-bold text-primary bg-primary/5 px-3 py-1 rounded-full uppercase tracking-widest">Day {activeStepDay} of {JOURNEY_MAX_DAY}</span>
-                    </div>
-                    <JourneyProgress
-                      currentDay={selectedStudent.startDate
-                        ? Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate).getTime()) / 86400000) + 1))
-                        : 1}
-                      activeDay={activeStepDay}
-                      onSelectDay={setActiveStepDay}
-                      completedDays={new Set(journeyLogs.map(l => l.day_number))}
-                    />
-                  </div>
 
                   {/* Image Comparison / Visual Log */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                    <div className="space-y-6">
+                  <div className="grid grid-cols-1 gap-10">
+                    {/* 3-Angle Photo Viewer */}
+                    <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Before/After Progress</h3>
-                        <div className="flex items-center gap-2">
-                          <div className="h-1.5 w-1.5 rounded-full bg-brand-emerald animate-pulse" />
-                          <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20 text-right">Progress comparison</span>
+                        <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">📸 Progress Photos</h3>
+                        <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20">Day {activeStepDay} · 3-Angle</span>
+                      </div>
+                      {isLoadingJourney ? (
+                        <div className="flex items-center justify-center h-40">
+                          <Loader2 className="w-8 h-8 animate-spin text-primary/30" />
                         </div>
-                      </div>
-                      <div className="aspect-[4/5] rounded-[2.5rem] overflow-hidden border border-outline-variant/10 shadow-2xl bg-foreground">
-                        <ImageComparison
-                          beforeImage={beforeImage}
-                          afterImage={afterImage}
-                          beforeLabel="Before"
-                          afterLabel={`Day ${activeStepDay}`}
+                      ) : (
+                        <div className="space-y-8">
+                          <JourneyProgress
+                            currentDay={Math.min(30, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate!).getTime()) / 86400000) + 1))}
+                            activeDay={activeStepDay}
+                            onSelectDay={(day) => setActiveStepDay(day)}
+                            completedDays={new Set(journeyLogs.map(l => l.day_number))}
+                          />
+                          <AnglePhotoViewer
+                          dayNumber={activeStepDay}
+                          photos={{
+                            front: activeLog?.photo_url ?? [...journeyLogs].filter(l => l.photo_url).sort((a, b) => b.day_number - a.day_number)[0]?.photo_url ?? null,
+                            left:  activeLog?.photo_url_left ?? [...journeyLogs].filter(l => l.photo_url_left).sort((a, b) => b.day_number - a.day_number)[0]?.photo_url_left ?? null,
+                            right: activeLog?.photo_url_right ?? [...journeyLogs].filter(l => l.photo_url_right).sort((a, b) => b.day_number - a.day_number)[0]?.photo_url_right ?? null,
+                          }}
+                          day1Photos={{
+                            front: day1Log?.photo_url ?? null,
+                            left:  day1Log?.photo_url_left ?? null,
+                            right: day1Log?.photo_url_right ?? null,
+                          }}
+                          studentName={selectedStudent?.full_name}
+                          allLogs={journeyLogs}
                         />
-                      </div>
-
-                      {/* Photo Download Tools */}
-                      <div className="grid grid-cols-2 gap-3">
-                        <button
-                          disabled={!journeyLogs.find(l => l.day_number === 1)?.photo_url}
-                          onClick={() => {
-                            const url = journeyLogs.find(l => l.day_number === 1)?.photo_url;
-                            if (url) window.open(url, '_blank');
-                          }}
-                          className="h-12 px-3 rounded-[1.25rem] bg-white/40 backdrop-blur-md border border-outline-variant/10 shadow-sm flex items-center justify-center gap-1.5 text-[8px] font-black uppercase tracking-widest hover:border-primary/20 hover:bg-white transition-all disabled:opacity-30 group overflow-hidden"
-                        >
-                          <Download className="w-3 h-3 text-primary shrink-0" />
-                          <span className="truncate">Day 1</span>
-                        </button>
-                        <button
-                          disabled={!journeyLogs.find(l => l.day_number === 25)?.photo_url}
-                          onClick={() => {
-                            const url = journeyLogs.find(l => l.day_number === 25)?.photo_url;
-                            if (url) window.open(url, '_blank');
-                          }}
-                          className="h-12 px-3 rounded-[1.25rem] bg-white/40 backdrop-blur-md border border-outline-variant/10 shadow-sm flex items-center justify-center gap-1.5 text-[8px] font-black uppercase tracking-widest hover:border-primary/20 hover:bg-white transition-all disabled:opacity-30 group overflow-hidden"
-                        >
-                          <Download className="w-3 h-3 text-primary shrink-0" />
-                          <span className="truncate">Day 25</span>
-                        </button>
-                      </div>
+                        </div>
+                      )}
                     </div>
 
                     <div className="space-y-6">

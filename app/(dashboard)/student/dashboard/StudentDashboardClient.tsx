@@ -35,8 +35,7 @@ interface StudentDashboardClientProps {
   daysLeft: number;
   journeyDay: number;
   expiryDate: string | null;
-  firstPhoto: any;
-  latestPhoto: any;
+  journeyLogs: any[];
   joinedDate: Date | null;
   lastRenewed: Date | null;
   batchIds: string[];
@@ -58,8 +57,7 @@ export function StudentDashboardClient({
   daysLeft,
   journeyDay,
   expiryDate,
-  firstPhoto,
-  latestPhoto,
+  journeyLogs,
   joinedDate,
   lastRenewed,
   batchIds,
@@ -69,6 +67,7 @@ export function StudentDashboardClient({
   const rawName = profile.full_name?.split(' ')[0] || 'there';
   const firstName = rawName.charAt(0).toUpperCase() + rawName.slice(1).toLowerCase();
   const [meetings, setMeetings] = React.useState(todaysMeetings);
+  const [selectedAngle, setSelectedAngle] = React.useState('Front');
   const supabase = createClient();
 
   const quote = QUOTES[journeyDay % QUOTES.length];
@@ -293,15 +292,84 @@ export function StudentDashboardClient({
                   </div>
                 </div>
 
-                <div className="flex-1 relative rounded-[1.5rem] lg:rounded-[2.5rem] overflow-hidden bg-white/30 border-[4px] lg:border-[6px] border-white shadow-2xl mx-auto aspect-square max-h-[350px] lg:max-h-[420px]">
-                  {latestPhoto?.photo_url ? (
-                    <ImageComparison
-                      beforeImage={firstPhoto?.photo_url || '/placeholder-before.jpg'}
-                      afterImage={latestPhoto.photo_url}
-                      altBefore="Base State"
-                      altAfter="Today's Glow"
-                    />
-                  ) : (
+                <div className="flex gap-2 mb-6 bg-slate-100/30 p-1 rounded-2xl w-fit mx-auto lg:mx-0">
+                  {[
+                    { id: 'Left', key: 'photo_url_left' },
+                    { id: 'Front', key: 'photo_url' },
+                    { id: 'Right', key: 'photo_url_right' }
+                  ].map((angle) => {
+                    const hasPhoto = journeyLogs.some(l => l[angle.key]);
+                    return (
+                      <button
+                        key={angle.id}
+                        onClick={() => setSelectedAngle(angle.id)}
+                        disabled={!hasPhoto}
+                        className={cn(
+                          "px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all relative overflow-hidden",
+                          selectedAngle === angle.id
+                            ? "bg-[#1a1a1a] text-white shadow-xl shadow-[#1a1a1a]/20 scale-105"
+                            : hasPhoto 
+                              ? "bg-white/40 text-slate-400 hover:text-[#FF8A75] hover:bg-white/60"
+                              : "opacity-30 cursor-not-allowed text-slate-300"
+                        )}
+                      >
+                        {angle.id}
+                        {selectedAngle === angle.id && (
+                          <motion.div
+                            layoutId="activeTab"
+                            className="absolute inset-0 bg-[#1a1a1a] -z-10"
+                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="flex-1 flex flex-col relative">
+                  <AnimatePresence mode="wait">
+                    {[
+                      { id: 'Front', key: 'photo_url' },
+                      { id: 'Left', key: 'photo_url_left' },
+                      { id: 'Right', key: 'photo_url_right' }
+                    ]
+                    .filter(a => a.id === selectedAngle)
+                    .map((angle) => {
+                      const beforeLog = journeyLogs.find(l => l[angle.key]);
+                      const afterLog = [...journeyLogs].reverse().find(l => l[angle.key]);
+                      
+                      const before = beforeLog?.[angle.key];
+                      const after = afterLog?.[angle.key];
+                      
+                      if (!after) return null;
+
+                      return (
+                        <motion.div 
+                          key={angle.id}
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -20 }}
+                          transition={{ duration: 0.4, ease: "easeOut" }}
+                          className="w-full h-full"
+                        >
+                          <div className="relative rounded-[1.5rem] lg:rounded-[2rem] overflow-hidden bg-white/30 border-[4px] border-white shadow-xl aspect-square max-h-[280px] lg:max-h-[320px] mx-auto group/mirror">
+                            <ImageComparison
+                              beforeImage={before || after}
+                              afterImage={after}
+                              altBefore="Day 1"
+                              altAfter={`Day ${journeyDay}`}
+                              beforeLabel="Base"
+                              afterLabel="Today"
+                            />
+                            
+                            <div className="absolute inset-0 pointer-events-none border-[1px] border-[#FF8A75]/10 rounded-[1.5rem] lg:rounded-[3rem]" />
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </AnimatePresence>
+
+                  {!journeyLogs.some(l => l.photo_url || l.photo_url_left || l.photo_url_right) && (
                     <div className="h-full flex flex-col items-center justify-center text-center p-8 lg:p-12 space-y-4">
                       <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-[1.5rem] lg:rounded-[2.5rem] bg-white/60 backdrop-blur-md border border-white flex items-center justify-center shadow-lg">
                         <Sparkles className="w-6 h-6 lg:w-8 lg:h-8 text-[#FF8A75]/30" />

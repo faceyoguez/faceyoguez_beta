@@ -22,7 +22,7 @@ import {
 import type { Profile, StudentResource, MeetingWithDetails } from '@/types/database';
 
 import { getJourneyLogs, type JourneyLog } from '@/lib/actions/journey';
-import { ImageComparison } from '@/components/ui/image-comparison-slider';
+import { AnglePhotoViewer } from '@/components/ui/angle-photo-tracker';
 import { cn } from '@/lib/utils';
 import { JourneyProgress, JOURNEY_MAX_DAY } from '@/components/ui/journey-progress';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -142,10 +142,8 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
     s.full_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const day1Log = journeyLogs.find(l => l.day_number === 1);
   const activeLog = journeyLogs.find(l => l.day_number === activeStepDay);
-  const beforeImage = day1Log?.photo_url || 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800&sat=-100';
-  let afterImage = activeLog?.photo_url || 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800';
+  const day1Log   = journeyLogs.find(l => l.day_number === 1);
 
   return (
     <div className="flex flex-col h-[100dvh] bg-[#FFFAF7] text-[#1a1a1a] selection:bg-[#FF8A75]/10 overflow-hidden font-jakarta relative">
@@ -282,34 +280,43 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                 </div>
 
                <div className="space-y-6 pb-12 lg:pb-0">
-                  <div className="bg-white/60 backdrop-blur-2xl p-4 lg:p-6 rounded-2xl lg:rounded-3xl border border-white shadow-lg shadow-[#FF8A75]/5">
-                     <JourneyProgress
-                        currentDay={selectedStudent?.startDate
-                           ? Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate).getTime()) / 86400000) + 1))
-                           : 1}
-                        activeDay={activeStepDay}
-                        onSelectDay={setActiveStepDay}
-                        completedDays={new Set(journeyLogs.map(l => l.day_number))}
-                     />
-                  </div>
 
-                  <div className="aspect-[16/7] lg:aspect-[16/7] rounded-3xl lg:rounded-[2rem] bg-slate-100 shadow-xl shadow-[#FF8A75]/5 overflow-hidden relative group p-1.5 bg-white/40 border border-white/60 backdrop-blur-sm">
-                     <div className="absolute top-4 left-4 z-20 px-3 py-1 rounded-full bg-slate-900/80 backdrop-blur-xl text-white text-[7px] font-black uppercase tracking-widest border border-white/10 shadow-lg">
-                        Visual Registry - Day {activeStepDay}
+                  {/* 3-Angle Photo Viewer for instructor */}
+                  <div className="rounded-3xl bg-white/60 backdrop-blur-xl border border-white/60 shadow-lg shadow-[#FF8A75]/5 p-5 lg:p-6">
+                     <div className="flex items-center gap-3 mb-4">
+                        <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">📸 Progress Photos</span>
+                        <span className="text-[8px] text-slate-400 font-medium">— Day {activeStepDay} · 3-Angle View</span>
                      </div>
-                     <div className="h-full w-full rounded-2xl lg:rounded-[1.5rem] overflow-hidden border border-white/40">
-                       {isLoading ? (
-                          <div className="h-full w-full flex items-center justify-center bg-white/60 backdrop-blur-md">
-                             <Loader2 className="w-8 h-8 animate-spin text-[#FF8A75]/50" />
-                          </div>
-                       ) : (
-                          <ImageComparison
-                             beforeImage={beforeImage}
-                             afterImage={afterImage}
-                             disabled={activeStepDay < 2}
-                          />
-                       )}
-                     </div>
+                     {isLoading ? (
+                        <div className="flex items-center justify-center h-40">
+                           <Loader2 className="w-8 h-8 animate-spin text-[#FF8A75]/50" />
+                        </div>
+                     ) : (
+                        <div className="space-y-8">
+                           <JourneyProgress
+                              currentDay={Math.min(30, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent!.startDate!).getTime()) / 86400000) + 1))}
+                              activeDay={activeStepDay}
+                              onSelectDay={(day) => setActiveStepDay(day)}
+                              completedDays={new Set(journeyLogs.map(l => l.day_number))}
+                           />
+                           <AnglePhotoViewer
+                           dayNumber={activeStepDay}
+                           photos={{
+                              front: activeLog?.photo_url ?? [...journeyLogs].filter(l => l.photo_url).sort((a, b) => b.day_number - a.day_number)[0]?.photo_url ?? null,
+                              left:  activeLog?.photo_url_left ?? [...journeyLogs].filter(l => l.photo_url_left).sort((a, b) => b.day_number - a.day_number)[0]?.photo_url_left ?? null,
+                              right: activeLog?.photo_url_right ?? [...journeyLogs].filter(l => l.photo_url_right).sort((a, b) => b.day_number - a.day_number)[0]?.photo_url_right ?? null,
+                           }}
+                           day1Photos={{
+                              front: day1Log?.photo_url ?? null,
+                              left:  day1Log?.photo_url_left ?? null,
+                              right: day1Log?.photo_url_right ?? null,
+                           }}
+                           studentName={selectedStudent?.full_name}
+                           accentColor="#FF8A75"
+                           allLogs={journeyLogs}
+                        />
+                        </div>
+                     )}
                   </div>
                   
                   {/* Notes and Artifacts Grid */}

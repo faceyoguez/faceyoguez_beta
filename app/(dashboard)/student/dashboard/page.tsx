@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createAdminClient } from '@/lib/supabase/server';
 import { getServerUser, getServerProfile } from '@/lib/data/auth';
-import { differenceInDays, startOfDay, endOfDay } from 'date-fns';
+import { differenceInDays } from 'date-fns';
 import { StudentDashboardClient } from './StudentDashboardClient';
 
 export default async function StudentDashboardPage() {
@@ -16,7 +16,7 @@ export default async function StudentDashboardPage() {
   // ─── Batch 1: Fire all independent queries in parallel ───
   const windowStart = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
 
-  const [subsResult, enrollResult, firstPhotoResult, latestPhotoResult, oneOnOneResult] = await Promise.all([
+  const [subsResult, enrollResult, logsResult, oneOnOneResult] = await Promise.all([
     admin
       .from('subscriptions')
       .select('*')
@@ -32,18 +32,7 @@ export default async function StudentDashboardPage() {
       .from('journey_logs')
       .select('*')
       .eq('student_id', user.id)
-      .not('photo_url', 'is', null)
-      .order('day_number', { ascending: true })
-      .limit(1)
-      .maybeSingle(),
-    admin
-      .from('journey_logs')
-      .select('*')
-      .eq('student_id', user.id)
-      .not('photo_url', 'is', null)
-      .order('day_number', { ascending: false })
-      .limit(1)
-      .maybeSingle(),
+      .order('day_number', { ascending: true }),
     admin
       .from('meetings')
       .select('*, host:profiles!meetings_host_id_fkey(full_name, avatar_url)')
@@ -53,13 +42,12 @@ export default async function StudentDashboardPage() {
       .order('start_time', { ascending: true }),
   ]);
 
-  const subscriptions = subsResult.data;
-  const enrollments = enrollResult.data;
-  const firstPhoto = firstPhotoResult.data;
-  const latestPhoto = latestPhotoResult.data;
-  const oneOnOneMeetings = oneOnOneResult.data;
+  const subscriptions = subsResult.data || [];
+  const enrollments = enrollResult.data || [];
+  const journeyLogs = logsResult.data || [];
+  const oneOnOneMeetings = oneOnOneResult.data || [];
 
-  const batchIds = (enrollments || []).map((e: { batch_id: string }) => e.batch_id);
+  const batchIds = enrollments.map((e: { batch_id: string }) => e.batch_id);
 
   // ─── Batch 2: Group meetings (depends on batchIds from batch 1) ───
   let groupMeetings: any[] = [];
@@ -74,19 +62,16 @@ export default async function StudentDashboardPage() {
     groupMeetings = gMeetings || [];
   }
 
-  const todaysMeetings = [...(oneOnOneMeetings || []), ...groupMeetings]
+  const todaysMeetings = [...oneOnOneMeetings, ...groupMeetings]
     .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
 
-
   // ─── Compute derived state ───
-  const activeSubs = subscriptions || [];
-
-  const joinedDate = activeSubs.length > 0 && activeSubs[0].start_date
-    ? new Date(activeSubs[0].start_date)
+  const joinedDate = subscriptions.length > 0 && subscriptions[0].start_date
+    ? new Date(subscriptions[0].start_date)
     : null;
 
-  const lastRenewed = activeSubs.length > 0
-    ? activeSubs.reduce((latest: Date | null, sub: any) => {
+  const lastRenewed = subscriptions.length > 0
+    ? subscriptions.reduce((latest: Date | null, sub: any) => {
         if (!sub.start_date) return latest;
         const d = new Date(sub.start_date);
         return !latest || d > latest ? d : latest;
@@ -96,9 +81,9 @@ export default async function StudentDashboardPage() {
   const today = new Date();
   const todayDateStr = today.toISOString().split('T')[0];
 
-  const hasLifetimeSub = activeSubs.some((s: any) => s.end_date === null || s.end_date === undefined);
+  const hasLifetimeSub = subscriptions.some((s: any) => s.end_date === null || s.end_date === undefined);
 
-  const furthestEndDate = activeSubs.reduce((furthest: Date | null, sub: any) => {
+  const furthestEndDate = subscriptions.reduce((furthest: Date | null, sub: any) => {
     if (!sub.end_date) return furthest;
     if (sub.end_date < todayDateStr) return furthest;
     const d = new Date(`${sub.end_date}T23:59:59`);
@@ -111,7 +96,7 @@ export default async function StudentDashboardPage() {
     ? -1
     : 0;
 
-  const currentSubs = activeSubs.filter(
+  const currentSubs = subscriptions.filter(
     (s: any) => s.end_date === null || s.end_date >= todayDateStr
   );
   const activePlanTypes = [...new Set(currentSubs.map((s: any) => s.plan_type))];
@@ -130,12 +115,11 @@ export default async function StudentDashboardPage() {
       daysLeft={daysLeft}
       journeyDay={journeyDay}
       expiryDate={expiryDate}
-      firstPhoto={firstPhoto}
-      latestPhoto={latestPhoto}
+      journeyLogs={journeyLogs}
       joinedDate={joinedDate}
       lastRenewed={lastRenewed}
       batchIds={batchIds}
-      isTrial={activeSubs.some((s: any) => s.is_trial) && !activeSubs.some((s: any) => !s.is_trial)}
+      isTrial={subscriptions.some((s: any) => s.is_trial) && !subscriptions.some((s: any) => !s.is_trial)}
     />
   );
 }

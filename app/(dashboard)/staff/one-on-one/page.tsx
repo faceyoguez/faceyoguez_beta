@@ -6,6 +6,9 @@ import { getLiveGrowthMetrics, getInstructors } from '@/lib/actions/subscription
 
 const STAFF_ROLES = ['admin', 'staff', 'client_management'];
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function StaffOneOnOnePage() {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();

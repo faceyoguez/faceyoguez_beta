@@ -16,6 +16,16 @@ import {
   type InvoiceData,
   type FeedbackEmailData,
 } from './templates';
+import {
+  consultationReceiptEmailHtml,
+  consultationActivatedEmailHtml,
+  consultationZoomEmailHtml,
+  consultationPostNudgeEmailHtml,
+  type ConsultationReceiptData,
+  type ConsultationActivatedData,
+  type ConsultationZoomData,
+  type ConsultationPostNudgeData,
+} from './consultation-templates';
 
 const FROM = `"${EMAIL_CONFIG.senderName}" <${EMAIL_CONFIG.senderEmail}>`;
 
@@ -68,5 +78,69 @@ export async function sendFeedbackThankYouEmail(to: string, data: FeedbackEmailD
   } catch (err) {
     // Non-fatal: log but don't crash the feedback submit
     console.error('[Email] Feedback thank-you email failed:', err);
+  }
+}
+
+// ── 4. Consultation Receipt ────────────────────────────────────
+export async function sendConsultationReceiptEmail(to: string, data: ConsultationReceiptData): Promise<void> {
+  try {
+    await transporter.sendMail({
+      from: FROM,
+      replyTo: EMAIL_CONFIG.replyTo,
+      to,
+      subject: EMAIL_CONFIG.consultation.receiptSubject,
+      html: consultationReceiptEmailHtml(data),
+    });
+    console.log(`[Email] Consultation receipt sent → ${to}`);
+  } catch (err) {
+    console.error('[Email] Consultation receipt failed:', err);
+  }
+}
+
+// ── 5. Consultation Activated ──────────────────────────────────
+export async function sendConsultationActivatedEmail(to: string, data: ConsultationActivatedData): Promise<void> {
+  try {
+    await transporter.sendMail({
+      from: FROM,
+      replyTo: EMAIL_CONFIG.replyTo,
+      to,
+      subject: EMAIL_CONFIG.consultation.activatedSubject,
+      html: consultationActivatedEmailHtml(data),
+    });
+    console.log(`[Email] Consultation activated sent → ${to}`);
+  } catch (err) {
+    console.error('[Email] Consultation activated failed:', err);
+  }
+}
+
+// ── 6. Consultation Zoom Invite ────────────────────────────────
+export async function sendConsultationZoomEmail(to: string, data: ConsultationZoomData): Promise<void> {
+  try {
+    await transporter.sendMail({
+      from: FROM,
+      replyTo: EMAIL_CONFIG.replyTo,
+      to,
+      subject: EMAIL_CONFIG.consultation.zoomSubject,
+      html: consultationZoomEmailHtml(data),
+    });
+    console.log(`[Email] Consultation Zoom invite sent → ${to}`);
+  } catch (err) {
+    console.error('[Email] Consultation Zoom invite failed:', err);
+  }
+}
+
+// ── 7. Post-Consultation Plan Nudge ───────────────────────────
+export async function sendConsultationPostNudgeEmail(to: string, data: ConsultationPostNudgeData): Promise<void> {
+  try {
+    await transporter.sendMail({
+      from: FROM,
+      replyTo: EMAIL_CONFIG.replyTo,
+      to,
+      subject: EMAIL_CONFIG.consultation.postNudgeSubject,
+      html: consultationPostNudgeEmailHtml(data),
+    });
+    console.log(`[Email] Post-consultation nudge sent → ${to}`);
+  } catch (err) {
+    console.error('[Email] Post-consultation nudge failed:', err);
   }
 }

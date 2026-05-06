@@ -9,7 +9,9 @@ export interface JourneyLog {
     student_id: string;
     day_number: number;
     notes: string | null;
-    photo_url: string | null;
+    photo_url: string | null;        // front view
+    photo_url_left: string | null;   // left side profile
+    photo_url_right: string | null;  // right side profile
     created_at: string;
     updated_at: string;
 }
@@ -30,103 +32,119 @@ export async function getJourneyLogs(studentId: string): Promise<JourneyLog[]> {
     return data || [];
 }
 
+type PhotoAngle = 'front' | 'left' | 'right';
+
+interface AnglePhoto {
+    base64: string;
+    mimeType: string;
+}
+
+async function uploadAnglePhoto(
+    supabase: any,
+    studentId: string,
+    dayNumber: number,
+    angle: PhotoAngle,
+    base64: string,
+    mimeType: string
+): Promise<string | null> {
+    try {
+        const buffer = Buffer.from(base64, 'base64');
+        const fileExt = mimeType.split('/')[1] || 'jpeg';
+        const fileName = `${studentId}/day_${dayNumber}_${angle}_${uuidv4()}.${fileExt}`;
+
+        const { error: uploadError } = await supabase.storage
+            .from('journey-photos')
+            .upload(fileName, buffer, { contentType: mimeType, upsert: false });
+
+        if (uploadError) {
+            console.error(`Upload error [${angle}]:`, uploadError);
+            return null;
+        }
+
+        const { data: urlData } = supabase.storage
+            .from('journey-photos')
+            .getPublicUrl(fileName);
+
+        return urlData.publicUrl;
+    } catch (e) {
+        console.error(`Photo processing error [${angle}]:`, e);
+        return null;
+    }
+}
+
 export async function saveDailyCheckIn(
     studentId: string,
     dayNumber: number,
     notes: string | null,
-    photoBase64: string | null,
-    photoMimeType: string | null = 'image/jpeg'
+    // Legacy single-photo param (kept for backward compat) — treated as "front"
+    photoBase64?: string | null,
+    photoMimeType?: string | null,
+    // New multi-angle params
+    photos?: {
+        front?: AnglePhoto | null;
+        left?: AnglePhoto | null;
+        right?: AnglePhoto | null;
+    }
 ): Promise<{ success: boolean; error?: string; data?: JourneyLog }> {
     const supabase = await createServerSupabaseClient();
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    // Basic authorization: must be the student themselves
     if (!user || user.id !== studentId) {
         return { success: false, error: 'Unauthorized to save this journey log.' };
     }
 
-    let finalPhotoUrl: string | undefined = undefined;
+    // Resolve photo sources — new multi-angle params take priority
+    const frontB64  = photos?.front?.base64  ?? photoBase64  ?? null;
+    const frontMime = photos?.front?.mimeType ?? photoMimeType ?? 'image/jpeg';
+    const leftB64   = photos?.left?.base64   ?? null;
+    const leftMime  = photos?.left?.mimeType ?? 'image/jpeg';
+    const rightB64  = photos?.right?.base64  ?? null;
+    const rightMime = photos?.right?.mimeType ?? 'image/jpeg';
 
-    // 1. Upload photo if provided
-    if (photoBase64) {
-        try {
-            const buffer = Buffer.from(photoBase64, 'base64');
-            const fileExt = photoMimeType?.split('/')[1] || 'jpeg';
-            const fileName = `${studentId}/day_${dayNumber}_${uuidv4()}.${fileExt}`;
+    // Upload all provided angles in parallel
+    const [frontUrl, leftUrl, rightUrl] = await Promise.all([
+        frontB64  ? uploadAnglePhoto(supabase, studentId, dayNumber, 'front', frontB64, frontMime!)  : Promise.resolve(null),
+        leftB64   ? uploadAnglePhoto(supabase, studentId, dayNumber, 'left',  leftB64,  leftMime!)   : Promise.resolve(null),
+        rightB64  ? uploadAnglePhoto(supabase, studentId, dayNumber, 'right', rightB64, rightMime!)  : Promise.resolve(null),
+    ]);
 
-            const { error: uploadError } = await supabase.storage
-                .from('journey-photos')
-                .upload(fileName, buffer, {
-                    contentType: photoMimeType || 'image/jpeg',
-                    upsert: false,
-                });
-
-            if (uploadError) {
-                console.error('Upload error in journey logs:', uploadError);
-                return { success: false, error: 'Failed to upload journey photo.' };
-            }
-
-            const { data: urlData } = supabase.storage
-                .from('journey-photos')
-                .getPublicUrl(fileName);
-
-            finalPhotoUrl = urlData.publicUrl;
-        } catch (e) {
-            console.error('Photo processing error:', e);
-            return { success: false, error: 'Failed to process photo.' };
-        }
-    }
-
-    // 2. Upsert the log for this student and day
-    // Check if a log already exists
+    // Check if existing log exists
     const { data: existingLog } = await supabase
         .from('journey_logs')
-        .select('id, photo_url')
+        .select('id')
         .eq('student_id', studentId)
         .eq('day_number', dayNumber)
         .single();
 
-    const payLoad: any = {
+    const payload: any = {
         student_id: studentId,
         day_number: dayNumber,
         updated_at: new Date().toISOString(),
     };
 
-    if (notes !== null) {
-        payLoad.notes = notes;
-    }
-
-    if (finalPhotoUrl) {
-        payLoad.photo_url = finalPhotoUrl;
-    }
+    if (notes !== null) payload.notes = notes;
+    if (frontUrl)        payload.photo_url       = frontUrl;
+    if (leftUrl)         payload.photo_url_left  = leftUrl;
+    if (rightUrl)        payload.photo_url_right = rightUrl;
 
     let dbError = null;
     let row = null;
 
     if (existingLog) {
-        // Keep existing photo if a new one wasn't uploaded
-        if (!finalPhotoUrl && !Object.keys(payLoad).includes('photo_url')) {
-            // do nothing to photo
-        }
-
         const { data: updated, error: e } = await supabase
             .from('journey_logs')
-            .update(payLoad)
+            .update(payload)
             .eq('id', existingLog.id)
             .select()
             .single();
-
         dbError = e;
         row = updated;
     } else {
         const { data: inserted, error: e } = await supabase
             .from('journey_logs')
-            .insert(payLoad)
+            .insert(payload)
             .select()
             .single();
-
         dbError = e;
         row = inserted;
     }
@@ -137,5 +155,6 @@ export async function saveDailyCheckIn(
     }
 
     revalidatePath('/student/one-on-one');
+    revalidatePath('/student/group-session');
     return { success: true, data: row as JourneyLog };
 }

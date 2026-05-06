@@ -26,7 +26,7 @@ export function JourneyProgress({
   const progressPct = Math.min(100, Math.max(0, ((clampedDay - 1) / (JOURNEY_MAX_DAY - 1)) * 100))
 
   return (
-    <div className={cn("w-full select-none space-y-8", className)}>
+    <div className={cn("w-full select-none space-y-12 min-h-[100px] flex flex-col justify-center", className)}>
       {/* Track + Milestones */}
       <div className="relative px-4">
         {/* Background track */}

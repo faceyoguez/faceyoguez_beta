@@ -3,6 +3,9 @@ import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/se
 import { InstructorOneOnOneClient } from './InstructorOneOnOneClient';
 import { fetchActiveOneOnOneStudents } from '@/lib/actions/chat';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function InstructorOneOnOnePage() {
   const supabase = await createServerSupabaseClient();
   const {

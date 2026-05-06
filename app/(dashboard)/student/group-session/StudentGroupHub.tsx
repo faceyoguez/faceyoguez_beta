@@ -1,10 +1,11 @@
 'use client';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { JourneyProgress } from '@/components/ui/journey-progress';
 import {
     Calendar, Users, Star,
-    Flame, PlayCircle, FileText, Download, CheckCircle, Send, Camera,
+    Flame, PlayCircle, FileText, Download, CheckCircle, Send,
     Video, Clock, Sparkles, ChevronRight, Play, ShieldCheck, MessageSquare, X,
-    ArrowUpRight, Edit3
+    ArrowUpRight
 } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,8 +14,7 @@ import { getBatchMessages, sendBatchMessage } from '../../../../lib/actions/chat
 import { getBatchPollsMap, getPollById, votePoll } from '../../../../lib/actions/polls';
 import { getJourneyLogs, saveDailyCheckIn, type JourneyLog } from '../../../../lib/actions/journey';
 import { getUpcomingMeetingsForStudent, getBatchRecordedSessions } from '../../../../lib/actions/meetings';
-import { ImageComparison } from '../../../../components/ui/image-comparison-slider';
-import { JourneyProgress, JOURNEY_MAX_DAY, JOURNEY_MILESTONES } from '../../../../components/ui/journey-progress';
+import { AnglePhotoTracker } from '../../../../components/ui/angle-photo-tracker';
 import { PlanExpiryPill } from '../../../../components/ui/plan-expiry-pill';
 import { PollCard } from '../../../../components/ui/poll-card';
 import { useRouter } from 'next/navigation';
@@ -48,28 +48,9 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
     const [activeStepDay, setActiveStepDay] = useState<number>(1);
     const [notesInput, setNotesInput] = useState('');
     const [isSavingLog, setIsSavingLog] = useState(false);
-    const [selectedImageBase64, setSelectedImageBase64] = useState<string | null>(null);
-    const [selectedImageMime, setSelectedImageMime] = useState<string | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const activeLog = journeyLogs.find(l => l.day_number === activeStepDay);
-    const day1Log = journeyLogs.find(l => l.day_number === 1);
-    const hasDay1Photo = !!day1Log?.photo_url;
-    
-    // Use professional placeholders from assets
-    const placeholderBefore = '/assets/before_img.png';
-    const placeholderAfter = '/assets/after_img.png';
-
-    const beforeImage = day1Log?.photo_url || placeholderBefore;
-    let afterImage = activeLog?.photo_url || selectedImageBase64 || (activeStepDay >= 7 ? placeholderAfter : beforeImage);
-
-    // Special logic for Day 1 placeholders
-    if (activeStepDay === 1 && !hasDay1Photo) {
-        afterImage = placeholderAfter;
-    }
-
-    // Slider is active on Day 1 (before upload) and Day 7+
-    const isSliderActive = (activeStepDay === 1 && !hasDay1Photo) || (activeStepDay >= 7);
+    const day1Log   = journeyLogs.find(l => l.day_number === 1);
 
     const currentDay = React.useMemo(() => {
         const anchorDateStr = activeBatch?.start_date || subscriptionStartDate;
@@ -185,7 +166,6 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
 
     useEffect(() => {
         setNotesInput(activeLog?.notes || '');
-        setSelectedImageBase64(null);
     }, [activeStepDay, activeLog]);
 
     const handleVotePoll = async (pollId: string, optionId: string) => {
@@ -210,24 +190,11 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
         }
     };
 
-    const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const base64Str = event.target?.result as string;
-            setSelectedImageBase64(base64Str.split(',')[1]);
-            setSelectedImageMime(file.type);
-        };
-        reader.readAsDataURL(file);
-    };
-
-    const handleSaveLog = async () => {
+    const handleSavePhotos = async (photos: { front?: { base64: string; mimeType: string }; left?: { base64: string; mimeType: string }; right?: { base64: string; mimeType: string } }) => {
         setIsSavingLog(true);
-        const { success, data } = await saveDailyCheckIn(currentUser.id, activeStepDay, notesInput.trim() || null, selectedImageBase64, selectedImageMime || 'image/jpeg');
+        const { success, data } = await saveDailyCheckIn(currentUser.id, activeStepDay, null, null, null, photos);
         if (success && data) {
             setJourneyLogs(prev => [...prev.filter(l => l.day_number !== activeStepDay), data]);
-            setSelectedImageBase64(null);
         }
         setIsSavingLog(false);
     };
@@ -462,54 +429,64 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
 
                     {/* Journey Rail */}
                     <div className="surface-container p-6 sm:p-8 rounded-[2rem] sm:rounded-3xl border border-outline-variant/10 flex flex-col gap-8 sm:gap-10 overflow-hidden bg-white/50 backdrop-blur-xl shadow-sm shrink-0">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                            <h3 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">Day {currentDay} Journey</h3>
-                            <div className="overflow-x-auto no-scrollbar py-1">
-                                <JourneyProgress currentDay={currentDay} activeDay={activeStepDay} onSelectDay={setActiveStepDay} completedDays={new Set(journeyLogs.map(l => l.day_number))} />
+                        <div className="flex flex-col gap-6">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                                <h3 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">Day {currentDay} Journey</h3>
                             </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-10 items-center">
-                            <div className="relative aspect-video rounded-3xl overflow-hidden border border-outline-variant/10 shadow-lg bg-surface-container-highest">
-                                {isSliderActive ? (
-                                    <ImageComparison beforeImage={beforeImage} afterImage={afterImage as string} altBefore="Baseline" altAfter="Progress" />
-                                ) : (
-                                    <div className="w-full h-full relative group">
-                                        <img 
-                                            src={afterImage as string} 
-                                            alt={`Progress Day ${activeStepDay}`} 
-                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-                                        <div className="absolute bottom-4 left-4 z-10 flex items-center gap-2">
-                                            <div className="bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full text-[8.5px] font-bold text-white uppercase tracking-widest border border-white/10">
-                                                {activeStepDay === 1 ? "Day 1 Baseline" : `Day ${activeStepDay} Progress`}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                            <div className="space-y-6">
-                                <div className="space-y-2 text-center md:text-left">
-                                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">Daily Snapshot</h4>
-                                    <p className="text-xs sm:text-sm text-foreground/40 font-medium leading-relaxed">Capture your evolution on milestone days.</p>
+
+                            <JourneyProgress
+                                currentDay={currentDayInMonth}
+                                activeDay={activeStepDay}
+                                onSelectDay={(day) => setActiveStepDay(day)}
+                                completedDays={new Set(journeyLogs.map(l => l.day_number).filter(d => Math.ceil(d / 30) === currentMonth).map(d => ((d - 1) % 30) + 1))}
+                            />
+
+                            {/* 3-Angle Photo Tracker */}
+                            <div>
+                                <div className="flex items-center gap-2 mb-3">
+                                    <span className="text-[9px] font-black uppercase tracking-[0.3em] text-primary">📸 3-Angle Progress</span>
+                                    <span className="text-[8px] text-foreground/30 font-medium">— Front, Left &amp; Right profiles</span>
                                 </div>
-                                {(activeStepDay === 1 || activeStepDay === 7 || activeStepDay === 14 || activeStepDay === 21 || activeStepDay === 25 || JOURNEY_MILESTONES.includes(activeStepDay)) ? (
-                                    <div className="flex flex-col gap-3">
-                                        <input type="file" ref={fileInputRef} onChange={handlePhotoSelect} accept="image/*" className="hidden" />
-                                        <button onClick={() => fileInputRef.current?.click()} className="h-14 w-full rounded-2xl bg-white border border-outline-variant/10 shadow-sm flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-widest hover:border-primary/20 transition-all">
-                                            <Camera className="w-4 h-4 text-primary" /> Select Photo
-                                        </button>
-                                        {selectedImageBase64 && (
-                                            <button onClick={handleSaveLog} disabled={isSavingLog} className="h-14 w-full rounded-2xl bg-foreground text-background shadow-lg flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-widest">
-                                                {isSavingLog ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />} Save
-                                            </button>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <div className="h-28 sm:h-32 rounded-2xl border border-dashed border-outline-variant/20 flex flex-col items-center justify-center p-6 text-center opacity-40 bg-foreground/[0.02]">
-                                        <p className="text-[9px] font-black uppercase tracking-widest text-foreground/20">Milestone Required</p>
-                                    </div>
-                                )}
+                                <AnglePhotoTracker
+                                    dayNumber={activeStepDay}
+                                    savedPhotos={{
+                                        front: activeLog?.photo_url ?? [...journeyLogs].filter(l => l.photo_url).sort((a, b) => b.day_number - a.day_number)[0]?.photo_url ?? null,
+                                        left:  activeLog?.photo_url_left ?? [...journeyLogs].filter(l => l.photo_url_left).sort((a, b) => b.day_number - a.day_number)[0]?.photo_url_left ?? null,
+                                        right: activeLog?.photo_url_right ?? [...journeyLogs].filter(l => l.photo_url_right).sort((a, b) => b.day_number - a.day_number)[0]?.photo_url_right ?? null,
+                                    }}
+                                    day1Photos={{
+                                        front: day1Log?.photo_url ?? null,
+                                        left:  day1Log?.photo_url_left ?? null,
+                                        right: day1Log?.photo_url_right ?? null,
+                                    }}
+                                    onSave={handleSavePhotos}
+                                    isSaving={isSavingLog}
+                                    accentColor="#FF8A75"
+                                />
+                            </div>
+
+                            {/* Notes */}
+                            <div className="space-y-3">
+                                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-primary">📝 Daily Notes — Day {activeStepDay}</p>
+                                <div className="rounded-2xl bg-white/40 p-5 border border-outline-variant/10 shadow-inner">
+                                    <textarea
+                                        value={notesInput}
+                                        onChange={(e) => setNotesInput(e.target.value)}
+                                        className="w-full resize-none bg-transparent text-foreground/70 text-sm font-medium outline-none border-none focus:ring-0 custom-scrollbar min-h-[80px]"
+                                        placeholder="How are you feeling today?"
+                                    />
+                                </div>
+                                <button
+                                    onClick={async () => {
+                                        setIsSavingLog(true);
+                                        const { success } = await saveDailyCheckIn(currentUser.id, activeStepDay, notesInput.trim() || null);
+                                        setIsSavingLog(false);
+                                    }}
+                                    disabled={isSavingLog}
+                                    className="h-12 w-full rounded-xl bg-foreground text-background text-[8px] font-black uppercase tracking-widest hover:bg-primary transition-colors duration-300 disabled:opacity-60"
+                                >
+                                    {isSavingLog ? 'Saving…' : 'Save Notes'}
+                                </button>
                             </div>
                         </div>
                     </div>

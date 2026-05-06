@@ -85,6 +85,16 @@ export const EMAIL_CONFIG = {
     supportText: 'Questions about your purchase? Reply to this email — we respond within 24 hours.',
   },
 
+  // ── Consultation email configs ─────────────────────────────────
+  consultation: {
+    receiptSubject: 'Consultation Booked! Your ₹999 Credit is Ready ✨',
+    activatedSubject: 'Your Consultation is Now Active! 💬',
+    zoomSubject: '📅 Zoom Call Scheduled — Faceyoguez Consultation',
+    postNudgeSubject: 'How was your consultation? Your ₹999 credit awaits 🌸',
+    consultationUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.faceyoguez.com'}/student/consultation`,
+    plansUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.faceyoguez.com'}/student/plans`,
+  },
+
   // ── Feedback thank-you email config ───────────────────────────
   feedback: {
     subject: 'Thank You for Your Feedback — We\'re Listening 🌸',
@@ -101,4 +111,5 @@ export const PLAN_LABELS: Record<string, string> = {
   one_on_one: '1-on-1 Personal Session',
   group_session: '21-Day Live Group Transformation',
   lms: 'Self-Paced Video Course',
+  consultation: 'Personal Consultation Session',
 };

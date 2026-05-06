@@ -1,22 +1,19 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { OneOnOneChat } from '@/components/chat';
 import { getStudentResources } from '@/lib/actions/resources';
 import { getUpcomingMeetingsForStudent } from '@/lib/actions/meetings';
 import { createClient } from '@/lib/supabase/client';
 import { getJourneyLogs, saveDailyCheckIn, type JourneyLog } from '@/lib/actions/journey';
 import { toast } from 'sonner';
-import { ImageComparison } from '@/components/ui/image-comparison-slider';
-import { JourneyProgress, JOURNEY_MILESTONES } from '@/components/ui/journey-progress';
+import { JourneyProgress } from '@/components/ui/journey-progress';
 import { PlanExpiryPill } from '@/components/ui/plan-expiry-pill';
+import { AnglePhotoTracker } from '@/components/ui/angle-photo-tracker';
 import {
   Video,
   FileText,
   Eye,
-  Edit3,
-  Camera,
-  Image as ImageIcon,
   PlayCircle,
   ArrowUpRight,
   TrendingUp,
@@ -52,32 +49,13 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
   const [activeDay, setActiveDay] = useState(currentDay);
   const [notesInput, setNotesInput] = useState('');
   const [isSavingLog, setIsSavingLog] = useState(false);
-  const [selectedImageBase64, setSelectedImageBase64] = useState<string | null>(null);
-  const [selectedImageMime, setSelectedImageMime] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setActiveDay(currentDay);
   }, [currentDay]);
 
   const activeLog = journeyLogs.find(l => l.day_number === activeDay);
-  const day1Log = journeyLogs.find(l => l.day_number === 1);
-  const hasDay1Photo = !!day1Log?.photo_url;
-  
-  // Use professional placeholders from assets
-  const placeholderBefore = '/assets/before_img.png';
-  const placeholderAfter = '/assets/after_img.png';
-
-  const beforeImage = day1Log?.photo_url || placeholderBefore;
-  let afterImage = activeLog?.photo_url || selectedImageBase64 || (activeDay >= 7 ? placeholderAfter : beforeImage);
-
-  // Special logic for Day 1 placeholders
-  if (activeDay === 1 && !hasDay1Photo) {
-     afterImage = placeholderAfter;
-  }
-
-  // Slider is active on Day 1 (before upload) and Day 7+
-  const isSliderActive = (activeDay === 1 && !hasDay1Photo) || (activeDay >= 7);
+  const day1Log   = journeyLogs.find(l => l.day_number === 1);
 
   useEffect(() => {
     if (hasSubscription && currentUser) {
@@ -118,47 +96,33 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
     return { icon: FileText };
   };
 
-  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const base64Str = event.target?.result as string;
-      setSelectedImageBase64(base64Str.split(',')[1]);
-      setSelectedImageMime(file.type);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleSaveLog = async () => {
+  const handleSavePhotos = async (photos: { front?: { base64: string; mimeType: string }; left?: { base64: string; mimeType: string }; right?: { base64: string; mimeType: string } }) => {
     setIsSavingLog(true);
     try {
       const { success, data } = await saveDailyCheckIn(
         currentUser.id,
         activeDay,
-        notesInput.trim() || null,
-        selectedImageBase64,
-        selectedImageMime || 'image/jpeg'
+        null,
+        null,
+        null,
+        photos
       );
       if (success && data) {
         setJourneyLogs(prev => [...prev.filter(l => l.day_number !== activeDay), data]);
-        setSelectedImageBase64(null);
-        toast.success("Progress Saved!", { description: `Your journey notes for Day ${activeDay} have been updated.` });
+        toast.success('Progress Saved! 📸', { description: `Your Day ${activeDay} photos have been uploaded.` });
       } else {
-        toast.error("Failed to save progress", { description: "There was an issue saving your check-in." });
+        toast.error('Failed to save photos');
       }
-    } catch (e) {
-      toast.error("Network Error", { description: "Failed to communicate with the server." });
+    } catch {
+      toast.error('Network Error', { description: 'Failed to communicate with the server.' });
     }
     setIsSavingLog(false);
   };
 
   useEffect(() => {
     setNotesInput(activeLog?.notes || '');
-    setSelectedImageBase64(null);
   }, [activeDay, activeLog]);
 
-  const isPhotoDay = JOURNEY_MILESTONES.includes(((activeDay - 1) % 30) + 1) && !activeLog?.photo_url;
   // const isSliderActive is now defined above for unified logic
   const studentMeetings = upcomingMeetings.filter(m => m.meeting_type === 'one_on_one');
   const nextMeeting = studentMeetings.length > 0 ? studentMeetings[0] : null;
@@ -264,96 +228,73 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
               )}
             </div>
 
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-2.5 px-3 py-1.5 bg-[#FFFAF7] rounded-full border border-[#FF8A75]/10 text-[#FF8A75] text-[8.5px] font-black uppercase tracking-[0.3em] shadow-sm">
+                <TrendingUp className="w-3 h-3" />
+                Progress Tracker
+              </div>
+              <h3 className="text-2xl sm:text-4xl font-aktiv font-bold text-[#1a1a1a] tracking-tight leading-none">Your Progress</h3>
+            </div>
+
+            <div className="relative z-10 py-6 sm:py-10 px-5 sm:px-8 bg-slate-50/50 backdrop-blur-3xl rounded-[1.5rem] sm:rounded-[2rem] border border-slate-100 overflow-x-auto no-scrollbar shadow-inner">
+              <JourneyProgress
+                currentDay={dayInMonth}
+                activeDay={((activeDay - 1) % 30) + 1}
+                onSelectDay={(day) => setActiveDay((currentMonth - 1) * 30 + day)}
+                completedDays={new Set(journeyLogs.map(l => l.day_number).filter(d => Math.ceil(d / 30) === currentMonth).map(d => ((d - 1) % 30) + 1))}
+              />
+            </div>
+
             <div className="w-full rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-8 space-y-6 bg-white/60 backdrop-blur-3xl border border-[#FF8A75]/10 relative overflow-hidden shadow-xl shadow-[#FF8A75]/5 shrink-0">
               <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[radial-gradient(circle_at_center,rgba(255,138,117,0.04)_0%,transparent_70%)] blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
-              <div className="flex flex-col 2xl:flex-row 2xl:items-end justify-between gap-4 relative z-10">
-                <div className="space-y-3">
-                  <div className="inline-flex items-center gap-2.5 px-3 py-1.5 bg-[#FFFAF7] rounded-full border border-[#FF8A75]/10 text-[#FF8A75] text-[8.5px] font-black uppercase tracking-[0.3em] shadow-sm">
-                    <TrendingUp className="w-3 h-3" />
-                    Progress Tracker
-                  </div>
-                  <h3 className="text-2xl sm:text-4xl font-aktiv font-bold text-[#1a1a1a] tracking-tight leading-none">Your Progress</h3>
+              {/* 3-Angle Photo Tracker */}
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">📸 3-Angle Progress</span>
+                  <span className="text-[8px] text-slate-400 font-medium">— Front, Left &amp; Right profiles</span>
                 </div>
-                <div className="flex gap-3 sm:gap-4">
-                  <div className="px-4 sm:px-6 h-12 sm:h-14 bg-white/60 border border-[#FF8A75]/10 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center shadow-sm">
-                    <span className="text-[7px] sm:text-[8px] font-black text-[#FF8A75] uppercase tracking-[0.3em] mb-0.5">Project</span>
-                    <span className="text-sm sm:text-lg font-bold text-[#1a1a1a] tracking-tight">Month {currentMonth}</span>
-                  </div>
-                  <div className="px-4 sm:px-6 h-12 sm:h-14 bg-slate-900 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center shadow-lg">
-                    <span className="text-[7px] sm:text-[8px] font-black text-[#FF8A75] uppercase tracking-[0.3em] mb-0.5">Current</span>
-                    <span className="text-sm sm:text-lg font-bold text-white tracking-tight">Day {currentDay}/{totalDurationDays}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="relative z-10 py-8 sm:py-12 px-5 sm:px-8 bg-slate-50/50 backdrop-blur-3xl rounded-[1.5rem] sm:rounded-[2rem] border border-slate-100 overflow-x-auto no-scrollbar shadow-inner">
-                <JourneyProgress
-                  currentDay={dayInMonth}
-                  activeDay={((activeDay - 1) % 30) + 1}
-                  onSelectDay={(day) => setActiveDay((currentMonth - 1) * 30 + day)}
-                  completedDays={new Set(journeyLogs.map(l => l.day_number).filter(d => Math.ceil(d / 30) === currentMonth).map(d => ((d - 1) % 30) + 1))}
+                <AnglePhotoTracker
+                  dayNumber={activeDay}
+                  savedPhotos={{
+                    front: activeLog?.photo_url ?? [...journeyLogs].filter(l => l.photo_url).sort((a, b) => b.day_number - a.day_number)[0]?.photo_url ?? null,
+                    left:  activeLog?.photo_url_left ?? [...journeyLogs].filter(l => l.photo_url_left).sort((a, b) => b.day_number - a.day_number)[0]?.photo_url_left ?? null,
+                    right: activeLog?.photo_url_right ?? [...journeyLogs].filter(l => l.photo_url_right).sort((a, b) => b.day_number - a.day_number)[0]?.photo_url_right ?? null,
+                  }}
+                  day1Photos={{
+                    front: day1Log?.photo_url ?? null,
+                    left:  day1Log?.photo_url_left ?? null,
+                    right: day1Log?.photo_url_right ?? null,
+                  }}
+                  onSave={handleSavePhotos}
+                  isSaving={isSavingLog}
+                  accentColor="#FF8A75"
+                  allLogs={journeyLogs}
                 />
               </div>
 
-              <div className="grid grid-cols-1 xl:grid-cols-2 items-stretch gap-8 sm:gap-10 relative z-10">
-                <div className="flex flex-col">
-                  <div className="rounded-[1.5rem] sm:rounded-[2.5rem] overflow-hidden border border-[#FF8A75]/5 bg-black h-[260px] sm:h-[320px] relative shadow-2xl flex-1">
-                    {isSliderActive ? (
-                      <ImageComparison
-                        beforeImage={beforeImage}
-                        afterImage={afterImage}
-                        disabled={false}
-                      />
-                    ) : (
-                      <div className="w-full h-full relative group">
-                        <img 
-                          src={afterImage} 
-                          alt={`Progress Day ${activeDay}`} 
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-                        <div className="absolute bottom-6 left-6 z-10">
-                           <div className="px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/20 text-white text-[9px] font-black uppercase tracking-widest">
-                              {activeDay === 1 ? "Day 1 Baseline" : `Day ${activeDay} Progress`}
-                           </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+              {/* Notes */}
+              <div className="space-y-3">
+                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">📝 Your Notes — Day {activeDay}</p>
+                <div className="rounded-[1.5rem] bg-white/40 p-5 border border-slate-200/50 shadow-inner">
+                  <textarea
+                    value={notesInput}
+                    onChange={(e) => setNotesInput(e.target.value)}
+                    className="w-full resize-none bg-transparent text-slate-700 text-sm font-medium outline-none border-none focus:ring-0 custom-scrollbar font-jakarta min-h-[100px]"
+                    placeholder="How are you feeling today? Note any changes you noticed."
+                  />
                 </div>
-
-                <div className="space-y-6 flex flex-col h-full">
-                  <div className="flex items-center gap-4 sm:gap-6 shrink-0">
-                    <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl bg-slate-900 flex items-center justify-center text-[#FF8A75] shadow-xl">
-                      <Edit3 className="w-5 sm:w-6 h-5 sm:h-6" />
-                    </div>
-                    <div>
-                      <h5 className="text-2xl sm:text-3xl font-aktiv font-bold text-[#1a1a1a] tracking-tight">Your Notes</h5>
-                      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75]">Day {activeDay}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex-1 rounded-[1.2rem] sm:rounded-[1.5rem] bg-white/40 p-5 sm:p-6 border border-slate-200/50 min-h-[140px] shadow-inner">
-                    <textarea
-                      value={notesInput}
-                      onChange={(e) => setNotesInput(e.target.value)}
-                      className="w-full h-full resize-none bg-transparent text-slate-700 text-sm font-medium outline-none border-none focus:ring-0 custom-scrollbar font-jakarta"
-                      placeholder="How are you feeling today? Note any changes you noticed."
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3 shrink-0 mt-auto pb-4 lg:pb-0">
-                    <input type="file" ref={fileInputRef} onChange={handlePhotoSelect} className="hidden" />
-                    {isPhotoDay && (
-                      <button onClick={() => fileInputRef.current?.click()} className="h-12 rounded-xl border border-slate-200 bg-white shadow-sm flex items-center justify-center gap-2 text-[8px] font-black uppercase tracking-widest hover:border-[#FF8A75]/20 hover:text-[#FF8A75] transition-all">
-                        <Camera className="w-3.5 h-3.5" /> Take Photo
-                      </button>
-                    )}
-                    <button onClick={handleSaveLog} disabled={isSavingLog} className={cn("h-12 rounded-xl bg-slate-900 text-white shadow-lg flex items-center justify-center gap-2 text-[8px] font-black uppercase tracking-widest hover:bg-[#FF8A75] transition-colors duration-300", !isPhotoDay && "col-span-2")}>
-                      {isSavingLog ? 'Saving...' : 'Save Notes'}
-                    </button>
-                  </div>
-                </div>
+                <button
+                  onClick={async () => {
+                    setIsSavingLog(true);
+                    const { success } = await saveDailyCheckIn(currentUser.id, activeDay, notesInput.trim() || null);
+                    if (success) toast.success('Notes saved!');
+                    setIsSavingLog(false);
+                  }}
+                  disabled={isSavingLog}
+                  className="h-11 w-full rounded-xl bg-slate-900 text-white text-[8px] font-black uppercase tracking-widest hover:bg-[#FF8A75] transition-colors duration-300 disabled:opacity-60"
+                >
+                  {isSavingLog ? 'Saving…' : 'Save Notes'}
+                </button>
               </div>
             </div>
           </div>
