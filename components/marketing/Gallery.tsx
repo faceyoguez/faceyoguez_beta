@@ -37,8 +37,8 @@ function LoopingCard({ src, index, baseX, cardWidth, gap, wrapRange, isMobile }:
     return rawX;
   });
 
-  // Perspective tilt based on position
-  const rotateY = useTransform(x, [-500, wrapRange / 2, wrapRange + 500], [45, 0, -45]);
+  // Perspective tilt based on position - reduced for mobile to prevent jitter
+  const rotateY = useTransform(x, [-500, wrapRange / 2, wrapRange + 500], [isMobile ? 25 : 45, 0, isMobile ? -25 : -45]);
   const scale = useTransform(x, [-300, isMobile ? 60 : 800, 1800], [0.8, 1.1, 0.8]);
   const opacity = useTransform(x, [-400, 0, 1600, 2000], [0, 1, 1, 0]);
 
@@ -58,6 +58,7 @@ function LoopingCard({ src, index, baseX, cardWidth, gap, wrapRange, isMobile }:
         opacity,
         rotateY,
         transformStyle: 'preserve-3d',
+        willChange: 'transform',
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
       }}
     >
@@ -69,7 +70,7 @@ function LoopingCard({ src, index, baseX, cardWidth, gap, wrapRange, isMobile }:
         draggable={false}
         width={cardWidth}
         height={Math.round(cardWidth * 1.4)}
-        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transform: 'translateZ(0)' }}
       />
     </motion.div>
   );
@@ -80,7 +81,8 @@ export function Gallery() {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
   const baseX = useMotionValue(0);
-  const speed = 1.8; // Further increased speed as requested
+  const speed = 65; // Speed in pixels per second
+  const lastTime = useRef(0);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.matchMedia('(max-width: 768px)').matches);
@@ -98,9 +100,18 @@ export function Gallery() {
     return () => observer.disconnect();
   }, []);
 
-  useAnimationFrame(() => {
-    if (!isVisible) return;
-    baseX.set(baseX.get() + speed);
+  useAnimationFrame((time) => {
+    if (!isVisible) {
+      lastTime.current = time;
+      return;
+    }
+    
+    if (!lastTime.current) lastTime.current = time;
+    const delta = (time - lastTime.current) / 1000;
+    lastTime.current = time;
+
+    // Frame-rate independent movement
+    baseX.set(baseX.get() + speed * delta);
   });
 
   const cardWidth = isMobile ? 220 : 340;
@@ -140,10 +151,11 @@ export function Gallery() {
         className="relative"
         style={{
           height: isMobile ? '450px' : '600px',
-          perspective: isMobile ? '1000px' : '2000px',
+          perspective: isMobile ? '1200px' : '2000px',
           transformStyle: 'preserve-3d',
           maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)',
           WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)',
+          willChange: 'transform',
         }}
       >
         {DOUBLED_IMAGES.map((src, i) => (
