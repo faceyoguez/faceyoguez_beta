@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, Variants } from 'framer-motion';
 
-const HERO_IMAGE = '/assets/hero_v2.jpg';
+const HERO_IMAGE = '/assets/instructor_img.jpg';
+
 
 interface HeroProps {
   visible: boolean;

@@ -5,7 +5,8 @@ import { motion, useInView, Variants } from 'framer-motion';
 import { Heart, Instagram, Users, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const INSTRUCTOR_IMAGE = '/assets/instructor_img.jpg';
+const INSTRUCTOR_IMAGE = '/assets/hero_v2.jpg';
+// const INSTRUCTOR_IMAGE = '/assets/instructor_img.jpg';
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
