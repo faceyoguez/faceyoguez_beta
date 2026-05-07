@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 export async function POST(req: Request) {
     try {
         const supabase = await createServerSupabaseClient();
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { user } } = await supabase.auth.getUser();
         
         const body = await req.json();
         const { event_type, page_path, plan_type, amount, metadata, session_id: client_session_id } = body;
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
             .from('conversion_events')
             .insert({
                 session_id,
-                user_id: session?.user?.id || null,
+                user_id: user?.id || null,
                 event_type,
                 page_path: page_path || null,
                 plan_type: plan_type || null,

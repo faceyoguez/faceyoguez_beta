@@ -15,43 +15,35 @@ interface StudentBroadcastClientProps {
 export function StudentBroadcastClient({ notifications, subscriptionStartDate }: StudentBroadcastClientProps) {
 
     return (
-        <div className="min-h-screen bg-background p-6 lg:p-12 space-y-12 font-jakarta overflow-hidden animate-in fade-in duration-1000">
+        <div className="min-h-full font-jakarta p-4 sm:p-6 lg:p-8 space-y-5">
             {subscriptionStartDate && (
                 <PlanExpiryPill 
                     subscriptionStartDate={subscriptionStartDate} 
                     planName="Updates & Announcements"
                 />
             )}
-            
-            {/* Header Section */}
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
-                <div className="space-y-2">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black tracking-widest uppercase">
-                        <Megaphone className="w-3 h-3" />
-                        Announcements
-                    </div>
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-aktiv font-bold text-gradient-zen tracking-tight">
-                        Instructor Broadcasts
-                    </h1>
-                    <p className="text-lg text-foreground/60 font-medium max-w-lg">
-                        Updates and announcements from your instructors.
-                    </p>
-                </div>
 
-                <div className="flex h-20 w-20 rounded-[2.5rem] bg-white border border-outline-variant/10 shadow-xl items-center justify-center text-foreground/10 -rotate-6 hover:rotate-0 transition-transform duration-700">
-                   <Bell className="w-8 h-8" />
+            <header className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl sm:text-3xl font-aktiv font-bold text-[#1a1a1a] tracking-tight">
+                        Instructor <span className="text-[#FF8A75]">Updates</span>
+                    </h1>
+                    <p className="text-xs text-slate-400 font-medium mt-1">Announcements from your instructors</p>
+                </div>
+                <div className="h-10 w-10 rounded-xl bg-[#FF8A75]/10 flex items-center justify-center">
+                    <Megaphone className="w-5 h-5 text-[#FF8A75]" />
                 </div>
             </header>
 
-            <main className="relative z-10">
+            <main>
                 {notifications.length === 0 ? (
-                    <div className="flex h-[400px] flex-col items-center justify-center rounded-[3rem] liquid-glass border border-outline-variant/10 shadow-sm bg-white/40">
+                    <div className="flex h-[360px] flex-col items-center justify-center rounded-[1.75rem] bg-white border border-slate-100 shadow-sm">
                         <Sparkles className="mb-6 h-16 w-16 text-primary/10 animate-pulse" />
                         <h3 className="text-xl font-aktiv font-bold text-foreground">No Announcements Yet</h3>
                         <p className="mt-2 text-sm text-foreground/40 font-medium">No new announcements yet.</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                         {notifications.map((notif) => {
                             const broadcast = notif.broadcasts || {};
                             const instructor = broadcast.sender || {};
@@ -65,10 +57,10 @@ export function StudentBroadcastClient({ notifications, subscriptionStartDate }:
                                         }
                                     }}
                                     className={cn(
-                                        "group relative flex flex-col rounded-[2.5rem] border transition-all duration-700 backdrop-blur-3xl overflow-hidden",
+                                        "group relative flex flex-col rounded-[1.75rem] border transition-all duration-300 overflow-hidden bg-white",
                                         notif.is_read 
-                                            ? "border-outline-variant/5 bg-white/30 cursor-default opacity-80" 
-                                            : "border-primary/20 bg-white/60 cursor-pointer shadow-2xl scale-[1.01]"
+                                            ? "border-slate-100 opacity-75 cursor-default" 
+                                            : "border-[#FF8A75]/20 cursor-pointer shadow-md hover:shadow-lg hover:shadow-[#FF8A75]/5"
                                     )}
                                 >
                                     {!notif.is_read && (
@@ -144,15 +136,6 @@ export function StudentBroadcastClient({ notifications, subscriptionStartDate }:
                 )}
             </main>
 
-            {/* Background accents */}
-            <div className="fixed top-0 right-0 w-1/3 h-1/3 bg-primary/2 rounded-full blur-[120px] -z-10 animate-pulse" />
-            <div className="fixed bottom-0 left-0 w-1/4 h-1/2 bg-brand-rose/2 rounded-full blur-[120px] -z-10" />
-            
-            <style jsx global>{`
-                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-                .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.05); border-radius: 10px; }
-            `}</style>
         </div>
     );
 }

@@ -88,19 +88,17 @@ export default async function StudentGroupPage() {
 
     if (waitingStatus || activeSub) {
         return (
-            <div className="flex min-h-[80vh] items-center justify-center p-8 animate-in fade-in duration-1000">
-                <div className="w-full max-w-xl rounded-[3rem] border border-outline-variant/10 bg-white shadow-2xl p-12 text-center space-y-8 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/10 via-primary to-primary/10" />
-                    
-                    <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[2rem] bg-foreground/5 text-foreground/20">
-                        <Clock className="h-10 w-10" />
+            <div className="flex items-center justify-center p-6 sm:p-12">
+                <div className="w-full max-w-lg rounded-[1.75rem] border border-slate-100 bg-white shadow-sm p-12 text-center space-y-6">
+                    <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 text-slate-300">
+                        <Clock className="h-8 w-8" />
                     </div>
 
-                    <div className="space-y-4">
-                        <h2 className="text-3xl font-bold text-foreground tracking-tight">
+                    <div className="space-y-2">
+                        <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
                             {waitingStatus ? "Waiting for Batch" : "Your Batch is Active"}
                         </h2>
-                        <p className="text-sm text-foreground/40 font-medium leading-relaxed max-w-sm mx-auto">
+                        <p className="text-xs text-slate-400 font-medium leading-relaxed max-w-sm mx-auto">
                             {waitingStatus
                                 ? "A batch is currently running. You'll be added to the next one automatically."
                                 : "You're enrolled! We're assigning you to a batch. You'll be notified as soon as it's ready."
@@ -110,7 +108,7 @@ export default async function StudentGroupPage() {
                         </p>
                     </div>
 
-                    <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-primary/5 text-primary text-[10px] font-black uppercase tracking-widest border border-primary/10">
+                    <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-[#FF8A75]/10 text-[#FF8A75] text-[10px] font-black uppercase tracking-widest border border-[#FF8A75]/5">
                         <Bell className="h-3.5 w-3.5 animate-pulse" />
                         Batch Starting Soon
                     </div>
@@ -121,22 +119,22 @@ export default async function StudentGroupPage() {
 
     // No enrollment and not in queue — no group subscription
     return (
-        <div className="flex min-h-[80vh] items-center justify-center p-8 animate-in fade-in duration-1000">
-            <div className="w-full max-w-xl rounded-[3rem] border border-outline-variant/10 bg-white shadow-2xl p-12 text-center space-y-8">
-                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[2rem] bg-foreground/5 text-foreground/20">
-                    <Sparkles className="h-10 w-10" />
+        <div className="flex items-center justify-center p-6 sm:p-12">
+            <div className="w-full max-w-lg rounded-[1.75rem] border border-slate-100 bg-white shadow-sm p-12 text-center space-y-6">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 text-slate-300">
+                    <Sparkles className="h-8 w-8" />
                 </div>
 
-                <div className="space-y-4">
-                    <h2 className="text-3xl font-bold text-foreground tracking-tight">Group Classes</h2>
-                    <p className="text-sm text-foreground/40 font-medium leading-relaxed max-w-sm mx-auto">
+                <div className="space-y-2">
+                    <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Group Classes</h2>
+                    <p className="text-xs text-slate-400 font-medium leading-relaxed max-w-sm mx-auto">
                         You haven&apos;t joined a group class yet. Pick a plan to start practising with a batch.
                     </p>
                 </div>
 
                 <a
                     href="/student/plans"
-                    className="inline-flex h-14 items-center gap-3 rounded-2xl bg-foreground px-10 text-[10px] font-black uppercase tracking-[0.2em] text-background shadow-xl hover:scale-105 active:scale-95 transition-all"
+                    className="inline-flex h-12 items-center gap-2 rounded-xl bg-slate-900 px-8 text-[10px] font-black uppercase tracking-widest text-white shadow-lg hover:bg-[#FF8A75] transition-all"
                 >
                     View Plans
                     <ChevronRight className="h-4 w-4" />

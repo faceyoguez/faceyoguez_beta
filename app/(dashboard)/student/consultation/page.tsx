@@ -179,7 +179,7 @@ export default function StudentConsultationPage() {
 
   if (loading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
+      <div className="flex items-center justify-center py-40">
         <Loader2 className="w-8 h-8 animate-spin text-[#FF8A75]" />
       </div>
     );
@@ -188,46 +188,52 @@ export default function StudentConsultationPage() {
   // ── NO CONSULTATION: Show purchase CTA ──────────────────────────
   if (!consultation) {
     return (
-      <div className="max-w-2xl mx-auto p-6 space-y-8">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Personal Consultation</h1>
-          <p className="text-slate-500 mt-1">Chat with our face yoga expert, ask your questions, and get a Zoom call.</p>
-        </div>
+      <div className="min-h-full font-jakarta p-4 sm:p-6 lg:p-8 space-y-6">
+        <header className="flex items-center justify-between">
+            <div>
+                <h1 className="text-2xl sm:text-3xl font-aktiv font-bold text-slate-900 tracking-tight">
+                    Personal <span className="text-[#FF8A75]">Consultation</span>
+                </h1>
+                <p className="text-xs text-slate-400 font-medium mt-1">Get 1-on-1 guidance from our expert team</p>
+            </div>
+            <div className="h-10 w-10 rounded-xl bg-[#FF8A75]/10 flex items-center justify-center">
+                <MessageCircle className="w-5 h-5 text-[#FF8A75]" />
+            </div>
+        </header>
 
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-br from-[#fff5f0] to-[#fff] border border-[#FF8A75]/20 rounded-3xl p-8 space-y-6"
+          className="bg-white border border-slate-100 rounded-[1.75rem] p-8 sm:p-12 space-y-8 shadow-sm max-w-4xl mx-auto"
         >
-          <div className="w-14 h-14 rounded-2xl bg-[#FF8A75]/10 flex items-center justify-center">
-            <MessageCircle className="w-7 h-7 text-[#FF8A75]" />
-          </div>
-
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">Book Your Personal Consultation</h2>
-            <p className="text-slate-600 mt-2 leading-relaxed">
-              Get a private 1-on-1 consultation with our team. Share your concerns, ask your questions, and optionally schedule a Zoom call.
+          <div className="space-y-4 text-center max-w-2xl mx-auto">
+            <div className="w-16 h-16 rounded-2xl bg-[#FF8A75]/10 flex items-center justify-center mx-auto">
+                <Sparkles className="w-8 h-8 text-[#FF8A75]" />
+            </div>
+            <h2 className="text-2xl font-aktiv font-bold text-slate-900">Expert Guidance, Personalized for You</h2>
+            <p className="text-sm text-slate-500 leading-relaxed">
+              Share your specific concerns, ask questions, and optionally schedule a private Zoom call to refine your face yoga practice.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {[
-              { icon: MessageCircle, title: 'Private Chat', desc: 'Direct messaging with our expert' },
-              { icon: Video, title: 'Zoom Call', desc: 'Schedule a face-to-face video call' },
-              { icon: Sparkles, title: '₹999 Credit', desc: 'Deducted from your first 1-on-1 plan' },
+              { icon: MessageCircle, title: 'Private Chat', desc: 'Direct messaging' },
+              { icon: Video, title: 'Zoom Call', desc: 'Face-to-face video' },
+              { icon: Sparkles, title: '₹999 Credit', desc: 'Deducted from plans' },
             ].map((item, i) => (
-              <div key={i} className="bg-white rounded-2xl p-4 border border-[#FF8A75]/10 space-y-2">
-                <item.icon className="w-5 h-5 text-[#FF8A75]" />
-                <p className="font-bold text-sm text-slate-900">{item.title}</p>
-                <p className="text-xs text-slate-500">{item.desc}</p>
+              <div key={i} className="bg-slate-50/50 rounded-2xl p-5 border border-slate-100 space-y-2 text-center">
+                <item.icon className="w-5 h-5 text-[#FF8A75] mx-auto" />
+                <p className="font-bold text-xs text-slate-900 uppercase tracking-widest">{item.title}</p>
+                <p className="text-[11px] text-slate-400 font-medium">{item.desc}</p>
               </div>
             ))}
           </div>
 
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-            <p className="text-sm font-semibold text-amber-800">💰 Smart Investment</p>
-            <p className="text-sm text-amber-700 mt-1">
-              Pay ₹999 for consultation. When you buy any 1-on-1 plan after, ₹999 is automatically deducted — making your consultation essentially free!
+          <div className="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-sm">
+            <p className="text-[10px] font-black text-[#FF8A75] uppercase tracking-[0.2em] mb-1">💰 Smart Investment</p>
+            <p className="text-xs text-slate-400 leading-relaxed font-medium">
+              Pay ₹999 for consultation. When you buy any 1-on-1 plan after, ₹999 is automatically deducted — making your consultation <span className="text-white">essentially free</span>!
             </p>
           </div>
 
@@ -235,9 +241,9 @@ export default function StudentConsultationPage() {
             onClick={handlePurchase}
             disabled={purchasing}
             id="purchase-consultation-btn"
-            className="w-full py-4 bg-[#FF8A75] text-white rounded-2xl font-bold text-sm tracking-wide hover:bg-[#FF7A62] transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#FF8A75]/20"
+            className="w-full h-14 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-[#FF8A75] transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-900/10"
           >
-            {purchasing ? <Loader2 className="w-5 h-5 animate-spin" /> : <><MessageCircle className="w-5 h-5" /> Book Consultation — ₹999</>}
+            {purchasing ? <Loader2 className="w-5 h-5 animate-spin" /> : <><MessageCircle className="w-5 h-5" /> Book Your Consultation — ₹999</>}
           </button>
         </motion.div>
       </div>
@@ -251,30 +257,34 @@ export default function StudentConsultationPage() {
   const StatusBanner = () => {
     if (status === 'paid') {
       return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
-          <Clock className="w-5 h-5 text-amber-500 mt-0.5 flex-shrink-0" />
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white border border-slate-100 rounded-2xl p-5 flex items-start gap-4 shadow-sm">
+          <div className="h-10 w-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500 shrink-0">
+            <Clock className="w-5 h-5" />
+          </div>
           <div>
-            <p className="font-semibold text-amber-800 text-sm">Consultation Pending Activation</p>
-            <p className="text-amber-700 text-xs mt-0.5">Our team has received your booking and will connect with you very soon. You'll get an email notification when it's active!</p>
+            <p className="font-bold text-slate-900 text-sm">Consultation Pending Activation</p>
+            <p className="text-slate-400 text-xs mt-0.5 leading-relaxed">Our team has received your booking and will connect with you very soon. You'll get an email notification when it's active!</p>
           </div>
         </motion.div>
       );
     }
     if (status === 'completed') {
       return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-start gap-3">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" />
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white border border-slate-100 rounded-2xl p-5 flex items-start gap-4 shadow-sm">
+          <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500 shrink-0">
+            <CheckCircle2 className="w-5 h-5" />
+          </div>
           <div className="flex-1">
-            <p className="font-semibold text-emerald-800 text-sm">Consultation Complete! 🎉</p>
-            <p className="text-emerald-700 text-xs mt-0.5">
+            <p className="font-bold text-slate-900 text-sm">Consultation Complete! 🎉</p>
+            <p className="text-slate-400 text-xs mt-0.5 leading-relaxed">
               {hasCredit ? 'Your ₹999 credit is still active — use it on any 1-on-1 plan!' : 'Your consultation credit has been applied to your plan. Thank you!'}
             </p>
             {hasCredit && (
               <button
                 onClick={() => window.location.href = '/student/plans'}
-                className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-emerald-700 underline hover:text-emerald-900 transition-colors"
+                className="mt-3 inline-flex items-center gap-1.5 text-[10px] font-black text-[#FF8A75] uppercase tracking-widest hover:text-slate-900 transition-colors"
               >
-                Claim ₹999 credit on a plan <ArrowRight className="w-3 h-3" />
+                Claim Credit <ArrowRight className="w-3 h-3" />
               </button>
             )}
           </div>
@@ -288,65 +298,70 @@ export default function StudentConsultationPage() {
   const CreditCard = () => {
     if (!hasCredit || status === 'completed') return null;
     return (
-      <div className="bg-gradient-to-r from-[#FF8A75]/10 to-[#fff5f0] border border-[#FF8A75]/20 rounded-2xl p-4 flex items-center justify-between">
+      <div className="bg-slate-900 rounded-2xl p-5 flex items-center justify-between border border-slate-800 shadow-sm overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF8A75]/10 rounded-full blur-3xl -z-10" />
         <div>
-          <p className="text-xs font-black uppercase tracking-widest text-[#FF8A75]">💰 Credit Available</p>
-          <p className="text-lg font-bold text-slate-900">₹999 OFF any 1-on-1 plan</p>
-          <p className="text-xs text-slate-500">Auto-applied on your first plan purchase</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-[#FF8A75]">💰 Credit Available</p>
+          <p className="text-lg font-bold text-white">₹999 OFF any 1-on-1 plan</p>
+          <p className="text-[11px] text-slate-400 font-medium">Auto-applied on your first purchase</p>
         </div>
         <button
           onClick={() => window.location.href = '/student/plans'}
-          className="px-4 py-2 bg-[#FF8A75] text-white rounded-xl text-xs font-bold hover:bg-[#FF7A62] transition-colors flex items-center gap-1"
+          className="h-10 px-5 bg-[#FF8A75] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-slate-900 transition-all flex items-center gap-2"
         >
-          View Plans <ArrowRight className="w-3 h-3" />
+          View Plans <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
     );
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-6">
+    <div className="min-h-full font-jakarta p-4 sm:p-6 lg:p-8 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">My Consultation</h1>
-          <p className="text-slate-500 text-sm mt-0.5">
-            Status: <span className={`font-semibold capitalize ${
-              status === 'active' ? 'text-emerald-600' :
-              status === 'completed' ? 'text-blue-600' :
-              'text-amber-600'
-            }`}>{status}</span>
-          </p>
+            <h1 className="text-2xl sm:text-3xl font-aktiv font-bold text-slate-900 tracking-tight">
+                My <span className="text-[#FF8A75]">Consultation</span>
+            </h1>
+            <p className="text-xs text-slate-400 font-medium mt-1">
+                Status: <span className={`font-black uppercase tracking-widest ${
+                status === 'active' ? 'text-emerald-500' :
+                status === 'completed' ? 'text-slate-400' :
+                'text-amber-500'
+                }`}>{status}</span>
+            </p>
         </div>
         {zoomCall && status === 'active' && (
           <a
             href={zoomCall.join_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-2 h-11 px-6 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#FF8A75] transition-all shadow-lg shadow-slate-900/10"
           >
             <Video className="w-4 h-4" />
             Join Zoom
-            <ExternalLink className="w-3 h-3" />
           </a>
         )}
-      </div>
+      </header>
 
       <StatusBanner />
       <CreditCard />
 
       {/* Zoom call info */}
       {zoomCall && (
-        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-2">
-          <p className="text-xs font-black uppercase tracking-widest text-blue-600">📅 Scheduled Zoom Call</p>
-          <p className="text-sm font-bold text-blue-900">{zoomCall.topic}</p>
-          <p className="text-xs text-blue-700">
-            {new Date(zoomCall.start_time).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })} at{' '}
-            {new Date(zoomCall.start_time).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })} IST
-            {' '}· {zoomCall.duration_minutes} min
-          </p>
+        <div className="bg-white border border-slate-100 rounded-2xl p-5 space-y-3 shadow-sm relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-full blur-3xl -z-10" />
+          <p className="text-[10px] font-black uppercase tracking-widest text-blue-500">📅 Scheduled Zoom Call</p>
+          <div className="space-y-1">
+            <p className="text-base font-bold text-slate-900">{zoomCall.topic}</p>
+            <p className="text-[11px] text-slate-400 font-medium">
+                {new Date(zoomCall.start_time).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })} at{' '}
+                {new Date(zoomCall.start_time).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })} IST
+                {' '}· {zoomCall.duration_minutes} min
+            </p>
+          </div>
           <a href={zoomCall.join_url} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 underline">
+            className="inline-flex items-center gap-1.5 text-[10px] font-black text-blue-500 uppercase tracking-widest hover:text-slate-900 transition-colors">
             {zoomCall.join_url} <ExternalLink className="w-3 h-3" />
           </a>
         </div>
@@ -354,7 +369,7 @@ export default function StudentConsultationPage() {
 
       {/* CHAT AREA */}
       {(status === 'active' || status === 'completed') && (
-        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col" style={{ minHeight: '400px', maxHeight: '550px' }}>
+        <div className="bg-white rounded-[1.75rem] border border-slate-100 shadow-sm overflow-hidden flex flex-col h-[calc(100vh-25rem)] min-h-[500px]">
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
             {messages.length === 0 && (
@@ -370,7 +385,7 @@ export default function StudentConsultationPage() {
               if (isSystem) {
                 return (
                   <div key={msg.id} className="flex justify-center">
-                    <div className="bg-[#FF8A75]/10 text-[#c96b5a] text-xs px-4 py-2 rounded-full max-w-[80%] text-center whitespace-pre-line leading-relaxed">
+                    <div className="bg-slate-50 text-slate-400 text-[10px] font-bold uppercase tracking-widest px-5 py-2.5 rounded-full max-w-[80%] text-center whitespace-pre-line leading-relaxed border border-slate-100">
                       {msg.content}
                     </div>
                   </div>
@@ -379,20 +394,20 @@ export default function StudentConsultationPage() {
 
               return (
                 <div key={msg.id} className={`flex ${isStaff ? 'justify-start' : 'justify-end'}`}>
-                  <div className={`max-w-[75%] ${isStaff ? 'order-2' : ''}`}>
+                  <div className={`max-w-[80%] ${isStaff ? 'order-2' : ''}`}>
                     {isStaff && (
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 ml-1">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">
                         {msg.sender?.full_name?.split(' ')[0] || 'Staff'}
                       </p>
                     )}
-                    <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                    <div className={`rounded-2xl px-5 py-3.5 text-[13px] font-medium leading-relaxed shadow-sm ${
                       isStaff
-                        ? 'bg-slate-100 text-slate-800 rounded-tl-sm'
-                        : 'bg-[#FF8A75] text-white rounded-tr-sm'
+                        ? 'bg-slate-50 text-slate-700 border border-slate-100 rounded-tl-sm'
+                        : 'bg-slate-900 text-white rounded-tr-sm'
                     }`}>
                       {msg.content_type === 'pdf' || msg.content_type === 'file' ? (
                         <a href={msg.file_url || '#'} target="_blank" rel="noopener noreferrer"
-                          className="flex items-center gap-2 underline font-semibold">
+                          className="flex items-center gap-2 underline font-bold">
                           <Paperclip className="w-4 h-4 flex-shrink-0" />
                           {msg.file_name || 'Attachment'}
                         </a>
@@ -400,7 +415,7 @@ export default function StudentConsultationPage() {
                         <p className="whitespace-pre-wrap">{msg.content}</p>
                       )}
                     </div>
-                    <p className={`text-[10px] text-slate-400 mt-1 ${isStaff ? 'ml-1' : 'text-right mr-1'}`}>
+                    <p className={`text-[9px] font-bold text-slate-300 uppercase tracking-widest mt-1.5 ${isStaff ? 'ml-1' : 'text-right mr-1'}`}>
                       {new Date(msg.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
                     </p>
                   </div>
@@ -412,23 +427,23 @@ export default function StudentConsultationPage() {
 
           {/* Input */}
           {status === 'active' && (
-            <div className="border-t border-slate-100 p-4 flex items-end gap-3">
+            <div className="border-t border-slate-50 p-5 flex items-end gap-3 bg-white/50 backdrop-blur-md">
               <textarea
                 id="consultation-message-input"
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Type your message… (Enter to send)"
-                rows={2}
-                className="flex-1 resize-none bg-slate-50 rounded-2xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none focus:ring-2 focus:ring-[#FF8A75]/30 border border-slate-200"
+                rows={1}
+                className="flex-1 resize-none bg-slate-50 rounded-xl px-5 py-3.5 text-sm text-slate-800 font-medium placeholder-slate-400 outline-none focus:ring-2 focus:ring-[#FF8A75]/20 border border-slate-100 transition-all"
               />
               <button
                 onClick={handleSend}
                 disabled={!input.trim() || sending}
                 id="send-message-btn"
-                className="w-11 h-11 rounded-2xl bg-[#FF8A75] text-white flex items-center justify-center hover:bg-[#FF7A62] transition-colors disabled:opacity-50 flex-shrink-0"
+                className="w-12 h-12 rounded-xl bg-slate-900 text-white flex items-center justify-center hover:bg-[#FF8A75] transition-all disabled:opacity-50 flex-shrink-0 shadow-lg shadow-slate-900/10"
               >
-                {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
               </button>
             </div>
           )}

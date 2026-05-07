@@ -2,21 +2,19 @@
 
 import React from 'react';
 import {
-  Bell,
-  Calendar,
-  Sparkles,
   Clock,
   Users,
   ArrowUpRight,
   User,
-  Heart,
+  Sparkles,
   Activity,
   Zap,
-  AlertTriangle,
-  X,
   TrendingUp,
   Radio,
-  BookOpen
+  Calendar,
+  Flame,
+  Timer,
+  Eye
 } from 'lucide-react';
 import { format, addMinutes, isAfter } from 'date-fns';
 import Link from 'next/link';
@@ -25,7 +23,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ImageComparison } from '@/components/ui/image-comparison-slider';
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
-import { submitExitFeedback } from '@/app/actions/feedback';
 import { toast } from 'sonner';
 
 interface StudentDashboardClientProps {
@@ -138,335 +135,344 @@ export function StudentDashboardClient({
     };
   }, [supabase, profile.id, batchIds, router]);
 
+  const hasPhotos = journeyLogs.some(l => l.photo_url || l.photo_url_left || l.photo_url_right);
 
   return (
-    <div className="min-h-[100dvh] relative flex flex-col bg-[#FFFAF7] text-slate-900 font-jakarta selection:bg-[#FF8A75]/20 overflow-x-hidden">
+    <div className="min-h-full p-4 sm:p-6 lg:p-8 space-y-5 lg:space-y-6 font-jakarta">
 
-      {/* ── Sanctuary Style Auroras ── */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] bg-[radial-gradient(circle_at_center,rgba(255,138,117,0.06)_0%,transparent_50%)] blur-3xl opacity-40" />
-        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-[radial-gradient(circle_at_center,rgba(255,138,117,0.04)_0%,transparent_60%)] translate-y-1/2 translate-x-1/4 blur-3xl rounded-full" />
-      </div>
+      {/* ── Greeting Header ── */}
+      <motion.div
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3"
+      >
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/60 backdrop-blur-xl border border-[#FF8A75]/10 shadow-sm mb-3">
+            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Active Session</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-aktiv font-bold tracking-tight text-[#1a1a1a] leading-none">
+            Welcome back, <span className="text-[#FF8A75]">{firstName}</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-400 font-medium mt-1.5">
+            {format(new Date(), 'EEEE, MMMM do yyyy')}
+          </p>
+        </div>
 
-      <div className="relative z-10 flex flex-col h-full overflow-y-auto">
-
-        {/* ── Sanctuary Header ── */}
-        <header className="shrink-0 px-5 sm:px-6 md:px-8 lg:px-12 py-3 md:py-4 lg:py-5 flex items-center justify-between border-b border-[#FF8A75]/5" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col gap-2 lg:gap-3"
-          >
-            <div className="inline-flex items-center gap-2 lg:gap-3 px-3 lg:px-4 py-1.5 rounded-full bg-white/40 backdrop-blur-3xl border border-[#FF8A75]/10 shadow-sm self-start">
-              <div className="h-1.5 w-1.5 rounded-full bg-[#FF8A75] shadow-[0_0_8px_#FF8A75]" />
-              <span className="text-[10px] md:text-[10px] lg:text-[9px] font-black uppercase tracking-[0.2em] lg:tracking-[0.3em] text-[#FF8A75] leading-none">Curator Presence Active</span>
-            </div>
+        {/* Quick Stats Pills */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 px-3.5 py-2 bg-white rounded-2xl border border-slate-100 shadow-sm">
+            <Flame className="w-4 h-4 text-[#FF8A75]" />
             <div>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-aktiv tracking-tight text-[#1a1a1a] leading-none">
-                {firstName}&apos;s <span className="text-[#FF8A75] underline decoration-[#FF8A75]/20 underline-offset-4 lg:underline-offset-8">Sanctuary</span>
-              </h1>
-              <p className="text-[10px] md:text-[10px] lg:text-[10px] font-black uppercase tracking-[0.3em] lg:tracking-[0.4em] text-slate-400 mt-1.5 lg:mt-2 opacity-80">
-                {format(new Date(), 'EEEE, MMMM do')}
+              <p className="text-lg font-aktiv font-bold text-[#1a1a1a] leading-none">{journeyDay}</p>
+              <p className="text-[8px] font-black uppercase tracking-[0.15em] text-slate-400 mt-0.5">Day Streak</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 px-3.5 py-2 bg-white rounded-2xl border border-slate-100 shadow-sm">
+            <Timer className="w-4 h-4 text-[#FF8A75]" />
+            <div>
+              <p className="text-lg font-aktiv font-bold text-[#1a1a1a] leading-none">
+                {daysLeft === -1 ? '∞' : daysLeft}
+              </p>
+              <p className="text-[8px] font-black uppercase tracking-[0.15em] text-slate-400 mt-0.5">
+                {daysLeft === -1 ? 'Lifetime' : 'Days Left'}
               </p>
             </div>
-          </motion.div>
-
-          <div className="hidden md:flex items-center gap-3 px-4 lg:px-6 py-2 lg:py-3 bg-white/40 backdrop-blur-3xl border border-[#FF8A75]/5 rounded-full shadow-sm">
-             <div className="h-1.5 w-1.5 rounded-full bg-[#FF8A75] animate-pulse" />
-             <span className="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase">Active Ritual</span>
           </div>
-        </header>
+        </div>
+      </motion.div>
 
-        {/* ── Main Canvas ── */}
-        <main className="flex-1 px-5 sm:px-6 md:px-8 lg:px-12 pb-3 md:pb-4 lg:pb-5 flex flex-col gap-2 md:gap-3 lg:gap-4 overflow-y-auto mt-1 no-scrollbar" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
+      {/* ── Main Bento Grid ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5">
 
-          {/* Hero Row (Synchronicity & Mirror) */}
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 lg:gap-10 items-stretch min-h-0">
-
-            {/* Synchronicity (Left - 35%) */}
-            <motion.section
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="md:col-span-6 lg:col-span-6 flex flex-col min-h-0"
-            >
-              <div className="flex-1 bg-white/40 backdrop-blur-3xl border border-[#FF8A75]/5 rounded-[2rem] lg:rounded-[3rem] p-4 lg:p-6 flex flex-col overflow-hidden relative group">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#FF8A75]/5 to-transparent rounded-tr-[2rem] lg:rounded-tr-[3.5rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                
-                <div className="flex items-center justify-between mb-5 lg:mb-8 shrink-0 relative pb-4 border-b border-[#FF8A75]/5">
-                  <div className="flex items-center gap-4 lg:gap-6">
-                    <div className="h-11 w-11 md:h-12 md:w-12 lg:h-14 lg:w-14 rounded-xl lg:rounded-2xl bg-[#FF8A75] flex items-center justify-center shadow-lg shadow-[#FF8A75]/20">
-                      <Clock className="w-5 h-5 lg:w-6 lg:h-6 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl lg:text-4xl font-aktiv font-bold text-[#1a1a1a] tracking-tight">Synchronicity</h2>
-                      <p className="text-[9px] font-aktiv font-black uppercase tracking-[0.3em] text-[#FF8A75] mt-1 opacity-60">Live Experience</p>
-                    </div>
-                  </div>
-                  {meetings.length > 0 && (
-                    <span className="px-3 py-1 bg-slate-900 text-white text-[9px] font-aktiv font-black uppercase rounded-full">
-                      {meetings.length}
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex-1 overflow-y-auto pr-1 no-scrollbar space-y-3 lg:space-y-4 min-h-[120px] lg:min-h-0">
-                  {meetings.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center text-center p-6 lg:p-12 space-y-4 opacity-40">
-                      <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl lg:rounded-3xl bg-white/40 backdrop-blur-md border border-[#FF8A75]/10 flex items-center justify-center mb-4 lg:mb-6 shadow-sm">
-                        <Radio className="w-6 h-6 lg:w-8 lg:h-8 text-[#FF8A75]/20" />
-                      </div>
-                      <div className="space-y-2">
-                        <h3 className="text-lg lg:text-xl font-aktiv font-bold text-[#1a1a1a] tracking-tight leading-tight">No Synchronicity Found</h3>
-                        <p className="text-[10px] font-aktiv font-bold text-slate-400 max-w-xs uppercase tracking-widest leading-loose">
-                          Breathe and check back soon for live sessions.
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                    meetings.map((meeting, i) => (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: i * 0.05 }}
-                        key={meeting.id}
-                        className="p-4 lg:p-6 rounded-[1.5rem] lg:rounded-[2.5rem] bg-white/60 border border-white/80 hover:bg-white hover:shadow-2xl hover:shadow-[#FF8A75]/5 transition-all duration-500 group"
-                      >
-                        <div className="flex items-start gap-3 lg:gap-5">
-                          <div className={cn(
-                            "h-11 w-11 lg:h-14 lg:w-14 rounded-2xl lg:rounded-3xl flex items-center justify-center shrink-0 shadow-inner",
-                            meeting.meeting_type === 'one_on_one' ? 'bg-[#FF8A75]/10 text-[#FF8A75]' : 'bg-[#1a1a1a]/5 text-[#1a1a1a]/40'
-                          )}>
-                            {meeting.meeting_type === 'one_on_one' ? <User className="w-5 h-5 lg:w-6 lg:h-6" /> : <Users className="w-5 h-5 lg:w-6 lg:h-6" />}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                              <p className="text-[10px] font-aktiv font-black uppercase tracking-widest text-[#FF8A75]">
-                                {format(new Date(meeting.start_time), 'MMM d, h:mm a')}
-                              </p>
-                              <span className="text-[9px] font-aktiv font-black px-2 py-0.5 bg-[#FF8A75]/10 rounded-full text-[#FF8A75] border border-[#FF8A75]/10">
-                                {meeting.duration_minutes || 45}m ritual
-                              </span>
-                            </div>
-                            <h4 className="text-sm font-aktiv font-bold text-slate-900 truncate mb-1">{meeting.topic}</h4>
-                            <p className="text-[10px] md:text-[10px] font-aktiv font-black uppercase tracking-wider text-slate-400">
-                              Guided by {meeting.host?.full_name || 'Master Instructor'}
-                            </p>
-                          </div>
-                          {/* Min 44px touch target for mobile accessibility */}
-                          <a
-                            href={meeting.join_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="h-11 w-11 min-h-[44px] min-w-[44px] lg:h-12 lg:w-12 flex items-center justify-center rounded-xl lg:rounded-2xl bg-slate-900 text-white hover:bg-[#FF8A75] transition-all group-hover:scale-105 shadow-lg shadow-slate-900/10"
-                          >
-                            <ArrowUpRight className="w-4 h-4 lg:w-5 lg:h-5" />
-                          </a>
-                        </div>
-                      </motion.div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </motion.section>
-
-            {/* Mirror (Right - 65%) */}
-            <motion.section
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 }}
-              className="md:col-span-6 lg:col-span-6 flex flex-col min-h-0"
-            >
-              <div className="flex-1 bg-white/40 backdrop-blur-3xl border border-[#FF8A75]/5 rounded-[2rem] lg:rounded-[3rem] p-4 lg:p-6 flex flex-col relative overflow-hidden group">
-                <div className="flex items-center justify-between mb-5 lg:mb-8 shrink-0 pb-4 border-b border-[#FF8A75]/5">
-                  <div className="flex items-center gap-4 lg:gap-6">
-                    <div className="h-10 w-10 lg:h-14 lg:w-14 rounded-xl lg:rounded-2xl bg-[#1a1a1a] flex items-center justify-center shadow-lg shadow-[#1a1a1a]/20">
-                      <TrendingUp className="w-5 h-5 lg:w-6 lg:h-6 text-[#FF8A75]" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl sm:text-2xl lg:text-4xl font-aktiv font-bold text-[#1a1a1a] tracking-tight">Transformation Mirror</h2>
-                      <p className="text-[9px] font-aktiv font-black uppercase tracking-[0.3em] text-[#FF8A75] mt-1 opacity-60">Aura Progression</p>
-                    </div>
-                  </div>
-                  <div className="px-3 lg:px-5 py-1.5 lg:py-2 bg-white/80 backdrop-blur-md border border-[#FF8A75]/10 rounded-full shadow-sm text-[10px] lg:text-[11px] font-aktiv font-black uppercase text-[#FF8A75] tracking-widest shrink-0">
-                    Day {journeyDay}
-                  </div>
-                </div>
-
-                <div className="flex gap-2 mb-6 bg-slate-100/30 p-1 rounded-2xl w-fit mx-auto lg:mx-0">
-                  {[
-                    { id: 'Left', key: 'photo_url_left' },
-                    { id: 'Front', key: 'photo_url' },
-                    { id: 'Right', key: 'photo_url_right' }
-                  ].map((angle) => {
-                    const hasPhoto = journeyLogs.some(l => l[angle.key]);
-                    return (
-                      <button
-                        key={angle.id}
-                        onClick={() => setSelectedAngle(angle.id)}
-                        disabled={!hasPhoto}
-                        className={cn(
-                          "px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all relative overflow-hidden",
-                          selectedAngle === angle.id
-                            ? "bg-[#1a1a1a] text-white shadow-xl shadow-[#1a1a1a]/20 scale-105"
-                            : hasPhoto 
-                              ? "bg-white/40 text-slate-400 hover:text-[#FF8A75] hover:bg-white/60"
-                              : "opacity-30 cursor-not-allowed text-slate-300"
-                        )}
-                      >
-                        {angle.id}
-                        {selectedAngle === angle.id && (
-                          <motion.div
-                            layoutId="activeTab"
-                            className="absolute inset-0 bg-[#1a1a1a] -z-10"
-                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                          />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="flex-1 flex flex-col relative">
-                  <AnimatePresence mode="wait">
-                    {[
-                      { id: 'Front', key: 'photo_url' },
-                      { id: 'Left', key: 'photo_url_left' },
-                      { id: 'Right', key: 'photo_url_right' }
-                    ]
-                    .filter(a => a.id === selectedAngle)
-                    .map((angle) => {
-                      const beforeLog = journeyLogs.find(l => l[angle.key]);
-                      const afterLog = [...journeyLogs].reverse().find(l => l[angle.key]);
-                      
-                      const before = beforeLog?.[angle.key];
-                      const after = afterLog?.[angle.key];
-                      
-                      if (!after) return null;
-
-                      return (
-                        <motion.div 
-                          key={angle.id}
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: -20 }}
-                          transition={{ duration: 0.4, ease: "easeOut" }}
-                          className="w-full h-full"
-                        >
-                          <div className="relative rounded-[1.5rem] lg:rounded-[2rem] overflow-hidden bg-white/30 border-[4px] border-white shadow-xl aspect-square max-h-[280px] lg:max-h-[320px] mx-auto group/mirror">
-                            <ImageComparison
-                              beforeImage={before || after}
-                              afterImage={after}
-                              altBefore="Day 1"
-                              altAfter={`Day ${journeyDay}`}
-                              beforeLabel="Base"
-                              afterLabel="Today"
-                            />
-                            
-                            <div className="absolute inset-0 pointer-events-none border-[1px] border-[#FF8A75]/10 rounded-[1.5rem] lg:rounded-[3rem]" />
-                          </div>
-                        </motion.div>
-                      );
-                    })}
-                  </AnimatePresence>
-
-                  {!journeyLogs.some(l => l.photo_url || l.photo_url_left || l.photo_url_right) && (
-                    <div className="h-full flex flex-col items-center justify-center text-center p-8 lg:p-12 space-y-4">
-                      <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-[1.5rem] lg:rounded-[2.5rem] bg-white/60 backdrop-blur-md border border-white flex items-center justify-center shadow-lg">
-                        <Sparkles className="w-6 h-6 lg:w-8 lg:h-8 text-[#FF8A75]/30" />
-                      </div>
-                      <p className="text-[10px] font-aktiv font-black uppercase tracking-[0.3em] text-slate-400 max-w-xs leading-relaxed">
-                        Capturing your progressive radiance...
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.section>
-          </div>
-
-          {/* Active Offerings / Rituals Area */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
-            {/* Live Group Ritual Card */}
-            {(activePlanTypes.includes('group_session') || isTrial) && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                onClick={() => router.push('/student/group-session')}
-                className="group relative p-4 lg:p-6 bg-white/60 backdrop-blur-3xl border border-[#FF8A75]/10 rounded-[1.8rem] lg:rounded-[2.5rem] hover:bg-white transition-all cursor-pointer shadow-sm hover:shadow-xl hover:shadow-[#FF8A75]/5 font-jakarta"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div className="h-12 w-12 rounded-2xl bg-[#446187]/10 text-[#446187] flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Users className="w-6 h-6" />
-                  </div>
-                  <ArrowUpRight className="w-4 h-4 text-slate-300 group-hover:text-[#446187] transition-colors" />
+        {/* ── Sessions Card (Left) ── */}
+        <motion.section
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="lg:col-span-5 flex flex-col"
+        >
+          <div className="flex-1 bg-white rounded-[1.75rem] border border-slate-100 shadow-sm p-5 lg:p-6 flex flex-col overflow-hidden relative group hover:shadow-lg hover:shadow-[#FF8A75]/5 transition-shadow duration-500">
+            {/* Card Header */}
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-50">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-[#FF8A75] flex items-center justify-center shadow-md shadow-[#FF8A75]/20">
+                  <Clock className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-aktiv font-bold text-[#1a1a1a] tracking-tight">Live Group</h3>
-                  <p className="text-[9px] font-aktiv font-black uppercase tracking-[0.2em] text-[#446187] mt-1">21-Day Ritual Hub</p>
+                  <h2 className="text-base lg:text-lg font-aktiv font-bold text-[#1a1a1a] tracking-tight">Upcoming Sessions</h2>
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 mt-0.5">Live & Scheduled</p>
                 </div>
-              </motion.div>
-            )}
+              </div>
+              {meetings.length > 0 && (
+                <span className="h-6 min-w-[1.5rem] px-1.5 bg-[#1a1a1a] text-white text-[10px] font-black rounded-lg flex items-center justify-center">
+                  {meetings.length}
+                </span>
+              )}
+            </div>
+
+            {/* Meeting List */}
+            <div className="flex-1 overflow-y-auto no-scrollbar space-y-2.5 min-h-[140px]">
+              {meetings.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center">
+                    <Radio className="w-6 h-6 text-slate-300" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-aktiv font-bold text-slate-400">No sessions today</h3>
+                    <p className="text-[10px] text-slate-300 font-medium mt-1 max-w-[200px]">
+                      Your upcoming sessions will appear here
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                meetings.map((meeting, i) => (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.97 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: i * 0.04 }}
+                    key={meeting.id}
+                    className="p-3.5 rounded-2xl bg-[#FFFAF7] border border-[#FF8A75]/5 hover:bg-white hover:border-[#FF8A75]/15 hover:shadow-md transition-all duration-300 group/card"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={cn(
+                        "h-10 w-10 rounded-xl flex items-center justify-center shrink-0",
+                        meeting.meeting_type === 'one_on_one'
+                          ? 'bg-[#FF8A75]/10 text-[#FF8A75]'
+                          : 'bg-slate-100 text-slate-400'
+                      )}>
+                        {meeting.meeting_type === 'one_on_one' ? <User className="w-4.5 h-4.5" /> : <Users className="w-4.5 h-4.5" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-aktiv font-bold text-[#1a1a1a] truncate">{meeting.topic}</h4>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[10px] font-bold text-[#FF8A75]">
+                            {format(new Date(meeting.start_time), 'h:mm a')}
+                          </span>
+                          <span className="text-[9px] text-slate-300">•</span>
+                          <span className="text-[10px] text-slate-400 font-medium">
+                            {meeting.host?.full_name || 'Instructor'}
+                          </span>
+                        </div>
+                      </div>
+                      <a
+                        href={meeting.join_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="h-9 w-9 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-xl bg-[#1a1a1a] text-white hover:bg-[#FF8A75] transition-colors shadow-sm group-hover/card:scale-105 transition-transform"
+                      >
+                        <ArrowUpRight className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
+                  </motion.div>
+                ))
+              )}
+            </div>
           </div>
+        </motion.section>
 
-          {/* Stats & Guidance Area */}
-          <div className="shrink-0 flex flex-col sm:flex-row gap-4 lg:gap-8 items-stretch sm:items-center">
+        {/* ── Transformation Mirror (Right) ── */}
+        <motion.section
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="lg:col-span-7 flex flex-col"
+        >
+          <div className="flex-1 bg-white rounded-[1.75rem] border border-slate-100 shadow-sm p-5 lg:p-6 flex flex-col relative overflow-hidden group hover:shadow-lg hover:shadow-[#FF8A75]/5 transition-shadow duration-500">
+            {/* Card Header */}
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-50">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-[#1a1a1a] flex items-center justify-center shadow-md">
+                  <TrendingUp className="w-5 h-5 text-[#FF8A75]" />
+                </div>
+                <div>
+                  <h2 className="text-base lg:text-lg font-aktiv font-bold text-[#1a1a1a] tracking-tight">Transformation Mirror</h2>
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 mt-0.5">Your Progress</p>
+                </div>
+              </div>
+              <div className="px-3 py-1.5 bg-[#FFFAF7] border border-[#FF8A75]/10 rounded-xl text-[10px] font-aktiv font-black uppercase text-[#FF8A75] tracking-widest">
+                Day {journeyDay}
+              </div>
+            </div>
 
-            {/* Ritual Streak Tile */}
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="sm:w-40 lg:w-48 h-16 lg:h-20 rounded-[1.5rem] lg:rounded-[2rem] bg-white border border-[#FF8A75]/10 shadow-xl shadow-[#FF8A75]/5 flex items-center justify-center relative overflow-hidden group"
-            >
-              <div className="absolute top-0 right-0 p-2 opacity-5 group-hover:opacity-10 transition-opacity">
-                 <Activity className="w-12 h-12 text-[#1a1a1a]" />
-              </div>
-              <div className="relative z-10 flex flex-col items-center">
-                <p className="text-3xl lg:text-4xl font-aktiv font-bold text-[#1a1a1a] tracking-tighter leading-none">{journeyDay}</p>
-                <p className="text-[8px] font-aktiv font-black uppercase tracking-[0.2em] text-[#FF8A75]/80 mt-1">Ritual Streak</p>
-              </div>
-            </motion.div>
+            {/* Angle Tabs */}
+            <div className="flex gap-1.5 mb-4 bg-slate-50 p-1 rounded-xl w-fit">
+              {[
+                { id: 'Left', key: 'photo_url_left' },
+                { id: 'Front', key: 'photo_url' },
+                { id: 'Right', key: 'photo_url_right' }
+              ].map((angle) => {
+                const hasPhoto = journeyLogs.some(l => l[angle.key]);
+                return (
+                  <button
+                    key={angle.id}
+                    onClick={() => setSelectedAngle(angle.id)}
+                    disabled={!hasPhoto}
+                    className={cn(
+                      "px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-[0.15em] transition-all",
+                      selectedAngle === angle.id
+                        ? "bg-[#1a1a1a] text-white shadow-md"
+                        : hasPhoto
+                          ? "text-slate-400 hover:text-[#FF8A75] hover:bg-white"
+                          : "opacity-30 cursor-not-allowed text-slate-300"
+                    )}
+                  >
+                    {angle.id}
+                  </button>
+                );
+              })}
+            </div>
 
-            {/* Guidance Bar */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="flex-1 min-h-[4rem] lg:h-20 px-4 lg:px-8 py-3 lg:py-0 bg-white/60 backdrop-blur-3xl rounded-[1.5rem] lg:rounded-[2rem] flex items-center justify-between border border-[#FF8A75]/10 shadow-xl shadow-[#FF8A75]/5 relative overflow-hidden group gap-3"
-            >
-              <div className="absolute top-0 right-0 w-24 h-24 bg-[#FF8A75]/5 rounded-full blur-2xl -translate-y-10 translate-x-10 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="absolute top-0 left-0 w-1 lg:w-1.5 h-full bg-[#FF8A75]/60" />
-              <div className="flex items-center gap-3 lg:gap-5 overflow-hidden relative z-10 flex-1">
-                <div className="h-8 w-8 lg:h-10 lg:w-10 rounded-lg lg:rounded-xl bg-[#FF8A75]/10 flex items-center justify-center shrink-0">
-                  <Sparkles className="w-4 h-4 lg:w-5 lg:h-5 text-[#FF8A75]" />
+            {/* Mirror Content */}
+            <div className="flex-1 flex flex-col relative min-h-[200px]">
+              <AnimatePresence mode="wait">
+                {[
+                  { id: 'Front', key: 'photo_url' },
+                  { id: 'Left', key: 'photo_url_left' },
+                  { id: 'Right', key: 'photo_url_right' }
+                ]
+                .filter(a => a.id === selectedAngle)
+                .map((angle) => {
+                  const beforeLog = journeyLogs.find(l => l[angle.key]);
+                  const afterLog = [...journeyLogs].reverse().find(l => l[angle.key]);
+                  
+                  const before = beforeLog?.[angle.key];
+                  const after = afterLog?.[angle.key];
+                  
+                  if (!after) return null;
+
+                  return (
+                    <motion.div 
+                      key={angle.id}
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.98 }}
+                      transition={{ duration: 0.3 }}
+                      className="w-full h-full"
+                    >
+                      <div className="relative rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 shadow-inner aspect-[16/10] max-h-[320px] mx-auto">
+                        <ImageComparison
+                          beforeImage={before || after}
+                          afterImage={after}
+                          altBefore="Day 1"
+                          altAfter={`Day ${journeyDay}`}
+                          beforeLabel="Start"
+                          afterLabel="Now"
+                        />
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+
+              {!hasPhotos && (
+                <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-3">
+                  <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center">
+                    <Eye className="w-6 h-6 text-slate-300" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-aktiv font-bold text-slate-400">No photos yet</h3>
+                    <p className="text-[10px] text-slate-300 font-medium mt-1 max-w-[220px]">
+                      Your transformation progress photos will appear here
+                    </p>
+                  </div>
                 </div>
-                <div className="overflow-hidden">
-                  <p className="text-[8px] font-aktiv font-black uppercase tracking-[0.2em] text-[#FF8A75] opacity-60 mb-0.5">Elite Wisdom</p>
-                  <p className="text-sm lg:text-lg xl:text-xl font-jakarta text-[#1a1a1a] leading-tight line-clamp-1 italic">
-                    &ldquo;{quote}&rdquo;
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 lg:gap-5 shrink-0 relative z-10">
-                <div className="hidden sm:flex flex-col items-end text-right">
-                  <p className="text-[7px] font-aktiv font-black uppercase tracking-[0.2em] text-[#1a1a1a]/40">Sanctuary Plan</p>
-                  <p className={cn(
-                    "text-[9px] font-aktiv font-black uppercase tracking-widest mt-0.5",
-                    daysLeft <= 5 ? 'text-rose-500 animate-pulse' : 'text-[#FF8A75]'
-                  )}>
-                    {daysLeft === -1 ? 'Eternal Access' : `${daysLeft} Days Left`}
-                  </p>
-                </div>
-                <div className="h-8 w-8 lg:h-10 lg:w-10 rounded-lg lg:rounded-xl bg-[#1a1a1a] flex items-center justify-center shadow-lg group-hover:rotate-6 transition-transform duration-500">
-                  <Zap className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-[#FF8A75]" />
-                </div>
-              </div>
-            </motion.div>
+              )}
+            </div>
           </div>
-        </main>
+        </motion.section>
       </div>
 
+      {/* ── Quick Actions Row ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
+        {/* Live Group Card */}
+        {(activePlanTypes.includes('group_session') || isTrial) && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            onClick={() => router.push('/student/group-session')}
+            className="group relative p-4 bg-white border border-slate-100 rounded-2xl hover:border-[#FF8A75]/20 hover:shadow-lg hover:shadow-[#FF8A75]/5 transition-all cursor-pointer"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="h-10 w-10 rounded-xl bg-[#446187]/10 text-[#446187] flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Users className="w-5 h-5" />
+              </div>
+              <ArrowUpRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-[#446187] transition-colors" />
+            </div>
+            <h3 className="text-base font-aktiv font-bold text-[#1a1a1a] tracking-tight">Live Group</h3>
+            <p className="text-[9px] font-black uppercase tracking-[0.15em] text-[#446187] mt-0.5">21-Day Ritual</p>
+          </motion.div>
+        )}
+
+        {/* One-on-One Card */}
+        {activePlanTypes.includes('one_on_one') && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            onClick={() => router.push('/student/one-on-one')}
+            className="group relative p-4 bg-white border border-slate-100 rounded-2xl hover:border-[#FF8A75]/20 hover:shadow-lg hover:shadow-[#FF8A75]/5 transition-all cursor-pointer"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="h-10 w-10 rounded-xl bg-[#FF8A75]/10 text-[#FF8A75] flex items-center justify-center group-hover:scale-110 transition-transform">
+                <User className="w-5 h-5" />
+              </div>
+              <ArrowUpRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-[#FF8A75] transition-colors" />
+            </div>
+            <h3 className="text-base font-aktiv font-bold text-[#1a1a1a] tracking-tight">Personal</h3>
+            <p className="text-[9px] font-black uppercase tracking-[0.15em] text-[#FF8A75] mt-0.5">1-on-1 Sessions</p>
+          </motion.div>
+        )}
+
+        {/* Plans Card (always visible) */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          onClick={() => router.push('/student/plans')}
+          className="group relative p-4 bg-white border border-slate-100 rounded-2xl hover:border-[#FF8A75]/20 hover:shadow-lg hover:shadow-[#FF8A75]/5 transition-all cursor-pointer"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div className="h-10 w-10 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <ArrowUpRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-amber-500 transition-colors" />
+          </div>
+          <h3 className="text-base font-aktiv font-bold text-[#1a1a1a] tracking-tight">Plans</h3>
+          <p className="text-[9px] font-black uppercase tracking-[0.15em] text-amber-500 mt-0.5">Explore Offers</p>
+        </motion.div>
+      </div>
+
+      {/* ── Wisdom Bar ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="bg-white rounded-2xl border border-slate-100 shadow-sm px-5 py-4 flex items-center gap-4 relative overflow-hidden group hover:shadow-md transition-shadow"
+      >
+        <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-[#FF8A75] to-[#FF8A75]/30 rounded-r-full" />
+        <div className="h-9 w-9 rounded-xl bg-[#FF8A75]/10 flex items-center justify-center shrink-0">
+          <Sparkles className="w-4 h-4 text-[#FF8A75]" />
+        </div>
+        <p className="flex-1 text-sm lg:text-base text-slate-600 italic font-jakarta leading-snug line-clamp-1">
+          &ldquo;{quote}&rdquo;
+        </p>
+        <div className="hidden sm:flex items-center gap-2 shrink-0">
+          <div className="text-right">
+            <p className="text-[8px] font-black uppercase tracking-[0.15em] text-slate-300">Plan Status</p>
+            <p className={cn(
+              "text-[10px] font-aktiv font-black uppercase tracking-wider",
+              daysLeft <= 5 && daysLeft !== -1 ? 'text-rose-500' : 'text-[#FF8A75]'
+            )}>
+              {daysLeft === -1 ? 'Eternal Access' : `${daysLeft} Days Left`}
+            </p>
+          </div>
+          <div className="h-8 w-8 rounded-lg bg-[#1a1a1a] flex items-center justify-center">
+            <Zap className="w-3.5 h-3.5 text-[#FF8A75]" />
+          </div>
+        </div>
+      </motion.div>
 
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }

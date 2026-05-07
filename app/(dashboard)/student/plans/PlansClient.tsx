@@ -446,14 +446,14 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
     const cardBg = "bg-white border border-[#FF8A75]/10";
 
     return (
-        <div className="min-h-screen relative font-jakarta text-[#374151] selection:bg-[#FF8A75]/20 overflow-hidden bg-[#FFFAF7]/40">
+        <div className="min-h-full font-jakarta px-4 sm:px-8 lg:px-12 py-8 space-y-8 bg-slate-50/30 max-w-[1920px] mx-auto">
             {/* Desktop Professional Layout */}
-            <div className="hidden lg:grid grid-cols-12 gap-5 p-8 h-screen max-w-[1500px] mx-auto overflow-hidden">
+            <div className="hidden lg:grid grid-cols-12 gap-6">
                 {/* Panel 1: Ritual Selector */}
-                <div className="col-span-3 flex flex-col gap-5 h-full overflow-hidden">
-                    <div className="flex-shrink-0">
-                         <h1 className="text-3xl font-aktiv font-bold leading-none tracking-tight text-[#1a1a1a]">Choose Your Plan</h1>
-                         <p className="mt-2 text-[8px] font-black uppercase tracking-[0.4em] text-[#FF8A75]">Face yoga plans for every goal</p>
+                <div className="col-span-3 flex flex-col gap-6">
+                    <div>
+                         <h1 className="text-2xl sm:text-3xl font-aktiv font-bold text-slate-900 tracking-tight">Choose Your <span className="text-[#FF8A75]">Plan</span></h1>
+                         <p className="text-xs text-slate-400 font-medium mt-1">Face yoga plans for every goal</p>
                     </div>
 
                     {/* Active sub banner - NOW DYNAMIC */}
@@ -469,7 +469,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                         </div>
                     </div>
                     
-                    <div data-lenis-prevent className="flex-1 space-y-2.5 overflow-y-auto pr-2 scrollbar-none py-1">
+                    <div data-lenis-prevent className="space-y-3">
                         {PLANS_DATA.map((plan) => (
                             <button
                                 key={plan.id}
@@ -497,17 +497,40 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                         ))}
                     </div>
 
-                    <div className={`p-3 rounded-xl flex items-center gap-2.5 ${cardBg} flex-shrink-0`}>
-                        <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100">
-                             <ShieldCheck className="w-4 h-4" />
-                        </div>
-                        <div className="text-[8px] font-bold leading-tight">Secure & Verified Checkout</div>
+                    <div className="p-5 rounded-2xl flex flex-col gap-3 bg-slate-900 text-white border border-slate-800 shadow-xl flex-shrink-0">
+                         <div className="flex items-center gap-2">
+                             <ShieldCheck className="w-4 h-4 text-[#FF8A75]" />
+                             <h4 className="text-[9px] font-black uppercase tracking-[0.2em]">Purchase Security</h4>
+                         </div>
+                         <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
+                             All transactions are encrypted and processed securely via Razorpay. Your data is 100% safe.
+                         </p>
+                    </div>
+
+                    <div className="p-5 rounded-2xl flex flex-col gap-3 bg-white border border-slate-100 shadow-sm flex-shrink-0">
+                         <div className="flex items-center gap-2">
+                             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                             <h4 className="text-[9px] font-black uppercase tracking-[0.2em]">Plan Benefits</h4>
+                         </div>
+                         <div className="space-y-1.5">
+                            {[
+                                'Daily Guided Sessions',
+                                'Direct Expert Support',
+                                'Lifetime Access (LMS)',
+                                'Personal Progress Hub'
+                            ].map((b, i) => (
+                                <div key={i} className="flex items-center gap-2 text-[9px] font-bold text-slate-500 uppercase tracking-widest">
+                                    <div className="w-1 h-1 rounded-full bg-emerald-500" />
+                                    {b}
+                                </div>
+                            ))}
+                         </div>
                     </div>
                 </div>
 
                 {/* Panel 2: Deep Dive */}
-                <div className="col-span-6 flex flex-col gap-4 h-full overflow-hidden pb-6">
-                    <div className={`flex-1 p-7 rounded-[2rem] flex flex-col gap-5 relative overflow-hidden ${cardBg}`}>
+                <div className="col-span-6 flex flex-col gap-6">
+                    <div className={`flex-1 p-8 rounded-[1.75rem] flex flex-col gap-6 relative overflow-hidden bg-white border border-slate-100 shadow-sm`}>
                         <div className="space-y-1.5">
                             <span className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.3em]">Details</span>
                             <h2 className="text-2xl font-aktiv font-bold text-[#1a1a1a] leading-tight">{currentMeta?.hook}</h2>
@@ -561,8 +584,8 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                 </div>
 
                 {/* Panel 3: Membership & Checkout */}
-                <div className="col-span-3 flex flex-col gap-4 h-full overflow-hidden">
-                    <div data-lenis-prevent className="flex-1 overflow-y-auto space-y-2 pr-2 scrollbar-none py-1">
+                <div className="col-span-3 flex flex-col gap-6">
+                    <div data-lenis-prevent className="space-y-2">
                          <h3 className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.2em] px-2 mb-1">Memberships</h3>
                          {currentPlan.tiers.map((tier) => (
                              <button
@@ -586,62 +609,72 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                          {tier.originalPrice && (
                                              <span className="text-[8px] text-[#FF8A75]/40 line-through font-bold block mb-0.5">₹{tier.originalPrice}</span>
                                          )}
-                                         <span className={`text-lg font-aktiv font-bold ${selectedTierId === tier.id ? 'text-[#FF8A75]' : 'text-[#1a1a1a]'}`}>₹{tier.discountedPrice}</span>
+                                         <span className={`text-lg font-aktiv font-bold ${selectedTierId === tier.id ? 'text-[#FF8A75]' : 'text-slate-900'}`}>₹{tier.discountedPrice}</span>
                                      </div>
                                  </div>
                              </button>
                          ))}
                     </div>
 
-                    <div className={`p-6 rounded-2xl border border-[#FF8A75]/20 bg-white space-y-4 flex-shrink-0`}>
+                    <div className="p-6 rounded-[1.75rem] bg-white border border-slate-100 shadow-sm space-y-4">
                         <div className="flex items-center justify-between">
                             <div>
-                                <div className="text-[7px] font-black text-[#FF8A75] uppercase tracking-[0.2em] mb-0.5">Total Price</div>
-                                <div className="text-2xl font-aktiv font-bold text-[#1a1a1a]">₹{currentTier.discountedPrice}</div>
+                                <div className="text-[7px] font-black text-[#FF8A75] uppercase tracking-[0.2em] mb-0.5">Total Amount</div>
+                                <div className="text-2xl font-aktiv font-bold text-slate-900 tracking-tight">₹{currentTier.discountedPrice}</div>
                             </div>
-                            <div className="p-3 rounded-xl bg-[#FF8A75]/5 text-[#FF8A75] border border-[#FF8A75]/10">
+                            <div className="p-3 rounded-xl bg-[#FF8A75]/5 text-[#FF8A75]">
                                 <Heart className="w-4 h-4 fill-current" />
                             </div>
                         </div>
+                        
                         <div className="space-y-2">
                             <button
                                 onClick={() => handlePay(false)}
                                 disabled={loading}
-                                className="w-full py-3.5 bg-[#FF8A75] hover:bg-[#ff4081] text-white rounded-xl font-black text-[10px] uppercase tracking-[0.1em] transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-[#FF8A75]/20"
+                                className="w-full h-12 bg-slate-900 hover:bg-[#FF8A75] text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-900/10"
                             >
                                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
                                     <>Subscribe Now <MoveRight className="w-4 h-4" /></>
                                 )}
                             </button>
 
-                            {!hasUsedTrial && currentPlan.hasTrial && (
-                                hasActiveSubscription ? (
-                                    // Student has active paid plan — trial not available
-                                    <div className="w-full py-2.5 flex items-center justify-center gap-2 rounded-xl bg-amber-50 border border-amber-100 text-[9px] font-bold text-amber-600 uppercase tracking-widest">
-                                        <ShieldCheck className="w-3 h-3" />
-                                        Active plan — trial not available
-                                    </div>
-                                ) : (
-                                    <button
-                                        onClick={handleStartTrial}
-                                        disabled={loading || isStartingTrial}
-                                        className="w-full py-3 bg-white border-2 border-[#1a1a1a]/10 hover:border-[#1a1a1a]/30 text-[#1a1a1a] rounded-xl font-black text-[9px] uppercase tracking-[0.1em] transition-all flex items-center justify-center gap-2 group"
-                                    >
-                                        {isStartingTrial ? <Loader2 className="w-4 h-4 animate-spin" /> : (
-                                            <>Try it for free <Sparkles className="w-3 h-3 text-[#FF8A75] group-hover:scale-125 transition-transform" /></>
-                                        )}
-                                    </button>
-                                )
+                            {!hasUsedTrial && currentPlan.hasTrial && !hasActiveSubscription && (
+                                <button
+                                    onClick={handleStartTrial}
+                                    disabled={loading || isStartingTrial}
+                                    className="w-full h-12 bg-white border border-slate-200 hover:border-slate-900 text-slate-900 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 group"
+                                >
+                                    {isStartingTrial ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+                                        <>Try it for free <Sparkles className="w-3 h-3 text-[#FF8A75] group-hover:scale-125 transition-transform" /></>
+                                    )}
+                                </button>
                             )}
+                        </div>
+                    </div>
+
+                    <div className="p-6 rounded-[1.75rem] bg-slate-50 border border-slate-100 space-y-4">
+                        <div className="space-y-1">
+                            <h4 className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.2em]">Guaranteed Results</h4>
+                            <p className="text-[10px] font-medium text-slate-400 leading-relaxed">
+                                Join over <span className="text-slate-900 font-bold">12,000+</span> students who have transformed their radiance naturally.
+                            </p>
+                        </div>
+                        <div className="flex -space-x-2">
+                            {[1,2,3,4,5].map(i => (
+                                <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 overflow-hidden">
+                                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i + 20}`} alt="User" />
+                                </div>
+                            ))}
+                            <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-900 text-white flex items-center justify-center text-[8px] font-black">+12k</div>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Mobile Professional Layout */}
-            <div className="lg:hidden flex flex-col h-screen overflow-hidden bg-white">
-                <header className={`p-5 pt-12 flex-shrink-0 border-b bg-white`}>
-                     <h1 className="text-2xl font-aktiv font-bold leading-none tracking-tight text-[#1a1a1a]">Choose Your Plan</h1>
+            <div className="lg:hidden flex flex-col space-y-6">
+                <header>
+                     <h1 className="text-2xl font-aktiv font-bold text-slate-900 tracking-tight">Choose Your Plan</h1>
                      <div className="flex gap-2 mt-4 overflow-x-auto pb-1 scrollbar-hide">
                          {PLANS_DATA.map((plan) => (
                              <button

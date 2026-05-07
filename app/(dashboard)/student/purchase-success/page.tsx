@@ -85,51 +85,51 @@ function PurchaseSuccessContent() {
 
     if (verificationStatus === 'checking') {
         return (
-            <div className="min-h-screen bg-[#FFFAF7]/40 flex items-center justify-center">
+            <div className="min-h-screen bg-[#FFFAF7] flex items-center justify-center">
                 <div className="text-center space-y-4">
                     <Loader2 className="w-10 h-10 animate-spin text-[#FF8A75] mx-auto" />
-                    <p className="text-sm font-semibold text-[#6B7280]">Confirming your purchase…</p>
+                    <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Confirming your purchase…</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-[#FFFAF7]/40 flex items-center justify-center p-6 font-jakarta selection:bg-[#FF8A75]/20">
+        <div className="min-h-screen bg-[#FFFAF7] flex items-center justify-center p-6 font-jakarta selection:bg-[#FF8A75]/20">
             <div className="max-w-xl w-full space-y-10 animate-in fade-in slide-in-from-bottom-5 duration-700">
                 {/* Success Header */}
                 <div className="text-center space-y-4">
-                    <div className="inline-flex items-center justify-center w-24 h-24 rounded-[3rem] bg-[#FF8A75] text-white shadow-xl shadow-[#FF8A75]/20 mb-4 animate-bounce">
+                    <div className="inline-flex items-center justify-center w-24 h-24 rounded-[2.5rem] bg-[#FF8A75] text-white shadow-xl shadow-[#FF8A75]/20 mb-4 animate-bounce">
                         <CheckCircle2 className="w-12 h-12" strokeWidth={1.5} />
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-aktiv font-bold text-[#1a1a1a]">Transformation Awaits!</h1>
-                    <p className="text-[#6B7280] font-medium max-w-sm mx-auto">Your journey to a natural facelift and glowing skin has officially begun.</p>
+                    <h1 className="text-4xl md:text-5xl font-aktiv font-bold text-slate-900 tracking-tight">Transformation Awaits!</h1>
+                    <p className="text-slate-400 text-sm font-medium max-w-sm mx-auto leading-relaxed">Your journey to a natural facelift and glowing skin has officially begun.</p>
                 </div>
 
                 {/* Receipt Card */}
-                <div className="bg-white rounded-[3rem] border border-[#FF8A75]/20 overflow-hidden shadow-sm">
-                    <div className="bg-[#FFFAF7] p-8 border-b border-[#FF8A75]/10">
+                <div className="bg-white rounded-[1.75rem] border border-slate-100 overflow-hidden shadow-sm">
+                    <div className="bg-slate-50/50 p-8 border-b border-slate-50">
                         <div className="flex justify-between items-start">
                             <div className="space-y-1">
                                 <span className="text-[10px] font-black uppercase tracking-widest text-[#FF8A75]">Your Selection</span>
-                                <h2 className="text-2xl font-aktiv font-bold text-[#1a1a1a]">Order Summary</h2>
+                                <h2 className="text-2xl font-aktiv font-bold text-slate-900 tracking-tight">Order Summary</h2>
                             </div>
                             <div className="text-right">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-[#6B7280]">Total Paid</span>
-                                <div className="text-2xl font-aktiv font-bold text-[#1a1a1a]">₹{totalAmount}</div>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Paid</span>
+                                <div className="text-2xl font-aktiv font-bold text-slate-900 tracking-tight">₹{totalAmount}</div>
                             </div>
                         </div>
                     </div>
 
                     <div className="p-8 space-y-6">
                         {/* Base Plan */}
-                        <div className="flex items-center gap-4 p-5 rounded-3xl bg-[#FFFAF7]/50 border border-[#FF8A75]/5">
-                            <div className="p-3 bg-white border border-[#FF8A75]/10 rounded-2xl text-[#FF8A75]">
+                        <div className="flex items-center gap-4 p-5 rounded-2xl bg-slate-50 border border-slate-100">
+                            <div className="p-3 bg-white border border-slate-100 rounded-xl text-[#FF8A75]">
                                 {getPlanIcon(planId)}
                             </div>
                             <div className="flex-1">
-                                <h4 className="text-xs font-black uppercase tracking-widest text-[#1a1a1a]">{getPlanLabel(planId)}</h4>
-                                <p className="text-[10px] font-medium text-[#6B7280]">{tierId.replace(/_/g, ' ')}</p>
+                                <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 leading-none">{getPlanLabel(planId)}</h4>
+                                <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">{tierId.replace(/_/g, ' ')}</p>
                             </div>
                             <div className="p-2 rounded-full bg-emerald-50 text-emerald-500">
                                 <CheckCircle2 className="w-4 h-4" />
@@ -139,12 +139,12 @@ function PurchaseSuccessContent() {
                         {/* Bumps */}
                         {includesBumps.length > 0 && includesBumps[0] !== '' && (
                             <div className="space-y-4">
-                                <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#6B7280]">Added Upgrades</h5>
+                                <h5 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Added Upgrades</h5>
                                 <div className="space-y-3">
                                     {includesBumps.map((bump, idx) => (
-                                        <div key={idx} className="flex items-center gap-4 px-5 py-3 rounded-2xl border border-dashed border-[#FF8A75]/20">
+                                        <div key={idx} className="flex items-center gap-4 px-5 py-3 rounded-2xl border border-dashed border-slate-200">
                                             <Sparkles className="w-4 h-4 text-[#FF8A75]" />
-                                            <span className="text-[10px] font-bold uppercase tracking-widest text-[#374151]">{bump.replace(/_/g, ' ')}</span>
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-900">{bump.replace(/_/g, ' ')}</span>
                                             <div className="ml-auto p-1.5 rounded-full bg-[#FF8A75]/5 text-[#FF8A75]">
                                                 <Heart className="w-3 h-3 fill-current" />
                                             </div>
@@ -156,10 +156,10 @@ function PurchaseSuccessContent() {
 
                         {/* Payment ID (for support reference) */}
                         {paymentId && (
-                            <div className="p-4 rounded-2xl bg-[#f8f8f8] border border-[#FF8A75]/10 space-y-1">
-                                <p className="text-[9px] font-black uppercase tracking-widest text-[#6B7280]">Payment Reference</p>
+                            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
+                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Payment Reference</p>
                                 <div className="flex items-center justify-between gap-2">
-                                    <span className="text-[10px] font-mono font-bold text-[#374151] break-all">{paymentId}</span>
+                                    <span className="text-[10px] font-mono font-bold text-slate-900 break-all">{paymentId}</span>
                                     <button
                                         onClick={copyPaymentId}
                                         className="p-1.5 rounded-lg hover:bg-[#FF8A75]/10 transition-colors text-[#FF8A75] flex-shrink-0"
@@ -168,19 +168,19 @@ function PurchaseSuccessContent() {
                                         {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                                     </button>
                                 </div>
-                                <p className="text-[8px] text-[#6B7280]">Keep this for support queries</p>
+                                <p className="text-[8px] text-slate-400 font-medium">Keep this for support queries</p>
                             </div>
                         )}
 
                         <div className="pt-4 space-y-4">
                             <button 
                                 onClick={() => router.push('/student/dashboard')}
-                                className="w-full py-5 bg-[#FF8A75] hover:bg-[#ff705a] text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3"
+                                className="w-full h-14 bg-slate-900 hover:bg-[#FF8A75] text-white rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-lg shadow-slate-900/10"
                             >
                                 Go to Student Dashboard <ArrowRight className="w-4 h-4" />
                             </button>
-                            <p className="text-[10px] text-[#6B7280] text-center font-bold px-6 leading-relaxed">
-                                Welcome to the Faceyoguez community! You can access all your content instantly.
+                            <p className="text-[10px] text-slate-400 text-center font-bold px-6 leading-relaxed uppercase tracking-widest">
+                                Welcome to the Faceyoguez community!
                             </p>
                         </div>
                     </div>
@@ -190,17 +190,17 @@ function PurchaseSuccessContent() {
                 <div className="grid grid-cols-2 gap-6">
                     <button
                         onClick={() => router.push('/student/group-session')}
-                        className="flex flex-col items-center gap-3 p-6 rounded-[2.5rem] bg-white border border-[#FF8A75]/10 hover:border-[#FF8A75]/30 transition-all group"
+                        className="flex flex-col items-center gap-3 p-6 rounded-[1.75rem] bg-white border border-slate-100 hover:border-[#FF8A75]/30 transition-all group shadow-sm"
                     >
                         <Calendar className="w-5 h-5 text-[#FF8A75] group-hover:scale-110 transition-transform" />
-                        <span className="text-[9px] font-black uppercase tracking-widest text-[#1a1a1a]">Track Schedule</span>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-900">Track Schedule</span>
                     </button>
                     <button
                         onClick={copyPaymentId}
-                        className="flex flex-col items-center gap-3 p-6 rounded-[2.5rem] bg-white border border-[#FF8A75]/10 hover:border-[#FF8A75]/30 transition-all group"
+                        className="flex flex-col items-center gap-3 p-6 rounded-[1.75rem] bg-white border border-slate-100 hover:border-[#FF8A75]/30 transition-all group shadow-sm"
                     >
                         <ShoppingBag className="w-5 h-5 text-[#FF8A75] group-hover:scale-110 transition-transform" />
-                        <span className="text-[9px] font-black uppercase tracking-widest text-[#1a1a1a]">Copy Receipt ID</span>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-900">Copy Receipt ID</span>
                     </button>
                 </div>
             </div>
@@ -211,7 +211,7 @@ function PurchaseSuccessContent() {
 export default function PurchaseSuccessPage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen bg-[#FFFAF7]/40 flex items-center justify-center">
+            <div className="min-h-screen bg-[#FFFAF7] flex items-center justify-center">
                 <Loader2 className="w-8 h-8 animate-spin text-[#FF8A75]" />
             </div>
         }>

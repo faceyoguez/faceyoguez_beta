@@ -18,11 +18,15 @@ import {
   ArrowUpRight,
   TrendingUp,
   MessageSquare,
-  X
+  X,
+  Camera,
+  Calendar,
+  Clock,
+  Flame
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { differenceInDays, startOfDay } from 'date-fns';
+import { differenceInDays, startOfDay, format } from 'date-fns';
 import type { Profile, StudentResource, MeetingWithDetails } from '@/types/database';
 
 interface Props {
@@ -89,13 +93,6 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
     }
   }, [hasSubscription, currentUser]);
 
-  const getFileIcon = (contentType: string) => {
-    if (contentType.includes('pdf')) return { icon: FileText };
-    if (contentType.includes('image')) return { icon: ImageIcon };
-    if (contentType.includes('video')) return { icon: PlayCircle };
-    return { icon: FileText };
-  };
-
   const handleSavePhotos = async (photos: { front?: { base64: string; mimeType: string }; left?: { base64: string; mimeType: string }; right?: { base64: string; mimeType: string } }) => {
     setIsSavingLog(true);
     try {
@@ -123,7 +120,6 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
     setNotesInput(activeLog?.notes || '');
   }, [activeDay, activeLog]);
 
-  // const isSliderActive is now defined above for unified logic
   const studentMeetings = upcomingMeetings.filter(m => m.meeting_type === 'one_on_one');
   const nextMeeting = studentMeetings.length > 0 ? studentMeetings[0] : null;
   const [isJoinEnabled, setIsJoinEnabled] = useState(false);
@@ -142,12 +138,11 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
 
   const [isChatOpen, setIsChatOpen] = useState(false);
 
+  const rawName = currentUser.full_name?.split(' ')[0] || 'there';
+  const firstName = rawName.charAt(0).toUpperCase() + rawName.slice(1).toLowerCase();
+
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-[#FFFAF7] selection:bg-[#FF8A75]/20 font-jakarta text-[#1a1a1a] relative">
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-0 right-0 w-[80%] h-[80%] bg-[radial-gradient(circle_at_center,rgba(255,138,117,0.04)_0%,transparent_70%)] blur-3xl opacity-60" />
-        <div className="absolute bottom-0 left-0 w-[60%] h-[60%] bg-[radial-gradient(circle_at_center,rgba(0,0,0,0.02)_0%,transparent_60%)] blur-3xl opacity-40" />
-      </div>
+    <div className="min-h-full font-jakarta text-[#1a1a1a] relative">
 
       {subscriptionStartDate && (
         <PlanExpiryPill 
@@ -156,102 +151,151 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
         />
       )}
 
-      <div className="relative z-10 p-4 lg:p-6 flex-1 flex flex-col min-h-0 gap-6">
-        <header className="shrink-0 flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-[#FF8A75]/10 mt-0">
-          <div className="space-y-3 flex-1">
-            <div className="space-y-0.5">
-              <h1 className="text-2xl lg:text-3xl font-aktiv font-bold text-[#1a1a1a] tracking-tight leading-[1.1]">
-                Your Dedicated Path
-              </h1>
-              <p className="text-xs font-medium text-[#6B7280]/80 max-w-xl leading-relaxed">
-                Your personal face yoga journey, guided by an expert instructor.
-              </p>
+      <div className="p-4 sm:p-6 lg:p-8 space-y-5 lg:space-y-6">
+
+        {/* ── Header ── */}
+        <motion.header
+          initial={{ opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col sm:flex-row sm:items-end justify-between gap-3"
+        >
+          <div>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-aktiv font-bold text-[#1a1a1a] tracking-tight leading-none">
+              Personal <span className="text-[#FF8A75]">Journey</span>
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-400 font-medium mt-1.5">
+              Your dedicated 1-on-1 face yoga path
+            </p>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            {isTrial && (
+              <div className="flex items-center gap-2 px-3.5 py-2 bg-[#1a1a1a] rounded-2xl shadow-md">
+                <span className="text-[9px] font-black uppercase tracking-[0.15em] text-white/50">Status</span>
+                <div className="w-px h-3 bg-white/20" />
+                <span className="text-[9px] font-black uppercase tracking-[0.15em] text-[#FF8A75]">Trial Active</span>
+              </div>
+            )}
+            <div className="flex items-center gap-2 px-3.5 py-2 bg-white rounded-2xl border border-slate-100 shadow-sm">
+              <Flame className="w-4 h-4 text-[#FF8A75]" />
+              <div>
+                <p className="text-lg font-aktiv font-bold text-[#1a1a1a] leading-none">{currentDay}</p>
+                <p className="text-[8px] font-black uppercase tracking-[0.15em] text-slate-400 mt-0.5">Day</p>
+              </div>
             </div>
           </div>
-          {isTrial && (
-            <div className="inline-flex px-6 py-3 bg-slate-900 rounded-2xl items-center justify-center shadow-2xl gap-4 shrink-0">
-              <span className="text-[10px] font-black uppercase text-white/40 tracking-[0.2em] leading-none">Status</span>
-              <div className="w-px h-3 bg-white/20" />
-              <span className="text-[10px] font-black uppercase text-[#FF8A75] tracking-widest leading-none">Trial Access Active</span>
-            </div>
-          )}
-        </header>
+        </motion.header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 min-h-0">
-          <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-8 relative z-10 overflow-y-auto custom-scrollbar pr-0 lg:pr-4">
-            <div className="w-full shrink-0">
+        {/* ── Main Layout ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6">
+
+          {/* ── Left Column: Main Content ── */}
+          <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-5 min-h-0">
+
+            {/* Next Session Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 }}
+            >
               {nextMeeting ? (
-                <div className="group relative overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-7 border border-[#FF8A75]/10 bg-white/60 backdrop-blur-3xl transition-all duration-700 hover:border-[#FF8A75]/20 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl shadow-[#FF8A75]/5">
-                  <div className="space-y-3 flex-1 min-w-0">
-                    <div className="inline-flex items-center gap-2.5 px-3 py-1.5 bg-white/60 text-[#FF8A75] rounded-full text-[8.5px] font-black uppercase tracking-[0.3em] border border-[#FF8A75]/5">
-                      <div className="h-1.5 w-1.5 rounded-full bg-[#FF8A75] animate-pulse shadow-[0_0_8px_#FF8A75]" />
-                      Upcoming Session
-                    </div>
-                    <h3 className="text-xl sm:text-3xl font-aktiv font-bold text-[#1a1a1a] tracking-tight leading-tight truncate">{nextMeeting.topic}</h3>
-                    <div className="flex items-center gap-8 pt-6 border-t border-[#FF8A75]/10">
-                      <div className="space-y-1">
-                        <p className="text-[9px] uppercase font-black tracking-[0.3em] text-[#6B7280]/40 leading-none">Session Date</p>
-                        <p className="text-sm font-bold text-[#1a1a1a] tracking-tight">{new Date(nextMeeting.start_time).toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                <div className="bg-white rounded-[1.75rem] border border-slate-100 shadow-sm p-5 sm:p-6 hover:shadow-lg hover:shadow-[#FF8A75]/5 transition-shadow duration-500">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
+                    <div className="flex-1 min-w-0 space-y-3">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#FFFAF7] rounded-full border border-[#FF8A75]/10">
+                        <div className="h-1.5 w-1.5 rounded-full bg-[#FF8A75] animate-pulse shadow-[0_0_6px_#FF8A75]" />
+                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#FF8A75]">Upcoming Session</span>
                       </div>
-                      <div className="space-y-1">
-                        <p className="text-[9px] uppercase font-black tracking-[0.3em] text-[#6B7280]/40 leading-none">Moment</p>
-                        <p className="text-sm font-bold text-[#1a1a1a] tracking-tight">{new Date(nextMeeting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                      <h3 className="text-xl sm:text-2xl font-aktiv font-bold text-[#1a1a1a] tracking-tight truncate">{nextMeeting.topic}</h3>
+                      <div className="flex items-center gap-6 pt-3 border-t border-slate-50">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                          <span className="text-sm font-medium text-[#1a1a1a]">
+                            {new Date(nextMeeting.start_time).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-3.5 h-3.5 text-slate-400" />
+                          <span className="text-sm font-medium text-[#1a1a1a]">
+                            {new Date(nextMeeting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="shrink-0 w-full md:w-auto">
                     <button
                       disabled={!isJoinEnabled}
                       onClick={() => window.open(nextMeeting.join_url, '_blank')}
                       className={cn(
-                        "flex items-center justify-center gap-3 px-8 h-12 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all duration-500 w-full shadow-lg",
+                        "flex items-center justify-center gap-2.5 px-6 h-11 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all w-full md:w-auto shadow-sm",
                         isJoinEnabled
-                          ? "bg-slate-900 text-white hover:bg-[#FF8A75] hover:scale-[1.02] active:scale-95"
-                          : "bg-white/40 text-slate-300 border border-slate-200 cursor-not-allowed"
+                          ? "bg-[#1a1a1a] text-white hover:bg-[#FF8A75] hover:scale-[1.02] active:scale-95"
+                          : "bg-slate-50 text-slate-300 border border-slate-100 cursor-not-allowed"
                       )}
                     >
                       {isJoinEnabled ? "Join Session" : "Starting Soon"}
-                      <ArrowUpRight className="h-4 w-4 shrink-0" />
+                      <ArrowUpRight className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="group relative overflow-hidden rounded-[2.5rem] sm:rounded-[3.5rem] w-full min-h-[180px] sm:min-h-[220px] shadow-sm border border-[#FF8A75]/20 flex flex-col items-center justify-center gap-4 bg-gradient-to-br from-[#FF8A75]/15 via-white to-[#FF8A75]/15">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,138,117,0.05)_0%,transparent_70%)]" />
-                  <div className="relative z-10 flex flex-col items-center justify-center gap-4">
-                    <div className="h-12 w-12 rounded-2xl bg-white/90 backdrop-blur-md border border-[#FF8A75]/20 flex items-center justify-center shadow-md">
-                      <Video className="w-5 h-5 text-[#FF8A75]/60" />
-                    </div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF8A75]/80 text-center">No Sessions Scheduled</p>
+                <div className="bg-white rounded-[1.75rem] border border-slate-100 shadow-sm p-8 flex flex-col items-center justify-center gap-3 min-h-[140px]">
+                  <div className="h-11 w-11 rounded-xl bg-slate-50 flex items-center justify-center">
+                    <Video className="w-5 h-5 text-slate-300" />
                   </div>
+                  <p className="text-sm font-aktiv font-bold text-slate-400">No sessions scheduled</p>
+                  <p className="text-[10px] text-slate-300 font-medium">Your next 1-on-1 session will appear here</p>
                 </div>
               )}
-            </div>
+            </motion.div>
 
-            <div className="space-y-4">
-              <div className="inline-flex items-center gap-2.5 px-3 py-1.5 bg-[#FFFAF7] rounded-full border border-[#FF8A75]/10 text-[#FF8A75] text-[8.5px] font-black uppercase tracking-[0.3em] shadow-sm">
-                <TrendingUp className="w-3 h-3" />
-                Progress Tracker
+            {/* Progress Tracker Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="bg-white rounded-[1.75rem] border border-slate-100 shadow-sm p-5 sm:p-6 space-y-4"
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-slate-50">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-[#1a1a1a] flex items-center justify-center shadow-md">
+                    <TrendingUp className="w-5 h-5 text-[#FF8A75]" />
+                  </div>
+                  <div>
+                    <h2 className="text-base lg:text-lg font-aktiv font-bold text-[#1a1a1a] tracking-tight">Progress Tracker</h2>
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 mt-0.5">Month {currentMonth}</p>
+                  </div>
+                </div>
+                <div className="px-3 py-1.5 bg-[#FFFAF7] border border-[#FF8A75]/10 rounded-xl text-[10px] font-aktiv font-black uppercase text-[#FF8A75] tracking-widest">
+                  Day {currentDay}
+                </div>
               </div>
-              <h3 className="text-2xl sm:text-4xl font-aktiv font-bold text-[#1a1a1a] tracking-tight leading-none">Your Progress</h3>
-            </div>
 
-            <div className="relative z-10 py-6 sm:py-10 px-5 sm:px-8 bg-slate-50/50 backdrop-blur-3xl rounded-[1.5rem] sm:rounded-[2rem] border border-slate-100 overflow-x-auto no-scrollbar shadow-inner">
-              <JourneyProgress
-                currentDay={dayInMonth}
-                activeDay={((activeDay - 1) % 30) + 1}
-                onSelectDay={(day) => setActiveDay((currentMonth - 1) * 30 + day)}
-                completedDays={new Set(journeyLogs.map(l => l.day_number).filter(d => Math.ceil(d / 30) === currentMonth).map(d => ((d - 1) % 30) + 1))}
-              />
-            </div>
+              <div className="py-4 px-3 sm:px-5 bg-slate-50/50 rounded-2xl border border-slate-100 overflow-x-auto no-scrollbar">
+                <JourneyProgress
+                  currentDay={dayInMonth}
+                  activeDay={((activeDay - 1) % 30) + 1}
+                  onSelectDay={(day) => setActiveDay((currentMonth - 1) * 30 + day)}
+                  completedDays={new Set(journeyLogs.map(l => l.day_number).filter(d => Math.ceil(d / 30) === currentMonth).map(d => ((d - 1) % 30) + 1))}
+                />
+              </div>
+            </motion.div>
 
-            <div className="w-full rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-8 space-y-6 bg-white/60 backdrop-blur-3xl border border-[#FF8A75]/10 relative overflow-hidden shadow-xl shadow-[#FF8A75]/5 shrink-0">
-              <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[radial-gradient(circle_at_center,rgba(255,138,117,0.04)_0%,transparent_70%)] blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+            {/* Photo Tracker + Notes */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="bg-white rounded-[1.75rem] border border-slate-100 shadow-sm p-5 sm:p-6 space-y-5"
+            >
               {/* 3-Angle Photo Tracker */}
-              <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">📸 3-Angle Progress</span>
-                  <span className="text-[8px] text-slate-400 font-medium">— Front, Left &amp; Right profiles</span>
+              <div>
+                <div className="flex items-center gap-3 mb-4 pb-3 border-b border-slate-50">
+                  <div className="h-10 w-10 rounded-xl bg-[#FF8A75]/10 flex items-center justify-center">
+                    <Camera className="w-5 h-5 text-[#FF8A75]" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-aktiv font-bold text-[#1a1a1a] tracking-tight">3-Angle Progress</h3>
+                    <p className="text-[9px] font-medium text-slate-400 mt-0.5">Front, Left & Right profiles</p>
+                  </div>
                 </div>
                 <AnglePhotoTracker
                   dayNumber={activeDay}
@@ -273,13 +317,15 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
               </div>
 
               {/* Notes */}
-              <div className="space-y-3">
-                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">📝 Your Notes — Day {activeDay}</p>
-                <div className="rounded-[1.5rem] bg-white/40 p-5 border border-slate-200/50 shadow-inner">
+              <div className="space-y-3 pt-4 border-t border-slate-50">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">📝 Notes — Day {activeDay}</span>
+                </div>
+                <div className="rounded-2xl bg-[#FFFAF7] p-4 border border-slate-100">
                   <textarea
                     value={notesInput}
                     onChange={(e) => setNotesInput(e.target.value)}
-                    className="w-full resize-none bg-transparent text-slate-700 text-sm font-medium outline-none border-none focus:ring-0 custom-scrollbar font-jakarta min-h-[100px]"
+                    className="w-full resize-none bg-transparent text-slate-700 text-sm font-medium outline-none border-none focus:ring-0 font-jakarta min-h-[80px]"
                     placeholder="How are you feeling today? Note any changes you noticed."
                   />
                 </div>
@@ -291,60 +337,76 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                     setIsSavingLog(false);
                   }}
                   disabled={isSavingLog}
-                  className="h-11 w-full rounded-xl bg-slate-900 text-white text-[8px] font-black uppercase tracking-widest hover:bg-[#FF8A75] transition-colors duration-300 disabled:opacity-60"
+                  className="h-10 w-full rounded-xl bg-[#1a1a1a] text-white text-[9px] font-black uppercase tracking-widest hover:bg-[#FF8A75] transition-colors duration-300 disabled:opacity-60"
                 >
                   {isSavingLog ? 'Saving…' : 'Save Notes'}
                 </button>
               </div>
-            </div>
+            </motion.div>
           </div>
 
-          <div className="hidden lg:col-span-5 lg:xl:col-span-4 lg:flex flex-col gap-6 relative z-10 h-full min-h-0">
-            <div className="h-[500px] bg-white/60 backdrop-blur-3xl rounded-[3rem] border border-[#FF8A75]/10 flex flex-col overflow-hidden shadow-xl shadow-[#FF8A75]/5">
-              <div className="px-8 py-4 border-b border-[#FF8A75]/5 bg-white/20 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="h-5 w-1 bg-[#FF8A75] rounded-full" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75]">Chat with Your Instructor</span>
+          {/* ── Right Column: Chat + Resources (Desktop) ── */}
+          <div className="hidden lg:col-span-5 xl:col-span-4 lg:flex flex-col gap-5 min-h-0">
+
+            {/* Chat Panel */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="h-[480px] bg-white rounded-[1.75rem] border border-slate-100 shadow-sm flex flex-col overflow-hidden hover:shadow-lg hover:shadow-[#FF8A75]/5 transition-shadow duration-500"
+            >
+              <div className="px-5 py-3.5 border-b border-slate-50 flex items-center gap-3">
+                <div className="h-8 w-8 rounded-lg bg-[#FF8A75]/10 flex items-center justify-center">
+                  <MessageSquare className="w-4 h-4 text-[#FF8A75]" />
                 </div>
+                <span className="text-xs font-aktiv font-bold text-[#1a1a1a]">Instructor Chat</span>
               </div>
               <div className="flex-1 overflow-hidden relative">
                 <OneOnOneChat currentUser={currentUser} hideHeader={true} className="h-full w-full border-0 absolute inset-0" />
               </div>
-            </div>
+            </motion.div>
 
-            <div className="flex-1 bg-white/60 backdrop-blur-3xl rounded-[3rem] border border-[#FF8A75]/10 p-8 flex flex-col shadow-xl shadow-[#FF8A75]/5 min-h-0">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="h-5 w-1 bg-[#FF8A75] rounded-full" />
-                <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75]">Resources Shared</h3>
+            {/* Resources Panel */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="flex-1 bg-white rounded-[1.75rem] border border-slate-100 shadow-sm p-5 flex flex-col min-h-[200px] hover:shadow-lg hover:shadow-[#FF8A75]/5 transition-shadow duration-500"
+            >
+              <div className="flex items-center gap-3 mb-4 pb-3 border-b border-slate-50">
+                <div className="h-8 w-8 rounded-lg bg-[#FF8A75]/10 flex items-center justify-center">
+                  <FileText className="w-4 h-4 text-[#FF8A75]" />
+                </div>
+                <span className="text-xs font-aktiv font-bold text-[#1a1a1a]">Shared Resources</span>
               </div>
-              <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3">
+              <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-2">
                 {resources.length > 0 ? (
                   resources.map(res => (
-                    <div key={res.id} className="flex items-center justify-between p-4 rounded-2xl bg-white/40 border border-[#FF8A75]/10 hover:border-[#FF8A75]/20 transition-all duration-300">
-                      <div className="flex items-center gap-4 truncate">
-                        <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center text-[#FF8A75] shadow-sm shrink-0">
-                          <FileText className="w-5 h-5" />
+                    <div key={res.id} className="flex items-center justify-between p-3 rounded-xl bg-[#FFFAF7] border border-slate-50 hover:border-[#FF8A75]/15 transition-all">
+                      <div className="flex items-center gap-3 truncate">
+                        <div className="h-9 w-9 rounded-lg bg-white flex items-center justify-center text-[#FF8A75] shadow-sm shrink-0">
+                          <FileText className="w-4 h-4" />
                         </div>
                         <span className="text-xs font-bold truncate text-[#1a1a1a]">{res.file_name}</span>
                       </div>
                       <button
                         onClick={() => window.open(res.file_url, '_blank')}
-                        className="h-10 w-10 flex items-center justify-center rounded-full bg-white text-[#FF8A75] hover:bg-slate-900 hover:text-white transition-all shadow-sm"
+                        className="h-8 w-8 flex items-center justify-center rounded-lg bg-white text-[#FF8A75] hover:bg-[#1a1a1a] hover:text-white transition-all shadow-sm"
                       >
-                        <Eye className="w-4 h-4" />
+                        <Eye className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   ))
                 ) : (
-                  <div className="h-full flex flex-col items-center justify-center py-12 gap-4">
-                    <div className="h-16 w-16 rounded-[2rem] bg-white border border-[#FF8A75]/10 flex items-center justify-center shadow-sm">
-                      <FileText className="w-6 h-6 text-[#FF8A75]/20" />
+                  <div className="h-full flex flex-col items-center justify-center py-8 gap-3">
+                    <div className="h-12 w-12 rounded-2xl bg-slate-50 flex items-center justify-center">
+                      <FileText className="w-5 h-5 text-slate-300" />
                     </div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#FF8A75]/40 text-center">No resources shared yet</p>
+                    <p className="text-[10px] font-bold text-slate-300 text-center">No resources shared yet</p>
                   </div>
                 )}
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
@@ -354,10 +416,10 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
          <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={() => setIsChatOpen(true)}
-            className="w-16 h-16 rounded-full bg-slate-900 text-white flex items-center justify-center shadow-2xl shadow-black/20 relative"
+            className="w-14 h-14 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center shadow-xl relative"
          >
-            <MessageSquare className="w-7 h-7" />
-            <div className="absolute top-0 right-0 h-4 w-4 bg-[#FF8A75] rounded-full border-2 border-white" />
+            <MessageSquare className="w-6 h-6" />
+            <div className="absolute top-0 right-0 h-3.5 w-3.5 bg-[#FF8A75] rounded-full border-2 border-white" />
          </motion.button>
       </div>
 
@@ -377,23 +439,23 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                   animate={{ y: 0 }}
                   exit={{ y: '100%' }}
                   transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                  className="fixed inset-x-0 bottom-0 top-12 bg-white rounded-t-[3rem] z-[80] lg:hidden flex flex-col overflow-hidden shadow-2xl"
+                  className="fixed inset-x-0 bottom-0 top-12 bg-white rounded-t-[2rem] z-[80] lg:hidden flex flex-col overflow-hidden shadow-2xl"
                >
-                  <div className="p-6 border-b border-slate-100 flex items-center justify-between shrink-0">
+                  <div className="p-5 border-b border-slate-100 flex items-center justify-between shrink-0">
                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-2xl bg-[#FF8A75]/10 text-[#FF8A75] flex items-center justify-center">
-                           <MessageSquare className="w-5 h-5" />
+                        <div className="h-9 w-9 rounded-xl bg-[#FF8A75]/10 text-[#FF8A75] flex items-center justify-center">
+                           <MessageSquare className="w-4 h-4" />
                         </div>
                         <div>
-                           <h3 className="text-lg font-aktiv font-bold">Instructor Chat</h3>
+                           <h3 className="text-base font-aktiv font-bold">Instructor Chat</h3>
                            <p className="text-[8px] font-black uppercase tracking-widest text-[#FF8A75]">Private Channel</p>
                         </div>
                      </div>
                      <button 
                         onClick={() => setIsChatOpen(false)}
-                        className="h-10 w-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400"
+                        className="h-9 w-9 rounded-full bg-slate-50 flex items-center justify-center text-slate-400"
                      >
-                        <X className="w-5 h-5" />
+                        <X className="w-4 h-4" />
                      </button>
                   </div>
                   <div className="flex-1 overflow-hidden relative">
