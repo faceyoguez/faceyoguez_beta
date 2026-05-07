@@ -81,7 +81,7 @@ export function Gallery() {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
   const baseX = useMotionValue(0);
-  const speed = 65; // Speed in pixels per second
+  const speed = 50; // Speed in pixels per second
   const lastTime = useRef(0);
 
   useEffect(() => {
