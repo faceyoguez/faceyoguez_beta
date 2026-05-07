@@ -37,6 +37,8 @@ function LoopingCard({ src, index, baseX, cardWidth, gap, wrapRange, isMobile }:
     return rawX;
   });
 
+  // Perspective tilt based on position
+  const rotateY = useTransform(x, [-500, wrapRange / 2, wrapRange + 500], [45, 0, -45]);
   const scale = useTransform(x, [-300, isMobile ? 60 : 800, 1800], [0.8, 1.1, 0.8]);
   const opacity = useTransform(x, [-400, 0, 1600, 2000], [0, 1, 1, 0]);
 
@@ -50,12 +52,13 @@ function LoopingCard({ src, index, baseX, cardWidth, gap, wrapRange, isMobile }:
         y: '-50%',
         width: cardWidth,
         aspectRatio: '3 / 4.2',
-        borderRadius: isMobile ? 8 : 12,
+        borderRadius: isMobile ? 12 : 20,
         overflow: 'hidden',
         scale,
         opacity,
-        rotateY: isMobile ? 15 : 25,
+        rotateY,
         transformStyle: 'preserve-3d',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
       }}
     >
       <img
@@ -77,7 +80,7 @@ export function Gallery() {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
   const baseX = useMotionValue(0);
-  const speed = 1.2;
+  const speed = 1.8; // Further increased speed as requested
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.matchMedia('(max-width: 768px)').matches);
@@ -86,7 +89,6 @@ export function Gallery() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Pause animation when section is not in viewport (saves CPU on slow networks/devices)
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => setIsVisible(entry.isIntersecting),
@@ -101,17 +103,15 @@ export function Gallery() {
     baseX.set(baseX.get() + speed);
   });
 
-  const cardWidth = isMobile ? 240 : 320;
-  const gap = isMobile ? 20 : 40;
+  const cardWidth = isMobile ? 220 : 340;
+  const gap = isMobile ? 16 : 32;
   const totalWidth = (cardWidth + gap) * DOUBLED_IMAGES.length;
-  const wrapRange = Math.max(totalWidth, 3000);
+  const wrapRange = totalWidth;
 
   return (
     <section
-      style={{
-        position: 'relative', overflow: 'hidden', padding: isMobile ? '4rem 0' : '6rem 0',
-        background: '#FAF9F6',
-      }}
+      ref={sectionRef}
+      className="relative overflow-hidden py-24 md:py-32 bg-transparent"
     >
       <div className="max-w-4xl mx-auto px-6 md:px-12 mb-16 md:mb-24 text-center space-y-8">
         <motion.div
@@ -130,16 +130,20 @@ export function Gallery() {
             What 21 Days of <br className="hidden md:block" /> Face Wellness Looks Like
           </h2>
 
-          <p className="text-base md:text-xl text-slate-600/80 font-jakarta leading-relaxed max-w-2xl mx-auto">
+          <p className="text-base md:text-xl text-[#2a2019]/60 font-jakarta leading-relaxed max-w-2xl mx-auto">
             These aren't filters. These aren't edited. These are women — just like you — who committed to the practice and let their faces do the rest.
           </p>
         </motion.div>
       </div>
 
       <div
+        className="relative"
         style={{
-          position: 'relative', height: isMobile ? '50vh' : '65vh', minHeight: isMobile ? 350 : 500,
-          perspective: isMobile ? '1000px' : '1500px', transformStyle: 'preserve-3d',
+          height: isMobile ? '450px' : '600px',
+          perspective: isMobile ? '1000px' : '2000px',
+          transformStyle: 'preserve-3d',
+          maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)',
+          WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)',
         }}
       >
         {DOUBLED_IMAGES.map((src, i) => (

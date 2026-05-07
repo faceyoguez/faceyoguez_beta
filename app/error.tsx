@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 
-export default function GlobalError({
+export default function Error({
   error,
   reset,
 }: {
@@ -14,13 +14,7 @@ export default function GlobalError({
     console.error('[Faceyoguez Error]', error);
   }, [error]);
 
-  return (
-    <html lang="en">
-      <body style={{ margin: 0, fontFamily: 'var(--font-jakarta)', background: '#FFFAF7' }}>
-        <ErrorUI error={error} reset={reset} />
-      </body>
-    </html>
-  );
+  return <ErrorUI error={error} reset={reset} />;
 }
 
 function ErrorUI({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {

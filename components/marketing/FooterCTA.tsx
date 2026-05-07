@@ -35,7 +35,7 @@ export function FooterCTA() {
   }, []);
 
   return (
-    <footer ref={footerRef} style={{ backgroundColor: 'rgb(252, 244, 235)' }}>
+    <footer ref={footerRef} className="bg-transparent">
       {/* Contact section */}
       <div className="px-6 md:px-12 py-24 md:py-32">
         <div ref={contentRef} className="max-w-6xl mx-auto">

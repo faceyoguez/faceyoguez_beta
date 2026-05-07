@@ -36,7 +36,7 @@ export function Philosophy() {
   return (
     <section
       ref={containerRef}
-      className="relative py-24 md:py-36 bg-[#FAF9F6] overflow-hidden"
+      className="relative py-24 md:py-36 bg-transparent overflow-hidden"
     >
       {/* Background Texture */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")` }} />
@@ -71,7 +71,7 @@ export function Philosophy() {
               <motion.div
                 key={i}
                 variants={fadeUp}
-                className="p-6 rounded-[1.75rem] bg-white border border-slate-200/60 shadow-sm flex flex-col items-center text-center gap-3"
+                className="p-6 rounded-[1.75rem] bg-white/70 backdrop-blur-md border border-slate-200/60 shadow-sm flex flex-col items-center text-center gap-3"
               >
                 <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
                   <item.icon strokeWidth={1.5} className="w-5 h-5" />
@@ -82,11 +82,11 @@ export function Philosophy() {
           </div>
 
           <motion.div variants={fadeUp} className="space-y-5">
-            <p className="text-lg md:text-xl text-center text-slate-900/60 font-jakarta leading-relaxed max-w-2xl mx-auto">
+            <p className="text-lg md:text-xl text-center text-[#2a2019]/60 font-jakarta leading-relaxed max-w-2xl mx-auto">
               But every morning, the mirror shows the same thing —
-              <span className="text-slate-900 font-semibold"> fine lines, a sagging jawline, dull skin, and puffiness</span> that won't quit.
+              <span className="text-[#2a2019] font-semibold"> fine lines, a sagging jawline, dull skin, and puffiness</span> that won't quit.
             </p>
-            <p className="text-base text-center text-slate-900/50 font-jakarta leading-relaxed max-w-2xl mx-auto">
+            <p className="text-base text-center text-[#2a2019]/40 font-jakarta leading-relaxed max-w-2xl mx-auto">
               You've spent thousands on skincare products that promise miracles and deliver nothing. You've thought about fillers — and immediately felt guilty for even considering it.
             </p>
           </motion.div>
@@ -123,9 +123,9 @@ export function Philosophy() {
                 <p className="mt-2 text-[9px] font-black uppercase tracking-[0.5em] text-slate-400">Hidden beneath the surface of your face</p>
               </div>
 
-              <p className="text-base md:text-lg text-center text-slate-600 font-jakarta leading-relaxed">
+              <p className="text-base md:text-lg text-center text-[#2a2019]/70 font-jakarta leading-relaxed">
                 Your face has more muscles than any other part of your body — and just like your arms or abs,
-                they can be <span className="text-slate-900 font-bold">trained, toned, and lifted.</span>{' '}
+                they can be <span className="text-[#2a2019] font-bold">trained, toned, and lifted.</span>{' '}
                 Without a single needle. Without spending ₹50,000 on a clinic visit.
               </p>
             </div>
@@ -159,7 +159,7 @@ export function Philosophy() {
               <motion.div
                 key={i}
                 variants={fadeUp}
-                className="flex items-start gap-4 p-6 rounded-[1.5rem] bg-white border border-slate-100 shadow-sm"
+                className="flex items-start gap-4 p-6 rounded-[1.5rem] bg-white/70 backdrop-blur-md border border-slate-100 shadow-sm"
               >
                 <div className="w-8 h-8 rounded-full bg-[#e76f51]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <CheckCircle className="w-4 h-4 text-[#e76f51]" />

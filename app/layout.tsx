@@ -155,17 +155,7 @@ export default function RootLayout({
         </Script>
       </head>
       <body translate="no" suppressHydrationWarning className="antialiased font-sans text-foreground bg-background relative overflow-x-hidden">
-        <Suspense fallback={null}>
-          <MetaPixel />
-        </Suspense>
-        
-        {/* Abstract Glow (Optimized — no will-change on multiple elements) */}
-        <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
-          <div className="absolute top-[-10%] left-[-5%] w-[50vw] h-[50vw] bg-rose-100/20 rounded-full blur-[80px] mix-blend-multiply opacity-30" />
-          <div className="absolute top-[10%] right-[-5%] w-[40vw] h-[40vw] bg-orange-100/15 rounded-full blur-[70px] mix-blend-multiply opacity-25" />
-        </div>
-        
-        <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false} disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
           <div className="relative z-10">
             {children}
           </div>
@@ -176,6 +166,9 @@ export default function RootLayout({
             closeButton 
             visibleToasts={3}
           />
+          <Suspense fallback={null}>
+            <MetaPixel />
+          </Suspense>
         </ThemeProvider>
       </body>
     </html>

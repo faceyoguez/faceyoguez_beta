@@ -28,8 +28,7 @@ export function GoogleReview() {
   return (
     <section
       ref={sectionRef}
-      className="px-6 md:px-12 py-20 md:py-32"
-      style={{ backgroundColor: '#1a1a1a' }}
+      className="px-6 md:px-12 py-20 md:py-32 bg-[#1a1a1a]/90 backdrop-blur-xl"
     >
       <div ref={contentRef} className="max-w-4xl mx-auto text-center space-y-8">
         {/* Google rating */}

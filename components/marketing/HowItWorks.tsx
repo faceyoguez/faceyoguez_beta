@@ -98,7 +98,7 @@ export function HowItWorks() {
                     <h3 className="text-lg md:text-xl font-aktiv font-bold text-[#2a2019]">{step.title}</h3>
                     <span className="px-2.5 py-1 rounded-full bg-[#e76f51]/8 text-[9px] font-black uppercase tracking-widest text-[#e76f51]">{step.note}</span>
                   </div>
-                  <p className="text-sm md:text-base font-jakarta text-slate-500 leading-relaxed max-w-xl">{step.body}</p>
+                  <p className="text-sm md:text-base font-jakarta text-[#2a2019]/60 leading-relaxed max-w-xl">{step.body}</p>
                 </div>
               </motion.div>
             ))}

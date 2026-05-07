@@ -39,19 +39,7 @@ export function Hero({ visible }: HeroProps) {
       variants={containerVariants}
       className="relative w-full min-h-[100dvh] flex flex-col overflow-x-hidden"
     >
-      {/* Shifting Radial Gradient Background */}
-      <motion.div
-        animate={{
-          background: [
-            'radial-gradient(circle at 0% 0%, #fffbf5 0%, #faf7f2 50%, #fffcf2 100%)',
-            'radial-gradient(circle at 100% 100%, #fffcf2 0%, #f5efe6 50%, #fdfcf0 100%)',
-            'radial-gradient(circle at 0% 100%, #fdfcf0 0%, #faf7f2 50%, #fffcf2 100%)',
-            'radial-gradient(circle at 0% 0%, #fffbf5 0%, #faf7f2 50%, #fffcf2 100%)',
-          ]
-        }}
-        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-        className="absolute inset-0 -z-10 opacity-60"
-      />
+
 
       {/* Premium Floating Nav */}
       <motion.nav variants={itemVariants} className="fixed top-6 left-1/2 -translate-x-1/2 w-[92%] sm:w-[85%] z-[100]">
@@ -71,7 +59,7 @@ export function Hero({ visible }: HeroProps) {
       </motion.nav>
 
       {/* Hero Content */}
-      <div className={`flex-1 flex flex-col ${isMobile ? 'pt-28 pb-12 px-6' : 'lg:flex-row items-center px-[6vw] pt-20'}`}>
+      <div className={`flex-1 flex ${isMobile ? 'flex-col-reverse pt-28 pb-12 px-6' : 'lg:flex-row items-center px-[6vw] pt-20 flex-col'}`}>
 
         {/* Headline Column */}
         <div className={`relative z-10 ${isMobile ? 'text-center mb-10' : 'flex-1 lg:text-left text-left'}`}>
@@ -116,7 +104,7 @@ export function Hero({ visible }: HeroProps) {
         {/* Visual Column */}
         <motion.div
           variants={itemVariants}
-          className={`relative flex justify-center items-center ${isMobile ? 'w-full aspect-[4/5] mt-6' : 'flex-[0.9] h-[72vh]'}`}
+          className={`relative flex justify-center items-center ${isMobile ? 'w-full aspect-[4/5] mb-12' : 'flex-[0.9] h-[72vh]'}`}
         >
           <div className="relative w-full h-full max-w-[480px]">
             {/* Organic Blob Border */}

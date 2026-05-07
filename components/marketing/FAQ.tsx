@@ -74,7 +74,7 @@ function FAQItem({ q, a, index }: { q: string; a: string; index: number }) {
             transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
             className="overflow-hidden"
           >
-            <p className="pl-[2.25rem] pb-6 text-sm md:text-base font-jakarta text-slate-500 leading-relaxed max-w-2xl">
+            <p className="pl-[2.25rem] pb-6 text-sm md:text-base font-jakarta text-[#2a2019]/60 leading-relaxed max-w-2xl">
               {a}
             </p>
           </motion.div>
@@ -111,7 +111,7 @@ export function FAQ() {
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
           variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.1 } } }}
-          className="bg-white rounded-[2rem] border border-slate-200/60 shadow-[0_20px_60px_rgba(42,32,25,0.05)] px-6 md:px-10"
+          className="bg-white/70 backdrop-blur-xl rounded-[2rem] border border-slate-200/60 shadow-[0_20px_60px_rgba(42,32,25,0.05)] px-6 md:px-10"
         >
           {faqs.map((faq, i) => (
             <FAQItem key={i} q={faq.q} a={faq.a} index={i} />

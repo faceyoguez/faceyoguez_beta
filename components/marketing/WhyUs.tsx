@@ -35,7 +35,7 @@ export function WhyUs() {
   const isInView = useInView(ref, { once: true, amount: 0.1 });
 
   return (
-    <section ref={ref} className="relative py-24 md:py-36 overflow-hidden bg-[#FAF9F6]">
+    <section ref={ref} className="relative py-24 md:py-36 overflow-hidden bg-transparent">
       <div className="max-w-5xl mx-auto px-6 md:px-12">
         <motion.div initial="hidden" animate={isInView ? "visible" : "hidden"} variants={fadeUp} className="text-center mb-16 space-y-5">
           <div className="inline-flex flex-col items-center gap-3">
@@ -48,21 +48,21 @@ export function WhyUs() {
           </h2>
         </motion.div>
 
-        <motion.div initial="hidden" animate={isInView ? "visible" : "hidden"} variants={fadeUp} className="rounded-[2rem] overflow-hidden border border-slate-200/60 shadow-[0_20px_60px_rgba(42,32,25,0.06)] bg-white">
+        <motion.div initial="hidden" animate={isInView ? "visible" : "hidden"} variants={fadeUp} className="rounded-[2rem] overflow-hidden border border-[#2a2019]/10 shadow-[0_20px_60px_rgba(42,32,25,0.06)] bg-white/70 backdrop-blur-xl">
           {/* Header row */}
-          <div className="grid grid-cols-4 border-b border-slate-100">
+          <div className="grid grid-cols-4 border-b border-[#2a2019]/10">
             <div className="p-5 md:p-6" />
-            <div className="p-5 md:p-6 text-center border-l border-slate-100 bg-[#e76f51]">
+            <div className="p-5 md:p-6 text-center border-l border-[#2a2019]/10 bg-[#e76f51]">
               <p className="text-[9px] font-black uppercase tracking-widest text-white/70 mb-1">Best Choice</p>
               <p className="text-sm font-aktiv font-bold text-white">Faceyoguez</p>
             </div>
-            <div className="p-5 md:p-6 text-center border-l border-slate-100">
-              <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">vs</p>
-              <p className="text-xs md:text-sm font-aktiv font-bold text-slate-500">YouTube</p>
+            <div className="p-5 md:p-6 text-center border-l border-[#2a2019]/10">
+              <p className="text-[9px] font-black uppercase tracking-widest text-[#2a2019]/40 mb-1">vs</p>
+              <p className="text-xs md:text-sm font-aktiv font-bold text-[#2a2019]/60">YouTube</p>
             </div>
-            <div className="p-5 md:p-6 text-center border-l border-slate-100">
-              <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">vs</p>
-              <p className="text-xs md:text-sm font-aktiv font-bold text-slate-500">Other Courses</p>
+            <div className="p-5 md:p-6 text-center border-l border-[#2a2019]/10">
+              <p className="text-[9px] font-black uppercase tracking-widest text-[#2a2019]/40 mb-1">vs</p>
+              <p className="text-xs md:text-sm font-aktiv font-bold text-[#2a2019]/60">Other Courses</p>
             </div>
           </div>
 
