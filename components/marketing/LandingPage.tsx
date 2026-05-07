@@ -6,9 +6,12 @@ import { SmoothScroll } from './SmoothScroll';
 import { Hero } from './Hero';
 import { Philosophy } from './Philosophy';
 import { Gallery } from './Gallery';
-import { Instructor } from './Instructor';
+import { HowItWorks } from './HowItWorks';
 import { Testimonials } from './Testimonials';
+import { Instructor } from './Instructor';
+import { WhyUs } from './WhyUs';
 import { Plans } from './Plans';
+import { FAQ } from './FAQ';
 import { GoogleReview } from './GoogleReview';
 import { FooterCTA } from './FooterCTA';
 import { LuxuryBackground } from './LuxuryBackground';
@@ -31,12 +34,34 @@ export function LandingPage() {
           <Hero visible={loaderDone} />
           {loaderDone && (
             <>
+              {/* S3 + S4: Problem → Solution narrative */}
               <Philosophy />
+
+              {/* S5: Real Results — transformation gallery */}
               <Gallery />
-              <Instructor />
+
+              {/* S8: How It Works — step-by-step process */}
+              <HowItWorks />
+
+              {/* S9: Testimonials — social proof */}
               <Testimonials />
+
+              {/* S6: About Harsimrat */}
+              <Instructor />
+
+              {/* S10: Why Faceyoguez — comparison table */}
+              <WhyUs />
+
+              {/* S7: Plans / Offerings */}
               <Plans />
+
+              {/* S11: FAQ */}
+              <FAQ />
+
+              {/* Google Reviews */}
               <GoogleReview />
+
+              {/* Footer */}
               <FooterCTA />
               <FloatingEnquiry />
             </>

@@ -5,12 +5,22 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '10mb',
     },
+    // ── Performance: Optimize package imports ──
+    optimizePackageImports: ['framer-motion', 'lucide-react', 'gsap'],
   },
   // ── Security: Remove X-Powered-By header ──
   poweredByHeader: false,
-  // ── Performance: Enable compression ──
+  // ── Performance: Enable gzip/brotli compression ──
   compress: true,
+  // ── Performance: Next.js Image Optimization ──
   images: {
+    // Serve modern WebP/AVIF formats automatically
+    formats: ['image/avif', 'image/webp'],
+    // Cache optimized images for 60 days
+    minimumCacheTTL: 5184000,
+    // Responsive image sizes for landing page
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 320],
     remotePatterns: [
       {
         protocol: 'https',
@@ -29,26 +39,32 @@ const nextConfig: NextConfig = {
     ],
   },
   transpilePackages: ['razorpay'],
-  // ── Security Headers (OWASP Compliant) ──
+  // ── Security & Performance Headers ──
   headers: async () => [
+    // ── 1-year cache for static assets (images, fonts, JS, CSS) ──
+    {
+      source: '/assets/:path*',
+      headers: [
+        { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+      ],
+    },
+    {
+      source: '/_next/static/:path*',
+      headers: [
+        { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+      ],
+    },
+    // ── Security headers for all routes ──
     {
       source: '/(.*)',
       headers: [
-        // Prevent clickjacking
         { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
-        // Prevent MIME type sniffing
         { key: 'X-Content-Type-Options', value: 'nosniff' },
-        // Control referrer information
         { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-        // Enable DNS prefetching for performance
         { key: 'X-DNS-Prefetch-Control', value: 'on' },
-        // Force HTTPS for 2 years
         { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
-        // Restrict browser features
         { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
-        // Prevent XSS attacks (legacy browser support)
         { key: 'X-XSS-Protection', value: '1; mode=block' },
-        // Content Security Policy — whitelist only trusted sources
         {
           key: 'Content-Security-Policy',
           value: [
@@ -70,3 +86,4 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+

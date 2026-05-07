@@ -58,11 +58,9 @@ export function FooterCTA() {
               </Link>
               <p
                 className="leading-relaxed max-w-xs font-jakarta text-base"
-                style={{
-                  color: 'rgb(153, 143, 132)',
-                }}
+                style={{ color: 'rgb(153, 143, 132)' }}
               >
-                Authentic face yoga techniques designed for natural rejuvenation. Awaken your natural beauty.
+                Train your face. Love your reflection.
               </p>
 
               {/* Social icons */}
@@ -188,13 +186,18 @@ export function FooterCTA() {
           >
             © 2026 Faceyoguez. All rights reserved.
           </p>
-          <Link
-            href="#"
-            className="text-[12px] font-jakarta tracking-wide transition-colors"
-            style={{ color: 'rgb(153, 143, 132)' }}
-          >
-            Privacy Policy
-          </Link>
+          <div className="flex items-center gap-4">
+            {['Privacy Policy', 'Terms of Use', 'Refund Policy'].map((label) => (
+              <Link
+                key={label}
+                href="#"
+                className="text-[11px] font-jakarta tracking-wide transition-colors hover:text-[#e76f51]"
+                style={{ color: 'rgb(153, 143, 132)' }}
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </footer>

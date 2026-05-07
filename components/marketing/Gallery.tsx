@@ -3,14 +3,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, useAnimationFrame, useMotionValue, useTransform } from 'framer-motion';
 
-const NOISE_SVG = `url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E")`;
-
+// ✅ All 9 images have been moved to /public/assets as .jpg
 const GALLERY_IMAGES = [
-  '/assets/carousel_img_1.PNG',
-  '/assets/carousel_img_2.PNG',
-  '/assets/carousel_img_3.PNG',
-  '/assets/carousel_img_4.PNG',
-  '/assets/carousel_img_5.PNG',
+  '/assets/carousel_img_1.jpg',
+  '/assets/carousel_img_2.jpg',
+  '/assets/carousel_img_3.jpg',
+  '/assets/carousel_img_4.jpg',
+  '/assets/carousel_img_5.jpg',
+  '/assets/carousel_img_6.jpg',
+  '/assets/carousel_img_7.jpg',
+  '/assets/carousel_img_8.jpg',
+  '/assets/carousel_img_9.jpg',
 ];
 
 // Double the images for a seamless loop
@@ -21,29 +24,21 @@ interface LoopingCardProps {
   index: number;
   total: number;
   baseX: any;
+  cardWidth: number;
+  gap: number;
+  wrapRange: number;
+  isMobile: boolean;
 }
 
-function LoopingCard({ src, index, total, baseX }: LoopingCardProps) {
-  const cardWidth = 320;
-  const gap = 40;
-  const totalWidth = (cardWidth + gap) * total;
-  
-  // Wrap range to ensure it covers screens up to 2560px+ with buffer
-  const wrapRange = Math.max(totalWidth, 3000);
-  
-  // Calculate relative position in the marquee
+function LoopingCard({ src, index, baseX, cardWidth, gap, wrapRange, isMobile }: LoopingCardProps) {
   const x = useTransform(baseX, (val: number) => {
     let rawX = (val + index * (cardWidth + gap)) % wrapRange;
-    // If it goes past the end of the wrap boundary, snap back to start
     if (rawX > wrapRange - cardWidth) rawX -= wrapRange;
     return rawX;
   });
 
-  // Balanced growth: peaks in the center of a typical screen
-  const scale = useTransform(x, [-400, 800, 2000], [0.75, 1.15, 0.75]);
-  const opacity = useTransform(x, [-450, -100, 1800, 2200], [0, 1, 1, 0]);
-  // Tilted at 25 degrees for a sleek editorial feel
-  const rotateY = 25;
+  const scale = useTransform(x, [-300, isMobile ? 60 : 800, 1800], [0.8, 1.1, 0.8]);
+  const opacity = useTransform(x, [-400, 0, 1600, 2000], [0, 1, 1, 0]);
 
   return (
     <motion.div
@@ -55,18 +50,22 @@ function LoopingCard({ src, index, total, baseX }: LoopingCardProps) {
         y: '-50%',
         width: cardWidth,
         aspectRatio: '3 / 4.2',
-        borderRadius: 12,
+        borderRadius: isMobile ? 8 : 12,
         overflow: 'hidden',
         scale,
         opacity,
-        rotateY,
+        rotateY: isMobile ? 15 : 25,
         transformStyle: 'preserve-3d',
-        boxShadow: '0 20px 40px rgba(0,0,0,0.12), 0 4px 14px rgba(0,0,0,0.06)',
       }}
     >
       <img
-        src={src} alt="Face yoga"
+        src={src}
+        alt="Face wellness transformation result"
+        loading="lazy"
+        decoding="async"
         draggable={false}
+        width={cardWidth}
+        height={Math.round(cardWidth * 1.4)}
         style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
       />
     </motion.div>
@@ -75,8 +74,9 @@ function LoopingCard({ src, index, total, baseX }: LoopingCardProps) {
 
 export function Gallery() {
   const [isMobile, setIsMobile] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
   const baseX = useMotionValue(0);
-  const containerRef = useRef<HTMLDivElement>(null);
   const speed = 1.2;
 
   useEffect(() => {
@@ -86,7 +86,18 @@ export function Gallery() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Pause animation when section is not in viewport (saves CPU on slow networks/devices)
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsVisible(entry.isIntersecting),
+      { threshold: 0.1 }
+    );
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, []);
+
   useAnimationFrame(() => {
+    if (!isVisible) return;
     baseX.set(baseX.get() + speed);
   });
 
@@ -98,60 +109,53 @@ export function Gallery() {
   return (
     <section
       style={{
-        position: 'relative', overflow: 'hidden', height: isMobile ? '65vh' : '80vh', minHeight: isMobile ? 450 : 600,
-        background: 'transparent',
+        position: 'relative', overflow: 'hidden', padding: isMobile ? '4rem 0' : '6rem 0',
+        background: '#FAF9F6',
       }}
     >
-      <div 
-        ref={containerRef}
+      <div className="max-w-4xl mx-auto px-6 md:px-12 mb-16 md:mb-24 text-center space-y-8">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+          className="space-y-6"
+        >
+          <div className="inline-flex flex-col items-center gap-3">
+            <span className="text-[11px] font-black uppercase tracking-[0.5em] text-[#e76f51] mb-2">Real Results</span>
+            <div className="w-12 h-[1px] bg-[#e76f51]/20" />
+          </div>
+
+          <h2 className="text-4xl md:text-6xl font-aktiv text-[#2a2019] font-bold leading-[1.1] tracking-tight">
+            What 21 Days of <br className="hidden md:block" /> Face Wellness Looks Like
+          </h2>
+
+          <p className="text-base md:text-xl text-slate-600/80 font-jakarta leading-relaxed max-w-2xl mx-auto">
+            These aren't filters. These aren't edited. These are women — just like you — who committed to the practice and let their faces do the rest.
+          </p>
+        </motion.div>
+      </div>
+
+      <div
         style={{
-          position: 'relative', zIndex: 2, height: '100%',
+          position: 'relative', height: isMobile ? '50vh' : '65vh', minHeight: isMobile ? 350 : 500,
           perspective: isMobile ? '1000px' : '1500px', transformStyle: 'preserve-3d',
-          maskImage: 'linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%)',
-          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 15%, black 85%, transparent 100%)',
         }}
       >
-        {DOUBLED_IMAGES.map((src, i) => {
-          // Inline calculation for mobile-aware motion values
-          const x = useTransform(baseX, (val: number) => {
-            let rawX = (val + i * (cardWidth + gap)) % wrapRange;
-            if (rawX > wrapRange - cardWidth) rawX -= wrapRange;
-            return rawX;
-          });
-
-          const scale = useTransform(x, [-300, isMobile ? 60 : 800, 1800], [0.8, 1.1, 0.8]);
-          const opacity = useTransform(x, [-400, 0, 1600, 2000], [0, 1, 1, 0]);
-
-          return (
-            <motion.div
-              key={i}
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: 0,
-                x,
-                y: '-50%',
-                width: cardWidth,
-                aspectRatio: '3 / 4.2',
-                borderRadius: isMobile ? 8 : 12,
-                overflow: 'hidden',
-                scale,
-                opacity,
-                rotateY: isMobile ? 15 : 25,
-                transformStyle: 'preserve-3d',
-                boxShadow: '0 20px 40px rgba(0,0,0,0.12), 0 4px 14px rgba(0,0,0,0.06)',
-              }}
-            >
-              <img
-                src={src} alt="Face yoga"
-                draggable={false}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-              />
-            </motion.div>
-          );
-        })}
+        {DOUBLED_IMAGES.map((src, i) => (
+          <LoopingCard
+            key={i}
+            src={src}
+            index={i}
+            total={DOUBLED_IMAGES.length}
+            baseX={baseX}
+            cardWidth={cardWidth}
+            gap={gap}
+            wrapRange={wrapRange}
+            isMobile={isMobile}
+          />
+        ))}
       </div>
     </section>
   );
 }
-

@@ -2,49 +2,46 @@
 
 import { useState, useRef } from 'react';
 import Link from 'next/link';
-import { motion, useInView, AnimatePresence } from 'framer-motion';
-import { User, Users, BookOpen, Sparkles, ArrowRight } from 'lucide-react';
+import { motion, useInView } from 'framer-motion';
+import { User, Users, BookOpen, ArrowRight, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { trackConversionEvent } from '@/lib/conversionTracking';
-import { PersonalPlanModal } from './PersonalPlanModal';
-import { GroupPlanModal } from './GroupPlanModal';
-import { VideoCourseModal } from './VideoCourseModal';
 
 const PLANS_PREVIEW = [
   {
     id: 'one_on_one',
-    title: 'Personal Classes',
-    subtitle: '1-on-1 Transformation',
-    desc: 'A facial ritual designed exclusively for your unique structure and goals.',
+    title: '1-on-1 Personal Coaching',
+    subtitle: 'Deep Transformation',
+    desc: 'The fastest way to see results. A programme built entirely around your face, your skin type, and your goals.',
     icon: User,
-    features: ['Customized Daily Routine', 'Direct Expert Guidance', 'Progress Mapping'],
-    accent: '#bc162d'
+    features: ['Custom Face Analysis', 'Daily Direct Guidance', 'Progress Check-ins'],
+    accent: '#e76f51',
+    cta: 'Apply for 1-on-1'
   },
   {
     id: 'group_session',
-    title: 'Live Group',
-    subtitle: '21-Day Ritual',
-    desc: 'Practise daily with a community seeking the same radiant vitality.',
+    title: '21-Day Group Batch',
+    subtitle: 'Community Energy',
+    desc: 'Our most popular programme. Join a batch of like-minded women and build a habit that lasts a lifetime.',
     icon: Users,
-    features: ['Daily Live Classes', 'Shared Energy', 'Accountability Batch'],
-    accent: '#446187',
-    popular: true
+    features: ['Live Daily Practice', 'Shared Progress', 'Community Support'],
+    accent: '#2c2525',
+    popular: true,
+    cta: 'Join Next Batch'
   },
   {
     id: 'lms',
-    title: 'Video Courses',
-    subtitle: 'Self-Paced Mastery',
-    desc: 'Learn the ancient art of face yoga at your own rhythm, forever.',
+    title: 'Self-Paced Video Course',
+    subtitle: 'Lifetime Access',
+    desc: 'Master the techniques at your own pace. Perfect for busy schedules and those who want to learn on their own time.',
     icon: BookOpen,
-    features: ['Lifetime Access', 'Step-by-Step Modules', 'Anytime, Anywhere'],
-    accent: '#5a6343'
+    features: ['Step-by-Step Modules', 'Lifetime Access', 'Bonus Morning Rituals'],
+    accent: '#5a6343',
+    cta: 'Get Instant Access'
   }
 ];
 
 export function Plans() {
-  const [showPersonalModal, setShowPersonalModal] = useState(false);
-  const [showGroupModal, setShowGroupModal] = useState(false);
-  const [showVideoModal, setShowVideoModal] = useState(false);
   const router = useRouter();
   const containerRef = useRef(null);
   const isInView = useInView(containerRef, { once: true, amount: 0.2 });
@@ -61,7 +58,7 @@ export function Plans() {
   };
 
   const itemVariants: any = {
-    hidden: { y: 40, opacity: 0 },
+    hidden: { y: 30, opacity: 0 },
     visible: { 
       y: 0, 
       opacity: 1,
@@ -72,31 +69,31 @@ export function Plans() {
   return (
     <section
       id="plans-overview"
-      className="px-6 md:px-12 py-24 md:py-40 relative overflow-hidden"
-      style={{ backgroundColor: 'transparent' }}
+      className="px-6 md:px-12 py-24 md:py-36 relative overflow-hidden bg-transparent"
     >
-      {/* Decorative Blur Orbs (Optimized) */}
-      <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-[#E07A5F]/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 pointer-events-none will-change-transform" />
-      <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-[#446187]/5 rounded-full blur-[70px] translate-y-1/2 -translate-x-1/2 pointer-events-none will-change-transform" />
+      {/* Subtle Glows */}
+      <div className="absolute top-1/4 right-0 w-[400px] h-[400px] bg-[#e76f51]/4 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-1/4 left-0 w-[300px] h-[300px] bg-[#e76f51]/3 rounded-full blur-[80px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto relative z-10" ref={containerRef}>
+      <div className="max-w-6xl mx-auto relative z-10" ref={containerRef}>
         <motion.div 
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
           variants={itemVariants}
-          className="text-center mb-16 md:mb-24 space-y-4"
+          className="text-center mb-20 space-y-6"
         >
-          <span className="block text-[11px] font-black uppercase tracking-[0.4em] text-[#9b452e]/60">
-            Pathways to Radiance
-          </span>
-          <h2
-            className="text-4xl md:text-6xl font-aktiv leading-[1.1] text-[#2c2525]"
-          >
-            Guided by Wisdom, <br /> Tailored for You
+          <div className="inline-flex flex-col items-center gap-3">
+             <span className="text-[11px] font-black uppercase tracking-[0.5em] text-[#e76f51]">Offerings</span>
+             <div className="w-12 h-[1px] bg-[#e76f51]/20" />
+          </div>
+          
+          <h2 className="text-3xl md:text-5xl font-aktiv text-[#2a2019] font-bold leading-tight tracking-tight">
+            Choose Your Path to <br className="hidden md:block" />
+            <span className="italic font-light opacity-60"> Radiant Skin</span>
           </h2>
-          <p className="max-w-xl mx-auto text-sm md:text-base text-[#5d605c] font-jakarta font-medium leading-relaxed">
-            Whether you seek personal mastery or collective energy, <br className="hidden md:block" /> 
-            our rituals are designed to unveil your natural beauty.
+          
+          <p className="max-w-2xl mx-auto text-base md:text-lg text-slate-600/80 font-jakarta leading-relaxed">
+            Whether you seek a complete 1-on-1 transformation or the energy of a community, we have a programme built for you.
           </p>
         </motion.div>
 
@@ -110,99 +107,87 @@ export function Plans() {
             <motion.div
               key={plan.id}
               variants={itemVariants}
-              whileHover={{ scale: 1.02 }}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
+              onClick={() => {
                 if (plan.id === 'one_on_one') router.push('/plans/personal-classes');
                 if (plan.id === 'group_session') router.push('/plans/live-group');
                 if (plan.id === 'lms') router.push('/plans/video-courses');
               }}
-              className={`group p-8 md:p-10 rounded-[3rem] transition-colors duration-500 relative cursor-pointer ${
-                plan.popular ? 'bg-white shadow-[0_32px_64px_rgba(44,37,37,0.04)]' : 'bg-[#fcf8f7]/60 border border-[#2c2525]/5'
+              className={`group p-8 md:p-10 rounded-[2.5rem] transition-all duration-500 relative cursor-pointer flex flex-col border ${
+                plan.popular 
+                  ? 'bg-white border-[#e76f51]/20 shadow-[0_32px_80px_rgba(231,111,81,0.08)]' 
+                  : 'bg-white/50 border-slate-100 hover:border-[#e76f51]/20 hover:bg-white hover:shadow-[0_20px_50px_rgba(42,32,25,0.05)]'
               }`}
             >
+              {plan.popular && (
+                <div className="absolute top-6 right-6">
+                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#e76f51] text-[9px] font-black uppercase tracking-widest text-white">
+                    <Sparkles className="w-3 h-3" />
+                    Most Popular
+                  </div>
+                </div>
+              )}
 
-
-              <div className="space-y-8">
+              <div className="space-y-8 flex-1">
                 <div 
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center transition-transform duration-500 group-hover:rotate-[8deg]"
-                  style={{ backgroundColor: `${plan.accent}08`, color: plan.accent }}
+                  className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-transform duration-500 group-hover:rotate-[8deg] ${
+                    plan.popular ? 'bg-[#e76f51]/10 text-[#e76f51]' : 'bg-slate-100 text-slate-400 group-hover:bg-[#e76f51]/10 group-hover:text-[#e76f51]'
+                  }`}
                 >
                   <plan.icon strokeWidth={1.5} className="w-7 h-7" />
                 </div>
 
-                <div className="space-y-3">
-                  <h3 
-                    className="text-2xl md:text-3xl font-aktiv text-[#2c2525]"
-                  >
-                    {plan.title}
-                  </h3>
-                  <p className="text-[10px] font-jakarta font-black uppercase tracking-[0.2em] text-[#9b452e]/60">
+                <div className="space-y-2">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#e76f51]/60">
                     {plan.subtitle}
                   </p>
+                  <h3 className="text-xl md:text-2xl font-aktiv font-bold text-[#2a2019]">
+                    {plan.title}
+                  </h3>
                 </div>
 
-                <p className="text-sm text-[#5d605c] leading-relaxed min-h-[3rem]">
+                <p className="text-sm md:text-base text-slate-500 font-jakarta leading-relaxed">
                   {plan.desc}
                 </p>
 
-                <div className="pt-4 space-y-3">
+                <div className="space-y-4">
                   {plan.features.map((feature, fIdx) => (
-                    <div key={fIdx} className="flex items-center gap-3 text-[11px] font-bold text-[#2c2525]/70 uppercase tracking-wider">
-                      <div className="w-1 h-1 rounded-full bg-[#2c2525]/20" />
+                    <div key={fIdx} className="flex items-center gap-3 text-[11px] font-bold text-[#2a2019]/70 uppercase tracking-wider">
+                      <div className={`w-1 h-1 rounded-full ${plan.popular ? 'bg-[#e76f51]' : 'bg-slate-300'}`} />
                       {feature}
                     </div>
                   ))}
                 </div>
               </div>
+
+              <div className="mt-12">
+                 <div className={`flex items-center justify-between px-6 py-4 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
+                   plan.popular ? 'bg-[#2a2019] text-white' : 'bg-slate-100 text-[#2a2019] group-hover:bg-[#e76f51] group-hover:text-white'
+                 }`}>
+                   <span>{plan.cta}</span>
+                   <ArrowRight className="w-4 h-4" />
+                 </div>
+              </div>
             </motion.div>
           ))}
         </motion.div>
 
+        {/* Trial Note */}
         <motion.div 
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
           variants={itemVariants}
-          className="mt-20 md:mt-32 text-center space-y-8"
+          className="mt-20 text-center"
         >
-          <div className="flex flex-col items-center gap-4">
-            <h4 
-              className="text-xl md:text-2xl font-aktiv text-[#2c2525]"
-            >
-              Ready to start your practice?
-            </h4>
-            <Link
-              href="/auth/signup"
-              onClick={() => trackConversionEvent({ event_type: 'buy_click' })}
-              className="group relative inline-flex items-center gap-4 px-10 py-5 bg-[#2c2525] text-[#FAF9F6] rounded-full overflow-hidden transition-all duration-500 hover:scale-[1.05]"
-            >
-              <span className="relative z-10 text-[11px] font-black uppercase tracking-[0.3em]">
-                Know More & Join
-              </span>
-              <ArrowRight className="w-4 h-4 relative z-10 transition-transform duration-500 group-hover:translate-x-1" />
-              <div className="absolute inset-0 bg-[#9b452e] translate-y-full transition-transform duration-500 group-hover:translate-y-0" />
+          <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-slate-100 border border-slate-200">
+            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              Not sure where to start?
+            </span>
+            <Link href="/auth/signup" className="text-[10px] font-black text-[#e76f51] uppercase tracking-widest hover:underline">
+              Book a Free Consult →
             </Link>
           </div>
-          
-          <p className="text-[9px] font-black uppercase tracking-[0.4em] text-[#9b452e]/40">
-            Free 3-Day Trial Available for All New Students
-          </p>
         </motion.div>
       </div>
-
-      <PersonalPlanModal 
-        isOpen={showPersonalModal} 
-        onClose={() => setShowPersonalModal(false)} 
-      />
-      <GroupPlanModal 
-        isOpen={showGroupModal} 
-        onClose={() => setShowGroupModal(false)} 
-      />
-      <VideoCourseModal 
-        isOpen={showVideoModal} 
-        onClose={() => setShowVideoModal(false)} 
-      />
     </section>
   );
 }

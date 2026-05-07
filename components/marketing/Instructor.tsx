@@ -1,137 +1,122 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useRef } from 'react';
+import { motion, useInView, Variants } from 'framer-motion';
+import { Heart, Instagram, Users, Sparkles } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const INSTRUCTOR_IMAGE = '/assets/instructor_img.jpg';
 
-function useInView(threshold = 0.1) {
-  const ref = useRef<HTMLElement>(null);
-  const [inView, setInView] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) setInView(true); },
-      { threshold }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [threshold]);
-  return [ref, inView] as const;
-}
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15,
+      delayChildren: 0.2,
+    },
+  },
+};
+
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
+  },
+};
 
 export function Instructor() {
-  const [ref, inView] = useInView();
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.matchMedia('(max-width: 768px)').matches);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  const rv = (d = 0): React.CSSProperties => ({
-    opacity: inView ? 1 : 0,
-    transform: inView ? 'translateY(0)' : 'translateY(40px)',
-    transition: `all 1s cubic-bezier(0.22,1,0.36,1) ${d}s`,
-  });
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, amount: 0.2 });
 
   return (
     <section
       ref={ref}
-      style={{ position: 'relative', background: 'transparent', padding: isMobile ? '4rem 0' : '6rem 0 8rem', overflow: 'hidden' }}
+      className="relative py-24 md:py-40 overflow-hidden bg-transparent"
     >
-      <div style={{
-        maxWidth: 1200, margin: '0 auto',
-        padding: isMobile ? '0 1.5rem' : '0 clamp(2rem,5vw,5rem)',
-        display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.2fr 1fr',
-        gap: isMobile ? '3rem' : 'clamp(3rem,6vw,8rem)', alignItems: 'start',
-      }}>
-        {/* Left — text */}
-        <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
-          <h2 style={{
-            fontFamily: "var(--font-aktiv), serif",
-            fontSize: isMobile ? '2.5rem' : 'clamp(2.8rem,5vw,4.8rem)',
-            fontWeight: 400, lineHeight: 1.05, color: '#2a2019',
-            marginBottom: isMobile ? '1.5rem' : '2.5rem',
-          }}>
-            <span style={{ display: 'block', overflow: 'hidden' }}>
-              <span style={{
-                display: 'block',
-                clipPath: inView ? 'inset(0 0 0 0)' : 'inset(100% 0 0 0)',
-                transition: 'clip-path 1s cubic-bezier(0.22,1,0.36,1) 0.1s',
-              }}>The Power</span>
-            </span>
-            <span style={{ display: 'block', overflow: 'hidden' }}>
-              <span style={{
-                display: 'block',
-                clipPath: inView ? 'inset(0 0 0 0)' : 'inset(100% 0 0 0)',
-                transition: 'clip-path 1s cubic-bezier(0.22,1,0.36,1) 0.22s',
-              }}>of Touch</span>
-            </span>
-          </h2>
+      {/* Decorative Blur Orbs */}
+      <div className="absolute top-1/2 left-0 w-[600px] h-[600px] bg-[#FF8A75]/5 rounded-full blur-[120px] -translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
-          <div style={{ maxWidth: isMobile ? '100%' : 520, margin: isMobile ? '1.5rem auto' : '0', ...rv(0.25) }}>
-            <p style={{
-              fontFamily: "var(--font-jakarta), sans-serif",
-              fontSize: isMobile ? '0.9rem' : '0.98rem', lineHeight: 1.85,
-              color: 'rgba(42,32,25,0.65)', marginBottom: '1.8rem',
-            }}>
-              Every face is unique and deserves special attention. We work with passion, enthusiasm and a sincere desire to help each and everyone who wants to feel and see a real change on their face.
-            </p>
-            <p style={{
-              fontFamily: "var(--font-jakarta), sans-serif",
-              fontSize: isMobile ? '0.9rem' : '0.98rem', lineHeight: 1.85,
-              color: 'rgba(42,32,25,0.65)',
-            }}>
-              The change is visible even after one massage, regardless of face type and age — it is necessary to combine the right techniques, estimate the needs of the face and know what needs to be strengthened or released and relaxed.
-            </p>
-          </div>
-        </div>
+      <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 items-center">
+          
+          {/* Left Column: Visual Portrait */}
+          <div className="lg:col-span-4 relative group">
+            <motion.div
+              animate={isInView ? "visible" : "hidden"}
+              variants={fadeUp}
+              className="relative"
+            >
+              {/* Premium Frame */}
+              <div className="relative rounded-[2rem] md:rounded-[4rem] overflow-hidden aspect-[4/5] shadow-[0_40px_80px_rgba(42,32,25,0.12)]">
+                <img
+                  src={INSTRUCTOR_IMAGE}
+                  alt="Harsimrat"
+                  className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                />
+                
+              </div>
 
-        {/* Right — portrait + bio */}
-        <div style={{ ...rv(0.15), display: 'flex', flexDirection: 'column', alignItems: isMobile ? 'center' : 'start', textAlign: isMobile ? 'center' : 'left' }}>
-          <div style={{
-            width: isMobile ? '180px' : 'clamp(160px,14vw,200px)', aspectRatio: '1',
-            borderRadius: 6, overflow: 'hidden', marginBottom: '2rem',
-            boxShadow: '0 6px 30px rgba(0,0,0,0.06)',
-          }}>
-            <img
-              src={INSTRUCTOR_IMAGE} alt="Harsimrat"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 5%', display: 'block' }}
-            />
+              {/* Decorative Elements */}
+              <div className="absolute -top-6 -right-6 w-24 h-24 bg-[#FF8A75]/10 rounded-full blur-2xl animate-pulse" />
+              <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-[#bc162d]/5 rounded-full blur-3xl" />
+            </motion.div>
           </div>
 
-          <div style={{ width: '100%', height: 1, background: 'rgba(42,32,25,0.08)', marginBottom: '1.8rem' }} />
+          {/* Right Column: Narrative Copy */}
+          <div className="lg:col-span-8">
+            <motion.div
+              initial="hidden"
+              animate={isInView ? "visible" : "hidden"}
+              variants={containerVariants}
+              className="space-y-10"
+            >
+              {/* Tagline */}
+              <motion.div variants={fadeUp} className="space-y-4">
+                <div className="inline-flex flex-col items-start gap-3">
+                   <span className="text-[11px] font-black uppercase tracking-[0.5em] text-[#e76f51]">Your Coach</span>
+                   <div className="w-12 h-[1px] bg-[#e76f51]/20" />
+                </div>
+                <h2 className="text-3xl md:text-5xl font-aktiv text-[#2a2019] font-bold leading-[1.05] tracking-tight">
+                  Hi, I'm Harsimrat — <br className="hidden md:block" /> 
+                  and I'm <span className="italic font-light opacity-60">Obsessed</span> with Your Face.
+                </h2>
+                <p className="text-base md:text-lg font-sooner italic text-[#2a2019]/40">(In a good way.)</p>
+              </motion.div>
 
-          <blockquote style={{
-            fontFamily: "var(--font-jakarta), sans-serif",
-            fontSize: isMobile ? '0.85rem' : '0.92rem', lineHeight: 1.8,
-            color: 'rgba(42,32,25,0.55)',
-            margin: '0 0 2rem', padding: 0, border: 'none',
-            fontStyle: 'italic',
-            ...rv(0.3),
-          }}>
-            "I have been discovering facial yoga and natural rejuvenation techniques all over the world. I have received certifications from the best experts so that I can bring the most effective that the world of natural rejuvenation has to offer."
-          </blockquote>
+              {/* Main Body Narrative */}
+              <motion.div variants={fadeUp} className="space-y-6 text-sm md:text-base text-slate-600/80 font-jakarta leading-relaxed">
+                <p>
+                  I'm not a doctor. I'm not a skincare influencer pushing the latest serum. 
+                  I'm a <span className="text-[#2a2019] font-semibold">Face Wellness Coach</span> who genuinely believes that the best version of your face is already inside you — it just needs to be activated.
+                </p>
+                <p>
+                  I've trained <span className="text-[#e76f51] font-bold">thousands of women</span> across India, built a massive community of <span className="text-[#e76f51] font-bold">dedicated practitioners</span> on Instagram, 
+                  and spent years refining a method that is <span className="text-[#2a2019] font-semibold">gentle, effective, and built for real life</span> — not a 90-minute spa session you can't afford every week.
+                </p>
+                <p>
+                  My clients range from 25-year-olds dealing with early signs of ageing to 55-year-olds who thought it was "too late." It's never too late.
+                </p>
+                <p className="text-[#2a2019] font-bold text-base md:text-lg leading-snug">
+                  "The results I've seen — and the transformations I've been a part of — are why I wake up every morning and do this."
+                </p>
+              </motion.div>
 
-          <div style={{ ...rv(0.4) }}>
-            <h3 style={{
-              fontFamily: "var(--font-aktiv), serif",
-              fontSize: isMobile ? '1.2rem' : '1.4rem', fontWeight: 600,
-              letterSpacing: '0.12em', textTransform: 'uppercase',
-              color: '#8B6914', marginBottom: '0.5rem',
-            }}>
-              HARSIMRAT
-            </h3>
-            <p style={{
-              fontFamily: "var(--font-jakarta), sans-serif",
-              fontSize: '0.8rem', color: 'rgba(42,32,25,0.45)', lineHeight: 1.6,
-            }}>
-              instructor of facial yoga and natural<br />facial rejuvenation techniques
-            </p>
+              {/* Call to Action */}
+              <motion.div variants={fadeUp} className="pt-6 flex flex-col sm:flex-row items-center gap-8">
+                <button className="w-full sm:w-auto px-10 py-5 bg-[#1a1a1a] text-white rounded-full text-[11px] font-black uppercase tracking-[0.3em] hover:bg-[#e76f51] transition-all shadow-xl hover:scale-105 active:scale-95">
+                  Try a Class
+                </button>
+                <div className="flex items-center gap-4 text-[#2a2019]/40">
+                  <Sparkles className="w-5 h-5" />
+                  <span className="text-[10px] font-black uppercase tracking-widest italic">See for yourself.</span>
+                </div>
+              </motion.div>
+            </motion.div>
           </div>
+
         </div>
       </div>
     </section>

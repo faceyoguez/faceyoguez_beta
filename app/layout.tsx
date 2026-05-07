@@ -3,10 +3,13 @@ import { Plus_Jakarta_Sans } from 'next/font/google';
 import localFont from 'next/font/local';
 import './globals.css';
 
+// ── Load only the weights actually used to reduce font payload ──
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
+  weight: ['400', '600', '700'],
   variable: '--font-jakarta',
   display: 'swap',
+  preload: true,
 });
 
 const aktivGrotesk = localFont({
@@ -55,27 +58,62 @@ import MetaPixel from '@/components/MetaPixel';
 
 export const metadata: Metadata = {
   title: {
-    default: 'Faceyoguez — Face Yoga Classes Online for Women',
+    default: 'Faceyoguez — Face Yoga & Face Wellness Classes Online',
     template: '%s | Faceyoguez',
   },
-  description: 'Join expert-led face yoga classes online. Natural face lifting, toning & glowing skin exercises for women. Live 1-on-1 classes, group batches & video courses. Start free!',
-  keywords: ['face yoga', 'face yoga online', 'face yoga classes', 'face yoga for women', 'face yoga India', 'natural face lift', 'face yoga exercises', 'face toning', 'glowing skin yoga', 'face yoga course'],
-  authors: [{ name: 'Faceyoguez' }],
+  description: 'Join India\'s leading face yoga & face wellness coach Harsimrat. Expert-led online classes for natural face lifting, jawline toning & glowing skin. Results in 21 days. Start free today!',
+  keywords: [
+    'face yoga', 'face yoga online', 'face yoga classes India', 'face yoga for women',
+    'face wellness coach', 'natural face lift', 'face yoga exercises', 'face toning exercises',
+    'glowing skin yoga', 'face yoga course online', 'facial muscle training', 'face yoga Harsimrat',
+    'face yoga 21 days', 'face lifting exercises', 'jawline toning',
+  ],
+  authors: [{ name: 'Harsimrat — Faceyoguez' }],
+  metadataBase: new URL('https://faceyoguez.com'),
+  alternates: {
+    canonical: 'https://faceyoguez.com',
+  },
   openGraph: {
     type: 'website',
     locale: 'en_IN',
     url: 'https://faceyoguez.com',
     siteName: 'Faceyoguez',
-    title: 'Faceyoguez — Face Yoga Classes Online for Women',
-    description: 'Expert-led face yoga classes online. Natural face lifting, toning & glowing skin. Live 1-on-1, group classes & video courses.',
+    title: 'Faceyoguez — Face Yoga & Face Wellness Classes Online',
+    description: 'Expert-led face yoga & face wellness classes. Natural face lifting, jawline toning & glowing skin — no needles, no surgery. Results in 21 days.',
+    images: [{ url: '/assets/thumbnail_img.png', width: 1200, height: 630, alt: 'Faceyoguez — Face Wellness Classes' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Faceyoguez — Face Yoga Classes Online for Women',
-    description: 'Expert-led face yoga classes online. Natural face lifting, toning & glowing skin.',
+    title: 'Faceyoguez — Face Yoga & Face Wellness Classes Online',
+    description: 'Expert-led face yoga classes. Natural lifting, toning & glowing skin in 21 days.',
+    images: ['/assets/thumbnail_img.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
   },
   other: {
     google: 'notranslate',
+  },
+};
+
+// ── Structured Data (JSON-LD) for Google Rich Results ──
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'HealthAndBeautyBusiness',
+  name: 'Faceyoguez',
+  description: 'India\'s leading face yoga and face wellness coaching platform',
+  url: 'https://faceyoguez.com',
+  image: 'https://faceyoguez.com/assets/thumbnail_img.png',
+  priceRange: '₹₹',
+  address: { '@type': 'PostalAddress', addressCountry: 'IN' },
+  sameAs: ['https://www.instagram.com/faceyoguez'],
+  offers: {
+    '@type': 'Offer',
+    name: 'Free Trial Face Yoga Class',
+    price: '0',
+    priceCurrency: 'INR',
   },
 };
 
@@ -85,6 +123,19 @@ export default function RootLayout({
   return (
     <html lang="en" translate="no" suppressHydrationWarning data-scroll-behavior="smooth" className={`${plusJakartaSans.variable} ${aktivGrotesk.variable} ${sooner.variable}`}>
       <head>
+        {/* ── DNS Prefetch for third-party domains ── */}
+        <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="//fonts.gstatic.com" />
+        <link rel="dns-prefetch" href="//www.googletagmanager.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+
+        {/* ── Structured Data ── */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+
+        {/* ── Google Analytics (deferred — non-blocking) ── */}
         <Script
           strategy="afterInteractive"
           src={'https://www.googletagmanager.com/gtag/js?id=G-QFW9HLLC0S'}
@@ -108,10 +159,10 @@ export default function RootLayout({
           <MetaPixel />
         </Suspense>
         
-        {/* Abstract Glow (Optimized for performance) */}
-        <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-          <div className="absolute top-[-10%] left-[-5%] w-[50vw] h-[50vw] bg-rose-100/20 rounded-full blur-[80px] mix-blend-multiply opacity-30 will-change-transform" />
-          <div className="absolute top-[10%] right-[-5%] w-[40vw] h-[40vw] bg-orange-100/15 rounded-full blur-[70px] mix-blend-multiply opacity-25 will-change-transform" />
+        {/* Abstract Glow (Optimized — no will-change on multiple elements) */}
+        <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
+          <div className="absolute top-[-10%] left-[-5%] w-[50vw] h-[50vw] bg-rose-100/20 rounded-full blur-[80px] mix-blend-multiply opacity-30" />
+          <div className="absolute top-[10%] right-[-5%] w-[40vw] h-[40vw] bg-orange-100/15 rounded-full blur-[70px] mix-blend-multiply opacity-25" />
         </div>
         
         <ThemeProvider attribute="class" defaultTheme="light" forcedTheme="light" enableSystem={false} disableTransitionOnChange>

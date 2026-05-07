@@ -28,63 +28,45 @@ export function GoogleReview() {
   return (
     <section
       ref={sectionRef}
-      className="px-6 md:px-12 py-20 md:py-28"
-      style={{ backgroundColor: 'rgb(44, 37, 37)' }}
+      className="px-6 md:px-12 py-20 md:py-32"
+      style={{ backgroundColor: '#1a1a1a' }}
     >
-      <div ref={contentRef} className="max-w-3xl mx-auto text-center space-y-6">
+      <div ref={contentRef} className="max-w-4xl mx-auto text-center space-y-8">
         {/* Google rating */}
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <div className="flex">
+        <div className="flex flex-col items-center gap-3">
+          <div className="flex gap-1">
             {[...Array(5)].map((_, i) => (
-              <span key={i} style={{ color: 'rgb(249, 109, 65)', fontSize: '18px' }}>★</span>
+              <span key={i} className="text-[#e76f51] text-xl">★</span>
             ))}
           </div>
-          <span
-            className="text-[12px] tracking-[0.15em]"
-            style={{ fontFamily: 'var(--font-jakarta), sans-serif', color: 'rgba(252, 244, 235, 0.6)' }}
-          >
-            5.0 on Google
+          <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 font-jakarta">
+            5.0 Rating based on verified reviews
           </span>
         </div>
 
-        <h3
-          className="leading-[1.2]"
-          style={{
-            fontFamily: 'var(--font-aktiv), serif',
-            fontSize: 'clamp(1.8rem, 3.5vw, 2.5rem)',
-            fontWeight: 400,
-            color: 'rgb(252, 244, 235)',
-          }}
-        >
-          Leave us a review too!
+        <h3 className="text-3xl md:text-5xl font-aktiv font-bold text-white leading-tight">
+          Love Your Progress? <br />
+          <span className="italic font-light text-white/50">Inspire Others Too.</span>
         </h3>
-        <p
-          className="leading-relaxed"
-          style={{
-            fontFamily: 'var(--font-jakarta), sans-serif',
-            fontSize: '1.05rem',
-            color: 'rgba(252, 244, 235, 0.7)',
-          }}
-        >
-          Did you enjoy your experience? Share your journey and leave us a review.
-          Your story could inspire someone to begin their own transformation.
+        
+        <p className="text-sm md:text-base text-white/60 font-jakarta leading-relaxed max-w-2xl mx-auto">
+          Every review helps a woman in India discover that natural rejuvenation is possible. 
+          If Harsimrat has helped you find your glow, we'd love to hear your story.
         </p>
 
-        <a
-          href="#"
-          className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full text-[13px] tracking-[0.1em] uppercase transition-all duration-300 hover:scale-[1.02] mt-4"
-          style={{
-            fontFamily: 'var(--font-jakarta), sans-serif',
-            fontWeight: 500,
-            backgroundColor: 'rgb(252, 244, 235)',
-            color: 'rgb(44, 37, 37)',
-          }}
-        >
-          Write a Review on Google
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-            <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </a>
+        <div className="pt-4">
+          <a
+            href="https://g.page/r/CU9o-x-x-x-x/review"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-3 px-8 py-4 bg-[#e76f51] text-white rounded-full text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 hover:scale-[1.05] shadow-[0_12px_24px_rgba(231,111,81,0.2)]"
+          >
+            Review us on Google
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </a>
+        </div>
       </div>
     </section>
   );
