@@ -16,7 +16,7 @@ const AuthButton = ({ children, loading, variant = 'primary', icon, className, .
   
   const variants = {
     primary: "bg-primary text-white shadow-xl shadow-primary/20 hover:scale-[1.01] hover:shadow-2xl hover:shadow-primary/30",
-    outline: "bg-white/40 backdrop-blur-md border border-outline-variant text-foreground hover:bg-white/60 hover:-translate-y-0.5 shadow-sm hover:shadow-md",
+    outline: "bg-white/60 sm:bg-white/40 backdrop-blur-sm sm:backdrop-blur-md border border-outline-variant text-foreground hover:bg-white/60 hover:-translate-y-0.5 shadow-sm hover:shadow-md",
     social: "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:shadow-md hover:-translate-y-0.5"
   };
 

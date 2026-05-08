@@ -10,8 +10,8 @@ const PRELOADER_IMAGES = [
   '/assets/starter_img_5.jpg',
 ];
 
-const DURATION_MS = 5000;
-const IMG_INTERVAL_MS = 1000;
+const DURATION_MS = 3000; // Optimized from 5000ms for better perceived performance
+const IMG_INTERVAL_MS = 600; // Adjusted for shorter duration
 
 interface LoaderProps {
   onComplete: () => void;
