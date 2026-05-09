@@ -120,6 +120,13 @@ export async function createSubscription(
 
     if (error) {
         console.error('Failed to create subscription', error);
+        
+        // Handle unique constraint violations (Concurrency Protection)
+        if (error.code === '23505') {
+            if (isTrial) throw new Error('You have already used your free trial for this plan.');
+            throw new Error('A similar subscription already exists.');
+        }
+        
         throw new Error('Database Error: ' + error.message);
     }
 
