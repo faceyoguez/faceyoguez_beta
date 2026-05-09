@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { motion, Variants } from 'framer-motion';
 
@@ -123,10 +124,12 @@ export function Hero({ visible }: HeroProps) {
               className="absolute inset-2 z-10 overflow-hidden bg-slate-100 shadow-2xl animate-morph"
               style={{ borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%' }}
             >
-              <img
+              <Image
                 src={HERO_IMAGE}
                 alt="Face Wellness with Harsimrat"
-                className="w-full h-full object-cover object-center scale-110"
+                fill
+                priority
+                className="object-cover object-center scale-110"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#2a2019]/20 to-transparent pointer-events-none" />
             </div>

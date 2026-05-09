@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useRealtimeMessages } from '@/hooks/useRealtimeMessages';
 import { MessageBubble } from './MessageBubble';
 import { MessageInput } from './MessageInput';
@@ -72,10 +73,10 @@ export function ChatWindow({
 
   return (
     <div className={cn(
-      "flex flex-col overflow-hidden relative transition-all duration-700 shadow-2xl",
+      "flex flex-col overflow-hidden relative transition-all duration-700 shadow-2xl rounded-none h-full w-full",
       dark 
-        ? "bg-[#1a1a1a] text-white border border-white/5 shadow-slate-900/50 rounded-[2.5rem] lg:rounded-[4.5rem]" 
-        : "bg-white/40 backdrop-blur-3xl border border-primary/5 shadow-primary/5 rounded-[2.5rem]",
+        ? "bg-[#1a1a1a] text-white border border-white/5 shadow-slate-900/50" 
+        : "bg-white/40 backdrop-blur-3xl border border-primary/5 shadow-primary/5",
       className
     )}>
       
@@ -106,10 +107,11 @@ export function ChatWindow({
                       "relative h-12 w-12 rounded-[1rem] overflow-hidden p-0.5",
                       dark ? "ring-1 ring-white/10 bg-white/5" : "ring-2 ring-white border border-primary/20 bg-white"
                     )}>
-                        <img
-                        src={otherParticipant.avatar_url}
-                        alt={otherParticipant.full_name}
-                        className="h-full w-full rounded-[0.8rem] object-cover"
+                        <Image
+                          src={otherParticipant.avatar_url}
+                          alt={otherParticipant.full_name || 'User'}
+                          fill
+                          className="rounded-[0.8rem] object-cover"
                         />
                     </div>
                 ) : (

@@ -1,6 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 import type { ChatMessageWithSender, Profile } from '@/types/database';
 import { format } from 'date-fns';
 

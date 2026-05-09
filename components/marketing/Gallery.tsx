@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { motion, useAnimationFrame, useMotionValue, useTransform } from 'framer-motion';
 
 // ✅ All 9 images have been moved to /public/assets as .jpg
@@ -62,15 +63,14 @@ function LoopingCard({ src, index, baseX, cardWidth, gap, wrapRange, isMobile }:
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
       }}
     >
-      <img
+      <Image
         src={src}
         alt="Face wellness transformation result"
-        loading="lazy"
-        decoding="async"
+        fill
+        sizes="(max-width: 768px) 220px, 340px"
+        className="object-cover"
+        priority={index < 3}
         draggable={false}
-        width={cardWidth}
-        height={Math.round(cardWidth * 1.4)}
-        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transform: 'translateZ(0)' }}
       />
     </motion.div>
   );

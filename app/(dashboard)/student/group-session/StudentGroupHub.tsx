@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import Image from 'next/image';
 import { JourneyProgress } from '@/components/ui/journey-progress';
 import {
     Calendar, Users, Star,
@@ -484,7 +485,12 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                     {/* Live Section */}
                     {nextBatchMeeting ? (
                         <div className="group relative w-full aspect-[16/9] sm:aspect-[2.5/1] rounded-[1.75rem] overflow-hidden shadow-lg border border-slate-100 bg-slate-900 shrink-0">
-                            <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2420&auto=format&fit=crop" className="w-full h-full object-cover opacity-50 transition-transform duration-[2000ms] group-hover:scale-105" />
+                            <Image 
+                                src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2420&auto=format&fit=crop" 
+                                alt="Live Session"
+                                fill
+                                className="object-cover opacity-50 transition-transform duration-[2000ms] group-hover:scale-105" 
+                            />
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
                             <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20">
                                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[9px] font-bold uppercase tracking-widest">

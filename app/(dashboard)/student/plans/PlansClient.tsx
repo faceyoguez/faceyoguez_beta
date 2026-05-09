@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { PLANS_DATA } from '@/lib/constants/plans';
 import { toast } from 'sonner';
@@ -446,11 +447,11 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
     const cardBg = "bg-white border border-[#FF8A75]/10";
 
     return (
-        <div className="min-h-full font-jakarta px-4 sm:px-8 lg:px-12 py-8 space-y-8 bg-slate-50/30 max-w-[1920px] mx-auto">
-            {/* Desktop Professional Layout */}
-            <div className="hidden lg:grid grid-cols-12 gap-6">
+        <div className="min-h-full font-jakarta px-4 sm:px-6 md:px-8 lg:px-12 py-6 sm:py-8 space-y-6 sm:space-y-8 bg-slate-50/30 max-w-[1920px] mx-auto">
+            {/* Desktop & Tablet Professional Layout */}
+            <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-5 lg:gap-6">
                 {/* Panel 1: Ritual Selector */}
-                <div className="col-span-3 flex flex-col gap-6">
+                <div className="md:col-span-1 lg:col-span-3 flex flex-col gap-5 lg:gap-6">
                     <div>
                          <h1 className="text-2xl sm:text-3xl font-aktiv font-bold text-slate-900 tracking-tight">Choose Your <span className="text-[#FF8A75]">Plan</span></h1>
                          <p className="text-xs text-slate-400 font-medium mt-1">Face yoga plans for every goal</p>
@@ -529,7 +530,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                 </div>
 
                 {/* Panel 2: Deep Dive */}
-                <div className="col-span-6 flex flex-col gap-6">
+                <div className="md:col-span-1 lg:col-span-6 flex flex-col gap-5 lg:gap-6">
                     <div className={`flex-1 p-8 rounded-[1.75rem] flex flex-col gap-6 relative overflow-hidden bg-white border border-slate-100 shadow-sm`}>
                         <div className="space-y-1.5">
                             <span className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.3em]">Details</span>
@@ -584,8 +585,8 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                 </div>
 
                 {/* Panel 3: Membership & Checkout */}
-                <div className="col-span-3 flex flex-col gap-6">
-                    <div data-lenis-prevent className="space-y-2">
+                <div className="md:col-span-2 lg:col-span-3 flex flex-col md:flex-row lg:flex-col gap-5 lg:gap-6">
+                    <div data-lenis-prevent className="flex-1 space-y-2">
                          <h3 className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.2em] px-2 mb-1">Memberships</h3>
                          {currentPlan.tiers.map((tier) => (
                              <button
@@ -660,19 +661,33 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                             </p>
                         </div>
                         <div className="flex -space-x-2">
-                            {[1,2,3,4,5].map(i => (
-                                <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 overflow-hidden">
-                                    <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i + 20}`} alt="User" />
+                            {[
+                                '1438761681033-6461ffad8d80',
+                                '1544005313-94ddf0286df2',
+                                '1506794778242-aff56ffbd6a0',
+                                '1534528741775-53994a69daeb',
+                                '1521119989659-a83eee488004'
+                            ].map((id, i) => (
+                                <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 overflow-hidden shadow-sm relative">
+                                    <Image 
+                                        src={`https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=100&h=100&q=80`} 
+                                        alt="User" 
+                                        fill
+                                        className="object-cover"
+                                        onError={(e) => {
+                                            (e.currentTarget as any).src = `https://ui-avatars.com/api/?name=Student&background=FF8A75&color=fff`;
+                                        }}
+                                    />
                                 </div>
                             ))}
-                            <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-900 text-white flex items-center justify-center text-[8px] font-black">+12k</div>
+                            <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-900 text-white flex items-center justify-center text-[8px] font-black shadow-sm">+12k</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Mobile Professional Layout */}
-            <div className="lg:hidden flex flex-col space-y-6">
+            {/* Mobile Layout (up to md breakpoint) */}
+            <div className="md:hidden flex flex-col space-y-6">
                 <header>
                      <h1 className="text-2xl font-aktiv font-bold text-slate-900 tracking-tight">Choose Your Plan</h1>
                      <div className="flex gap-2 mt-4 overflow-x-auto pb-1 scrollbar-hide">
