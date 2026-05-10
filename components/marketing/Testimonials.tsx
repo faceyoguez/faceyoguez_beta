@@ -83,17 +83,17 @@ export function Testimonials() {
   return (
     <section
       ref={sectionRef}
-      className="py-24 md:py-36 overflow-hidden relative bg-[#F9F6F3]"
+      className="py- md:py- overflow-hidden relative bg-transparent"
     >
-      <div className="max-w-[1400px] mx-auto px-6 md:px-12 mb-16">
+      <div className="max-w-[1400px] mx-auto px-6 md:px-12 mb-10 md:mb-16 relative z-10">
         <motion.div
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
           variants={fadeUp}
-          className="flex flex-col md:flex-row md:items-end md:justify-between gap-12"
+          className="flex flex-col items-center text-center md:flex-row md:text-left md:items-end md:justify-between gap-8 md:gap-12"
         >
-          <div className="space-y-6">
-            <div className="inline-flex flex-col items-start gap-3">
+          <div className="space-y-4 md:space-y-6 md:pl-8 flex flex-col items-center md:items-start w-full">
+            <div className="inline-flex flex-col items-center md:items-start gap-3">
               <span className="text-[11px] font-black uppercase tracking-[0.5em] text-[#e76f51]">Real Stories</span>
               <div className="w-12 h-[1px] bg-[#e76f51]/20" />
             </div>
@@ -103,19 +103,7 @@ export function Testimonials() {
             </h2>
           </div>
 
-          <button
-            onClick={() => {
-              setIsMuted(!isMuted);
-              if (!isMuted) setActiveVideoIndex(null);
-            }}
-            className="flex items-center gap-3 px-6 py-3 rounded-full border transition-all duration-300 hover:bg-[#2a2019] hover:text-white group bg-white shadow-sm"
-            style={{ borderColor: 'rgba(44, 37, 37, 0.1)' }}
-          >
-            <div className={`w-2 h-2 rounded-full ${!isMuted ? 'bg-[#e76f51] animate-pulse' : 'bg-gray-400'}`} />
-            <span className="text-sm font-medium font-jakarta tracking-wide">
-              {isMuted ? 'Enable Sound' : 'Disable Sound'}
-            </span>
-          </button>
+
         </motion.div>
       </div>
 
@@ -125,7 +113,7 @@ export function Testimonials() {
         <div className="absolute left-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-r from-[#fcf8f7] to-transparent z-10 pointer-events-none" />
         <div className="absolute right-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-l from-[#fcf8f7] to-transparent z-10 pointer-events-none" />
 
-        <div className={`overflow-visible py-16 flex items-center relative z-50 ${isMobile ? 'h-[450px]' : 'h-[600px]'}`}>
+        <div className={`overflow-visible py-8 flex items-center relative z-50 ${isMobile ? 'h-[450px]' : 'h-[600px]'}`}>
           {isLoading ? (
             <div className="w-full flex justify-center py-20">
               <div className="w-8 h-8 border-2 border-[#e76f51] border-t-transparent rounded-full animate-spin"></div>
@@ -159,11 +147,11 @@ export function Testimonials() {
                     `}
                     style={{
                       width: isActive 
-                        ? (isMobile ? '260px' : '320px') 
+                        ? (isMobile ? '225px' : '320px') 
                         : (isMobile ? '160px' : '240px'),
                       height: isActive 
-                        ? (isMobile ? '455px' : '560px') 
-                        : (isMobile ? '280px' : '420px'),
+                        ? (isMobile ? '400px' : '560px') 
+                        : (isMobile ? '284px' : '420px'),
                     }}
                   >
                     {isActive ? (

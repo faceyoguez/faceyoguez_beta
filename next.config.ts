@@ -48,12 +48,8 @@ const nextConfig: NextConfig = {
         { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
       ],
     },
-    {
-      source: '/_next/static/:path*',
-      headers: [
-        { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
-      ],
-    },
+    // Next.js handles /_next/static caching automatically with content hashes in production.
+    // Manually setting it here breaks local development caching.
     // ── Security headers for all routes ──
     {
       source: '/(.*)',

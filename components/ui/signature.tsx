@@ -1,93 +1,94 @@
 'use client';
 
-import { useRef } from 'react';
-import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Carousel } from "@ark-ui/react/carousel";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export function ThumbnailsCarousel() {
-  const scrollRef = useRef<HTMLDivElement>(null);
-
+  // Dynamically load all 35 images
   const images = Array.from({ length: 35 }, (_, i) => ({
     src: `/assets/proofs/proof-${i + 1}.jpg`,
     title: `Transformation ${i + 1}`
   }));
 
-  const scroll = (direction: 'left' | 'right') => {
-    if (scrollRef.current) {
-      const { current } = scrollRef;
-      const scrollAmount = window.innerWidth * 0.6; // Scroll by 60% of screen width
-      current.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
-    }
-  };
-
   return (
-    <div className="relative w-screen left-1/2 right-1/2 -mx-[50vw] py-12">
-      
-      {/* Scrollable Track */}
-      <div 
-        ref={scrollRef}
-        className="flex gap-8 md:gap-16 overflow-x-auto snap-x snap-mandatory px-[10vw] pb-16 pt-4 items-center"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-      >
+    <Carousel.Root
+      defaultPage={0}
+      slideCount={images.length}
+      className="max-w-4xl p-2 mx-auto w-full relative"
+    >
+      {/* Main Image Container */}
+      <Carousel.ItemGroup className="relative overflow-hidden rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] mb-8 liquid-glass aspect-[4/3] md:aspect-video border border-black/5 group">
         {images.map((image, index) => (
-          <motion.div 
-            key={index}
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.8, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
-            className="snap-center shrink-0 relative group rounded-[2rem] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.12)] border-[1px] border-black/5 bg-white flex items-center justify-center w-[85vw] md:w-[50vw] h-[60vh] md:h-[80vh]"
-          >
+          <Carousel.Item key={index} index={index} className="relative flex items-center justify-center overflow-hidden">
+            
             {/* 
-                Fixed size container with bg-white. 
-                Image is constrained to 80% of the container to ensure 
-                it is heavily "zoomed out" and framed perfectly.
+                Main Image: 
+                - bg-white provides the white background
+                - object-contain ensures ZERO cropping
+                - p-4 md:p-8 adds the nice extra white space framing around it
             */}
             <img
               src={image.src}
               alt={image.title}
               loading={index < 2 ? "eager" : "lazy"}
               decoding="async"
-              className="max-w-[85%] max-h-[85%] object-contain transition-transform duration-1000 group-hover:scale-[1.05]"
-              draggable={false}
+              className="w-full h-full object-contain p-4 md:p-8 transition-transform duration-700 group-hover:scale-[1.02]"
               onError={(e) => {
                 console.error("DEBUG: Local image failed to load ->", image.src);
               }}
             />
-            
-            {/* Verified Badge overlay, appears on hover for cleaner look */}
-            <div className="absolute bottom-6 left-6 flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-md rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 translate-y-4 group-hover:translate-y-0">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] font-bold uppercase tracking-widest text-[#2a2019]">Verified Transformation</span>
-            </div>
-          </motion.div>
-        ))}
-      </div>
 
-      {/* Clean Navigation Controls below the track */}
-      <div className="flex justify-center items-center gap-6 mt-4">
-        <button 
-          onClick={() => scroll('left')}
-          className="p-5 rounded-full bg-white border border-[#2a2019]/10 text-[#2a2019] hover:bg-[#e76f51] hover:text-white hover:border-[#e76f51] transition-all duration-500 shadow-sm hover:shadow-[0_10px_30px_rgba(231,111,81,0.3)] hover:-translate-y-1"
-          aria-label="Previous image"
-        >
-          <ChevronLeft className="w-6 h-6" />
-        </button>
-        <button 
-          onClick={() => scroll('right')}
-          className="p-5 rounded-full bg-white border border-[#2a2019]/10 text-[#2a2019] hover:bg-[#e76f51] hover:text-white hover:border-[#e76f51] transition-all duration-500 shadow-sm hover:shadow-[0_10px_30px_rgba(231,111,81,0.3)] hover:-translate-y-1"
-          aria-label="Next image"
-        >
-          <ChevronRight className="w-6 h-6" />
-        </button>
+            {/* Verified Badge */}
+            <div className="absolute top-4 right-4 z-20 flex items-center gap-2 px-3 py-1.5 bg-white/90 backdrop-blur-md rounded-full shadow-lg border border-[#e76f51]/20">
+              <div className="w-2 h-2 rounded-full bg-[#e76f51] animate-pulse" />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#2a2019]">Verified Result</span>
+            </div>
+          </Carousel.Item>
+        ))}
+      </Carousel.ItemGroup>
+
+      {/* Thumbnails & Controls */}
+      <div className="flex items-center gap-6">
+        <Carousel.PrevTrigger className="p-3 bg-white hover:bg-[#e76f51] hover:text-white border border-[#e76f51]/10 rounded-2xl transition-all duration-500 shrink-0 shadow-[0_4px_12px_rgba(231,111,81,0.1)] hover:shadow-[0_8px_20px_rgba(231,111,81,0.2)] hover:-translate-y-0.5">
+          <ChevronLeft className="w-5 h-5" />
+        </Carousel.PrevTrigger>
+
+        {/* Thumbnail Scroll Track */}
+        <div className="flex gap-4 overflow-x-auto scrollbar-hide flex-1 px-2 py-2">
+          {images.map((image, index) => (
+            <Carousel.Indicator
+              key={index}
+              index={index}
+              className="shrink-0 border-2 border-transparent data-[current]:border-[#e76f51] data-[current]:scale-110 rounded-2xl overflow-hidden cursor-pointer transition-all duration-500 hover:border-[#e76f51]/30 shadow-lg group"
+            >
+              <div className="relative w-16 md:w-24 aspect-[4/3] shrink-0 overflow-hidden liquid-glass rounded-md">
+                <img
+                  src={image.src}
+                  alt={`Thumbnail ${index + 1}`}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-full object-contain p-1 transition-transform duration-500 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-[#2a2019]/10 group-data-[current]:bg-transparent transition-colors duration-500" />
+              </div>
+            </Carousel.Indicator>
+          ))}
+        </div>
+
+        <Carousel.NextTrigger className="p-3 bg-white hover:bg-[#e76f51] hover:text-white border border-[#e76f51]/10 rounded-2xl transition-all duration-500 shrink-0 shadow-[0_4px_12px_rgba(231,111,81,0.1)] hover:shadow-[0_8px_20px_rgba(231,111,81,0.2)] hover:-translate-y-0.5">
+          <ChevronRight className="w-5 h-5" />
+        </Carousel.NextTrigger>
       </div>
 
       <style jsx global>{`
-        /* Hide scrollbar for Chrome, Safari and Opera */
-        div::-webkit-scrollbar {
+        .scrollbar-hide::-webkit-scrollbar {
           display: none;
         }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
       `}</style>
-    </div>
+    </Carousel.Root>
   );
 }
