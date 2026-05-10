@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
+import Image from 'next/image';
 import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -51,9 +52,10 @@ export const ImageComparison = ({ beforeImage, afterImage, altBefore = 'Baseline
                 className="absolute top-0 left-0 h-full w-full overflow-hidden z-10"
                 style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
             >
-                <img
+                <Image
                     src={beforeImage}
                     alt={altBefore}
+                    fill
                     className="h-full w-full object-cover grayscale-[0.2] contrast-[1.05]"
                     draggable="false"
                 />
@@ -66,12 +68,15 @@ export const ImageComparison = ({ beforeImage, afterImage, altBefore = 'Baseline
             </div>
 
             {/* Evolution Image (Bottom Layer) */}
-            <img
-                src={afterImage}
-                alt={altAfter}
-                className="block h-full w-full object-cover contrast-[1.1]"
-                draggable="false"
-            />
+            <div className="absolute inset-0">
+                <Image
+                    src={afterImage}
+                    alt={altAfter}
+                    fill
+                    className="block h-full w-full object-cover contrast-[1.1]"
+                    draggable="false"
+                />
+            </div>
             {afterLabel && (
               <div className="absolute right-6 top-6 z-30 px-4 py-2 rounded-2xl bg-white/60 backdrop-blur-xl border border-primary/5 shadow-2xl">
                   <span className="text-[10px] font-black uppercase tracking-[0.3em] text-foreground/60">{afterLabel}</span>

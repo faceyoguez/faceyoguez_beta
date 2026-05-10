@@ -391,20 +391,14 @@ export async function grantTrialAccess(studentId: string, subscriptionId: string
         is_extended: false,
     });
 
-    // Update batch student count using manual increment (simplest)
+    // Update batch student count using ATOMIC PostgreSQL function
+    // This prevents race conditions where multiple students joining simultaneously 
+    // might overwrite each other's count updates.
     try {
-        const { data } = await admin.from('batches')
-            .select('current_students')
-            .eq('id', batchId)
-            .single();
-        
-        if (data) {
-            await admin.from('batches')
-                .update({ current_students: (data.current_students || 0) + 1 })
-                .eq('id', batchId);
-        }
+        await admin.rpc('increment_batch_count', { batch_id: batchId });
     } catch (e) {
-        console.error('Failed to increment batch count:', e);
+        console.error('Failed to increment batch count atomically:', e);
+        // Fallback or ignore if RPC fails (count is secondary to the enrollment record)
     }
 }
 

@@ -186,10 +186,10 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
         </motion.header>
 
         {/* ── Main Layout ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-5 lg:gap-6">
 
           {/* ── Left Column: Main Content ── */}
-          <div className="lg:col-span-7 xl:col-span-8 flex flex-col gap-5 min-h-0">
+          <div className="md:col-span-7 xl:col-span-8 flex flex-col gap-5 min-h-0">
 
             {/* Next Session Card */}
             <motion.div
@@ -345,15 +345,15 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
             </motion.div>
           </div>
 
-          {/* ── Right Column: Chat + Resources (Desktop) ── */}
-          <div className="hidden lg:col-span-5 xl:col-span-4 lg:flex flex-col gap-5 min-h-0">
+          {/* ── Right Column: Chat + Resources (Desktop/Tablet) ── */}
+          <div className="md:col-span-5 xl:col-span-4 flex flex-col gap-5 min-h-0">
 
             {/* Chat Panel */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="h-[480px] bg-white rounded-[1.75rem] border border-slate-100 shadow-sm flex flex-col overflow-hidden hover:shadow-lg hover:shadow-[#FF8A75]/5 transition-shadow duration-500"
+              className="h-[650px] bg-white rounded-[1.75rem] border border-slate-100 shadow-sm flex flex-col overflow-hidden hover:shadow-lg hover:shadow-[#FF8A75]/5 transition-shadow duration-500"
             >
               <div className="px-5 py-3.5 border-b border-slate-50 flex items-center gap-3">
                 <div className="h-8 w-8 rounded-lg bg-[#FF8A75]/10 flex items-center justify-center">
@@ -361,8 +361,8 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                 </div>
                 <span className="text-xs font-aktiv font-bold text-[#1a1a1a]">Instructor Chat</span>
               </div>
-              <div className="flex-1 overflow-hidden relative">
-                <OneOnOneChat currentUser={currentUser} hideHeader={true} className="h-full w-full border-0 absolute inset-0" />
+              <div className="flex-1 flex flex-col relative">
+                <OneOnOneChat currentUser={currentUser} hideHeader={true} className="flex-1 w-full border-0" />
               </div>
             </motion.div>
 
@@ -398,11 +398,16 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                     </div>
                   ))
                 ) : (
-                  <div className="h-full flex flex-col items-center justify-center py-8 gap-3">
-                    <div className="h-12 w-12 rounded-2xl bg-slate-50 flex items-center justify-center">
-                      <FileText className="w-5 h-5 text-slate-300" />
+                  <div className="h-full flex flex-col items-center justify-center py-10 px-6 gap-4 text-center">
+                    <div className="h-16 w-16 rounded-[2rem] bg-slate-50 flex items-center justify-center border border-dashed border-slate-200">
+                      <FileText className="w-6 h-6 text-slate-300" />
                     </div>
-                    <p className="text-[10px] font-bold text-slate-300 text-center">No resources shared yet</p>
+                    <div className="space-y-1.5">
+                      <p className="text-[11px] font-black uppercase tracking-[0.1em] text-slate-900">Your Resource Library is Ready</p>
+                      <p className="text-[10px] font-medium text-slate-400 leading-relaxed max-w-[180px] mx-auto">
+                        Once your instructor shares custom guides or routines, they will appear here for you to access anytime.
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -458,8 +463,8 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                         <X className="w-4 h-4" />
                      </button>
                   </div>
-                  <div className="flex-1 overflow-hidden relative">
-                     <OneOnOneChat currentUser={currentUser} hideHeader={true} className="h-full w-full border-0 absolute inset-0" />
+                  <div className="flex-1 flex flex-col relative">
+                     <OneOnOneChat currentUser={currentUser} hideHeader={true} className="flex-1 w-full border-0" />
                   </div>
                </motion.div>
             </>

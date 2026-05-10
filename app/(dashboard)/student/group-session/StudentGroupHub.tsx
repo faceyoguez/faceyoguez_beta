@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
+import Image from 'next/image';
 import { JourneyProgress } from '@/components/ui/journey-progress';
 import {
     Calendar, Users, Star,
@@ -365,50 +366,116 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
             <main className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 {/* ── LEFT RAIL: Batch Meta ── */}
                 <div className="lg:col-span-3 flex flex-col gap-6">
-                    <div className="p-6 rounded-[1.75rem] flex flex-col gap-6 border border-slate-100 bg-white shadow-sm h-min">
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-xl overflow-hidden border border-slate-100 bg-slate-50 shrink-0">
-                                    {activeBatch?.instructor?.avatar_url ? (
-                                        <img src={activeBatch.instructor.avatar_url} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-xs font-bold text-slate-300">{(activeBatch?.instructor?.full_name || 'I').charAt(0).toUpperCase()}</div>
-                                    )}
-                                </div>
-                                <div className="min-w-0">
-                                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 leading-none mb-1">Your Guide</p>
-                                    <p className="text-sm font-bold text-slate-900 truncate">{activeBatch?.instructor?.full_name || 'Instructor'}</p>
-                                </div>
+                    {/* Batch Overview Card */}
+                    <div className="p-6 rounded-[2rem] bg-slate-900 text-white shadow-xl shadow-slate-200/50 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700">
+                            <Sparkles className="w-24 h-24" />
+                        </div>
+                        <div className="relative z-10 space-y-6">
+                            <div className="space-y-1">
+                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">Your Batch</p>
+                                <h3 className="text-xl font-bold tracking-tight leading-tight">{activeBatch?.name || 'Sanctuary Batch'}</h3>
                             </div>
-                            <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-xl bg-[#FF8A75]/5 flex items-center justify-center text-[#FF8A75] shrink-0">
-                                    <Flame className="w-5 h-5" />
+                            
+                            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
+                                <div className="space-y-1">
+                                    <p className="text-[9px] font-bold uppercase tracking-widest text-white/40">Members</p>
+                                    <p className="text-lg font-bold">{activeBatch?.enrollment_count || 0}</p>
                                 </div>
-                                <div className="min-w-0">
-                                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 leading-none mb-1">Current Streak</p>
-                                    <p className="text-sm font-bold text-slate-900 truncate">Day {currentDay}</p>
+                                <div className="space-y-1">
+                                    <p className="text-[9px] font-bold uppercase tracking-widest text-white/40">Streak</p>
+                                    <div className="flex items-center gap-1.5">
+                                        <Flame className="w-4 h-4 text-[#FF8A75]" />
+                                        <p className="text-lg font-bold">{currentDay}d</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="p-6 rounded-[1.75rem] border border-slate-100 bg-white shadow-sm flex flex-col h-[400px]">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Resources</h3>
+                    {/* Instructor Card */}
+                    <div className="p-5 rounded-[1.75rem] border border-slate-100 bg-white shadow-sm flex items-center gap-4 group hover:border-[#FF8A75]/20 transition-all">
+                        <div className="h-14 w-14 rounded-2xl overflow-hidden border-2 border-slate-50 shrink-0 group-hover:scale-105 transition-transform">
+                            {activeBatch?.instructor?.avatar_url ? (
+                                <img src={activeBatch.instructor.avatar_url} className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-lg font-bold text-slate-300 bg-slate-50">{(activeBatch?.instructor?.full_name || 'I').charAt(0).toUpperCase()}</div>
+                            )}
+                        </div>
+                        <div className="min-w-0">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Guided By</p>
+                            <p className="text-sm font-bold text-slate-900 truncate">{activeBatch?.instructor?.full_name || 'Instructor Name'}</p>
+                            <div className="flex items-center gap-1 mt-1">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Active Now</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Resources */}
+                    <div className="p-6 rounded-[1.75rem] border border-slate-100 bg-white shadow-sm flex flex-col gap-5">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <div className="h-2 w-2 rounded-full bg-[#FF8A75]" />
+                                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">Resources</h3>
+                            </div>
                             <FileText className="w-4 h-4 text-slate-300" />
                         </div>
-                        <div className="space-y-2 overflow-y-auto custom-scrollbar flex-1 pr-1">
-                            {initialResources.map((res: any) => (
-                                <button key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="w-full flex items-center gap-3 p-3 bg-slate-50 border border-slate-100/50 rounded-xl hover:border-[#FF8A75]/20 hover:bg-white transition-all text-left group">
-                                    <div className="h-8 w-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-300 group-hover:text-[#FF8A75] transition-colors">
-                                        <Download className="w-3.5 h-3.5" />
+                        <div className="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-1">
+                            {initialResources.length > 0 ? (
+                                initialResources.map((res: any) => (
+                                    <button key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="w-full flex items-center gap-3 p-3 bg-slate-50/50 border border-slate-100/50 rounded-xl hover:border-[#FF8A75]/20 hover:bg-white hover:shadow-sm transition-all text-left group">
+                                        <div className="h-8 w-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-300 group-hover:text-[#FF8A75] transition-colors">
+                                            <Download className="w-3.5 h-3.5" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-[11px] font-bold text-slate-700 truncate">{res.title || res.file_name}</p>
+                                            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">PDF Document</p>
+                                        </div>
+                                    </button>
+                                ))
+                            ) : (
+                                <div className="py-10 text-center space-y-3 bg-slate-50/50 rounded-2xl border border-dashed border-slate-100">
+                                    <FileText className="w-6 h-6 text-slate-200 mx-auto" />
+                                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-300">No resources yet</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Recordings Suite */}
+                    <div className="p-6 rounded-[1.75rem] border border-slate-100 bg-white shadow-sm flex flex-col gap-5">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <div className="h-2 w-2 rounded-full bg-slate-300" />
+                                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">Recordings</h3>
+                            </div>
+                            <PlayCircle className="w-4 h-4 text-slate-300" />
+                        </div>
+                        <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar pr-1">
+                            {recordings.map((rec) => (
+                                <button key={rec.id} onClick={() => rec.is_available && window.open(rec.play_url!, '_blank')} className="w-full flex items-center gap-3 p-3 bg-slate-50/50 border border-slate-100/50 rounded-xl hover:border-[#FF8A75]/20 hover:bg-white hover:shadow-sm transition-all text-left group">
+                                    <div className="h-10 w-16 rounded-lg bg-slate-200/50 overflow-hidden relative shrink-0">
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            {rec.is_available ? (
+                                                <Play className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#FF8A75] group-hover:scale-110 transition-all fill-current" />
+                                            ) : (
+                                                <Clock className="w-3.5 h-3.5 text-slate-300" />
+                                            )}
+                                        </div>
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="text-[11px] font-bold text-slate-700 truncate">{res.title || res.file_name}</p>
-                                        <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Download</p>
+                                        <p className="text-[11px] font-bold text-slate-700 truncate">{rec.topic}</p>
+                                        <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{new Date(rec.start_time).toLocaleDateString()}</p>
                                     </div>
                                 </button>
                             ))}
+                            {recordings.length === 0 && (
+                                <div className="py-10 text-center space-y-3 bg-slate-50/50 rounded-2xl border border-dashed border-slate-100">
+                                    <PlayCircle className="w-6 h-6 text-slate-200 mx-auto" />
+                                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-300">No recordings yet</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -418,7 +485,12 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                     {/* Live Section */}
                     {nextBatchMeeting ? (
                         <div className="group relative w-full aspect-[16/9] sm:aspect-[2.5/1] rounded-[1.75rem] overflow-hidden shadow-lg border border-slate-100 bg-slate-900 shrink-0">
-                            <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2420&auto=format&fit=crop" className="w-full h-full object-cover opacity-50 transition-transform duration-[2000ms] group-hover:scale-105" />
+                            <Image 
+                                src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2420&auto=format&fit=crop" 
+                                alt="Live Session"
+                                fill
+                                className="object-cover opacity-50 transition-transform duration-[2000ms] group-hover:scale-105" 
+                            />
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
                             <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20">
                                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[9px] font-bold uppercase tracking-widest">
@@ -516,37 +588,6 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                     {isSavingLog ? 'Saving…' : 'Save Update'}
                                 </button>
                             </div>
-                        </div>
-                    </div>
-
-                    {/* Recordings Suite */}
-                    <div className="rounded-[1.75rem] border border-slate-100 flex flex-col overflow-hidden bg-white shadow-sm shrink-0">
-                        <div className="p-6 sm:p-8 border-b border-slate-50 flex items-center justify-between">
-                            <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Practice Recordings</h3>
-                            <PlayCircle className="w-4 h-4 text-slate-200" />
-                        </div>
-                        <div className="flex overflow-x-auto p-6 sm:p-8 gap-6 custom-scrollbar">
-                            {recordings.map((rec) => (
-                                <div key={rec.id} className="min-w-[260px] sm:min-w-[280px] w-[260px] sm:w-[280px] flex flex-col bg-white border border-outline-variant/5 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-all group shrink-0">
-                                    <div className="aspect-video relative overflow-hidden bg-foreground/[0.02]">
-                                        <div className="absolute inset-0 flex items-center justify-center z-10">
-                                            {rec.is_available ? (
-                                                <button onClick={() => window.open(rec.play_url!, '_blank')} className="h-10 w-10 rounded-full bg-white text-black shadow-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                    <Play className="w-4 h-4 fill-current" />
-                                                </button>
-                                            ) : (
-                                                <div className="text-[8px] font-bold text-foreground/20 uppercase tracking-widest">Processing</div>
-                                            )}
-                                        </div>
-                                        <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg text-[8px] font-bold text-white/90 uppercase tracking-widest">{rec.duration_minutes}m</div>
-                                    </div>
-                                    <div className="p-5 space-y-1">
-                                        <p className="text-[8px] font-bold text-primary uppercase">{new Date(rec.start_time).toLocaleDateString()}</p>
-                                        <h4 className="text-sm font-bold text-foreground truncate">{rec.topic}</h4>
-                                    </div>
-                                </div>
-                            ))}
-                            {recordings.length === 0 && <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/20 py-10 w-full text-center">No practicing sessions recorded yet.</p>}
                         </div>
                     </div>
 

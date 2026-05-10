@@ -111,7 +111,7 @@ const AuthLayout = ({ children, title, subtitle, isSignup = false }: AuthLayoutP
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className={cn(
-              "w-full max-w-[440px] bg-white/20 lg:bg-transparent p-8 sm:p-10 lg:p-0 rounded-[3rem] backdrop-blur-3xl lg:backdrop-blur-none border border-white/40 lg:border-none shadow-2xl shadow-primary/5 lg:shadow-none",
+              "w-full max-w-[440px] bg-white/40 lg:bg-transparent p-8 sm:p-10 lg:p-0 rounded-[3rem] backdrop-blur-xl lg:backdrop-blur-none border border-white/20 lg:border-none shadow-2xl shadow-primary/5 lg:shadow-none",
               isSignup ? "space-y-6 lg:space-y-8" : "space-y-10 lg:space-y-12"
             )}
           >

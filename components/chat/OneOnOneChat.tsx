@@ -35,7 +35,7 @@ export function OneOnOneChat({
   selectedStudentId,
   hideHeader = false,
   className = 'h-full',
-  isMultiParty = true,
+  isMultiParty = false,
   dark = false,
 }: OneOnOneChatProps) {
   const [conversation, setConversation] = useState<ConversationWithDetails | null>(null);

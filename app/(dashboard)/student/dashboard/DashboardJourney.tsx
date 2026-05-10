@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { Star, Camera, CheckCircle, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ImageComparison } from '@/components/ui/image-comparison-slider';
@@ -116,13 +117,14 @@ export function DashboardJourney({
                 altAfter={`Day 25`}
               />
             ) : (
-              <img
+              <Image
                 src={
                   activeLog?.photo_url ||
                   (activeStepDay === 25 ? (afterImage as string ?? beforeImage) : beforeImage)
                 }
                 alt={`Day ${activeStepDay}`}
-                className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
+                fill
+                className="object-cover transition-all duration-700 group-hover:scale-105"
               />
             )}
             <div className="absolute top-4 left-4 flex gap-2">

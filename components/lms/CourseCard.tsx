@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Lock, PlayCircle, CheckCircle, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
@@ -64,11 +65,12 @@ export function CourseCard({
         <div className="relative aspect-[4/3] w-full overflow-hidden shrink-0 p-4">
            <div className="w-full h-full relative rounded-[2rem] overflow-hidden bg-slate-950/5">
               {thumbnail ? (
-                <img 
+                <Image 
                   src={thumbnail} 
                   alt={title}
+                  fill
                   className={cn(
-                    "object-cover w-full h-full transition-transform duration-1000 group-hover:scale-110",
+                    "object-cover transition-transform duration-1000 group-hover:scale-110",
                     !isUnlocked && "opacity-60 grayscale-[30%]"
                   )}
                 />

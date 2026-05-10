@@ -23,7 +23,7 @@ export default async function StudentGroupPage() {
         .from('batch_enrollments')
         .select(`
             *,
-            batches (*),
+            batches (*, instructor:profiles!instructor_id(*)),
             subscriptions (*)
         `)
         .eq('student_id', user.id)
@@ -54,7 +54,7 @@ export default async function StudentGroupPage() {
     if (!activeBatch && activeSub) {
         const { data: latestBatches } = await admin
             .from('batches')
-            .select('*')
+            .select('*, instructor:profiles!instructor_id(*)')
             .eq('status', 'active')
             .order('created_at', { ascending: false })
             .limit(1);

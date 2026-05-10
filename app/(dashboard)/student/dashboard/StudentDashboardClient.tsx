@@ -20,10 +20,16 @@ import { format, addMinutes, isAfter } from 'date-fns';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ImageComparison } from '@/components/ui/image-comparison-slider';
-import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import dynamic from 'next/dynamic';
+import Image from 'next/image';
+import { createClient } from '@/lib/supabase/client';
+
+const ImageComparison = dynamic(() => import('@/components/ui/image-comparison-slider').then(mod => mod.ImageComparison), {
+  ssr: false,
+  loading: () => <div className="w-full h-full bg-slate-50 animate-pulse rounded-2xl" />
+});
 
 interface StudentDashboardClientProps {
   profile: any;
@@ -183,14 +189,14 @@ export function StudentDashboardClient({
       </motion.div>
 
       {/* ── Main Bento Grid ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 lg:gap-5">
 
         {/* ── Sessions Card (Left) ── */}
         <motion.section
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="lg:col-span-5 flex flex-col"
+          className="md:col-span-1 lg:col-span-5 flex flex-col"
         >
           <div className="flex-1 bg-white rounded-[1.75rem] border border-slate-100 shadow-sm p-5 lg:p-6 flex flex-col overflow-hidden relative group hover:shadow-lg hover:shadow-[#FF8A75]/5 transition-shadow duration-500">
             {/* Card Header */}
@@ -236,12 +242,21 @@ export function StudentDashboardClient({
                   >
                     <div className="flex items-center gap-3">
                       <div className={cn(
-                        "h-10 w-10 rounded-xl flex items-center justify-center shrink-0",
+                        "h-10 w-10 rounded-xl flex items-center justify-center shrink-0 overflow-hidden relative",
                         meeting.meeting_type === 'one_on_one'
                           ? 'bg-[#FF8A75]/10 text-[#FF8A75]'
                           : 'bg-slate-100 text-slate-400'
                       )}>
-                        {meeting.meeting_type === 'one_on_one' ? <User className="w-4.5 h-4.5" /> : <Users className="w-4.5 h-4.5" />}
+                        {meeting.host?.avatar_url ? (
+                          <Image 
+                            src={meeting.host.avatar_url} 
+                            alt={meeting.host.full_name || 'Host'} 
+                            fill 
+                            className="object-cover" 
+                          />
+                        ) : (
+                          meeting.meeting_type === 'one_on_one' ? <User className="w-4.5 h-4.5" /> : <Users className="w-4.5 h-4.5" />
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="text-sm font-aktiv font-bold text-[#1a1a1a] truncate">{meeting.topic}</h4>
@@ -276,7 +291,7 @@ export function StudentDashboardClient({
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="lg:col-span-7 flex flex-col"
+          className="md:col-span-1 lg:col-span-7 flex flex-col"
         >
           <div className="flex-1 bg-white rounded-[1.75rem] border border-slate-100 shadow-sm p-5 lg:p-6 flex flex-col relative overflow-hidden group hover:shadow-lg hover:shadow-[#FF8A75]/5 transition-shadow duration-500">
             {/* Card Header */}
