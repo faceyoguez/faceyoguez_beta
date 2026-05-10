@@ -157,9 +157,10 @@ export function Testimonials() {
                     {isActive ? (
                       <iframe
                         className="absolute inset-0 w-full h-full"
-                        src={`https://www.youtube.com/embed/${video.id}?autoplay=1&mute=0&controls=1&loop=1&playlist=${video.id}&rel=0&playsinline=1&modestbranding=1`}
+                        src={`https://www.youtube.com/embed/${video.id}?autoplay=1&mute=1&controls=1&loop=1&playlist=${video.id}&rel=0&playsinline=1&modestbranding=1&enablejsapi=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`}
                         allow="autoplay; encrypted-media; picture-in-picture"
                         allowFullScreen
+                        loading="lazy"
                       />
                     ) : (
                       <img 
