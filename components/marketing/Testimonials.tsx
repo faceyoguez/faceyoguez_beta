@@ -22,15 +22,15 @@ export function Testimonials() {
 
   // Video state
   const [videos, setVideos] = useState<Video[]>([
-    { id: "EcrTIqrX9Jw", title: "Testimonial 1", thumbnail: "https://i.ytimg.com/vi/EcrTIqrX9Jw/hqdefault.jpg", url: "https://www.youtube.com/watch?v=EcrTIqrX9Jw", author: "Faceyoguez" },
-    { id: "rIxQmx1vXAA", title: "Testimonial 2", thumbnail: "https://i.ytimg.com/vi/rIxQmx1vXAA/hqdefault.jpg", url: "https://www.youtube.com/watch?v=rIxQmx1vXAA", author: "Faceyoguez" },
-    { id: "0g5e_1od2MA", title: "Testimonial 4", thumbnail: "https://i.ytimg.com/vi/0g5e_1od2MA/hqdefault.jpg", url: "https://www.youtube.com/watch?v=0g5e_1od2MA", author: "Faceyoguez" },
-    { id: "I9WAXv6DHQ0", title: "Testimonial 5", thumbnail: "https://i.ytimg.com/vi/I9WAXv6DHQ0/hqdefault.jpg", url: "https://www.youtube.com/watch?v=I9WAXv6DHQ0", author: "Faceyoguez" },
-    { id: "KbLP8sMB_xg", title: "Testimonial 6", thumbnail: "https://i.ytimg.com/vi/KbLP8sMB_xg/hqdefault.jpg", url: "https://www.youtube.com/watch?v=KbLP8sMB_xg", author: "Faceyoguez" },
-    { id: "v6LkzJw5x3A", title: "Testimonial 7", thumbnail: "https://i.ytimg.com/vi/v6LkzJw5x3A/hqdefault.jpg", url: "https://www.youtube.com/watch?v=v6LkzJw5x3A", author: "Faceyoguez" },
-    { id: "QrRiyprZnkc", title: "Testimonial 8", thumbnail: "https://i.ytimg.com/vi/QrRiyprZnkc/hqdefault.jpg", url: "https://www.youtube.com/watch?v=QrRiyprZnkc", author: "Faceyoguez" },
-    { id: "My51X33IdVk", title: "Testimonial 9", thumbnail: "https://i.ytimg.com/vi/My51X33IdVk/hqdefault.jpg", url: "https://www.youtube.com/watch?v=My51X33IdVk", author: "Faceyoguez" },
-    { id: "zZ9azBQ-eWs", title: "Testimonial 3", thumbnail: "https://i.ytimg.com/vi/zZ9azBQ-eWs/hqdefault.jpg", url: "https://www.youtube.com/watch?v=zZ9azBQ-eWs", author: "Faceyoguez" }
+    { id: "EcrTIqrX9Jw", title: "", thumbnail: "https://i.ytimg.com/vi/EcrTIqrX9Jw/hqdefault.jpg", url: "https://www.youtube.com/watch?v=EcrTIqrX9Jw", author: "Faceyoguez" },
+    { id: "rIxQmx1vXAA", title: "", thumbnail: "https://i.ytimg.com/vi/rIxQmx1vXAA/hqdefault.jpg", url: "https://www.youtube.com/watch?v=rIxQmx1vXAA", author: "Faceyoguez" },
+    { id: "0g5e_1od2MA", title: "", thumbnail: "https://i.ytimg.com/vi/0g5e_1od2MA/hqdefault.jpg", url: "https://www.youtube.com/watch?v=0g5e_1od2MA", author: "Faceyoguez" },
+    { id: "I9WAXv6DHQ0", title: "", thumbnail: "https://i.ytimg.com/vi/I9WAXv6DHQ0/hqdefault.jpg", url: "https://www.youtube.com/watch?v=I9WAXv6DHQ0", author: "Faceyoguez" },
+    { id: "KbLP8sMB_xg", title: "", thumbnail: "https://i.ytimg.com/vi/KbLP8sMB_xg/hqdefault.jpg", url: "https://www.youtube.com/watch?v=KbLP8sMB_xg", author: "Faceyoguez" },
+    { id: "v6LkzJw5x3A", title: "", thumbnail: "https://i.ytimg.com/vi/v6LkzJw5x3A/hqdefault.jpg", url: "https://www.youtube.com/watch?v=v6LkzJw5x3A", author: "Faceyoguez" },
+    { id: "QrRiyprZnkc", title: "", thumbnail: "https://i.ytimg.com/vi/QrRiyprZnkc/hqdefault.jpg", url: "https://www.youtube.com/watch?v=QrRiyprZnkc", author: "Faceyoguez" },
+    { id: "My51X33IdVk", title: "", thumbnail: "https://i.ytimg.com/vi/My51X33IdVk/hqdefault.jpg", url: "https://www.youtube.com/watch?v=My51X33IdVk", author: "Faceyoguez" },
+    { id: "zZ9azBQ-eWs", title: "", thumbnail: "https://i.ytimg.com/vi/zZ9azBQ-eWs/hqdefault.jpg", url: "https://www.youtube.com/watch?v=zZ9azBQ-eWs", author: "Faceyoguez" }
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -156,9 +156,10 @@ export function Testimonials() {
                   >
                     {isActive ? (
                       <iframe
-                        className="absolute inset-0 w-full h-full pointer-events-none"
-                        src={`https://www.youtube.com/embed/${video.id}?autoplay=1&mute=0&controls=0&loop=1&playlist=${video.id}&showinfo=0&rel=0`}
-                        allow="autoplay; encrypted-media"
+                        className="absolute inset-0 w-full h-full"
+                        src={`https://www.youtube.com/embed/${video.id}?autoplay=1&mute=0&controls=1&loop=1&playlist=${video.id}&rel=0&playsinline=1&modestbranding=1`}
+                        allow="autoplay; encrypted-media; picture-in-picture"
+                        allowFullScreen
                       />
                     ) : (
                       <img 
@@ -169,11 +170,13 @@ export function Testimonials() {
                     )}
                     
                     <div className={`absolute inset-0 transition-opacity duration-300 ${isActive ? 'opacity-0' : 'opacity-100'}`}>
-                      <div className="absolute bottom-6 left-6 right-6">
-                        <p className="text-white font-medium text-sm md:text-base line-clamp-2 drop-shadow-md">
-                          {video.title.replace(/Faceyoga.*/i, '').trim()}
-                        </p>
-                      </div>
+                      {video.title && (
+                        <div className="absolute bottom-6 left-6 right-6">
+                          <p className="text-white font-medium text-sm md:text-base line-clamp-2 drop-shadow-md">
+                            {video.title.replace(/Faceyoga.*/i, '').trim()}
+                          </p>
+                        </div>
+                      )}
                       {(!isActive || isMuted) && (
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 bg-white/20 rounded-full flex items-center justify-center text-white border border-white/40 shadow-xl group-hover:scale-110 transition-transform">
                           <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
