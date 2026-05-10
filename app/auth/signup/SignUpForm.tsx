@@ -225,45 +225,7 @@ export default function SignUpForm() {
         </AuthButton>
       </form>
 
-      <div className="relative my-6">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-outline-variant/60" />
-        </div>
-        <div className="relative flex justify-center text-[10px] uppercase">
-          <span className="bg-background px-4 text-warm-gray font-aktiv font-black tracking-widest">Or continue with</span>
-        </div>
-      </div>
 
-      <div className="space-y-3">
-        <AuthButton
-          variant="outline"
-          onClick={() => handleOAuthSignup('google')}
-          disabled={loading}
-          icon={<GoogleIcon />}
-        >
-          Google
-        </AuthButton>
-        <div className="grid grid-cols-2 gap-3">
-          <AuthButton
-            variant="outline"
-            className="!bg-[#1877F2] !text-white !border-none hover:opacity-90"
-            onClick={() => handleOAuthSignup('facebook')}
-            disabled={loading}
-            icon={<Facebook className="w-4 h-4 fill-white" stroke="none" />}
-          >
-            Facebook
-          </AuthButton>
-          <AuthButton
-            variant="outline"
-            className="!bg-gradient-to-tr !from-[#FFDC80] !via-[#F56040] !to-[#C13584] !text-white !border-none hover:opacity-90 shadow-sm"
-            onClick={() => handleOAuthSignup('instagram')}
-            disabled={loading}
-            icon={<Instagram className="w-4 h-4" />}
-          >
-            Instagram
-          </AuthButton>
-        </div>
-      </div>
 
       <div className="text-center pt-2">
         <Link

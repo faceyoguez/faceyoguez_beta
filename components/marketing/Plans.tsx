@@ -176,14 +176,16 @@ export function Plans() {
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
           variants={itemVariants}
-          className="mt-20 text-center"
+          className="mt-20 flex justify-center px-4"
         >
-          <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-slate-100 border border-slate-200">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+          <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4 px-8 py-5 md:py-3.5 rounded-3xl md:rounded-full liquid-glass border border-[#e76f51]/20 shadow-[0_8px_32px_rgba(231,111,81,0.05)] hover:shadow-[0_12px_40px_rgba(231,111,81,0.1)] transition-all duration-300 w-full md:w-auto max-w-sm md:max-w-none text-center group">
+            <span className="text-[11px] md:text-[10px] font-bold text-[#2a2019]/70 uppercase tracking-widest">
               Not sure where to start?
             </span>
-            <Link href="/auth/signup" className="text-[10px] font-black text-[#e76f51] uppercase tracking-widest hover:underline">
-              Book a Free Consult →
+            <div className="hidden md:block w-px h-4 bg-[#e76f51]/20" />
+            <Link href="/auth/signup" className="flex items-center justify-center gap-2 mt-2 md:mt-0 text-[12px] md:text-[11px] font-black text-[#e76f51] uppercase tracking-[0.2em] hover:text-[#d4603f] transition-colors">
+              Book a Free Consult 
+              <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </div>
         </motion.div>

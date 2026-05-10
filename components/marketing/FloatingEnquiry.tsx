@@ -36,7 +36,7 @@ export function FloatingEnquiry() {
 
             {/* Email (Gmail Redirect) */}
             <a
-              href="https://mail.google.com/mail/?view=cm&fs=1&to=simrat@faceyoguez.com"
+              href="https://mail.google.com/mail/?view=cm&fs=1&to=info@faceyoguez.com"
               target="_blank"
               rel="noopener noreferrer"
               className="group flex items-center gap-3 bg-white border border-[#2c2525]/5 rounded-2xl px-5 py-3 shadow-xl hover:bg-[#2c2525] transition-all duration-500"

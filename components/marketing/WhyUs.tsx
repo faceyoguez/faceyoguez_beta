@@ -50,48 +50,48 @@ export function WhyUs() {
 
         <motion.div initial="hidden" animate={isInView ? "visible" : "hidden"} variants={fadeUp} className="rounded-[2rem] overflow-hidden border border-[#2a2019]/10 shadow-[0_20px_60px_rgba(42,32,25,0.06)] bg-white/70 backdrop-blur-xl">
           {/* Header row */}
-          <div className="grid grid-cols-4 border-b border-[#2a2019]/10">
-            <div className="p-5 md:p-6" />
-            <div className="p-5 md:p-6 text-center border-l border-[#2a2019]/10 bg-[#e76f51]">
-              <p className="text-[9px] font-black uppercase tracking-widest text-white/70 mb-1">Best Choice</p>
-              <p className="text-sm font-aktiv font-bold text-white">Faceyoguez</p>
+          <div className="grid grid-cols-[40%_20%_20%_20%] md:grid-cols-4 border-b border-[#2a2019]/10">
+            <div className="p-3 md:p-6 flex items-end">
+              <p className="text-[10px] md:hidden font-aktiv font-bold text-[#2a2019]/40 uppercase tracking-widest">Features</p>
             </div>
-            <div className="p-5 md:p-6 text-center border-l border-[#2a2019]/10">
-              <p className="text-[9px] font-black uppercase tracking-widest text-[#2a2019]/40 mb-1">vs</p>
-              <p className="text-xs md:text-sm font-aktiv font-bold text-[#2a2019]/60">YouTube</p>
+            <div className="p-2 md:p-6 flex flex-col items-center justify-center text-center border-l border-[#2a2019]/10 bg-[#e76f51]">
+              <p className="text-[6px] sm:text-[7px] md:text-[9px] font-black uppercase tracking-[0.15em] md:tracking-widest text-white/80 mb-0.5 md:mb-1">Best Choice</p>
+              <p className="text-[9px] sm:text-[10px] md:text-sm font-aktiv font-bold text-white">Faceyoguez</p>
             </div>
-            <div className="p-5 md:p-6 text-center border-l border-[#2a2019]/10">
-              <p className="text-[9px] font-black uppercase tracking-widest text-[#2a2019]/40 mb-1">vs</p>
-              <p className="text-xs md:text-sm font-aktiv font-bold text-[#2a2019]/60">Other Courses</p>
+            <div className="p-2 md:p-6 flex flex-col items-center justify-center text-center border-l border-[#2a2019]/10">
+              <p className="hidden md:block text-[9px] font-black uppercase tracking-widest text-[#2a2019]/40 mb-1">vs</p>
+              <p className="text-[9px] sm:text-[10px] md:text-sm font-aktiv font-bold text-[#2a2019]/60 leading-tight">YouTube</p>
+            </div>
+            <div className="p-2 md:p-6 flex flex-col items-center justify-center text-center border-l border-[#2a2019]/10">
+              <p className="hidden md:block text-[9px] font-black uppercase tracking-widest text-[#2a2019]/40 mb-1">vs</p>
+              <p className="text-[9px] sm:text-[10px] md:text-sm font-aktiv font-bold text-[#2a2019]/60 leading-tight">Other<br className="md:hidden" /> Courses</p>
             </div>
           </div>
 
           {rows.map((row, i) => (
-            <div key={row.feature} className={`grid grid-cols-4 ${i < rows.length - 1 ? 'border-b border-slate-100' : ''}`}>
-              <div className="p-4 md:p-5 flex items-center">
-                <p className="text-[11px] md:text-sm font-jakarta text-slate-600 leading-snug">{row.feature}</p>
+            <div key={row.feature} className={`grid grid-cols-[40%_20%_20%_20%] md:grid-cols-4 ${i < rows.length - 1 ? 'border-b border-slate-100' : ''}`}>
+              <div className="p-3 md:p-5 flex items-center">
+                <p className="text-[10px] md:text-sm font-jakarta text-slate-600 leading-snug pr-2">{row.feature}</p>
               </div>
-              <div className="p-4 md:p-5 flex items-center justify-center border-l border-slate-100 bg-[#e76f51]/3">
+              <div className="p-2 md:p-5 flex items-center justify-center border-l border-slate-100 bg-[#e76f51]/5">
                 <Cell value={row.faceyoguez} />
               </div>
-              <div className="p-4 md:p-5 flex items-center justify-center border-l border-slate-100">
+              <div className="p-2 md:p-5 flex items-center justify-center border-l border-slate-100">
                 <Cell value={row.youtube} />
               </div>
-              <div className="p-4 md:p-5 flex items-center justify-center border-l border-slate-100">
+              <div className="p-2 md:p-5 flex items-center justify-center border-l border-slate-100">
                 <Cell value={row.others} />
               </div>
             </div>
           ))}
 
-          <div className="grid grid-cols-4 border-t border-slate-100 bg-slate-50/50">
-            <div className="p-5" />
-            <div className="p-5 flex justify-center border-l border-slate-100">
-              <Link href="/auth/signup" className="px-5 py-2.5 bg-[#e76f51] text-white rounded-full text-[10px] font-black uppercase tracking-[0.25em] hover:bg-[#d4603f] transition-all shadow-md hover:scale-105 active:scale-95 whitespace-nowrap">
+          <div className="flex flex-col md:grid md:grid-cols-4 border-t border-slate-100 bg-slate-50/50">
+            <div className="hidden md:block p-5" />
+            <div className="p-5 md:p-5 flex justify-center items-center md:border-l border-slate-100 col-span-3">
+              <Link href="/auth/signup" className="w-full max-w-[240px] md:w-auto text-center px-6 py-3.5 md:px-5 md:py-2.5 bg-[#e76f51] text-white rounded-full text-[11px] font-black uppercase tracking-[0.25em] hover:bg-[#d4603f] transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 whitespace-nowrap">
                 Start Free →
               </Link>
             </div>
-            <div className="p-5 border-l border-slate-100" />
-            <div className="p-5 border-l border-slate-100" />
           </div>
         </motion.div>
 

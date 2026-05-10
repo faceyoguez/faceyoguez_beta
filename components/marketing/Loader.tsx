@@ -6,12 +6,11 @@ const PRELOADER_IMAGES = [
   '/assets/starter_img_1.jpg',
   '/assets/starter_img_2.jpg',
   '/assets/starter_img_3.jpg',
-  '/assets/starter_img_4.jpg',
-  '/assets/starter_img_5.jpg',
+
 ];
 
-const DURATION_MS = 3000; // Optimized from 5000ms for better perceived performance
-const IMG_INTERVAL_MS = 600; // Adjusted for shorter duration
+const DURATION_MS = 2300; // Decreased to make total loader sequence ~3 seconds
+const IMG_INTERVAL_MS = 400; // Adjusted for shorter duration
 
 interface LoaderProps {
   onComplete: () => void;

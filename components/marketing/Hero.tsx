@@ -58,7 +58,7 @@ export function Hero({ visible }: HeroProps) {
               Login
             </Link>
             <Link href="/auth/signup" className="inline-flex items-center justify-center px-6 py-3 bg-[#1a1a1a] text-white rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] hover:bg-[#e76f51] transition-all shadow-md active:scale-95 leading-none">
-              Book Free Trial
+              Get Started
             </Link>
           </div>
         </div>

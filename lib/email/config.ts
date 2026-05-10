@@ -10,8 +10,8 @@
 export const EMAIL_CONFIG = {
   // ── Sender ────────────────────────────────────────────────────
   senderName: 'Simrat from Faceyoguez',
-  senderEmail: 'simrat@faceyoguez.com',
-  replyTo: 'simrat@faceyoguez.com',
+  senderEmail: 'info@faceyoguez.com',
+  replyTo: 'info@faceyoguez.com',
 
   // ── Brand ─────────────────────────────────────────────────────
   brandName: 'Faceyoguez',
@@ -58,7 +58,8 @@ export const EMAIL_CONFIG = {
 
   // ── Social links ──────────────────────────────────────────────
   social: {
-    instagram: 'https://www.instagram.com/faceyoguez', // ← Update if different
+    instagram: 'https://www.instagram.com/faceyoguez/',
+    facebook: 'https://www.facebook.com/faceyoguez/',
     whatsapp: 'https://wa.me/917837310255',
   },
 

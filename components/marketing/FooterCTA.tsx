@@ -39,7 +39,7 @@ export function FooterCTA() {
       {/* Contact section */}
       <div className="px-6 md:px-12 py-24 md:py-32">
         <div ref={contentRef} className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-20 md:gap-32 lg:gap-48 items-start">
             {/* Left - Logo and tagline */}
             <div className="md:col-span-1 space-y-6">
               <Link href="/" className="flex items-center gap-3 group">
@@ -66,7 +66,9 @@ export function FooterCTA() {
               {/* Social icons */}
               <div className="flex items-center gap-3 pt-2">
                 <a
-                  href="#"
+                  href="https://www.instagram.com/faceyoguez/"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-10 h-10 flex items-center justify-center rounded-full border transition-colors duration-300 hover:bg-[rgb(44,37,37)] hover:text-[rgb(252,244,235)]"
                   style={{ borderColor: 'rgba(44, 37, 37, 0.2)', color: 'rgb(44, 37, 37)' }}
                   aria-label="Instagram"
@@ -78,7 +80,9 @@ export function FooterCTA() {
                   </svg>
                 </a>
                 <a
-                  href="#"
+                  href="https://www.facebook.com/faceyoguez/"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-10 h-10 flex items-center justify-center rounded-full border transition-colors duration-300 hover:bg-[rgb(44,37,37)] hover:text-[rgb(252,244,235)]"
                   style={{ borderColor: 'rgba(44, 37, 37, 0.2)', color: 'rgb(44, 37, 37)' }}
                   aria-label="Facebook"
@@ -90,29 +94,7 @@ export function FooterCTA() {
               </div>
             </div>
 
-            {/* Middle - Site links */}
-            <div className="space-y-5">
-              <h4
-                className="text-[11px] font-aktiv tracking-[0.35em] uppercase mb-6"
-                style={{ color: 'rgb(153, 143, 132)' }}
-              >
-                Brand
-              </h4>
-              {siteLinks.map((link) => (
-                 <Link
-                  key={link.label}
-                  href={link.href}
-                  className="block font-jakarta text-[1.05rem] transition-colors duration-200"
-                  style={{
-                    color: 'rgb(44, 37, 37)',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = 'rgb(249, 109, 65)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = 'rgb(44, 37, 37)'; }}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
+
 
             {/* School of Face links - only show if there are links */}
             {schoolLinks.length > 0 && (
@@ -151,9 +133,9 @@ export function FooterCTA() {
                 className="space-y-4"
                 onSubmit={(e) => {
                   e.preventDefault();
+                  const emailInput = (e.currentTarget.elements[0] as HTMLInputElement).value;
                   trackConversionEvent({ event_type: 'contact_form_fill' });
-                  // Add actual submission logic here if needed
-                  alert('Thank you! We will get back to you soon.');
+                  window.location.href = `mailto:info@faceyoguez.com?subject=Inquiry from ${emailInput}`;
                 }}
               >
                 <input 
