@@ -61,7 +61,7 @@ export function Testimonials() {
       setXPos((prev) => {
         const newX = prev + (delta * 0.03); // Move left to right
         const singleSetWidth = scrollRef.current ? scrollRef.current.scrollWidth / 6 : 1000;
-        
+
         if (newX >= 0) {
           return -singleSetWidth; // Loop back seamlessly
         }
@@ -127,30 +127,30 @@ export function Testimonials() {
               No videos found in the playlist.
             </div>
           ) : (
-            <motion.div 
+            <motion.div
               ref={scrollRef}
               className="flex gap-4 px-4 items-center"
-              style={{ 
-                x: xPos, 
-                transition: isMuted ? 'none' : 'transform 0.5s ease-out' 
+              style={{
+                x: xPos,
+                transition: isMuted ? 'none' : 'transform 0.5s ease-out'
               }}
             >
               {[...videos, ...videos, ...videos, ...videos, ...videos, ...videos].map((video, idx) => {
                 const isActive = !isMuted && activeVideoIndex === idx;
-                
+
                 return (
-                  <div 
+                  <div
                     key={`${video.id}-${idx}`}
                     onClick={() => toggleSound(idx)}
                     className={`relative flex-shrink-0 transition-all duration-500 cursor-pointer overflow-hidden rounded-2xl md:rounded-3xl bg-black
                       ${isActive ? 'shadow-2xl scale-105 z-20' : 'hover:scale-[1.02]'}
                     `}
                     style={{
-                      width: isActive 
-                        ? (isMobile ? '225px' : '320px') 
+                      width: isActive
+                        ? (isMobile ? '225px' : '320px')
                         : (isMobile ? '160px' : '240px'),
-                      height: isActive 
-                        ? (isMobile ? '400px' : '560px') 
+                      height: isActive
+                        ? (isMobile ? '400px' : '560px')
                         : (isMobile ? '284px' : '420px'),
                     }}
                   >
@@ -160,16 +160,22 @@ export function Testimonials() {
                         src={`https://www.youtube.com/embed/${video.id}?autoplay=1&mute=1&controls=1&loop=1&playlist=${video.id}&rel=0&playsinline=1&modestbranding=1&enablejsapi=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`}
                         allow="autoplay; encrypted-media; picture-in-picture"
                         allowFullScreen
-                        loading="lazy"
+                        onLoad={(e) => {
+                          const iframe = e.currentTarget;
+                          setTimeout(() => {
+                            iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'unMute' }), '*');
+                            iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'playVideo' }), '*');
+                          }, 100);
+                        }}
                       />
                     ) : (
-                      <img 
+                      <img
                         src={video.thumbnail || `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`}
                         alt={video.title}
                         className="absolute inset-0 w-full h-full object-cover"
                       />
                     )}
-                    
+
                     <div className={`absolute inset-0 transition-opacity duration-300 ${isActive ? 'opacity-0' : 'opacity-100'}`}>
                       {video.title && (
                         <div className="absolute bottom-6 left-6 right-6">
