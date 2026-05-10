@@ -71,12 +71,18 @@ export function Testimonials() {
   });
 
   const toggleSound = (index: number) => {
-    if (isMuted) {
-      setIsMuted(false);
-      setActiveVideoIndex(index);
-    } else {
+    if (activeVideoIndex === index && !isMuted) {
       setIsMuted(true);
       setActiveVideoIndex(null);
+    } else {
+      setIsMuted(false);
+      setActiveVideoIndex(index);
+      
+      // Attempt to unmute after a short delay for the iframe to mount
+      setTimeout(() => {
+        const iframe = document.querySelector(`iframe[src*="${videos[index % videos.length].id}"]`) as HTMLIFrameElement;
+        iframe?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'unMute' }), '*');
+      }, 500);
     }
   };
 
@@ -192,6 +198,27 @@ export function Testimonials() {
                         </div>
                       )}
                     </div>
+
+                    {/* Mobile Sound Overlay */}
+                    {isActive && isMobile && (
+                      <div 
+                        className="absolute top-4 right-4 z-30"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const iframe = e.currentTarget.parentElement?.querySelector('iframe');
+                          iframe?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'unMute' }), '*');
+                          setIsMuted(false);
+                        }}
+                      >
+                        <div className="bg-black/50 backdrop-blur-md text-white px-3 py-2 rounded-full flex items-center gap-2 border border-white/20 animate-bounce">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M11 5L6 9H2v6h4l5 4V5z" />
+                            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                          </svg>
+                          <span className="text-[10px] font-bold uppercase tracking-wider">Tap for Sound</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
