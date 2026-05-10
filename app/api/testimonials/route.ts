@@ -16,9 +16,9 @@ export async function GET() {
     const html = await response.text();
     
     // Extract ytInitialData
-    const match = html.match(/var ytInitialData = ({.*?});<\/script>/s) || 
-                  html.match(/window\["ytInitialData"\] = ({.*?});/s) ||
-                  html.match(/ytInitialData[ =]+({.*?});?<\/script>/s);
+    const match = html.match(/var ytInitialData = ({[\s\S]*?});<\/script>/) || 
+                  html.match(/window\["ytInitialData"\] = ({[\s\S]*?});/) ||
+                  html.match(/ytInitialData[ =]+({[\s\S]*?});?<\/script>/);
                   
     if (!match) {
       throw new Error('Could not find ytInitialData in page');
