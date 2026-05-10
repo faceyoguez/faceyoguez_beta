@@ -163,16 +163,9 @@ export function Testimonials() {
                     {isActive ? (
                       <iframe
                         className="absolute inset-0 w-full h-full"
-                        src={`https://www.youtube.com/embed/${video.id}?autoplay=1&mute=1&controls=1&loop=1&playlist=${video.id}&rel=0&playsinline=1&modestbranding=1&enablejsapi=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`}
+                        src={`https://www.youtube.com/embed/${video.id}?autoplay=${isMobile ? 0 : 1}&mute=${isMobile ? 0 : 1}&controls=1&loop=1&playlist=${video.id}&rel=0&playsinline=1&modestbranding=1`}
                         allow="autoplay; encrypted-media; picture-in-picture"
                         allowFullScreen
-                        onLoad={(e) => {
-                          const iframe = e.currentTarget;
-                          setTimeout(() => {
-                            iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'unMute' }), '*');
-                            iframe.contentWindow?.postMessage(JSON.stringify({ event: 'command', func: 'playVideo' }), '*');
-                          }, 100);
-                        }}
                       />
                     ) : (
                       <img
@@ -181,7 +174,7 @@ export function Testimonials() {
                         className="absolute inset-0 w-full h-full object-cover"
                       />
                     )}
-
+                    
                     <div className={`absolute inset-0 transition-opacity duration-300 ${isActive ? 'opacity-0' : 'opacity-100'}`}>
                       {video.title && (
                         <div className="absolute bottom-6 left-6 right-6">
