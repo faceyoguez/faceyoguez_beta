@@ -163,7 +163,7 @@ export function Testimonials() {
                     {isActive ? (
                       <iframe
                         className="absolute inset-0 w-full h-full"
-                        src={`https://www.youtube.com/embed/${video.id}?autoplay=${isMobile ? 0 : 1}&mute=${isMobile ? 0 : 1}&controls=1&loop=1&playlist=${video.id}&rel=0&playsinline=1&modestbranding=1`}
+                        src={`https://www.youtube.com/embed/${video.id}?autoplay=1&mute=${isMobile ? 1 : 0}&controls=1&loop=1&playlist=${video.id}&rel=0&playsinline=1&modestbranding=1&enablejsapi=1`}
                         allow="autoplay; encrypted-media; picture-in-picture"
                         allowFullScreen
                       />
