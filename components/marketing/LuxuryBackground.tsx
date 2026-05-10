@@ -8,16 +8,6 @@ import { useState, useEffect } from 'react';
  * Uses hardware acceleration and simplified blurs to prevent scroll lag.
  */
 export function LuxuryBackground() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return <div className="fixed inset-0 w-full h-full -z-20 bg-[#FDF5EE]" />;
-  }
-
   return (
     <div
       className="fixed inset-0 w-full h-full -z-20 pointer-events-none overflow-hidden bg-[#FDF5EE]"

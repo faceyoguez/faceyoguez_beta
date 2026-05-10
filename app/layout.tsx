@@ -50,7 +50,7 @@ const sooner = localFont({
   display: 'swap',
 });
 
-import { ThemeProvider } from '@/components/theme-provider';
+
 import { Toaster } from 'sonner';
 import Script from 'next/script';
 import { Suspense } from 'react';
@@ -130,8 +130,10 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
         {/* ── Structured Data ── */}
-        <script
+        <Script
+          id="structured-data"
           type="application/ld+json"
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
 
@@ -155,21 +157,19 @@ export default function RootLayout({
         </Script>
       </head>
       <body translate="no" suppressHydrationWarning className="antialiased font-sans text-foreground bg-background relative overflow-x-hidden">
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
-          <div className="relative z-10">
-            {children}
-          </div>
-          <Toaster 
-            position="top-right" 
-            richColors 
-            duration={4000} 
-            closeButton 
-            visibleToasts={3}
-          />
-          <Suspense fallback={null}>
-            <MetaPixel />
-          </Suspense>
-        </ThemeProvider>
+        <div className="relative z-10">
+          {children}
+        </div>
+        <Toaster 
+          position="top-right" 
+          richColors 
+          duration={4000} 
+          closeButton 
+          visibleToasts={3}
+        />
+        <Suspense fallback={null}>
+          <MetaPixel />
+        </Suspense>
       </body>
     </html>
   );

@@ -71,7 +71,7 @@ const nextConfig: NextConfig = {
             "default-src 'self'",
             "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://connect.facebook.net https://checkout.razorpay.com https://cdn.razorpay.com https://www.youtube.com https://s.ytimg.com",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-            "img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://i.ytimg.com https://*.razorpay.com",
+            "img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com https://i.ytimg.com https://*.razorpay.com https://www.facebook.com https://*.googleusercontent.com https://drive.google.com https://*.google.com",
             "font-src 'self' https://fonts.gstatic.com data:",
             "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://checkout.razorpay.com https://api.razorpay.com https://lumberjack.razorpay.com https://region1.google-analytics.com",
             "frame-src https://checkout.razorpay.com https://api.razorpay.com https://*.zoom.us https://www.youtube.com",

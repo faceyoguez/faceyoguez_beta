@@ -14,7 +14,13 @@ import { Plans } from './Plans';
 import { FAQ } from './FAQ';
 import { GoogleReview } from './GoogleReview';
 import { FooterCTA } from './FooterCTA';
-import { LuxuryBackground } from './LuxuryBackground';
+import { VerifiedProofs } from './VerifiedProofs';
+import dynamic from 'next/dynamic';
+
+const LuxuryBackground = dynamic(
+  () => import('./LuxuryBackground').then(mod => mod.LuxuryBackground),
+  { ssr: false }
+);
 import { FloatingEnquiry } from './FloatingEnquiry';
 
 export function LandingPage() {
@@ -40,11 +46,11 @@ export function LandingPage() {
               {/* S5: Real Results — transformation gallery */}
               <Gallery />
 
-              {/* S8: How It Works — step-by-step process */}
-              <HowItWorks />
-
               {/* S9: Testimonials — social proof */}
               <Testimonials />
+
+              {/* Verified Proofs — interactive transformation carousel */}
+              <VerifiedProofs />
 
               {/* S6: About Harsimrat */}
               <Instructor />
