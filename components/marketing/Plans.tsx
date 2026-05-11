@@ -25,7 +25,7 @@ const PLANS_PREVIEW = [
     desc: 'Our most popular programme. Join a batch of like-minded women and build a habit that lasts a lifetime.',
     icon: Users,
     features: ['Live Daily Practice', 'Shared Progress', 'Community Support'],
-    accent: '#2c2525',
+    accent: '#e76f51',
     popular: true,
     cta: 'Join Next Batch'
   },
@@ -36,7 +36,7 @@ const PLANS_PREVIEW = [
     desc: 'Master the techniques at your own pace. Perfect for busy schedules and those who want to learn on their own time.',
     icon: BookOpen,
     features: ['Step-by-Step Modules', 'Lifetime Access', 'Bonus Morning Rituals'],
-    accent: '#5a6343',
+    accent: '#e76f51',
     cta: 'Get Instant Access'
   }
 ];
@@ -115,7 +115,7 @@ export function Plans() {
               className={`group p-8 md:p-10 rounded-[2.5rem] transition-all duration-500 relative cursor-pointer flex flex-col border ${
                 plan.popular 
                   ? 'bg-white border-[#e76f51]/20 shadow-[0_32px_80px_rgba(231,111,81,0.08)]' 
-                  : 'bg-white/50 border-slate-100 hover:border-[#e76f51]/20 hover:bg-white hover:shadow-[0_20px_50px_rgba(42,32,25,0.05)]'
+                  : 'bg-white/70 border-[#e76f51]/5 hover:border-[#e76f51]/20 hover:bg-white hover:shadow-[0_20px_50px_rgba(231,111,81,0.05)]'
               }`}
             >
               {plan.popular && (
@@ -130,7 +130,7 @@ export function Plans() {
               <div className="space-y-8 flex-1">
                 <div 
                   className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-transform duration-500 group-hover:rotate-[8deg] ${
-                    plan.popular ? 'bg-[#e76f51]/10 text-[#e76f51]' : 'bg-slate-100 text-slate-400 group-hover:bg-[#e76f51]/10 group-hover:text-[#e76f51]'
+                    plan.popular ? 'bg-[#e76f51]/10 text-[#e76f51]' : 'bg-[#e76f51]/5 text-[#e76f51]/40 group-hover:bg-[#e76f51]/10 group-hover:text-[#e76f51]'
                   }`}
                 >
                   <plan.icon strokeWidth={1.5} className="w-7 h-7" />
@@ -152,7 +152,7 @@ export function Plans() {
                 <div className="space-y-4">
                   {plan.features.map((feature, fIdx) => (
                     <div key={fIdx} className="flex items-center gap-3 text-[11px] font-bold text-[#2a2019]/70 uppercase tracking-wider">
-                      <div className={`w-1 h-1 rounded-full ${plan.popular ? 'bg-[#e76f51]' : 'bg-slate-300'}`} />
+                      <div className={`w-1 h-1 rounded-full bg-[#e76f51]/30 group-hover:bg-[#e76f51] transition-colors`} />
                       {feature}
                     </div>
                   ))}

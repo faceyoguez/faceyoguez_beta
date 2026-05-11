@@ -4,11 +4,36 @@ import { Carousel } from "@ark-ui/react/carousel";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export function ThumbnailsCarousel() {
-  // Dynamically load all 35 images
-  const images = Array.from({ length: 35 }, (_, i) => ({
-    src: `/assets/proofs/proof-${i + 1}.jpg`,
-    title: `Transformation ${i + 1}`
-  }));
+  // Explicit list using correct file extensions (case-sensitive on Linux/Vercel)
+  const images = [
+    { src: '/assets/proofs/proof-1.jpg?v=2',   title: 'Transformation 1' },
+    { src: '/assets/proofs/proof-2.jpg?v=2',   title: 'Transformation 2' },
+    { src: '/assets/proofs/proof-3.jpg?v=2',   title: 'Transformation 3' },
+    { src: '/assets/proofs/proof-4.jpg?v=2',   title: 'Transformation 4' },
+    { src: '/assets/proofs/proof-5.jpg?v=2',   title: 'Transformation 5' },
+    { src: '/assets/proofs/proof-6.jpg?v=2',   title: 'Transformation 6' },
+    { src: '/assets/proofs/proof-7.jpg?v=2',   title: 'Transformation 7' },
+    { src: '/assets/proofs/proof-8.JPG?v=2',   title: 'Transformation 8' },
+    { src: '/assets/proofs/proof-9.JPG?v=2',   title: 'Transformation 9' },
+    { src: '/assets/proofs/proof-10.JPG?v=2',  title: 'Transformation 10' },
+    { src: '/assets/proofs/proof-11.jpg?v=2',  title: 'Transformation 11' },
+    { src: '/assets/proofs/proof-12.jpg?v=2',  title: 'Transformation 12' },
+    { src: '/assets/proofs/proof-13.jpg?v=2',  title: 'Transformation 13' },
+    { src: '/assets/proofs/proof-14.jpg?v=2',  title: 'Transformation 14' },
+    { src: '/assets/proofs/proof-15.jpg?v=2',  title: 'Transformation 15' },
+    { src: '/assets/proofs/proof-16.jpg?v=2',  title: 'Transformation 16' },
+    { src: '/assets/proofs/proof-17.jpg?v=2',  title: 'Transformation 17' },
+    { src: '/assets/proofs/proof-18.jpg?v=2',  title: 'Transformation 18' },
+    { src: '/assets/proofs/proof-19.jpg?v=2',  title: 'Transformation 19' },
+    { src: '/assets/proofs/proof-20.jpg?v=2',  title: 'Transformation 20' },
+    { src: '/assets/proofs/proof-21.jpg?v=2',  title: 'Transformation 21' },
+    { src: '/assets/proofs/proof-22.jpg?v=2',  title: 'Transformation 22' },
+    { src: '/assets/proofs/proof-23.jpg?v=2',  title: 'Transformation 23' },
+    { src: '/assets/proofs/proof-24.jpg?v=2',  title: 'Transformation 24' },
+    { src: '/assets/proofs/proof-25.jpeg?v=2', title: 'Transformation 25' },
+    { src: '/assets/proofs/proof-26.jpeg?v=2', title: 'Transformation 26' },
+    { src: '/assets/proofs/proof-27.jpeg?v=2', title: 'Transformation 27' },
+  ];
 
   return (
     <Carousel.Root

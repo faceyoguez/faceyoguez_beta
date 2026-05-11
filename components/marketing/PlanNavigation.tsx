@@ -76,7 +76,7 @@ export function PlanNavigation({ title }: PlanNavigationProps) {
            <div className="flex items-center gap-5">
               <div className="hidden xl:flex flex-col items-end">
                  <div className="flex items-center gap-2">
-                    <span className="w-1 h-1 rounded-full bg-[#bc162d] animate-pulse" />
+                    <span className="w-1 h-1 rounded-full bg-[#e76f51] animate-pulse" />
                     <span className="text-[7px] font-black uppercase tracking-[0.4em] text-[#2c2525]/20">Global Sanctuary</span>
                  </div>
                  <span className="text-[9px] font-bold uppercase tracking-[0.1em] text-[#2c2525]/40 leading-none mt-1">
@@ -85,10 +85,10 @@ export function PlanNavigation({ title }: PlanNavigationProps) {
               </div>
               
               <div className="flex -space-x-2">
-                 <div className="w-8 h-8 rounded-full border border-white bg-[#bc162d]/5 flex items-center justify-center text-[#bc162d]/40">
+                 <div className="w-8 h-8 rounded-full border border-white bg-[#e76f51]/5 flex items-center justify-center text-[#e76f51]/40">
                     <Wind className="w-3.5 h-3.5" />
                  </div>
-                 <div className="w-8 h-8 rounded-full border border-white bg-[#446187]/5 flex items-center justify-center text-[#446187]/40 ring-2 ring-[#FFFAF7]">
+                 <div className="w-8 h-8 rounded-full border border-white bg-[#e76f51]/5 flex items-center justify-center text-[#e76f51]/40 ring-2 ring-[#FFFAF7]">
                     <Sparkles className="w-3.5 h-3.5" />
                  </div>
               </div>

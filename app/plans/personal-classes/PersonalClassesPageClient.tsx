@@ -66,9 +66,11 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
 
   const handleConsultationPurchase = async () => {
     if (!userId) {
-      window.location.href = '/auth/signup';
+      const redirectPath = encodeURIComponent('/student/plans?plan=one_on_one');
+      window.location.href = `/auth/signup?redirectTo=${redirectPath}`;
       return;
     }
+
     if (hasActiveConsultation) {
       toast.info('You already have an active consultation!', {
         description: 'Check your consultation section in the dashboard.',
@@ -139,9 +141,11 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
 
   const handlePlanPurchase = async (tierIdx: number) => {
     if (!userId) {
-      window.location.href = '/auth/signup';
+      const redirectPath = encodeURIComponent(`/student/plans?plan=one_on_one&tierIdx=${tierIdx}`);
+      window.location.href = `/auth/signup?redirectTo=${redirectPath}`;
       return;
     }
+
     const tier = TIERS[tierIdx];
     const finalAmount = hasCredit ? Math.max(tier.disc - CONSULTATION_CREDIT, 0) : tier.disc;
 
@@ -206,7 +210,7 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
   };
 
   return (
-    <main className="min-h-screen bg-[#FFFAF7] selection:bg-[#bc162d]/10 selection:text-[#bc162d] pb-20">
+    <main className="min-h-screen bg-[#FFFAF7] selection:bg-[#e76f51]/10 selection:text-[#e76f51] pb-20">
       <LuxuryBackground />
       <PlanNavigation title="High Mastery // 1:1" />
 
@@ -222,7 +226,7 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
             {/* HERO */}
             <motion.div variants={itemVariants} className="bg-white rounded-[2rem] p-10 border border-[#2c2525]/5 shadow-sm space-y-6">
               <div className="flex items-center gap-3">
-                <span className="px-3 py-1 bg-[#bc162d]/10 text-[#bc162d] text-[10px] font-black uppercase tracking-[0.3em] rounded-full">✨ 1-1 Consultation & Personalised Plan</span>
+                <span className="px-3 py-1 bg-[#e76f51]/10 text-[#e76f51] text-[10px] font-black uppercase tracking-[0.3em] rounded-full">✨ 1-1 Consultation & Personalised Plan</span>
                 <div className="h-px bg-[#2c2525]/5 flex-1" />
               </div>
               <h1 className="text-4xl md:text-6xl font-light text-[#2c2525] leading-none" style={{ fontFamily: 'var(--font-cormorant)' }}>
@@ -230,7 +234,7 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
                 <span className="italic">Deserves a Plan Made Only for You.</span>
               </h1>
               <div className="pt-6 space-y-4 border-t border-[#2c2525]/5">
-                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[#bc162d]">😔 Does Any of This Sound Familiar?</h3>
+                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[#e76f51]">😔 Does Any of This Sound Familiar?</h3>
                 <p className="text-sm text-[#5d605c] leading-relaxed">
                   You've tried group programmes, generic routines, and that one viral face massage everyone was doing — and while others seemed to glow, you were left thinking <span className="italic">"why isn't this working for me?"</span>
                 </p>
@@ -249,7 +253,7 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
               <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-8">
                 {workOn.map((item, idx) => (
                   <div key={idx} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-white/60">
-                    <Check className="w-3 h-3 text-[#bc162d]" strokeWidth={3} />
+                    <Check className="w-3 h-3 text-[#e76f51]" strokeWidth={3} />
                     {item}
                   </div>
                 ))}
@@ -271,7 +275,7 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
                   { t: "Follow Your Plan & Stay Connected", d: "Work through your plan daily. Use the Daily Reflection to stay consistent. Expert help is a message away." }
                 ].map((step, sidx) => (
                   <div key={sidx} className="flex gap-6 group">
-                    <div className="w-8 h-8 rounded-full bg-[#fcf8f7] border border-[#bc162d]/10 flex items-center justify-center text-[10px] font-black text-[#bc162d] flex-shrink-0 group-hover:bg-[#bc162d] group-hover:text-white transition-all">
+                    <div className="w-8 h-8 rounded-full bg-[#fcf8f7] border border-[#e76f51]/10 flex items-center justify-center text-[10px] font-black text-[#e76f51] flex-shrink-0 group-hover:bg-[#e76f51] group-hover:text-white transition-all">
                       {sidx + 1}
                     </div>
                     <div className="space-y-1">
@@ -280,7 +284,7 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
                     </div>
                   </div>
                 ))}
-                <div className="pt-4 text-[10px] font-black uppercase tracking-[0.2em] text-[#bc162d]">
+                <div className="pt-4 text-[10px] font-black uppercase tracking-[0.2em] text-[#e76f51]">
                   📝 Your customised plan is yours for a lifetime — access it anytime, anywhere.
                 </div>
               </div>
@@ -288,8 +292,8 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
 
             {/* BENTO: Dashboard Features */}
             <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-[#bc162d]/5 p-8 rounded-[2rem] border border-[#bc162d]/10 space-y-6">
-                <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-[#bc162d]">📱 Inside Your Personal Dashboard</h3>
+              <div className="bg-[#e76f51]/5 p-8 rounded-[2rem] border border-[#e76f51]/10 space-y-6">
+                <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-[#e76f51]">📱 Inside Your Personal Dashboard</h3>
                 <div className="space-y-4">
                   {[
                     { i: Camera, t: "Journey Path", d: "Track transformation at Day 1, 7, 14, 21, 30." },
@@ -298,7 +302,7 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
                     { i: Zap, t: "Daily Reflection", d: "A simple daily check-in to keep you mindful." }
                   ].map((item, idx) => (
                     <div key={idx} className="flex gap-3">
-                      <item.i className="w-4 h-4 text-[#bc162d] mt-0.5" />
+                      <item.i className="w-4 h-4 text-[#e76f51] mt-0.5" />
                       <div>
                         <h4 className="text-[10px] font-black text-[#2c2525] uppercase tracking-widest">{item.t}</h4>
                         <p className="text-[10px] text-[#2c2525]/60 leading-tight">{item.d}</p>
@@ -310,7 +314,7 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
 
               <div className="bg-white p-8 rounded-[2rem] border border-[#2c2525]/5 space-y-8 flex flex-col justify-center text-center">
                 <div className="space-y-2">
-                  <span className="text-[10px] font-black text-[#bc162d] uppercase tracking-[0.3em]">⏳ What to Expect</span>
+                  <span className="text-[10px] font-black text-[#e76f51] uppercase tracking-[0.3em]">⏳ What to Expect</span>
                   <div className="space-y-4 pt-4 text-left">
                     {[
                       { time: '15 Days', result: 'Early changes begin to show' },
@@ -334,20 +338,20 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
             {hasCredit && (
               <motion.div
                 variants={itemVariants}
-                className="bg-gradient-to-br from-[#bc162d]/10 to-[#bc162d]/5 border-2 border-[#bc162d]/30 rounded-[1.5rem] p-5 flex items-start gap-3"
+                className="bg-gradient-to-br from-[#e76f51]/10 to-[#e76f51]/5 border-2 border-[#e76f51]/30 rounded-[1.5rem] p-5 flex items-start gap-3"
               >
                 <span className="text-2xl">🎉</span>
                 <div>
-                  <p className="text-[10px] font-black text-[#bc162d] uppercase tracking-[0.2em]">Consultation Credit Active</p>
+                  <p className="text-[10px] font-black text-[#e76f51] uppercase tracking-[0.2em]">Consultation Credit Active</p>
                   <p className="text-sm font-bold text-[#2c2525] mt-1">₹999 OFF applied automatically on your first plan below</p>
                 </div>
               </motion.div>
             )}
 
-            <motion.div variants={itemVariants} className="bg-white rounded-[2.5rem] p-8 border border-[#bc162d]/20 shadow-xl space-y-8">
+            <motion.div variants={itemVariants} className="bg-white rounded-[2.5rem] p-8 border border-[#e76f51]/20 shadow-xl space-y-8">
               <div className="text-center space-y-1">
-                <ShieldCheck className="w-8 h-8 text-[#bc162d] mx-auto mb-2" strokeWidth={1.5} />
-                <span className="text-[9px] font-black uppercase tracking-[0.4em] text-[#bc162d]">Selective Availability</span>
+                <ShieldCheck className="w-8 h-8 text-[#e76f51] mx-auto mb-2" strokeWidth={1.5} />
+                <span className="text-[9px] font-black uppercase tracking-[0.4em] text-[#e76f51]">Selective Availability</span>
                 <h3 className="text-lg font-bold text-[#2c2525] uppercase tracking-widest">Pricing Tiers</h3>
               </div>
 
@@ -361,7 +365,7 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
                       key={tidx}
                       onClick={() => handlePlanPurchase(tidx)}
                       disabled={loading}
-                      className={`w-full p-4 rounded-2xl border text-left ${tidx === 1 ? 'border-[#bc162d] bg-[#bc162d]/5' : 'border-[#2c2525]/5 bg-[#fcf8f7]'} relative transition-transform hover:scale-[1.02] cursor-pointer disabled:opacity-60`}
+                      className={`w-full p-4 rounded-2xl border text-left ${tidx === 1 ? 'border-[#e76f51] bg-[#e76f51]/5' : 'border-[#2c2525]/5 bg-[#fcf8f7]'} relative transition-transform hover:scale-[1.02] cursor-pointer disabled:opacity-60`}
                     >
                       <div className="flex justify-between items-start mb-2">
                         <div className="space-y-0.5">
@@ -369,17 +373,17 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-sm font-black text-[#2c2525]">{formatINR(displayPrice)}</span>
                             {hasCredit && (
-                              <span className="text-[9px] text-[#bc162d] line-through tracking-widest">{formatINR(tier.disc)}</span>
+                              <span className="text-[9px] text-[#e76f51] line-through tracking-widest">{formatINR(tier.disc)}</span>
                             )}
                             <span className="text-[9px] text-[#2c2525]/30 line-through tracking-widest">{formatINR(tier.orig)}</span>
                           </div>
                           {hasCredit && (
-                            <p className="text-[8px] text-[#bc162d] font-bold uppercase tracking-widest">-₹999 consultation credit</p>
+                            <p className="text-[8px] text-[#e76f51] font-bold uppercase tracking-widest">-₹999 consultation credit</p>
                           )}
                         </div>
                         <div className="flex flex-col items-end gap-1">
-                          <span className="px-2 py-0.5 bg-[#bc162d] text-white text-[7px] font-black uppercase rounded-full tracking-widest">{tier.tag}</span>
-                          {isSelected && loading && <Loader2 className="w-3 h-3 animate-spin text-[#bc162d]" />}
+                          <span className="px-2 py-0.5 bg-[#e76f51] text-white text-[7px] font-black uppercase rounded-full tracking-widest">{tier.tag}</span>
+                          {isSelected && loading && <Loader2 className="w-3 h-3 animate-spin text-[#e76f51]" />}
                         </div>
                       </div>
                     </button>
@@ -388,8 +392,8 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
               </div>
 
               {/* Perks */}
-              <div className="p-5 border-2 border-dashed border-[#bc162d]/10 rounded-2xl space-y-4">
-                <h4 className="text-[9px] font-black uppercase tracking-[0.2em] text-[#bc162d]">🎁 Membership Perks</h4>
+              <div className="p-5 border-2 border-dashed border-[#e76f51]/10 rounded-2xl space-y-4">
+                <h4 className="text-[9px] font-black uppercase tracking-[0.2em] text-[#e76f51]">🎁 Membership Perks</h4>
                 <ul className="space-y-2">
                   {[
                     "15 bonus days (6m) / 1 extra month (12m)",
@@ -399,25 +403,25 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
                     "10% referral discount on renewal"
                   ].map((perk, pidx) => (
                     <li key={pidx} className="text-[9px] font-bold text-[#2c2525]/60 flex items-start gap-2">
-                      <Heart className="w-3 h-3 text-[#bc162d] mt-0.5 flex-shrink-0" />
+                      <Heart className="w-3 h-3 text-[#e76f51] mt-0.5 flex-shrink-0" />
                       {perk}
                     </li>
                   ))}
                 </ul>
               </div>
 
-              <div className="pt-2 text-[8px] font-black text-[#bc162d] text-center uppercase tracking-widest">
+              <div className="pt-2 text-[8px] font-black text-[#e76f51] text-center uppercase tracking-widest">
                 💳 Plan 4 can be paid in 2 easy instalments.
               </div>
 
               {/* CONSULTATION BUTTON */}
               <div className="space-y-3">
                 {/* Consultation CTA */}
-                <div className="p-4 rounded-2xl bg-gradient-to-br from-[#FFFAF7] to-[#fff5f0] border border-[#bc162d]/10">
-                  <p className="text-[8px] font-black uppercase tracking-[0.2em] text-[#bc162d] mb-2">💬 Not Sure Where to Start?</p>
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-[#FFFAF7] to-[#fff5f0] border border-[#e76f51]/10">
+                  <p className="text-[8px] font-black uppercase tracking-[0.2em] text-[#e76f51] mb-2">💬 Not Sure Where to Start?</p>
                   <p className="text-[10px] text-[#5d605c] leading-relaxed mb-3">
                     Book a personal 30-min consultation with our expert — understand your face, your goals, and the right plan for you.{' '}
-                    <strong className="text-[#bc162d]">₹999 paid here will be deducted from your 1-on-1 plan (first purchase only).</strong>
+                    <strong className="text-[#e76f51]">₹999 paid here will be deducted from your 1-on-1 plan (first purchase only).</strong>
                   </p>
                   <button
                     onClick={handleConsultationPurchase}
@@ -426,7 +430,7 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
                     className={`w-full py-3.5 rounded-xl text-[10px] font-black uppercase tracking-[0.3em] transition-all duration-500 flex items-center justify-center gap-2 ${
                       hasActiveConsultation
                         ? 'bg-emerald-50 text-emerald-600 border border-emerald-200 cursor-default'
-                        : 'bg-[#bc162d]/10 text-[#bc162d] border border-[#bc162d]/20 hover:bg-[#bc162d] hover:text-white'
+                        : 'bg-[#e76f51]/10 text-[#e76f51] border border-[#e76f51]/20 hover:bg-[#e76f51] hover:text-white'
                     }`}
                   >
                     {consultLoading ? (
@@ -444,10 +448,18 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
 
                 {/* Main subscribe button */}
                 <button
-                  onClick={() => !userId ? window.location.href = '/auth/signup' : handlePlanPurchase(1)}
+                  onClick={() => {
+                    if (!userId) {
+                      const redirectPath = encodeURIComponent(`/student/plans?plan=one_on_one&tierIdx=1`);
+                      window.location.href = `/auth/signup?redirectTo=${redirectPath}`;
+                    } else {
+                      handlePlanPurchase(1);
+                    }
+                  }}
+
                   disabled={loading}
                   id="subscribe-now-btn"
-                  className="w-full py-5 bg-[#2c2525] text-[#FAF9F6] rounded-xl text-[10px] font-black uppercase tracking-[0.4em] hover:bg-[#bc162d] transition-all duration-500 shadow-lg shadow-[#2c2525]/10 flex items-center justify-center gap-2 disabled:opacity-60"
+                  className="w-full py-5 bg-[#2c2525] text-[#FAF9F6] rounded-xl text-[10px] font-black uppercase tracking-[0.4em] hover:bg-[#e76f51] transition-all duration-500 shadow-lg shadow-[#2c2525]/10 flex items-center justify-center gap-2 disabled:opacity-60"
                 >
                   {loading && selectedTier === 1 ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                   Subscribe Now
@@ -460,11 +472,11 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
 
       <footer className="mt-20 border-t border-[#2c2525]/5 pt-20 pb-10 px-8 text-center max-w-4xl mx-auto space-y-8">
         <h2 className="text-4xl font-light text-[#2c2525] leading-tight" style={{ fontFamily: 'var(--font-cormorant)' }}>
-          No filters. No treatments. <br /> <span className="italic text-[#bc162d]">Just Your Face.</span>
+          No filters. No treatments. <br /> <span className="italic text-[#e76f51]">Just Your Face.</span>
         </h2>
         <button
           onClick={() => window.location.href = '/auth/signup'}
-          className="text-[10px] font-black uppercase tracking-[0.5em] text-[#2c2525] border-b border-[#bc162d] pb-2 hover:opacity-60 transition-opacity"
+          className="text-[10px] font-black uppercase tracking-[0.5em] text-[#2c2525] border-b border-[#e76f51] pb-2 hover:opacity-60 transition-opacity"
         >
           Start Your Journey
         </button>

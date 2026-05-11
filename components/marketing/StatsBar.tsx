@@ -10,9 +10,9 @@ const fadeUp: Variants = {
 
 const stats = [
   { value: '2,000+', label: 'Clients Trained', accent: '#e76f51' },
-  { value: '1.99 Lakh+', label: 'Instagram Followers', accent: '#c0392b' },
+  { value: '1.99 Lakh+', label: 'Instagram Followers', accent: '#e76f51' },
   { value: '274+', label: 'Classes Conducted', accent: '#e76f51' },
-  { value: '21 Days', label: 'Avg. to First Visible Result', accent: '#c0392b' },
+  { value: '21 Days', label: 'Avg. to First Visible Result', accent: '#e76f51' },
 ];
 
 export function StatsBar() {

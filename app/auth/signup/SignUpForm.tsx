@@ -11,6 +11,8 @@ import AuthLayout from '@/components/auth/AuthLayout';
 import AuthInput from '@/components/auth/AuthInput';
 import AuthButton from '@/components/auth/AuthButton';
 import { getRoleRedirectPath } from '@/lib/utils/auth';
+import { useSearchParams } from 'next/navigation';
+
 
 const GoogleIcon = () => (
   <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -49,7 +51,9 @@ export default function SignUpForm() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
+
 
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
@@ -119,8 +123,10 @@ export default function SignUpForm() {
     // Fire welcome email — non-blocking, doesn't delay login redirect
     fetch('/api/auth/welcome', { method: 'POST' }).catch(() => {});
 
-    const redirectPath = getRoleRedirectPath('student');
+    const redirectTo = searchParams.get('redirectTo');
+    const redirectPath = redirectTo || getRoleRedirectPath('student');
     router.push(redirectPath);
+
     router.refresh();
 
   }

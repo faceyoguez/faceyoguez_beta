@@ -83,16 +83,16 @@ export function Services() {
         {/* Header */}
         <div ref={headerRef} className="text-center mb-16 md:mb-20">
           <span
-            className="block mb-4 text-[11px] tracking-[0.35em] uppercase"
-            style={{ fontFamily: 'Inter, sans-serif', color: 'rgb(153, 143, 132)' }}
+            className="block mb-4 text-[11px] tracking-[0.35em] uppercase font-black"
+            style={{ fontFamily: 'Inter, sans-serif', color: '#e76f51' }}
           >
             What We Offer
           </span>
           <h2
             style={{
-              fontFamily: '"Cormorant Garamond", "Georgia", serif',
+              fontFamily: 'Aktiv Grotesk, sans-serif',
               fontSize: 'clamp(2rem, 4vw, 3.2rem)',
-              fontWeight: 400,
+              fontWeight: 700,
               color: 'rgb(44, 37, 37)',
             }}
           >
@@ -152,12 +152,13 @@ export function Services() {
                 </div>
                 {/* Arrow */}
                 <div
-                  className="absolute top-5 right-5 w-10 h-10 flex items-center justify-center rounded-full transition-transform duration-300 group-hover:scale-110"
+                  className="absolute top-5 right-5 w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 group-hover:scale-110 group-hover:bg-[#e76f51]"
                   style={{ backgroundColor: 'rgb(252, 244, 235)' }}
                 >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <path
                       d="M3 8h10M9 4l4 4-4 4"
+                      className="group-hover:stroke-white transition-colors"
                       stroke="rgb(44, 37, 37)"
                       strokeWidth="1.5"
                       strokeLinecap="round"

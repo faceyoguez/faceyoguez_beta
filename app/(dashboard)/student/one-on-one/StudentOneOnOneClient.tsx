@@ -161,7 +161,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
         >
           <div>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-aktiv font-bold text-[#1a1a1a] tracking-tight leading-none">
-              Personal <span className="text-[#FF8A75]">Journey</span>
+              Personal <span className="text-[#e76f51]">Journey</span>
             </h1>
             <p className="text-xs sm:text-sm text-slate-400 font-medium mt-1.5">
               Your dedicated 1-on-1 face yoga path
@@ -172,11 +172,11 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
               <div className="flex items-center gap-2 px-3.5 py-2 bg-[#1a1a1a] rounded-2xl shadow-md">
                 <span className="text-[9px] font-black uppercase tracking-[0.15em] text-white/50">Status</span>
                 <div className="w-px h-3 bg-white/20" />
-                <span className="text-[9px] font-black uppercase tracking-[0.15em] text-[#FF8A75]">Trial Active</span>
+                <span className="text-[9px] font-black uppercase tracking-[0.15em] text-[#e76f51]">Trial Active</span>
               </div>
             )}
             <div className="flex items-center gap-2 px-3.5 py-2 bg-white rounded-2xl border border-slate-100 shadow-sm">
-              <Flame className="w-4 h-4 text-[#FF8A75]" />
+              <Flame className="w-4 h-4 text-[#e76f51]" />
               <div>
                 <p className="text-lg font-aktiv font-bold text-[#1a1a1a] leading-none">{currentDay}</p>
                 <p className="text-[8px] font-black uppercase tracking-[0.15em] text-slate-400 mt-0.5">Day</p>
@@ -198,12 +198,12 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
               transition={{ delay: 0.05 }}
             >
               {nextMeeting ? (
-                <div className="bg-white rounded-[1.75rem] border border-slate-100 shadow-sm p-5 sm:p-6 hover:shadow-lg hover:shadow-[#FF8A75]/5 transition-shadow duration-500">
+                <div className="bg-white rounded-[1.75rem] border border-slate-100 shadow-sm p-5 sm:p-6 hover:shadow-lg hover:shadow-[#e76f51]/5 transition-shadow duration-500">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
                     <div className="flex-1 min-w-0 space-y-3">
-                      <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#FFFAF7] rounded-full border border-[#FF8A75]/10">
-                        <div className="h-1.5 w-1.5 rounded-full bg-[#FF8A75] animate-pulse shadow-[0_0_6px_#FF8A75]" />
-                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#FF8A75]">Upcoming Session</span>
+                      <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#fef4f2] rounded-full border border-[#e76f51]/10">
+                        <div className="h-1.5 w-1.5 rounded-full bg-[#e76f51] animate-pulse shadow-[0_0_6px_#e76f51]" />
+                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#e76f51]">Upcoming Session</span>
                       </div>
                       <h3 className="text-xl sm:text-2xl font-aktiv font-bold text-[#1a1a1a] tracking-tight truncate">{nextMeeting.topic}</h3>
                       <div className="flex items-center gap-6 pt-3 border-t border-slate-50">
@@ -227,7 +227,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                       className={cn(
                         "flex items-center justify-center gap-2.5 px-6 h-11 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all w-full md:w-auto shadow-sm",
                         isJoinEnabled
-                          ? "bg-[#1a1a1a] text-white hover:bg-[#FF8A75] hover:scale-[1.02] active:scale-95"
+                          ? "bg-[#1a1a1a] text-white hover:bg-[#e76f51] hover:scale-[1.02] active:scale-95"
                           : "bg-slate-50 text-slate-300 border border-slate-100 cursor-not-allowed"
                       )}
                     >
@@ -257,14 +257,14 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
               <div className="flex items-center justify-between pb-3 border-b border-slate-50">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-xl bg-[#1a1a1a] flex items-center justify-center shadow-md">
-                    <TrendingUp className="w-5 h-5 text-[#FF8A75]" />
+                    <TrendingUp className="w-5 h-5 text-[#e76f51]" />
                   </div>
                   <div>
                     <h2 className="text-base lg:text-lg font-aktiv font-bold text-[#1a1a1a] tracking-tight">Progress Tracker</h2>
                     <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 mt-0.5">Month {currentMonth}</p>
                   </div>
                 </div>
-                <div className="px-3 py-1.5 bg-[#FFFAF7] border border-[#FF8A75]/10 rounded-xl text-[10px] font-aktiv font-black uppercase text-[#FF8A75] tracking-widest">
+                <div className="px-3 py-1.5 bg-[#fef4f2] border border-[#e76f51]/10 rounded-xl text-[10px] font-aktiv font-black uppercase text-[#e76f51] tracking-widest">
                   Day {currentDay}
                 </div>
               </div>
@@ -289,8 +289,8 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
               {/* 3-Angle Photo Tracker */}
               <div>
                 <div className="flex items-center gap-3 mb-4 pb-3 border-b border-slate-50">
-                  <div className="h-10 w-10 rounded-xl bg-[#FF8A75]/10 flex items-center justify-center">
-                    <Camera className="w-5 h-5 text-[#FF8A75]" />
+                  <div className="h-10 w-10 rounded-xl bg-[#e76f51]/10 flex items-center justify-center">
+                    <Camera className="w-5 h-5 text-[#e76f51]" />
                   </div>
                   <div>
                     <h3 className="text-base font-aktiv font-bold text-[#1a1a1a] tracking-tight">3-Angle Progress</h3>
@@ -311,7 +311,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                   }}
                   onSave={handleSavePhotos}
                   isSaving={isSavingLog}
-                  accentColor="#FF8A75"
+                  accentColor="#e76f51"
                   allLogs={journeyLogs}
                 />
               </div>
@@ -321,7 +321,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">📝 Notes — Day {activeDay}</span>
                 </div>
-                <div className="rounded-2xl bg-[#FFFAF7] p-4 border border-slate-100">
+                <div className="rounded-2xl bg-[#fef4f2] p-4 border border-slate-100">
                   <textarea
                     value={notesInput}
                     onChange={(e) => setNotesInput(e.target.value)}
@@ -337,7 +337,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                     setIsSavingLog(false);
                   }}
                   disabled={isSavingLog}
-                  className="h-10 w-full rounded-xl bg-[#1a1a1a] text-white text-[9px] font-black uppercase tracking-widest hover:bg-[#FF8A75] transition-colors duration-300 disabled:opacity-60"
+                  className="h-10 w-full rounded-xl bg-[#1a1a1a] text-white text-[9px] font-black uppercase tracking-widest hover:bg-[#e76f51] transition-colors duration-300 disabled:opacity-60"
                 >
                   {isSavingLog ? 'Saving…' : 'Save Notes'}
                 </button>
@@ -353,11 +353,11 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="h-[650px] bg-white rounded-[1.75rem] border border-slate-100 shadow-sm flex flex-col overflow-hidden hover:shadow-lg hover:shadow-[#FF8A75]/5 transition-shadow duration-500"
+              className="h-[650px] bg-white rounded-[1.75rem] border border-slate-100 shadow-sm flex flex-col overflow-hidden hover:shadow-lg hover:shadow-[#e76f51]/5 transition-shadow duration-500"
             >
               <div className="px-5 py-3.5 border-b border-slate-50 flex items-center gap-3">
-                <div className="h-8 w-8 rounded-lg bg-[#FF8A75]/10 flex items-center justify-center">
-                  <MessageSquare className="w-4 h-4 text-[#FF8A75]" />
+                <div className="h-8 w-8 rounded-lg bg-[#e76f51]/10 flex items-center justify-center">
+                  <MessageSquare className="w-4 h-4 text-[#e76f51]" />
                 </div>
                 <span className="text-xs font-aktiv font-bold text-[#1a1a1a]">Instructor Chat</span>
               </div>
@@ -371,27 +371,27 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="flex-1 bg-white rounded-[1.75rem] border border-slate-100 shadow-sm p-5 flex flex-col min-h-[200px] hover:shadow-lg hover:shadow-[#FF8A75]/5 transition-shadow duration-500"
+              className="flex-1 bg-white rounded-[1.75rem] border border-slate-100 shadow-sm p-5 flex flex-col min-h-[200px] hover:shadow-lg hover:shadow-[#e76f51]/5 transition-shadow duration-500"
             >
               <div className="flex items-center gap-3 mb-4 pb-3 border-b border-slate-50">
-                <div className="h-8 w-8 rounded-lg bg-[#FF8A75]/10 flex items-center justify-center">
-                  <FileText className="w-4 h-4 text-[#FF8A75]" />
+                <div className="h-8 w-8 rounded-lg bg-[#e76f51]/10 flex items-center justify-center">
+                  <FileText className="w-4 h-4 text-[#e76f51]" />
                 </div>
                 <span className="text-xs font-aktiv font-bold text-[#1a1a1a]">Shared Resources</span>
               </div>
               <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-2">
                 {resources.length > 0 ? (
                   resources.map(res => (
-                    <div key={res.id} className="flex items-center justify-between p-3 rounded-xl bg-[#FFFAF7] border border-slate-50 hover:border-[#FF8A75]/15 transition-all">
+                    <div key={res.id} className="flex items-center justify-between p-3 rounded-xl bg-[#fef4f2] border border-slate-50 hover:border-[#e76f51]/15 transition-all">
                       <div className="flex items-center gap-3 truncate">
-                        <div className="h-9 w-9 rounded-lg bg-white flex items-center justify-center text-[#FF8A75] shadow-sm shrink-0">
+                        <div className="h-9 w-9 rounded-lg bg-white flex items-center justify-center text-[#e76f51] shadow-sm shrink-0">
                           <FileText className="w-4 h-4" />
                         </div>
                         <span className="text-xs font-bold truncate text-[#1a1a1a]">{res.file_name}</span>
                       </div>
                       <button
                         onClick={() => window.open(res.file_url, '_blank')}
-                        className="h-8 w-8 flex items-center justify-center rounded-lg bg-white text-[#FF8A75] hover:bg-[#1a1a1a] hover:text-white transition-all shadow-sm"
+                        className="h-8 w-8 flex items-center justify-center rounded-lg bg-white text-[#e76f51] hover:bg-[#1a1a1a] hover:text-white transition-all shadow-sm"
                       >
                         <Eye className="w-3.5 h-3.5" />
                       </button>
@@ -424,7 +424,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
             className="w-14 h-14 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center shadow-xl relative"
          >
             <MessageSquare className="w-6 h-6" />
-            <div className="absolute top-0 right-0 h-3.5 w-3.5 bg-[#FF8A75] rounded-full border-2 border-white" />
+            <div className="absolute top-0 right-0 h-3.5 w-3.5 bg-[#e76f51] rounded-full border-2 border-white" />
          </motion.button>
       </div>
 
@@ -448,12 +448,12 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                >
                   <div className="p-5 border-b border-slate-100 flex items-center justify-between shrink-0">
                      <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-xl bg-[#FF8A75]/10 text-[#FF8A75] flex items-center justify-center">
+                        <div className="h-9 w-9 rounded-xl bg-[#e76f51]/10 text-[#e76f51] flex items-center justify-center">
                            <MessageSquare className="w-4 h-4" />
                         </div>
                         <div>
                            <h3 className="text-base font-aktiv font-bold">Instructor Chat</h3>
-                           <p className="text-[8px] font-black uppercase tracking-widest text-[#FF8A75]">Private Channel</p>
+                           <p className="text-[8px] font-black uppercase tracking-widest text-[#e76f51]">Private Channel</p>
                         </div>
                      </div>
                      <button 
@@ -474,8 +474,8 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,138,117,0.15); border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,138,117,0.3); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(231,111,81,0.15); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(231,111,81,0.3); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>

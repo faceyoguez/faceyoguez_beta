@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+
 import { PLANS_DATA } from '@/lib/constants/plans';
 import { toast } from 'sonner';
 import { 
@@ -52,6 +53,7 @@ interface Props {
 }
 
 export default function PlansClient({ currentSubscription, userId, currentUser, hasUsedTrial: initialHasUsedTrial, hasActiveSubscription = false }: Props) {
+    const searchParams = useSearchParams();
     const [isStartingTrial, setIsStartingTrial] = useState(false);
     const [hasUsedTrial, setHasUsedTrial] = useState(initialHasUsedTrial);
     const router = useRouter();
@@ -59,14 +61,38 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
     const [selectedTierId, setSelectedTierId] = useState<string>(PLANS_DATA[0].tiers[0].id);
     const [loading, setLoading] = useState(false);
     const [mobileTab, setMobileTab] = useState<'data' | 'pricing'>('data');
+    const [isInitialParamLoad, setIsInitialParamLoad] = useState(true);
+
 
     const currentPlan = PLANS_DATA.find(p => p.id === selectedPlanId)!;
     const currentTier = currentPlan.tiers.find(t => t.id === selectedTierId) || currentPlan.tiers[0];
 
     useEffect(() => {
+        if (isInitialParamLoad) {
+            const planParam = searchParams.get('plan');
+            const tierIdxParam = searchParams.get('tierIdx');
+            
+            if (planParam) {
+                const plan = PLANS_DATA.find(p => p.id === planParam);
+                if (plan) {
+                    setSelectedPlanId(planParam);
+                    if (tierIdxParam) {
+                        const tierIdx = parseInt(tierIdxParam);
+                        if (!isNaN(tierIdx) && plan.tiers[tierIdx]) {
+                            setSelectedTierId(plan.tiers[tierIdx].id);
+                            setIsInitialParamLoad(false);
+                            return;
+                        }
+                    }
+                }
+            }
+            setIsInitialParamLoad(false);
+        }
+
         const popular = currentPlan.tiers.find((t: any) => t.badge === 'MOST POPULAR') || currentPlan.tiers[0];
         setSelectedTierId(popular.id);
-    }, [selectedPlanId]);
+    }, [selectedPlanId, searchParams, isInitialParamLoad]);
+
 
     // Meta Pixel & Supabase Analytics: Track pricing page view
     useEffect(() => {

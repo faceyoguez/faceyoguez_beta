@@ -3,10 +3,9 @@
 import { useState, useEffect, useRef } from 'react';
 
 const PRELOADER_IMAGES = [
-  '/assets/starter_img_1.jpg',
-  '/assets/starter_img_2.jpg',
-  '/assets/starter_img_3.jpg',
-
+  '/assets/starter_img_1.jpg?v=2',
+  '/assets/starter_img_2.jpg?v=2',
+  '/assets/starter_img_3.jpg?v=2',
 ];
 
 const DURATION_MS = 2300; // Decreased to make total loader sequence ~3 seconds

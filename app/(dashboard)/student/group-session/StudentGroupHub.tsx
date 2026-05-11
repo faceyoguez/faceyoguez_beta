@@ -329,7 +329,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
 
             {isTrialAccess && (
                 <div className="flex items-center justify-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-sm">
-                    <Sparkles className="w-3 h-3 text-[#FF8A75]" />
+                    <Sparkles className="w-3 h-3 text-[#e76f51]" />
                     Trial Access Active: {trialEndDate && <span>{new Date(trialEndDate).toLocaleDateString()}</span>}
                 </div>
             )}
@@ -337,17 +337,17 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
             <header className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-aktiv font-bold text-slate-900 tracking-tight">
-                        Group <span className="text-[#FF8A75]">Hub</span>
+                        Group <span className="text-[#e76f51]">Hub</span>
                     </h1>
                     <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[10px] font-black text-[#FF8A75] uppercase tracking-widest">{activeBatch?.name || 'Loading Batch...'}</span>
+                        <span className="text-[10px] font-black text-[#e76f51] uppercase tracking-widest">{activeBatch?.name || 'Loading Batch...'}</span>
                         <div className="h-1 w-1 rounded-full bg-slate-300" />
                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{activeBatch?.enrollment_count || 0} Members</span>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-[#FF8A75]/10 flex items-center justify-center">
-                        <Users className="w-5 h-5 text-[#FF8A75]" />
+                    <div className="h-10 w-10 rounded-xl bg-[#e76f51]/10 flex items-center justify-center">
+                        <Users className="w-5 h-5 text-[#e76f51]" />
                     </div>
                     <button 
                         onClick={() => setIsChatOpen(true)}
@@ -355,7 +355,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                     >
                         <MessageSquare className="w-5 h-5" />
                         {unreadCount > 0 && (
-                            <span className="absolute -top-1 -right-1 h-4 w-4 bg-[#FF8A75] text-white text-[8px] font-bold flex items-center justify-center rounded-full ring-2 ring-white">
+                            <span className="absolute -top-1 -right-1 h-4 w-4 bg-[#e76f51] text-white text-[8px] font-bold flex items-center justify-center rounded-full ring-2 ring-white">
                                 {unreadCount}
                             </span>
                         )}
@@ -373,7 +373,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                         </div>
                         <div className="relative z-10 space-y-6">
                             <div className="space-y-1">
-                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">Your Batch</p>
+                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#e76f51]">Your Batch</p>
                                 <h3 className="text-xl font-bold tracking-tight leading-tight">{activeBatch?.name || 'Sanctuary Batch'}</h3>
                             </div>
                             
@@ -385,7 +385,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                 <div className="space-y-1">
                                     <p className="text-[9px] font-bold uppercase tracking-widest text-white/40">Streak</p>
                                     <div className="flex items-center gap-1.5">
-                                        <Flame className="w-4 h-4 text-[#FF8A75]" />
+                                        <Flame className="w-4 h-4 text-[#e76f51]" />
                                         <p className="text-lg font-bold">{currentDay}d</p>
                                     </div>
                                 </div>
@@ -394,7 +394,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                     </div>
 
                     {/* Instructor Card */}
-                    <div className="p-5 rounded-[1.75rem] border border-slate-100 bg-white shadow-sm flex items-center gap-4 group hover:border-[#FF8A75]/20 transition-all">
+                    <div className="p-5 rounded-[1.75rem] border border-slate-100 bg-white shadow-sm flex items-center gap-4 group hover:border-[#e76f51]/20 transition-all">
                         <div className="h-14 w-14 rounded-2xl overflow-hidden border-2 border-slate-50 shrink-0 group-hover:scale-105 transition-transform">
                             {activeBatch?.instructor?.avatar_url ? (
                                 <img src={activeBatch.instructor.avatar_url} className="w-full h-full object-cover" />
@@ -416,7 +416,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                     <div className="p-6 rounded-[1.75rem] border border-slate-100 bg-white shadow-sm flex flex-col gap-5">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                                <div className="h-2 w-2 rounded-full bg-[#FF8A75]" />
+                                <div className="h-2 w-2 rounded-full bg-[#e76f51]" />
                                 <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">Resources</h3>
                             </div>
                             <FileText className="w-4 h-4 text-slate-300" />
@@ -424,8 +424,8 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                         <div className="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-1">
                             {initialResources.length > 0 ? (
                                 initialResources.map((res: any) => (
-                                    <button key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="w-full flex items-center gap-3 p-3 bg-slate-50/50 border border-slate-100/50 rounded-xl hover:border-[#FF8A75]/20 hover:bg-white hover:shadow-sm transition-all text-left group">
-                                        <div className="h-8 w-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-300 group-hover:text-[#FF8A75] transition-colors">
+                                    <button key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="w-full flex items-center gap-3 p-3 bg-slate-50/50 border border-slate-100/50 rounded-xl hover:border-[#e76f51]/20 hover:bg-white hover:shadow-sm transition-all text-left group">
+                                        <div className="h-8 w-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-300 group-hover:text-[#e76f51] transition-colors">
                                             <Download className="w-3.5 h-3.5" />
                                         </div>
                                         <div className="min-w-0">
@@ -454,11 +454,11 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                         </div>
                         <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar pr-1">
                             {recordings.map((rec) => (
-                                <button key={rec.id} onClick={() => rec.is_available && window.open(rec.play_url!, '_blank')} className="w-full flex items-center gap-3 p-3 bg-slate-50/50 border border-slate-100/50 rounded-xl hover:border-[#FF8A75]/20 hover:bg-white hover:shadow-sm transition-all text-left group">
+                                <button key={rec.id} onClick={() => rec.is_available && window.open(rec.play_url!, '_blank')} className="w-full flex items-center gap-3 p-3 bg-slate-50/50 border border-slate-100/50 rounded-xl hover:border-[#e76f51]/20 hover:bg-white hover:shadow-sm transition-all text-left group">
                                     <div className="h-10 w-16 rounded-lg bg-slate-200/50 overflow-hidden relative shrink-0">
                                         <div className="absolute inset-0 flex items-center justify-center">
                                             {rec.is_available ? (
-                                                <Play className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#FF8A75] group-hover:scale-110 transition-all fill-current" />
+                                                <Play className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#e76f51] group-hover:scale-110 transition-all fill-current" />
                                             ) : (
                                                 <Clock className="w-3.5 h-3.5 text-slate-300" />
                                             )}
@@ -494,7 +494,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
                             <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20">
                                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[9px] font-bold uppercase tracking-widest">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-[#FF8A75] animate-pulse" />
+                                    <div className="w-1.5 h-1.5 rounded-full bg-[#e76f51] animate-pulse" />
                                     Session Upcoming
                                 </div>
                             </div>
@@ -510,7 +510,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                         </div>
                                     </div>
                                 </div>
-                                <button disabled={!isJoinEnabled} onClick={() => window.open(nextBatchMeeting.join_url, '_blank')} className={cn("h-12 px-8 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 shrink-0", isJoinEnabled ? "bg-[#FF8A75] text-white hover:scale-[1.02] shadow-lg shadow-[#FF8A75]/20" : "bg-white/10 text-white/20 backdrop-blur-md border border-white/10 cursor-not-allowed")}>
+                                <button disabled={!isJoinEnabled} onClick={() => window.open(nextBatchMeeting.join_url, '_blank')} className={cn("h-12 px-8 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 shrink-0", isJoinEnabled ? "bg-[#e76f51] text-white hover:scale-[1.02] shadow-lg shadow-[#e76f51]/20" : "bg-white/10 text-white/20 backdrop-blur-md border border-white/10 cursor-not-allowed")}>
                                     {isJoinEnabled ? <><Video className="w-4 h-4" /> Join Now</> : 'Opens Soon'}
                                 </button>
                             </div>
@@ -561,7 +561,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                     }}
                                     onSave={handleSavePhotos}
                                     isSaving={isSavingLog}
-                                    accentColor="#FF8A75"
+                                    accentColor="#e76f51"
                                 />
                             </div>
 
@@ -583,7 +583,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                         setIsSavingLog(false);
                                     }}
                                     disabled={isSavingLog}
-                                    className="h-11 w-full rounded-xl bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest hover:bg-[#FF8A75] transition-colors duration-300 disabled:opacity-60"
+                                    className="h-11 w-full rounded-xl bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest hover:bg-[#e76f51] transition-colors duration-300 disabled:opacity-60"
                                 >
                                     {isSavingLog ? 'Saving…' : 'Save Update'}
                                 </button>
@@ -610,7 +610,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                >
                   <MessageSquare className="w-6 h-6" />
                   {unreadCount > 0 && (
-                    <div className="absolute top-0 right-0 h-4 w-4 bg-[#FF8A75] rounded-full border-2 border-white flex items-center justify-center text-[8px] font-bold">
+                    <div className="absolute top-0 right-0 h-4 w-4 bg-[#e76f51] rounded-full border-2 border-white flex items-center justify-center text-[8px] font-bold">
                         {unreadCount}
                     </div>
                   )}
