@@ -32,7 +32,7 @@ export default async function StudentGroupPage() {
         .order('created_at', { ascending: false });
 
     // Prioritize an 'active' batch over 'upcoming' or others
-    const enrollment = enrollments?.find(e => e.batches?.status === 'active') || enrollments?.[0] || null;
+    const enrollment = (enrollments as any[])?.find(e => e.batches?.status === 'active') || enrollments?.[0] || null;
 
     let activeBatch = enrollment?.batches || null;
     // Only show "Trial" mode if the enrollment IS trial access AND the subscription itself IS a trial.

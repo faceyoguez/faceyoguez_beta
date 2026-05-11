@@ -57,7 +57,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
 
                 if (res.success && res.url) {
                     setFileUrl(res.url);
-                    setFileName(res.name);
+                    setFileName(res.name || '');
                     setContentType(file.type.startsWith('image/') ? 'image' : file.type === 'application/pdf' ? 'pdf' : 'file');
                 } else {
                     alert('Upload failed: ' + res.error);

@@ -281,31 +281,31 @@ export async function getLiveGrowthMetrics() {
     const isPreviousMonth = (dateStr: string) => dateStr && dateStr >= startOfPreviousMonth && dateStr <= endOfPreviousMonth;
 
     // Base totals
-    const activeSeekers = subs.filter(s => !s.is_trial);
+    const activeSeekers = subs.filter((s: any) => !s.is_trial);
     const totalActiveStudents = activeSeekers.length;
-    const activeTrials = subs.filter(s => s.is_trial).length;
+    const activeTrials = subs.filter((s: any) => s.is_trial).length;
 
     // Joinees
-    const newJoineesMonthly = activeSeekers.filter(s => s.created_at && isThisMonth(s.created_at));
-    const newJoineesDaily = activeSeekers.filter(s => s.created_at && isToday(s.created_at));
-    const prevMonthlyJoinees = activeSeekers.filter(s => s.created_at && isPreviousMonth(s.created_at)).length;
+    const newJoineesMonthly = activeSeekers.filter((s: any) => s.created_at && isThisMonth(s.created_at));
+    const newJoineesDaily = activeSeekers.filter((s: any) => s.created_at && isToday(s.created_at));
+    const prevMonthlyJoinees = activeSeekers.filter((s: any) => s.created_at && isPreviousMonth(s.created_at)).length;
 
     // Renewals
-    const monthlyRenewals = subs.filter(s => s.start_date && s.created_at && s.start_date >= startOfMonth.split('T')[0] && s.created_at < startOfMonth);
-    const dailyRenewals = subs.filter(s => s.start_date && s.created_at && s.start_date === today && s.created_at < today);
-    const prevMonthlyRenewals = subs.filter(s => s.start_date && s.created_at && s.start_date >= startOfPreviousMonth.split('T')[0] && s.start_date <= endOfPreviousMonth.split('T')[0] && s.created_at < startOfPreviousMonth).length;
+    const monthlyRenewals = subs.filter((s: any) => s.start_date && s.created_at && s.start_date >= startOfMonth.split('T')[0] && s.created_at < startOfMonth);
+    const dailyRenewals = subs.filter((s: any) => s.start_date && s.created_at && s.start_date === today && s.created_at < today);
+    const prevMonthlyRenewals = subs.filter((s: any) => s.start_date && s.created_at && s.start_date >= startOfPreviousMonth.split('T')[0] && s.start_date <= endOfPreviousMonth.split('T')[0] && s.created_at < startOfPreviousMonth).length;
 
     // Revenue
     const sumRevenue = (arr: any[]) => arr.reduce((acc, curr) => acc + (curr.amount || 0), 0);
     const monthlyRevenue = sumRevenue(newJoineesMonthly) + sumRevenue(monthlyRenewals);
     const dailyRevenue = sumRevenue(newJoineesDaily) + sumRevenue(dailyRenewals);
     
-    const prevMonthNew = activeSeekers.filter(s => s.created_at && isPreviousMonth(s.created_at));
-    const prevMonthRenew = subs.filter(s => s.start_date && s.created_at && s.start_date >= startOfPreviousMonth.split('T')[0] && s.start_date <= endOfPreviousMonth.split('T')[0] && s.created_at < startOfPreviousMonth);
+    const prevMonthNew = activeSeekers.filter((s: any) => s.created_at && isPreviousMonth(s.created_at));
+    const prevMonthRenew = subs.filter((s: any) => s.start_date && s.created_at && s.start_date >= startOfPreviousMonth.split('T')[0] && s.start_date <= endOfPreviousMonth.split('T')[0] && s.created_at < startOfPreviousMonth);
     const prevMonthlyRevenue = sumRevenue(prevMonthNew) + sumRevenue(prevMonthRenew);
 
     // Expiring
-    const expiringThisWeek = subs.filter(s => s.end_date && s.end_date >= today && s.end_date <= endOfWeek).length;
+    const expiringThisWeek = subs.filter((s: any) => s.end_date && s.end_date >= today && s.end_date <= endOfWeek).length;
 
     // Trend calculator
     const calcTrend = (current: number, previous: number) => {

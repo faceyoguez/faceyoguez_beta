@@ -28,7 +28,7 @@ export default async function InstructorOneOnOnePage() {
   return (
     <InstructorOneOnOneClient
       currentUser={profile}
-      students={students}
+      students={students as any}
     />
   );
 }

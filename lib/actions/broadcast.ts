@@ -51,7 +51,7 @@ export async function sendBroadcastAction(formData: {
         .select('student_id')
         .eq('status', 'active');
 
-      targetUserIds = [...new Set((activeSubs || []).map(s => s.student_id))];
+      targetUserIds = [...new Set<string>((activeSubs || []).map((s: any) => s.student_id as string))];
 
     } else if (formData.target_audience === 'one_on_one') {
       // Send to all active 1-on-1 default students
@@ -61,7 +61,7 @@ export async function sendBroadcastAction(formData: {
         .eq('plan_type', 'one_on_one')
         .eq('status', 'active');
 
-      targetUserIds = [...new Set((oneOnOneSubs || []).map(s => s.student_id))];
+      targetUserIds = [...new Set<string>((oneOnOneSubs || []).map((s: any) => s.student_id as string))];
 
     } else if (formData.target_audience === 'group_session') {
 
@@ -73,7 +73,7 @@ export async function sendBroadcastAction(formData: {
           .eq('batch_id', formData.target_batch_id)
           .in('status', ['active', 'extended', 'completed']); // include everyone that got the content
 
-        targetUserIds = [...new Set((enrolls || []).map(e => e.student_id))];
+        targetUserIds = [...new Set<string>((enrolls || []).map((e: any) => e.student_id as string))];
       } else {
         // All active Group Session plan subscribers (even if unassigned)
         const { data: groupSubs } = await supabase
@@ -82,7 +82,7 @@ export async function sendBroadcastAction(formData: {
           .eq('plan_type', 'group_session')
           .eq('status', 'active');
 
-        targetUserIds = [...new Set((groupSubs || []).map(s => s.student_id))];
+        targetUserIds = [...new Set<string>((groupSubs || []).map((s: any) => s.student_id as string))];
       }
 
     } else if (formData.target_audience === 'lms') {
@@ -92,7 +92,7 @@ export async function sendBroadcastAction(formData: {
         .eq('plan_type', 'lms')
         .eq('status', 'active');
 
-      targetUserIds = [...new Set((lmsSubs || []).map(s => s.student_id))];
+      targetUserIds = [...new Set<string>((lmsSubs || []).map((s: any) => s.student_id as string))];
     }
 
     if (targetUserIds.length === 0) {
@@ -130,7 +130,7 @@ export async function sendBroadcastAction(formData: {
         // Send asynchronously to avoid blocking the main broadcast action
         // In a real production app, you'd use a background queue (like Inngest or Upstash)
         Promise.all(
-          profiles.map(p => 
+          profiles.map((p: any) => 
             p.phone ? sendWhatsAppMessage(p.phone, `*${formData.title}*\n\n${formData.content}`) : Promise.resolve()
           )
         ).catch(err => console.error('WhatsApp Broadcast Failure:', err));

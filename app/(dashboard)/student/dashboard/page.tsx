@@ -99,7 +99,7 @@ export default async function StudentDashboardPage() {
   const currentSubs = subscriptions.filter(
     (s: any) => s.end_date === null || s.end_date >= todayDateStr
   );
-  const activePlanTypes = [...new Set(currentSubs.map((s: any) => s.plan_type))];
+  const activePlanTypes: string[] = [...new Set<string>(currentSubs.map((s: any) => s.plan_type as string))];
 
   const expiryDate = furthestEndDate ? furthestEndDate.toISOString().split('T')[0] : null;
 

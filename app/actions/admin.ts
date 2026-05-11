@@ -103,14 +103,14 @@ export async function getRazorpayMetrics() {
     });
 
     // Simple aggregation for the dashboard
-    const totalRevenue = payments.items
+    const totalRevenue = (payments.items as any[])
       .filter(p => p.status === 'captured')
       .reduce((acc, p) => acc + (Number(p.amount) / 100), 0);
 
     return {
       totalRevenue,
       paymentCount: payments.items.length,
-      recentPayments: payments.items.slice(0, 5).map(p => ({
+      recentPayments: (payments.items as any[]).slice(0, 5).map(p => ({
         id: p.id,
         amount: Number(p.amount) / 100,
         currency: p.currency,

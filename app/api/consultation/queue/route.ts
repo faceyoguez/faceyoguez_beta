@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: true });
 
     // Get unread message counts per consultation
-    const consultationIds = (consultations || []).map(c => c.id);
+    const consultationIds = (consultations as any[] || []).map(c => c.id);
     const { data: unreadCounts } = await admin
       .from('consultation_messages')
       .select('consultation_id')
@@ -45,11 +45,11 @@ export async function GET(request: NextRequest) {
       .neq('sender_id', user.id);
 
     const unreadMap: Record<string, number> = {};
-    (unreadCounts || []).forEach(row => {
+    (unreadCounts as any[] || []).forEach(row => {
       unreadMap[row.consultation_id] = (unreadMap[row.consultation_id] || 0) + 1;
     });
 
-    const enriched = (consultations || []).map(c => ({
+    const enriched = (consultations as any[] || []).map(c => ({
       ...c,
       unread_count: unreadMap[c.id] || 0,
       latest_message: Array.isArray(c.latest_message)

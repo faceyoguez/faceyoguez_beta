@@ -125,17 +125,17 @@ export async function getBatchRecordedSessions(
 
   // Fetch Zoom cloud recordings for each past meeting in parallel
   const sessions = await Promise.all(
-    meetings.map(async (meeting) => {
+    meetings.map(async (meeting: any) => {
       const recordings = await getZoomMeetingRecordings(meeting.zoom_meeting_id);
 
       // Prefer the shared-screen-with-speaker view; fall back to any completed file
       const mainFile =
         recordings?.recording_files?.find(
-          (f) =>
+          (f: any) =>
             f.recording_type === 'shared_screen_with_speaker_view' &&
             f.status === 'completed'
         ) ||
-        recordings?.recording_files?.find((f) => f.status === 'completed') ||
+        recordings?.recording_files?.find((f: any) => f.status === 'completed') ||
         null;
 
       // Use actual recording duration when available

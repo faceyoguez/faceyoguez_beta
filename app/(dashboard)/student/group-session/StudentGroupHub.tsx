@@ -29,16 +29,16 @@ interface StudentGroupClientProps {
         id: string;
         name: string;
         start_date: string;
-        end_date?: string;
+        end_date?: string | null;
         is_chat_enabled: boolean;
-        instructor_id?: string;
-        enrollment_count?: number;
+        instructor_id?: string | null;
+        enrollment_count?: number | null;
         instructor?: {
             id: string;
             full_name: string;
             avatar_url: string | null;
-        };
-    };
+        } | null;
+    } | null;
     initialResources: { id: string; file_url: string; title?: string; file_name: string }[];
     isTrialAccess?: boolean;
     trialEndDate?: string | null;

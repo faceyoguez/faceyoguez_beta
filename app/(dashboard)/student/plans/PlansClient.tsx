@@ -64,8 +64,8 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
     const [isInitialParamLoad, setIsInitialParamLoad] = useState(true);
 
 
-    const currentPlan = PLANS_DATA.find(p => p.id === selectedPlanId)!;
-    const currentTier = currentPlan.tiers.find(t => t.id === selectedTierId) || currentPlan.tiers[0];
+    const currentPlan = PLANS_DATA.find((p: any) => p.id === selectedPlanId)!;
+    const currentTier = (currentPlan.tiers as any[]).find((t: any) => t.id === selectedTierId) || currentPlan.tiers[0];
 
     useEffect(() => {
         if (isInitialParamLoad) {
@@ -73,7 +73,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
             const tierIdxParam = searchParams.get('tierIdx');
             
             if (planParam) {
-                const plan = PLANS_DATA.find(p => p.id === planParam);
+                const plan = PLANS_DATA.find((p: any) => p.id === planParam);
                 if (plan) {
                     setSelectedPlanId(planParam);
                     if (tierIdxParam) {

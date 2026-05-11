@@ -29,7 +29,7 @@ export default async function StudentLmsPage() {
 
   const isAdmin = ['admin', 'instructor', 'staff', 'client_management'].includes(profile?.role || '');
   const hasActiveSub = (subscriptions && subscriptions.length > 0) || isAdmin;
-  const hasLevel2 = subscriptions?.some(s => s.plan_variant?.includes('Level 2')) || isAdmin;
+  const hasLevel2 = (subscriptions as any[])?.some(s => s.plan_variant?.includes('Level 2')) || isAdmin;
 
   // 2. Fetch courses + progress in parallel
   const [{ data: courses }, { data: progress }] = await Promise.all([
@@ -43,9 +43,9 @@ export default async function StudentLmsPage() {
       .eq('student_id', user.id),
   ]);
 
-  const completedModuleIds = new Set(progress?.map(p => p.module_id) || []);
+  const completedModuleIds = new Set((progress as any[])?.map(p => p.module_id) || []);
 
-  const courseStatus = courses?.map(course => {
+  const courseStatus = (courses as any[])?.map(course => {
     const totalModules = course.modules?.length || 0;
     const completedInThisCourse = course.modules?.filter((m: any) => completedModuleIds.has(m.id)).length || 0;
     const progressPercent = totalModules > 0 ? (completedInThisCourse / totalModules) * 100 : 0;

@@ -73,7 +73,7 @@ export async function getExitFeedbacks() {
   }
 
   // Enhance with photo data — get first and latest from journey_logs
-  const feedbacksWithPhotos = await Promise.all(data.map(async (fb) => {
+  const feedbacksWithPhotos = await Promise.all(data.map(async (fb: any) => {
     const { data: logs } = await admin
       .from('journey_logs')
       .select('photo_url, day_number')

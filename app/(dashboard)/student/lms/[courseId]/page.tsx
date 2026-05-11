@@ -38,7 +38,7 @@ export default async function CourseViewerPage({ params }: PageProps) {
     .eq('student_id', user.id)
     .in('module_id', sortedModules.map((m: any) => m.id));
 
-  const completedModuleIds = new Set(progress?.map(p => p.module_id) || []);
+  const completedModuleIds = new Set<string>(progress?.map((p: any) => p.module_id as string) || []);
 
   // 3. Simple Access Check (Additional Layer)
   const { data: profile } = await admin
@@ -55,9 +55,9 @@ export default async function CourseViewerPage({ params }: PageProps) {
     .eq('student_id', user.id)
     .eq('status', 'active');
 
-  const isTrial = activeSubscriptions?.some(s => s.is_trial) || false;
+  const isTrial = activeSubscriptions?.some((s: any) => s.is_trial) || false;
   const hasActiveSub = (activeSubscriptions && activeSubscriptions.length > 0) || isAdmin;
-  const hasLevel2 = activeSubscriptions?.some(s => s.plan_variant?.includes('Level 2')) || isAdmin;
+  const hasLevel2 = activeSubscriptions?.some((s: any) => s.plan_variant?.includes('Level 2')) || isAdmin;
 
   const isLevelAllowed = isAdmin || (course.level === 1 
     ? true 

@@ -32,7 +32,7 @@ export default async function StaffOneOnOnePage() {
   return (
     <StaffOneOnOneClient
       currentUser={profile}
-      students={students}
+      students={students as any}
       metrics={metrics}
       instructors={instructors as unknown as import('@/types/database').Profile[]}
     />

@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     });
 
     // ── 4. Send branded email to every student ───────────────────────
-    const emailPromises = students.map((student) =>
+    const emailPromises = students.map((student: any) =>
       sendMeetingInviteEmail({
         to: student.email,
         studentName: student.full_name || 'Student',
