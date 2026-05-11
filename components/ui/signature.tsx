@@ -34,7 +34,7 @@ export function ThumbnailsCarousel() {
     { src: '/assets/proofs/proof-24.jpg?v=2',  title: 'Transformation 24' },
     { src: '/assets/proofs/proof-25.jpeg?v=2', title: 'Transformation 25' },
     { src: '/assets/proofs/proof-26.jpeg?v=2', title: 'Transformation 26' },
-    { src: '/assets/proofs/proof-27.jpeg?v=2', title: 'Transformation 27' },
+    // { src: '/assets/proofs/proof-27.jpeg?v=2', title: 'Transformation 27' },
   ];
 
   const [currentPage, setCurrentPage] = useState(0);
