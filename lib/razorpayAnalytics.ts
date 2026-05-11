@@ -5,11 +5,26 @@ import {
   format, fromUnixTime, getHours, getDay, getDate, differenceInDays
 } from 'date-fns';
 
-// ─── Razorpay Client ─────────────────────────────────────────
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
+// ─── Razorpay Client (Lazy Initialization) ───────────────────
+let _razorpay: Razorpay | null = null;
+
+function getRazorpay() {
+  if (!_razorpay) {
+    const key_id = process.env.RAZORPAY_KEY_ID;
+    const key_secret = process.env.RAZORPAY_KEY_SECRET;
+    
+    if (!key_id || !key_secret) {
+      throw new Error('key_id or oauthToken is mandatory');
+    }
+
+    _razorpay = new Razorpay({
+      key_id,
+      key_secret,
+    });
+  }
+  return _razorpay;
+}
+
 
 // ─── IST Helpers ─────────────────────────────────────────────
 const IST_OFFSET = 5.5 * 60 * 60 * 1000;
@@ -56,7 +71,8 @@ async function fetchAllPayments(from?: number, to?: number, count: number = 100)
     if (from) params.from = from;
     if (to) params.to = to;
 
-    const payments = await razorpay.payments.all(params);
+    const payments = await getRazorpay().payments.all(params);
+
     if (!payments.items || payments.items.length === 0) break;
 
     allPayments = [...allPayments, ...payments.items];
@@ -589,7 +605,8 @@ export async function getRefundSummary() {
   const supabase = await createServerSupabaseClient();
 
   // Fetch refunds from Razorpay
-  const result = (await razorpay.refunds.all({ count: 100 })) as any;
+  const result = (await getRazorpay().refunds.all({ count: 100 })) as any;
+
   const items = result.items || [];
 
   const thirtyDaysAgo = new Date();
@@ -651,7 +668,8 @@ export async function getRefundSummary() {
 // 12. SETTLEMENT ANALYTICS
 // ═══════════════════════════════════════════════════════════════
 export async function getSettlementSummary() {
-  const settlements = await razorpay.settlements.all({ count: 50 });
+  const settlements = await getRazorpay().settlements.all({ count: 50 });
+
   const items = settlements.items || [];
 
   const now = new Date();
