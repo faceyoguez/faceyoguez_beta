@@ -847,7 +847,8 @@ export async function getCustomerPaymentProfiles() {
 // 15. LIVE PAYMENTS
 // ═══════════════════════════════════════════════════════════════
 export async function getLivePayments() {
-  const result = (await razorpay.payments.all({ count: 10 })) as any;
+  const result = (await getRazorpay().payments.all({ count: 10 })) as any;
+
   const items = result.items || [];
 
   const sixtyMinAgo = Math.floor(subDays(new Date(), 0).getTime() / 1000) - 3600;
