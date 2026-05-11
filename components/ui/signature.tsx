@@ -1,7 +1,9 @@
 'use client';
 
+import { useState, useEffect, useRef } from 'react';
 import { Carousel } from "@ark-ui/react/carousel";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+
 
 export function ThumbnailsCarousel() {
   // Explicit list using correct file extensions (case-sensitive on Linux/Vercel)
@@ -35,12 +37,53 @@ export function ThumbnailsCarousel() {
     { src: '/assets/proofs/proof-27.jpeg?v=2', title: 'Transformation 27' },
   ];
 
+  const [currentPage, setCurrentPage] = useState(0);
+  const thumbnailsRef = useRef<HTMLDivElement>(null);
+  const prevPageRef = useRef(0);
+
+  useEffect(() => {
+
+    // 1. Autoplay timer
+    const interval = setInterval(() => {
+      setCurrentPage((prev) => (prev + 1) % images.length);
+    }, 5000);
+
+
+    // 2. Sync thumbnail scroll
+    if (thumbnailsRef.current) {
+      const activeThumb = thumbnailsRef.current.children[currentPage] as HTMLElement;
+      if (activeThumb) {
+        // Detect if we're jumping between ends to avoid the "long scroll back"
+        const isJump = Math.abs(currentPage - prevPageRef.current) > 1;
+        
+        const container = thumbnailsRef.current;
+        const scrollLeft = activeThumb.offsetLeft - (container.offsetWidth / 2) + (activeThumb.offsetWidth / 2);
+        
+        container.scrollTo({
+          left: scrollLeft,
+          behavior: isJump ? 'auto' : 'smooth'
+        });
+      }
+    }
+
+
+    prevPageRef.current = currentPage;
+    return () => clearInterval(interval);
+  }, [currentPage, images.length]);
+
+
+
   return (
     <Carousel.Root
-      defaultPage={0}
+      page={currentPage}
+      onPageChange={(details) => setCurrentPage(details.page)}
       slideCount={images.length}
+      loop={true}
       className="max-w-4xl p-2 mx-auto w-full relative"
     >
+
+
+
       {/* Main Image Container */}
       <Carousel.ItemGroup className="relative overflow-hidden rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] mb-8 liquid-glass aspect-[4/3] md:aspect-video border border-black/5 group">
         {images.map((image, index) => (
@@ -79,7 +122,11 @@ export function ThumbnailsCarousel() {
         </Carousel.PrevTrigger>
 
         {/* Thumbnail Scroll Track */}
-        <div className="flex gap-4 overflow-x-auto scrollbar-hide flex-1 px-2 py-2">
+        <div 
+          ref={thumbnailsRef}
+          className="flex gap-4 overflow-x-auto scrollbar-hide flex-1 px-2 py-2 snap-x snap-mandatory"
+        >
+
           {images.map((image, index) => (
             <Carousel.Indicator
               key={index}
@@ -112,7 +159,9 @@ export function ThumbnailsCarousel() {
         .scrollbar-hide {
           -ms-overflow-style: none;
           scrollbar-width: none;
+          scroll-behavior: smooth;
         }
+
       `}</style>
     </Carousel.Root>
   );
