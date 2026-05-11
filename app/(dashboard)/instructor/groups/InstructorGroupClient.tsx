@@ -92,7 +92,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                   .single();
 
                const newMsg = { ...payload.new, sender: profile };
-               setMessages(prev => [...prev, newMsg]);
+               setMessages((prev: any[]) => [...prev, newMsg]);
             }
          )
          .subscribe();
@@ -196,8 +196,8 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
    })) || [];
 
    // Transformation Derived Data
-   const day1Log = journeyLogs.find(l => l.day_number === 1);
-   const activeLog = journeyLogs.find(l => l.day_number === (selectedStudent ? Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(selectedBatch?.start_date || Date.now()).getTime()) / 86400000) + 1)) : 1));
+   const day1Log = journeyLogs.find((l: any) => l.day_number === 1);
+   const activeLog = journeyLogs.find((l: any) => l.day_number === (selectedStudent ? Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(selectedBatch?.start_date || Date.now()).getTime()) / 86400000) + 1)) : 1));
    const beforeImage = day1Log?.photo_url || 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800&sat=-100';
    const afterImage = activeLog?.photo_url || 'https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&q=80&w=800';
 
@@ -357,7 +357,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                               </div>
                            </div>
                            <div ref={chatContainerRef} className="flex-1 space-y-4 overflow-y-auto mb-4 custom-scrollbar pr-3">
-                               {messages.map((msg) => {
+                               {messages.map((msg: any) => {
                                   const isMe = msg.sender_id === currentUser.id;
                                   const sender = msg.sender || {};
                                   const roles: Record<string, string> = {
@@ -393,7 +393,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                               <input
                                  type="text"
                                  value={newMessage}
-                                 onChange={(e) => setNewMessage(e.target.value)}
+                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewMessage(e.target.value)}
                                  onKeyDown={(e) => e.key === 'Enter' && selectedBatch?.is_chat_enabled && handleSendMessage()}
                                  placeholder={selectedBatch?.is_chat_enabled ? "Type a message..." : "Chat is disabled"}
                                  disabled={!selectedBatch?.is_chat_enabled}
@@ -542,7 +542,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                            <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
                         </div>
                         <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-2">
-                           {recordings.map((rec) => (
+                           {recordings.map((rec: RecordedSession) => (
                               <button key={rec.id} onClick={() => window.open(rec.play_url!, '_blank')} className="w-full flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-[#FF8A75]/30 group transition-all hover:bg-white">
                                  <div className="flex items-center gap-4">
                                     <div className="h-8 w-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-[#FF8A75]"><Play className="w-3.5 h-3.5 ml-0.5" /></div>
@@ -551,7 +551,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                  <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-[#FF8A75] transition-all" />
                               </button>
                            ))}
-                           {resources.map((res) => (
+                           {resources.map((res: StudentResource) => (
                               <button key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="w-full flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-[#FF8A75]/30 group transition-all hover:bg-white">
                                  <div className="flex items-center gap-4">
                                     <div className="h-8 w-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-[#FF8A75]"><FileText className="w-3.5 h-3.5" /></div>
@@ -675,7 +675,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                   
                   {/* Messages Area */}
                   <div className="flex-1 space-y-5 overflow-y-auto custom-scrollbar p-6">
-                     {messages.map((msg) => {
+                     {messages.map((msg: any) => {
                         const isMe = msg.sender_id === currentUser.id;
                         const sender = msg.sender || {};
                         const roles: Record<string, string> = { admin: 'Admin', instructor: 'Instructor', staff: 'Staff', client_management: 'Staff' };
@@ -707,7 +707,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                      <input
                         type="text"
                         value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewMessage(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && selectedBatch?.is_chat_enabled && handleSendMessage()}
                         placeholder={selectedBatch?.is_chat_enabled ? "Type a message..." : "Chat disabled"}
                         disabled={!selectedBatch?.is_chat_enabled}

@@ -103,16 +103,16 @@ export function StudentDashboardClient({
               .single();
 
             if (enrichedMeeting) {
-              setMeetings(prev => {
-                const filtered = prev.filter(m => m.id !== enrichedMeeting.id);
-                const combined = [...filtered, enrichedMeeting].sort((a, b) =>
+              setMeetings((prev: any[]) => {
+                const filtered = prev.filter((m: any) => m.id !== enrichedMeeting.id);
+                const combined = [...filtered, enrichedMeeting].sort((a: any, b: any) =>
                   new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
                 );
                 return combined;
               });
             }
           } else if (payload.eventType === 'DELETE') {
-            setMeetings(prev => prev.filter(m => m.id !== payload.old.id));
+            setMeetings((prev: any[]) => prev.filter((m: any) => m.id !== payload.old.id));
           }
         }
       )
@@ -142,7 +142,7 @@ export function StudentDashboardClient({
     };
   }, [supabase, profile.id, batchIds, router]);
 
-  const hasPhotos = journeyLogs.some(l => l.photo_url || l.photo_url_left || l.photo_url_right);
+  const hasPhotos = journeyLogs.some((l: any) => l.photo_url || l.photo_url_left || l.photo_url_right);
 
   return (
     <div className="min-h-full p-4 sm:p-6 lg:p-8 space-y-5 lg:space-y-6 font-jakarta">
@@ -233,7 +233,7 @@ export function StudentDashboardClient({
                   </div>
                 </div>
               ) : (
-                meetings.map((meeting, i) => (
+                meetings.map((meeting: any, i: number) => (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.97 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -317,8 +317,8 @@ export function StudentDashboardClient({
                 { id: 'Left', key: 'photo_url_left' },
                 { id: 'Front', key: 'photo_url' },
                 { id: 'Right', key: 'photo_url_right' }
-              ].map((angle) => {
-                const hasPhoto = journeyLogs.some(l => l[angle.key]);
+              ].map((angle: { id: string; key: string }) => {
+                const hasPhoto = journeyLogs.some((l: any) => l[angle.key]);
                 return (
                   <button
                     key={angle.id}
@@ -347,10 +347,10 @@ export function StudentDashboardClient({
                   { id: 'Left', key: 'photo_url_left' },
                   { id: 'Right', key: 'photo_url_right' }
                 ]
-                .filter(a => a.id === selectedAngle)
-                .map((angle) => {
-                  const beforeLog = journeyLogs.find(l => l[angle.key]);
-                  const afterLog = [...journeyLogs].reverse().find(l => l[angle.key]);
+                .filter((a: { id: string; key: string }) => a.id === selectedAngle)
+                .map((angle: { id: string; key: string }) => {
+                  const beforeLog = journeyLogs.find((l: any) => l[angle.key]);
+                  const afterLog = [...journeyLogs].reverse().find((l: any) => l[angle.key]);
                   
                   const before = beforeLog?.[angle.key];
                   const after = afterLog?.[angle.key];

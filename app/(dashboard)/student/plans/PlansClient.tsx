@@ -89,7 +89,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
             setIsInitialParamLoad(false);
         }
 
-        const popular = currentPlan.tiers.find((t: any) => t.badge === 'MOST POPULAR') || currentPlan.tiers[0];
+        const popular = currentPlan.tiers.find((t: { id: string; label: string; badge?: string; originalPrice?: number; discountedPrice: number }) => t.badge === 'MOST POPULAR') || currentPlan.tiers[0];
         setSelectedTierId(popular.id);
     }, [selectedPlanId, searchParams, isInitialParamLoad]);
 
@@ -156,8 +156,8 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
 
     const calculateTotal = () => {
         let total = currentTier.discountedPrice;
-        selectedBumps.forEach(bumpId => {
-            const bump = currentBumps.find(b => b.id === bumpId);
+        selectedBumps.forEach((bumpId: string) => {
+            const bump = currentBumps.find((b: { id: string; discountedPrice: number }) => b.id === bumpId);
             if (bump) total += bump.discountedPrice;
         });
 
@@ -370,7 +370,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
             const rzp = new window.Razorpay(options);
 
             // Handle payment errors reported by the Razorpay SDK
-            rzp.on('payment.failed', (response: any) => {
+            rzp.on('payment.failed', (response: { error: { description: string; reason: string } }) => {
                 const errorMsg = response?.error?.description || response?.error?.reason || 'Payment failed';
                 toast.error(`Payment failed: ${errorMsg}. Please try again with a different payment method.`);
                 setLoading(false);
@@ -890,8 +890,8 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                             <button 
                                                 key={bump.id}
                                                 onClick={() => {
-                                                    setSelectedBumps(prev => 
-                                                        prev.includes(bump.id) ? prev.filter(id => id !== bump.id) : [...prev, bump.id]
+                                                    setSelectedBumps((prev: string[]) => 
+                                                        prev.includes(bump.id) ? prev.filter((id: string) => id !== bump.id) : [...prev, bump.id]
                                                     );
                                                 }}
                                                 className={`
@@ -935,7 +935,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                             type="text" 
                                             placeholder="ENTER CODE" 
                                             value={couponCode}
-                                            onChange={(e) => {
+                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                                 setCouponCode(e.target.value.toUpperCase());
                                                 // Reset status when user types a new code
                                                 if (couponStatus) {

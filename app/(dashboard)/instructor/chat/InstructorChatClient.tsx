@@ -13,7 +13,7 @@ export function InstructorChatClient({ currentUser }: Props) {
     useState<ConversationWithDetails | null>(null);
 
   const getOtherParticipant = (conv: ConversationWithDetails) => {
-    const other = conv.participants?.find((p) => p.user_id !== currentUser.id);
+    const other = conv.participants?.find((p: any) => p.user_id !== currentUser.id);
     return other?.profile;
   };
 

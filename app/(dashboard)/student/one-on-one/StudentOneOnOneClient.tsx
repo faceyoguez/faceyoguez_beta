@@ -58,8 +58,8 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
     setActiveDay(currentDay);
   }, [currentDay]);
 
-  const activeLog = journeyLogs.find(l => l.day_number === activeDay);
-  const day1Log   = journeyLogs.find(l => l.day_number === 1);
+  const activeLog = journeyLogs.find((l: any) => l.day_number === activeDay);
+  const day1Log   = journeyLogs.find((l: any) => l.day_number === 1);
 
   useEffect(() => {
     if (hasSubscription && currentUser) {
@@ -83,7 +83,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
         .on(
           'postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'student_resources', filter: `student_id=eq.${currentUser.id}` },
-          (payload) => setResources((prev) => [payload.new as StudentResource, ...prev])
+          (payload: any) => setResources((prev: any[]) => [payload.new as StudentResource, ...prev])
         )
         .subscribe();
 
@@ -105,7 +105,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
         photos
       );
       if (success && data) {
-        setJourneyLogs(prev => [...prev.filter(l => l.day_number !== activeDay), data]);
+        setJourneyLogs((prev: any[]) => [...prev.filter((l: any) => l.day_number !== activeDay), data]);
         toast.success('Progress Saved! 📸', { description: `Your Day ${activeDay} photos have been uploaded.` });
       } else {
         toast.error('Failed to save photos');
@@ -120,7 +120,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
     setNotesInput(activeLog?.notes || '');
   }, [activeDay, activeLog]);
 
-  const studentMeetings = upcomingMeetings.filter(m => m.meeting_type === 'one_on_one');
+  const studentMeetings = upcomingMeetings.filter((m: MeetingWithDetails) => m.meeting_type === 'one_on_one');
   const nextMeeting = studentMeetings.length > 0 ? studentMeetings[0] : null;
   const [isJoinEnabled, setIsJoinEnabled] = useState(false);
 
@@ -274,7 +274,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                   currentDay={dayInMonth}
                   activeDay={((activeDay - 1) % 30) + 1}
                   onSelectDay={(day) => setActiveDay((currentMonth - 1) * 30 + day)}
-                  completedDays={new Set(journeyLogs.map(l => l.day_number).filter(d => Math.ceil(d / 30) === currentMonth).map(d => ((d - 1) % 30) + 1))}
+                  completedDays={new Set(journeyLogs.map((l: JourneyLog) => l.day_number).filter((d: number) => Math.ceil(d / 30) === currentMonth).map((d: number) => ((d - 1) % 30) + 1))}
                 />
               </div>
             </motion.div>
@@ -300,9 +300,9 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                 <AnglePhotoTracker
                   dayNumber={activeDay}
                   savedPhotos={{
-                    front: activeLog?.photo_url ?? [...journeyLogs].filter(l => l.photo_url).sort((a, b) => b.day_number - a.day_number)[0]?.photo_url ?? null,
-                    left:  activeLog?.photo_url_left ?? [...journeyLogs].filter(l => l.photo_url_left).sort((a, b) => b.day_number - a.day_number)[0]?.photo_url_left ?? null,
-                    right: activeLog?.photo_url_right ?? [...journeyLogs].filter(l => l.photo_url_right).sort((a, b) => b.day_number - a.day_number)[0]?.photo_url_right ?? null,
+                    front: activeLog?.photo_url ?? [...journeyLogs].filter((l: JourneyLog) => l.photo_url).sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0]?.photo_url ?? null,
+                    left:  activeLog?.photo_url_left ?? [...journeyLogs].filter((l: JourneyLog) => l.photo_url_left).sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0]?.photo_url_left ?? null,
+                    right: activeLog?.photo_url_right ?? [...journeyLogs].filter((l: JourneyLog) => l.photo_url_right).sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0]?.photo_url_right ?? null,
                   }}
                   day1Photos={{
                     front: day1Log?.photo_url ?? null,
@@ -381,7 +381,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
               </div>
               <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-2">
                 {resources.length > 0 ? (
-                  resources.map(res => (
+                  resources.map((res: StudentResource) => (
                     <div key={res.id} className="flex items-center justify-between p-3 rounded-xl bg-[#fef4f2] border border-slate-50 hover:border-[#e76f51]/15 transition-all">
                       <div className="flex items-center gap-3 truncate">
                         <div className="h-9 w-9 rounded-lg bg-white flex items-center justify-center text-[#e76f51] shadow-sm shrink-0">

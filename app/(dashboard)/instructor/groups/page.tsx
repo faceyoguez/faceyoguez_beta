@@ -30,7 +30,8 @@ export default async function InstructorGroupsPage() {
     getWaitingQueue(),
   ]);
 
-  const activeBatch = batches.find(b => b.status === 'active') || batches[0] || null;
+  const activeBatch = batches.find((b: any) => b.status === 'active') || batches[0] || null;
+
   const initialResources = activeBatch ? await getBatchResources(activeBatch.id) : [];
 
   return (

@@ -132,7 +132,7 @@ export async function fetchUserConversations(type?: ConversationType) {
 
   if (!participations || participations.length === 0) return [];
 
-  const conversationIds = participations.map(p => p.conversation_id);
+  const conversationIds = participations.map((p: { conversation_id: string }) => p.conversation_id);
 
   // 2. Fetch the full conversation details
   let query = admin
@@ -215,7 +215,7 @@ export async function getOrCreateStudentChat() {
 
   if (commonParts) {
     // We want a conversation where BOTH are participants
-    commonParts.forEach(p => {
+    commonParts.forEach((p: { conversation_id: string; user_id: string }) => {
       convCounts[p.conversation_id] = (convCounts[p.conversation_id] || 0) + 1;
     });
 
@@ -272,7 +272,7 @@ export async function getOrCreateDirectChat(studentId: string) {
   let commonId = null;
 
   if (commonParts) {
-    commonParts.forEach(p => {
+    commonParts.forEach((p: { conversation_id: string; user_id: string }) => {
       convCounts[p.conversation_id] = (convCounts[p.conversation_id] || 0) + 1;
     });
 
@@ -332,7 +332,7 @@ export async function getOrCreateSharedChat(studentId: string, assignedInstructo
     .from('profiles')
     .select('id')
     .or('role.eq.admin,role.eq.staff,role.eq.client_management,is_master_instructor.eq.true');
-  const oversightIds = oversightMembers?.map(m => m.id) || [];
+  const oversightIds = oversightMembers?.map((m: { id: string }) => m.id) || [];
 
   // 1. Find a direct conversation where the student is a participant.
   const { data: studentParts } = await admin
@@ -343,7 +343,7 @@ export async function getOrCreateSharedChat(studentId: string, assignedInstructo
   let sharedConvId: string | null = null;
 
   if (studentParts && studentParts.length > 0) {
-    const convIds = studentParts.map(p => p.conversation_id);
+    const convIds = studentParts.map((p: { conversation_id: string }) => p.conversation_id);
     const { data: convs } = await admin
       .from('conversations')
       .select('id, type')
@@ -389,10 +389,10 @@ export async function getOrCreateSharedChat(studentId: string, assignedInstructo
       .select('user_id')
       .eq('conversation_id', sharedConvId);
 
-    const currentPartIds = new Set(currentParts?.map(p => p.user_id) || []);
+    const currentPartIds = new Set(currentParts?.map((p: { user_id: string }) => p.user_id) || []);
     
     // Add missing oversight members
-    const missingIds = oversightIds.filter(id => !currentPartIds.has(id));
+    const missingIds = oversightIds.filter((id: string) => !currentPartIds.has(id));
     if (!currentPartIds.has(user.id)) missingIds.push(user.id);
     
     if (missingIds.length > 0) {
@@ -417,7 +417,7 @@ export async function getOrCreateDirectChatBetween(userId1: string, userId2: str
 
   if (commonParts) {
     const convCounts: Record<string, number> = {};
-    commonParts.forEach(p => {
+    commonParts.forEach((p: { conversation_id: string; user_id: string }) => {
       convCounts[p.conversation_id] = (convCounts[p.conversation_id] || 0) + 1;
     });
     const potentialIds = Object.keys(convCounts).filter(id => convCounts[id] === 2);
@@ -592,7 +592,7 @@ export async function fetchActiveOneOnOneStudents(instructorId: string) {
   const todayStr = new Date().toISOString().split('T')[0];
 
   const subsByStudent = new Map<string, any[]>();
-  for (const s of subscriptions) {
+  for (const s of (subscriptions as any[])) {
     const profile = Array.isArray(s.profiles) ? s.profiles[0] : s.profiles;
     if (!profile) continue;
     if (!subsByStudent.has(profile.id)) subsByStudent.set(profile.id, []);
@@ -639,10 +639,10 @@ export async function fetchActiveOneOnOneStudents(instructorId: string) {
   // 2. Find the shared direct conversation for each student.
   //    Staff AND master instructors must look up the conversation between the
   //    student's ASSIGNED instructor and the student (not their own ID).
-  const studentIds = uniqueStudentsWithSubs.map((s: any) => s.id);
+  const studentIds = uniqueStudentsWithSubs.map((s: { id: string }) => s.id);
   const useAssignedMatching = isStaffRole || isMaster;
   const assignedInstructorIds = useAssignedMatching
-    ? Array.from(new Set(uniqueStudentsWithSubs.map((s: any) => s.assignedInstructorId).filter(Boolean)))
+    ? Array.from(new Set(uniqueStudentsWithSubs.map((s: { assignedInstructorId: string | null }) => s.assignedInstructorId).filter((id): id is string => !!id)))
     : [];
 
   const queryUserIds = Array.from(new Set([instructorId, ...studentIds, ...assignedInstructorIds]));
@@ -658,21 +658,21 @@ export async function fetchActiveOneOnOneStudents(instructorId: string) {
   }
 
   // 3. Filter for direct conversations
-  const convIds = Array.from(new Set(allParticipants.map(p => p.conversation_id)));
+  const convIds = Array.from(new Set(allParticipants.map((p: { conversation_id: string }) => p.conversation_id)));
   const { data: conversations } = await admin
     .from('conversations')
     .select('id, type')
     .in('id', convIds)
     .eq('type', 'direct');
 
-  const directConvIds = new Set(conversations?.map(c => c.id) || []);
+  const directConvIds = new Set(conversations?.map((c: { id: string }) => c.id) || []);
 
   // 4. Match students to conversations.
   // We want the primary direct conversation for the student.
   const result = uniqueStudentsWithSubs.map((student: any) => {
     const studentConvs = allParticipants
-      .filter((p: any) => p.user_id === student.id)
-      .map((p: any) => p.conversation_id);
+      .filter((p: { conversation_id: string; user_id: string }) => p.user_id === student.id)
+      .map((p: { conversation_id: string; user_id: string }) => p.conversation_id);
 
     // find a direct conversation that the student is part of
     const commonConvId = studentConvs.find((id: string) => directConvIds.has(id));

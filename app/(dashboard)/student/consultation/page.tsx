@@ -159,7 +159,7 @@ export default function StudentConsultationPage() {
       });
       const data = await res.json();
       if (data.message) {
-        setMessages(prev => [...prev, data.message]);
+        setMessages((prev: ConsultationMessageWithSender[]) => [...prev, data.message]);
         setTimeout(scrollToBottom, 50);
       }
     } catch {
@@ -221,7 +221,7 @@ export default function StudentConsultationPage() {
               { icon: MessageCircle, title: 'Private Chat', desc: 'Direct messaging' },
               { icon: Video, title: 'Zoom Call', desc: 'Face-to-face video' },
               { icon: Sparkles, title: '₹999 Credit', desc: 'Deducted from plans' },
-            ].map((item, i) => (
+            ].map((item: { icon: any; title: string; desc: string }, i: number) => (
               <div key={i} className="bg-slate-50/50 rounded-2xl p-5 border border-slate-100 space-y-2 text-center">
                 <item.icon className="w-5 h-5 text-[#FF8A75] mx-auto" />
                 <p className="font-bold text-xs text-slate-900 uppercase tracking-widest">{item.title}</p>
@@ -378,7 +378,7 @@ export default function StudentConsultationPage() {
                 <p>No messages yet. Say hi! 👋</p>
               </div>
             )}
-            {messages.map((msg) => {
+            {messages.map((msg: ConsultationMessageWithSender) => {
               const isStaff = msg.sender?.role !== 'student';
               const isSystem = msg.content_type === 'system';
 

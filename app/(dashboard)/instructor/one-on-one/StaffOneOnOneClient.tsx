@@ -78,8 +78,8 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
   const [activeStepDay, setActiveStepDay] = useState<number>(1);
 
   // Derived journey variables
-  const activeLog = journeyLogs.find((l) => l.day_number === activeStepDay);
-  const day1Log   = journeyLogs.find((l) => l.day_number === 1);
+  const activeLog = journeyLogs.find((l: JourneyLog) => l.day_number === activeStepDay);
+  const day1Log   = journeyLogs.find((l: JourneyLog) => l.day_number === 1);
 
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedInstructorId, setSelectedInstructorId] = useState('');
@@ -107,7 +107,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
 
   const getInstructorName = (instructorId: string | null | undefined) => {
     if (!instructorId) return null;
-    return instructors.find((i) => i.id === instructorId)?.full_name || null;
+    return instructors.find((i: Profile) => i.id === instructorId)?.full_name || null;
   };
 
   useEffect(() => {
@@ -135,7 +135,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
     const channel = supabase
       .channel(`staff-resources:${selectedStudent.id}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'student_resources', filter: `student_id=eq.${selectedStudent.id}` },
-        (payload) => setResources((prev) => [payload.new as StudentResource, ...prev]))
+        (payload: any) => setResources((prev: StudentResource[]) => [payload.new as StudentResource, ...prev]))
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
@@ -157,15 +157,15 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
     try {
       const assignedInstructorId =
         fromStudent?.assignedInstructorId ||
-        students.find((s) => s.id === studentId)?.assignedInstructorId || null;
+        students.find((s: StudentInfo) => s.id === studentId)?.assignedInstructorId || null;
       const { conversationId } = await getOrCreateSharedChat(studentId, assignedInstructorId);
 
-      const fromSearch = globalSearchResults.find((s) => s.id === studentId);
+      const fromSearch = globalSearchResults.find((s: { id: string; full_name: string; email: string; avatar_url: string | null }) => s.id === studentId);
       const source = fromStudent || fromSearch;
       if (source) {
         setSelectedStudent({ conversationId, id: source.id, full_name: source.full_name, avatar_url: source.avatar_url, email: source.email });
       } else {
-        setSelectedStudent((prev) => prev ? { ...prev, conversationId } : prev);
+        setSelectedStudent((prev: StudentInfo | null) => prev ? { ...prev, conversationId } : prev);
       }
       setGlobalSearchQuery(''); setGlobalSearchResults([]);
     } catch (e) { console.error(e); }
@@ -182,7 +182,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
       const base64Data = Buffer.from(buffer).toString('base64');
       const result = await uploadResource(selectedStudent.id, file.name, file.type, file.size, base64Data);
       if (result.success && result.data) {
-        setResources((prev) => [result.data!, ...prev]);
+        setResources((prev: StudentResource[]) => [result.data!, ...prev]);
         toast.success('Document shared successfully');
       } else toast.error(result.error || 'Failed to share');
     } catch (err) { toast.error('Error sharing document'); }
@@ -196,7 +196,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
       await assignInstructor(selectedStudent.subscriptionId, selectedInstructorId);
       toast.success('Instructor assigned successfully!');
       setShowAssignModal(false);
-      setSelectedStudent((prev) => prev ? { ...prev, assignedInstructorId: selectedInstructorId } : prev);
+      setSelectedStudent((prev: StudentInfo | null) => prev ? { ...prev, assignedInstructorId: selectedInstructorId } : prev);
     } catch (e: any) { toast.error(e.message || 'Failed to assign instructor'); }
     setIsAssigning(false);
   };
@@ -280,8 +280,8 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
           <div className="flex gap-1 bg-white/40 backdrop-blur-xl p-1 rounded-2xl border border-outline-variant/10 shadow-sm">
             {[
               { id: 'all', label: 'All', count: students.length },
-              { id: 'trial', label: 'Trial', count: students.filter(s => s.isTrial).length },
-              { id: 'paid', label: 'Paid', count: students.filter(s => !s.isTrial).length }
+              { id: 'trial', label: 'Trial', count: students.filter((s: StudentInfo) => s.isTrial).length },
+              { id: 'paid', label: 'Paid', count: students.filter((s: StudentInfo) => !s.isTrial).length }
             ].map((f) => (
               <button
                 key={f.id}
@@ -467,14 +467,14 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                             currentDay={Math.min(30, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate!).getTime()) / 86400000) + 1))}
                             activeDay={activeStepDay}
                             onSelectDay={(day) => setActiveStepDay(day)}
-                            completedDays={new Set(journeyLogs.map(l => l.day_number))}
+                            completedDays={new Set(journeyLogs.map((l: JourneyLog) => l.day_number))}
                           />
                           <AnglePhotoViewer
                           dayNumber={activeStepDay}
                           photos={{
-                            front: activeLog?.photo_url ?? [...journeyLogs].filter(l => l.photo_url).sort((a, b) => b.day_number - a.day_number)[0]?.photo_url ?? null,
-                            left:  activeLog?.photo_url_left ?? [...journeyLogs].filter(l => l.photo_url_left).sort((a, b) => b.day_number - a.day_number)[0]?.photo_url_left ?? null,
-                            right: activeLog?.photo_url_right ?? [...journeyLogs].filter(l => l.photo_url_right).sort((a, b) => b.day_number - a.day_number)[0]?.photo_url_right ?? null,
+                            front: activeLog?.photo_url ?? [...journeyLogs].filter((l: JourneyLog) => l.photo_url).sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0]?.photo_url ?? null,
+                            left:  activeLog?.photo_url_left ?? [...journeyLogs].filter((l: JourneyLog) => l.photo_url_left).sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0]?.photo_url_left ?? null,
+                            right: activeLog?.photo_url_right ?? [...journeyLogs].filter((l: JourneyLog) => l.photo_url_right).sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0]?.photo_url_right ?? null,
                           }}
                           day1Photos={{
                             front: day1Log?.photo_url ?? null,
@@ -502,7 +502,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                             </p>
                             <div className="mt-8 pt-6 border-t border-outline-variant/5 flex items-center justify-between">
                               <div className="flex -space-x-2">
-                                {[1, 2, 3].map(i => <div key={i} className="h-6 w-6 rounded-full border-2 border-white bg-primary/10" />)}
+                                {[1, 2, 3].map((i: any) => <div key={i} className="h-6 w-6 rounded-full border-2 border-white bg-primary/10" />)}
                               </div>
                               <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20">On track</span>
                             </div>

@@ -25,8 +25,21 @@ import type { Profile, MeetingWithDetails, BatchPoll, RecordedSession } from '..
 
 interface StudentGroupClientProps {
     currentUser: Profile;
-    activeBatch: any;
-    initialResources: any[];
+    activeBatch: {
+        id: string;
+        name: string;
+        start_date: string;
+        end_date?: string;
+        is_chat_enabled: boolean;
+        instructor_id?: string;
+        enrollment_count?: number;
+        instructor?: {
+            id: string;
+            full_name: string;
+            avatar_url: string | null;
+        };
+    };
+    initialResources: { id: string; file_url: string; title?: string; file_name: string }[];
     isTrialAccess?: boolean;
     trialEndDate?: string | null;
     subscriptionStartDate?: string | null;
@@ -53,8 +66,8 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
     const [notesInput, setNotesInput] = useState('');
     const [isSavingLog, setIsSavingLog] = useState(false);
 
-    const activeLog = journeyLogs.find(l => l.day_number === activeStepDay);
-    const day1Log   = journeyLogs.find(l => l.day_number === 1);
+    const activeLog = journeyLogs.find((l: JourneyLog) => l.day_number === activeStepDay);
+    const day1Log   = journeyLogs.find((l: JourneyLog) => l.day_number === 1);
 
     const currentDay = React.useMemo(() => {
         const anchorDateStr = activeBatch?.start_date || subscriptionStartDate;
@@ -105,17 +118,17 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                     table: 'batch_messages',
                     filter: `batch_id=eq.${activeBatch.id}`
                 },
-                async (payload: any) => {
+                async (payload: { new: { sender_id: string; message_type?: string; poll_id?: string } }) => {
                     const { data: profile } = await supabase
                         .from('profiles')
                         .select('id, full_name, avatar_url, role')
                         .eq('id', payload.new.sender_id)
                         .single();
-                    setMessages(prev => [...prev, { ...payload.new, sender: profile }]);
+                    setMessages((prev: any[]) => [...prev, { ...payload.new, sender: profile }]);
 
                     if (payload.new.message_type === 'poll' && payload.new.poll_id) {
                         const pollData = await getPollById(payload.new.poll_id, currentUser.id);
-                        if (pollData) setPolls(prev => ({ ...prev, [pollData.id]: pollData }));
+                        if (pollData) setPolls((prev: Record<string, BatchPoll>) => ({ ...prev, [pollData.id]: pollData }));
                     }
                 }
             )
@@ -126,11 +139,11 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
             .on(
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'batch_poll_votes' },
-                async (payload: any) => {
+                async (payload: { new?: { poll_id?: string } }) => {
                     const pollId = payload.new?.poll_id;
                     if (!pollId) return;
                     const updated = await getPollById(pollId, currentUser.id);
-                    if (updated) setPolls(prev => ({ ...prev, [pollId]: updated }));
+                    if (updated) setPolls((prev: Record<string, BatchPoll>) => ({ ...prev, [pollId]: updated }));
                 }
             )
             .subscribe();
@@ -179,7 +192,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
 
     useEffect(() => {
         if (!isChatOpen && messages.length > 0) {
-            setUnreadCount(prev => prev + 1);
+            setUnreadCount((prev: number) => prev + 1);
         }
     }, [messages]);
 
@@ -192,7 +205,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
         const res = await votePoll(pollId, optionId);
         if (res.success) {
             const updated = await getPollById(pollId, currentUser.id);
-            if (updated) setPolls(prev => ({ ...prev, [pollId]: updated }));
+            if (updated) setPolls((prev: Record<string, BatchPoll>) => ({ ...prev, [pollId]: updated }));
         }
         setVotingPollId(null);
     };
@@ -213,12 +226,12 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
         setIsSavingLog(true);
         const { success, data } = await saveDailyCheckIn(currentUser.id, activeStepDay, null, null, null, photos);
         if (success && data) {
-            setJourneyLogs(prev => [...prev.filter(l => l.day_number !== activeStepDay), data]);
+            setJourneyLogs((prev: JourneyLog[]) => [...prev.filter((l: JourneyLog) => l.day_number !== activeStepDay), data]);
         }
         setIsSavingLog(false);
     };
 
-    const nextBatchMeeting = upcomingMeetings.find(m => m.batch_id === activeBatch?.id);
+    const nextBatchMeeting = upcomingMeetings.find((m: MeetingWithDetails) => m.batch_id === activeBatch?.id);
     const [isJoinEnabled, setIsJoinEnabled] = useState(false);
 
     useEffect(() => {
@@ -244,7 +257,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
             </div>
 
             <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6 custom-scrollbar">
-                {messages.map((msg) => {
+                {messages.map((msg: any) => {
                     const sender = msg.sender || msg.profiles || msg.senderProfile || {};
                     const isOwn = msg.sender_id === currentUser.id;
                     const isPoll = msg.message_type === 'poll';
@@ -279,7 +292,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                             )}
 
                             {isPoll ? (
-                                poll && <div className="w-full"><PollCard poll={poll} isAdmin={false} onVote={(id) => handleVotePoll(poll.id, id)} isVoting={votingPollId === poll.id} /></div>
+                                poll && <div className="w-full"><PollCard poll={poll} isAdmin={false} onVote={(id: string) => handleVotePoll(poll.id, id)} isVoting={votingPollId === poll.id} /></div>
                             ) : (
                                 <div className={cn(
                                     "max-w-[90%] px-4 py-2.5 rounded-2xl text-[13px] font-medium leading-relaxed border shadow-sm",
@@ -302,8 +315,8 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                         <input
                             type="text"
                             value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewMessage(e.target.value)}
+                            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleSendMessage()}
                             placeholder="Type a message..."
                             className="w-full h-12 pl-5 pr-12 rounded-xl bg-white border border-outline-variant/10 text-[13px] text-foreground font-medium placeholder:text-foreground/20 focus:ring-2 focus:ring-primary/10 focus:outline-none transition-all shadow-sm group-hover:border-primary/20"
                         />
@@ -423,7 +436,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                         </div>
                         <div className="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-1">
                             {initialResources.length > 0 ? (
-                                initialResources.map((res: any) => (
+                                initialResources.map((res: { id: string; file_url: string; title?: string; file_name: string }) => (
                                     <button key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="w-full flex items-center gap-3 p-3 bg-slate-50/50 border border-slate-100/50 rounded-xl hover:border-[#e76f51]/20 hover:bg-white hover:shadow-sm transition-all text-left group">
                                         <div className="h-8 w-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-300 group-hover:text-[#e76f51] transition-colors">
                                             <Download className="w-3.5 h-3.5" />
@@ -453,7 +466,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                             <PlayCircle className="w-4 h-4 text-slate-300" />
                         </div>
                         <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar pr-1">
-                            {recordings.map((rec) => (
+                            {recordings.map((rec: RecordedSession) => (
                                 <button key={rec.id} onClick={() => rec.is_available && window.open(rec.play_url!, '_blank')} className="w-full flex items-center gap-3 p-3 bg-slate-50/50 border border-slate-100/50 rounded-xl hover:border-[#e76f51]/20 hover:bg-white hover:shadow-sm transition-all text-left group">
                                     <div className="h-10 w-16 rounded-lg bg-slate-200/50 overflow-hidden relative shrink-0">
                                         <div className="absolute inset-0 flex items-center justify-center">
@@ -538,7 +551,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                 currentDay={currentDayInMonth}
                                 activeDay={activeStepDay}
                                 onSelectDay={(day) => setActiveStepDay(day)}
-                                completedDays={new Set(journeyLogs.map(l => l.day_number).filter(d => Math.ceil(d / 30) === currentMonth).map(d => ((d - 1) % 30) + 1))}
+                                completedDays={new Set(journeyLogs.map((l: JourneyLog) => l.day_number).filter((d: number) => Math.ceil(d / 30) === currentMonth).map((d: number) => ((d - 1) % 30) + 1))}
                             />
 
                             {/* 3-Angle Photo Tracker */}
@@ -550,9 +563,9 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                 <AnglePhotoTracker
                                     dayNumber={activeStepDay}
                                     savedPhotos={{
-                                        front: activeLog?.photo_url ?? [...journeyLogs].filter(l => l.photo_url).sort((a, b) => b.day_number - a.day_number)[0]?.photo_url ?? null,
-                                        left:  activeLog?.photo_url_left ?? [...journeyLogs].filter(l => l.photo_url_left).sort((a, b) => b.day_number - a.day_number)[0]?.photo_url_left ?? null,
-                                        right: activeLog?.photo_url_right ?? [...journeyLogs].filter(l => l.photo_url_right).sort((a, b) => b.day_number - a.day_number)[0]?.photo_url_right ?? null,
+                                        front: activeLog?.photo_url ?? [...journeyLogs].filter((l: JourneyLog) => l.photo_url).sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0]?.photo_url ?? null,
+                                        left:  activeLog?.photo_url_left ?? [...journeyLogs].filter((l: JourneyLog) => l.photo_url_left).sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0]?.photo_url_left ?? null,
+                                        right: activeLog?.photo_url_right ?? [...journeyLogs].filter((l: JourneyLog) => l.photo_url_right).sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0]?.photo_url_right ?? null,
                                     }}
                                     day1Photos={{
                                         front: day1Log?.photo_url ?? null,

@@ -265,8 +265,9 @@ export default async function InstructorDashboardPage() {
                 <p className="text-sm font-bold text-slate-300">Your session schedule is currently clear for today.</p>
               </div>
             ) : (
-              todaysMeetings.map((meeting) => {
+              todaysMeetings.map((meeting: any) => {
                 const isLive = isMeetingLive(meeting.start_time, meeting.duration_minutes);
+
                 const isUpcoming = isMeetingUpcoming(meeting.start_time);
 
                 return (
@@ -323,7 +324,8 @@ export default async function InstructorDashboardPage() {
                  <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
                     <h3 className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-4">Batch Allocation</h3>
                     <div className="space-y-3">
-                       {activeBatches.map(batch => (
+                       {activeBatches.map((batch: any) => (
+
                           <div key={batch.id} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100 group hover:border-[#FF8A75]/30 transition-all">
                              <div className="flex items-center gap-3">
                                 <div className="h-8 w-8 rounded-lg bg-white flex items-center justify-center text-[#FF8A75] shadow-sm"><Users className="w-4 h-4"/></div>
@@ -344,8 +346,9 @@ export default async function InstructorDashboardPage() {
                  <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
                     <h3 className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-4">Instructor Tasklist</h3>
                     <div className="space-y-3">
-                       {instructorAllocations.map(alloc => (
+                       {instructorAllocations.map((alloc: any) => (
                           <div key={alloc.instructor?.full_name} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100">
+
                              <div className="flex items-center gap-3">
                                 <div className="h-8 w-8 rounded-lg overflow-hidden bg-slate-200">
                                    {alloc.instructor?.avatar_url 
@@ -377,8 +380,9 @@ export default async function InstructorDashboardPage() {
                 <p className="text-[8px] font-black uppercase tracking-widest text-[#1a1a1a]">No fresh assignments</p>
               </div>
             ) : (
-              newAllocations.map(alloc => {
+              newAllocations.map((alloc: any) => {
                 const student = Array.isArray(alloc.student) ? alloc.student[0] : alloc.student;
+
                 return (
                   <div key={alloc.id} className="group p-4 bg-white border border-[#FF8A75]/5 rounded-3xl flex items-center justify-between hover:shadow-xl hover:shadow-[#FF8A75]/10 hover:border-[#FF8A75]/20 transition-all duration-700">
                     <div className="flex items-center gap-3">

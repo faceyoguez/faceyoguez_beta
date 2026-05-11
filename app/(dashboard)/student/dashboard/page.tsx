@@ -63,7 +63,7 @@ export default async function StudentDashboardPage() {
   }
 
   const todaysMeetings = [...oneOnOneMeetings, ...groupMeetings]
-    .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+    .sort((a: any, b: any) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
 
   // ─── Compute derived state ───
   const joinedDate = subscriptions.length > 0 && subscriptions[0].start_date

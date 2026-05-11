@@ -74,7 +74,7 @@ export function CourseCreator({ userId }: CourseCreatorProps) {
                 <div className="space-y-2">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/40 ml-1">Difficulty Level</label>
                     <div className="flex gap-3 h-14">
-                        {[1, 2].map((lvl) => (
+                        {[1, 2].map((lvl: any) => (
                         <button
                             key={lvl}
                             type="button"

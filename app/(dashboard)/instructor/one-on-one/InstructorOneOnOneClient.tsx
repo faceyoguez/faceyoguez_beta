@@ -86,7 +86,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
           : 1;
         setActiveStepDay(currentDay);
         
-        const currentLog = logsData.find(l => l.day_number === currentDay);
+        const currentLog = logsData.find((l: JourneyLog) => l.day_number === currentDay);
         setNotes(currentLog?.notes || '');
 
       } catch (e) {
@@ -104,8 +104,9 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'student_resources', filter: `student_id=eq.${selectedStudent.id}` },
-        (payload) => setResources(prev => [payload.new as StudentResource, ...prev])
+        (payload: { new: StudentResource }) => setResources((prev: StudentResource[]) => [payload.new, ...prev])
       )
+
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
@@ -132,18 +133,18 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
     if (!selectedStudent) return;
     try {
       const { conversationId } = await getOrCreateSharedChat(selectedStudent.id, selectedStudent.assignedInstructorId || null);
-      setSelectedStudent(prev => prev ? { ...prev, conversationId } : null);
+      setSelectedStudent((prev: StudentInfo | null) => prev ? { ...prev, conversationId } : null);
     } catch (e) {
       console.error("Failed to start chat", e);
     }
   };
 
-  const filteredStudents = students.filter(s => 
+  const filteredStudents = students.filter((s: StudentInfo) => 
     s.full_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const activeLog = journeyLogs.find(l => l.day_number === activeStepDay);
-  const day1Log   = journeyLogs.find(l => l.day_number === 1);
+  const activeLog = journeyLogs.find((l: JourneyLog) => l.day_number === activeStepDay);
+  const day1Log   = journeyLogs.find((l: JourneyLog) => l.day_number === 1);
 
   return (
     <div className="flex flex-col h-[100dvh] bg-[#FFFAF7] text-[#1a1a1a] selection:bg-[#FF8A75]/10 overflow-hidden font-jakarta relative">
@@ -207,7 +208,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
             
             <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="hidden lg:block text-[8px] font-black uppercase tracking-[0.4em] text-slate-400 shrink-0 mr-6">Students</motion.span>
             <div className="flex-1 flex flex-col lg:flex-row items-stretch lg:items-center gap-3 overflow-y-auto lg:overflow-x-auto no-scrollbar py-2" ref={compassScrollRef}>
-               {filteredStudents.map((student, idx) => {
+               {filteredStudents.map((student: StudentInfo, idx: number) => {
                   const isSelected = selectedStudent?.id === student.id;
                   const currentDay = student.startDate ? Math.max(1, Math.floor((Date.now() - new Date(student.startDate).getTime()) / 86400000) + 1) : 1;
                   return (
@@ -297,14 +298,14 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                               currentDay={Math.min(30, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent!.startDate!).getTime()) / 86400000) + 1))}
                               activeDay={activeStepDay}
                               onSelectDay={(day) => setActiveStepDay(day)}
-                              completedDays={new Set(journeyLogs.map(l => l.day_number))}
+                              completedDays={new Set(journeyLogs.map((l: JourneyLog) => l.day_number))}
                            />
                            <AnglePhotoViewer
                            dayNumber={activeStepDay}
                            photos={{
-                              front: activeLog?.photo_url ?? [...journeyLogs].filter(l => l.photo_url).sort((a, b) => b.day_number - a.day_number)[0]?.photo_url ?? null,
-                              left:  activeLog?.photo_url_left ?? [...journeyLogs].filter(l => l.photo_url_left).sort((a, b) => b.day_number - a.day_number)[0]?.photo_url_left ?? null,
-                              right: activeLog?.photo_url_right ?? [...journeyLogs].filter(l => l.photo_url_right).sort((a, b) => b.day_number - a.day_number)[0]?.photo_url_right ?? null,
+                              front: activeLog?.photo_url ?? [...journeyLogs].filter((l: JourneyLog) => l.photo_url).sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0]?.photo_url ?? null,
+                              left:  activeLog?.photo_url_left ?? [...journeyLogs].filter((l: JourneyLog) => l.photo_url_left).sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0]?.photo_url_left ?? null,
+                              right: activeLog?.photo_url_right ?? [...journeyLogs].filter((l: JourneyLog) => l.photo_url_right).sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0]?.photo_url_right ?? null,
                            }}
                            day1Photos={{
                               front: day1Log?.photo_url ?? null,
@@ -364,7 +365,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
 
                         <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-2">
                            <AnimatePresence>
-                              {resources.map((res, i) => (
+                              {resources.map((res: StudentResource, i: number) => (
                                   <motion.button 
                                      initial={{ opacity: 0, x: 10 }}
                                      animate={{ opacity: 1, x: 0 }}
