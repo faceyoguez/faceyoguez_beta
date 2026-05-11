@@ -1,12 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 export async function GET(request: Request) {
+    const supabase = createAdminClient();
+
     const { searchParams } = new URL(request.url);
     const code = searchParams.get('code');
     const planType = searchParams.get('planType');
