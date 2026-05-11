@@ -61,14 +61,16 @@ export default async function InstructorDashboardPage() {
   let rejoineesCount = 0;
 
   if (recentSubs && recentSubs.length > 0) {
-    const recentStudentIds = [...new Set(recentSubs.map(s => s.student_id))];
+    const recentStudentIds = [...new Set(recentSubs.map((s: any) => s.student_id))];
+
     const { data: pastSubs } = await admin
       .from('subscriptions')
       .select('student_id')
       .in('student_id', recentStudentIds)
       .lt('created_at', startOfThisMonth);
 
-    const studentsWithPastData = new Set((pastSubs || []).map(s => s.student_id));
+    const studentsWithPastData = new Set((pastSubs || []).map((s: any) => s.student_id));
+
     recentStudentIds.forEach(id => {
       if (studentsWithPastData.has(id)) rejoineesCount++;
       else newJoineesCount++;
@@ -154,7 +156,8 @@ export default async function InstructorDashboardPage() {
       .in('status', ['active', 'pending'])
       .not('assigned_instructor_id', 'is', null);
     const instructorMap = new Map();
-    (active1on1Subs || []).forEach(sub => {
+    (active1on1Subs || []).forEach((sub: any) => {
+
       const instructorId = sub.assigned_instructor_id;
       if (!instructorMap.has(instructorId)) {
         instructorMap.set(instructorId, {
