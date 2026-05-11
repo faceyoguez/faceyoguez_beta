@@ -1,6 +1,8 @@
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
 import PlansClient from './PlansClient';
+
 
 export default async function PlansPage() {
     const supabase = await createServerSupabaseClient();
@@ -37,12 +39,15 @@ export default async function PlansPage() {
     const activeSubscription = allSubscriptions?.filter(s => ['active', 'pending'].includes(s.status)) || [];
 
     return (
-        <PlansClient
-            currentSubscription={activeSubscription}
-            userId={user.id}
-            currentUser={profile}
-            hasUsedTrial={hasUsedTrial}
-            hasActiveSubscription={hasActiveSubscription}
-        />
+        <Suspense fallback={<div>Loading Plans...</div>}>
+            <PlansClient
+                currentSubscription={activeSubscription}
+                userId={user.id}
+                currentUser={profile}
+                hasUsedTrial={hasUsedTrial}
+                hasActiveSubscription={hasActiveSubscription}
+            />
+        </Suspense>
     );
+
 }
