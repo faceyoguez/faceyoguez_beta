@@ -4,8 +4,15 @@ import { motion } from 'framer-motion';
 import { Check, ArrowRight, Sparkles, BookOpen, Monitor, Clock, Play, Layers, Smartphone, Download, Unlock, ShieldCheck, Heart } from 'lucide-react';
 import { PlanNavigation } from '@/components/marketing/PlanNavigation';
 import { LuxuryBackground } from '@/components/marketing/LuxuryBackground';
+import { useEffect } from 'react';
+import { pixel } from '@/lib/pixel';
 
 export default function VideoCoursesPage() {
+  useEffect(() => {
+    pixel.viewContent({ contentName: 'Video Courses Plan Page', contentIds: ['lms'] });
+    pixel.planPageView('video_courses');
+  }, []);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.05, delayChildren: 0.1 } }
@@ -224,6 +231,7 @@ export default function VideoCoursesPage() {
 
                <button 
                   onClick={() => {
+                    pixel.initiateCheckout({ value: 1499, planId: 'lms', planLabel: 'Video Courses — L1+L2' });
                     const redirectPath = encodeURIComponent('/student/plans?plan=lms');
                     window.location.href = `/auth/signup?redirectTo=${redirectPath}`;
                   }}
@@ -251,6 +259,7 @@ export default function VideoCoursesPage() {
            </h2>
            <button 
               onClick={() => {
+                pixel.initiateCheckout({ value: 1499, planId: 'lms', planLabel: 'Video Courses — Footer CTA' });
                 const redirectPath = encodeURIComponent('/student/plans?plan=lms');
                 window.location.href = `/auth/signup?redirectTo=${redirectPath}`;
               }}

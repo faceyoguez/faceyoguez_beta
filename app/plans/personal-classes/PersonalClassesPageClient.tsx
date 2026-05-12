@@ -6,6 +6,7 @@ import { Check, ArrowRight, Sparkles, Star, Target, MessageCircle, Calendar, Shi
 import { PlanNavigation } from '@/components/marketing/PlanNavigation';
 import { LuxuryBackground } from '@/components/marketing/LuxuryBackground';
 import { toast } from 'sonner';
+import { pixel } from '@/lib/pixel';
 
 declare global {
   interface Window {
@@ -38,6 +39,11 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
   const [loading, setLoading] = useState(false);
   const [consultLoading, setConsultLoading] = useState(false);
   const [showConsultModal, setShowConsultModal] = useState(false);
+
+  useEffect(() => {
+    pixel.viewContent({ contentName: 'Personal Classes Plan Page', contentIds: ['one_on_one'] });
+    pixel.planPageView('personal_classes');
+  }, []);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -122,6 +128,7 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
           });
           const data = await verifyRes.json();
           if (data.success) {
+            pixel.consultationBooked({ amount: CONSULTATION_PRICE });
             toast.success('Consultation booked! 🎉', {
               description: 'Your ₹999 credit is active. Our team will connect with you shortly.',
             });
@@ -191,6 +198,7 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
           });
           const data = await verifyRes.json();
           if (data.success) {
+            pixel.purchase({ value: finalAmount, planId: 'one_on_one', planLabel: tier.label, paymentId: response.razorpay_payment_id });
             toast.success('Plan activated! 🎉', {
               description: hasCredit ? 'Your ₹999 consultation credit was applied!' : 'Welcome to the Faceyoguez family!',
             });
@@ -449,6 +457,7 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
                 {/* Main subscribe button */}
                 <button
                   onClick={() => {
+                    pixel.initiateCheckout({ value: TIERS[1].disc, planId: 'one_on_one', planLabel: TIERS[1].label });
                     if (!userId) {
                       const redirectPath = encodeURIComponent(`/student/plans?plan=one_on_one&tierIdx=1`);
                       window.location.href = `/auth/signup?redirectTo=${redirectPath}`;

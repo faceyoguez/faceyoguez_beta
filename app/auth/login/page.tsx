@@ -10,6 +10,7 @@ import AuthLayout from '@/components/auth/AuthLayout';
 import AuthInput from '@/components/auth/AuthInput';
 import AuthButton from '@/components/auth/AuthButton';
 import { getRoleRedirectPath, fetchUserRole } from '@/lib/utils/auth';
+import { pixel } from '@/lib/pixel';
 
 const GoogleIcon = () => (
   <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -69,6 +70,7 @@ function LoginContent() {
     toast.success('Successfully logged in!', {
       description: 'Welcome back to your face yoga sanctuary.',
     });
+    pixel.loginSuccess();
     router.push(redirectPath);
     router.refresh();
   };

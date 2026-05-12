@@ -12,6 +12,7 @@ import AuthInput from '@/components/auth/AuthInput';
 import AuthButton from '@/components/auth/AuthButton';
 import { getRoleRedirectPath } from '@/lib/utils/auth';
 import { useSearchParams } from 'next/navigation';
+import { pixel } from '@/lib/pixel';
 
 
 const GoogleIcon = () => (
@@ -58,6 +59,8 @@ export default function SignUpForm() {
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
     setErrors({});
+    // Pixel: signal lead intent when user submits the form
+    pixel.lead({ source: 'signup_form' });
     
     // Zod validation
     const result = formSchema.safeParse({ fullName, email, phone, password });
@@ -119,6 +122,9 @@ export default function SignUpForm() {
     toast.success('Account created successfully!', {
       description: 'Welcome to Faceyoguez.',
     });
+
+    // Pixel: account fully created & logged in
+    pixel.completeRegistration({ method: 'email' });
 
     // Fire welcome email — non-blocking, doesn't delay login redirect
     fetch('/api/auth/welcome', { method: 'POST' }).catch(() => {});

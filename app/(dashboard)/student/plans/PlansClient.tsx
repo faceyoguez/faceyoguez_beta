@@ -15,6 +15,7 @@ import {
 import { activateTrial } from '@/app/actions/plans';
 import type { Profile } from '@/types/database';
 import { consumeCouponAction } from '@/lib/actions/coupons';
+import { pixel } from '@/lib/pixel';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPERS
@@ -96,12 +97,8 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
 
     // Meta Pixel & Supabase Analytics: Track pricing page view
     useEffect(() => {
-        if (typeof window !== 'undefined' && window.fbq) {
-            window.fbq('track', 'ViewContent', {
-                content_name: 'Pricing Page',
-                content_type: 'product',
-            });
-        }
+        pixel.viewContent({ contentName: 'Pricing Page', contentType: 'product' });
+        pixel.planPageView('student_plans');
         
         import('@/lib/conversionTracking').then(({ trackConversionEvent }) => {
             trackConversionEvent({
@@ -321,15 +318,12 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                         }
 
                         // ── Step 6: Track successful purchase ─────────────
-                        if (typeof window !== 'undefined' && window.fbq) {
-                            window.fbq('track', 'Purchase', {
-                                value: totalAmount,
-                                currency: 'INR',
-                                content_name: currentPlan.title,
-                                content_ids: [selectedPlanId],
-                                transaction_id: response.razorpay_payment_id,
-                            });
-                        }
+                        pixel.purchase({
+                            value: totalAmount,
+                            planId: selectedPlanId,
+                            planLabel: currentPlan.title,
+                            paymentId: response.razorpay_payment_id,
+                        });
 
                         import('@/lib/conversionTracking').then(({ trackConversionEvent }) => {
                             trackConversionEvent({
@@ -401,13 +395,11 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
             return;
         }
         // Meta Pixel: Track checkout initiation
-        if (typeof window !== 'undefined' && window.fbq) {
-            window.fbq('track', 'InitiateCheckout', {
-                value: currentTier.discountedPrice,
-                currency: 'INR',
-                content_name: currentPlan.title,
-            });
-        }
+        pixel.initiateCheckout({
+            value: currentTier.discountedPrice,
+            planId: selectedPlanId,
+            planLabel: currentPlan.title,
+        });
         
         import('@/lib/conversionTracking').then(({ trackConversionEvent }) => {
             trackConversionEvent({

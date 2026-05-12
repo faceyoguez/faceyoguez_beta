@@ -9,6 +9,8 @@ import {
     Loader2, Copy, Check
 } from 'lucide-react';
 import { toast } from 'sonner';
+import ThankYouOverlay from '@/components/marketing/ThankYouOverlay';
+
 
 function PurchaseSuccessContent() {
     const searchParams = useSearchParams();
@@ -23,6 +25,8 @@ function PurchaseSuccessContent() {
 
     const [copied, setCopied] = useState(false);
     const [verificationStatus, setVerificationStatus] = useState<'checking' | 'verified' | 'fallback'>('checking');
+    const [showThankYou, setShowThankYou] = useState(true);
+
 
     // Verify subscription actually exists in DB (guards against direct URL access)
     useEffect(() => {
@@ -96,7 +100,18 @@ function PurchaseSuccessContent() {
 
     return (
         <div className="min-h-screen bg-[#FFFAF7] flex items-center justify-center p-6 font-jakarta selection:bg-[#FF8A75]/20">
+            {showThankYou && (
+                <ThankYouOverlay
+                    onClose={() => setShowThankYou(false)}
+                    planId={planId}
+                    amount={parseFloat(totalAmount)}
+                    paymentId={paymentId}
+                />
+            )}
+
+            
             <div className="max-w-xl w-full space-y-10 animate-in fade-in slide-in-from-bottom-5 duration-700">
+
                 {/* Success Header */}
                 <div className="text-center space-y-4">
                     <div className="inline-flex items-center justify-center w-24 h-24 rounded-[2.5rem] bg-[#FF8A75] text-white shadow-xl shadow-[#FF8A75]/20 mb-4 animate-bounce">

@@ -4,8 +4,16 @@ import { motion } from 'framer-motion';
 import { Check, ArrowRight, Sparkles, Calendar, Users, Clock, Video, Globe, Zap, Heart, Star } from 'lucide-react';
 import { PlanNavigation } from '@/components/marketing/PlanNavigation';
 import { LuxuryBackground } from '@/components/marketing/LuxuryBackground';
+import { useEffect } from 'react';
+import { pixel } from '@/lib/pixel';
+
 
 export default function LiveGroupPage() {
+  useEffect(() => {
+    pixel.viewContent({ contentName: 'Live Group Plan Page', contentIds: ['group_session'] });
+    pixel.planPageView('live_group');
+  }, []);
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.05, delayChildren: 0.1 } }
@@ -213,6 +221,7 @@ export default function LiveGroupPage() {
 
                   <button 
                     onClick={() => {
+                      pixel.initiateCheckout({ value: 1499, planId: 'group_session', planLabel: 'Live Group — 1 Month' });
                       const redirectPath = encodeURIComponent('/student/plans?plan=group_session');
                       window.location.href = `/auth/signup?redirectTo=${redirectPath}`;
                     }}
@@ -237,6 +246,7 @@ export default function LiveGroupPage() {
            </h2>
            <button 
               onClick={() => {
+                pixel.initiateCheckout({ value: 1499, planId: 'group_session', planLabel: 'Live Group — Footer CTA' });
                 const redirectPath = encodeURIComponent('/student/plans?plan=group_session');
                 window.location.href = `/auth/signup?redirectTo=${redirectPath}`;
               }}
