@@ -6,9 +6,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 import { PLANS_DATA } from '@/lib/constants/plans';
 import { toast } from 'sonner';
-import { 
-    Check, Loader2, Sparkles, 
-    ShieldCheck, MoveRight, Star, Heart, Zap, 
+import {
+    Check, Loader2, Sparkles,
+    ShieldCheck, MoveRight, Star, Heart, Zap,
     Calendar, Image as ImageIcon, BookOpen, Clock, Activity, Users, CreditCard,
     XCircle, CheckCircle2, Tag
 } from 'lucide-react';
@@ -22,35 +22,35 @@ import { pixel } from '@/lib/pixel';
 // ─────────────────────────────────────────────────────────────────────────────
 
 declare global {
-  interface Window { Razorpay: any; }
+    interface Window { Razorpay: any; }
 }
 
 function loadRazorpayScript(): Promise<boolean> {
-  return new Promise((resolve) => {
-    if (window.Razorpay) return resolve(true);
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.onload = () => resolve(true);
-    script.onerror = () => resolve(false);
-    document.body.appendChild(script);
-  });
+    return new Promise((resolve) => {
+        if (window.Razorpay) return resolve(true);
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.body.appendChild(script);
+    });
 }
 
 function durationFromTierId(tierId: string): number {
-  if (tierId.startsWith('12')) return 12;
-  if (tierId.startsWith('6')) return 6;
-  if (tierId.startsWith('3')) return 3;
-  // LMS is lifetime (no expiry needed — we track via plan_type)
-  if (tierId === 'level_1' || tierId === 'level_1_2') return 12;
-  return 1;
+    if (tierId.startsWith('12')) return 12;
+    if (tierId.startsWith('6')) return 6;
+    if (tierId.startsWith('3')) return 3;
+    // LMS is lifetime (no expiry needed — we track via plan_type)
+    if (tierId === 'level_1' || tierId === 'level_1_2') return 12;
+    return 1;
 }
 
 interface Props {
-  currentSubscription: any[] | null;
-  userId: string;
-  currentUser?: Profile | null;
-  hasUsedTrial?: boolean;
-  hasActiveSubscription?: boolean;
+    currentSubscription: any[] | null;
+    userId: string;
+    currentUser?: Profile | null;
+    hasUsedTrial?: boolean;
+    hasActiveSubscription?: boolean;
 }
 
 export default function PlansClient({ currentSubscription, userId, currentUser, hasUsedTrial: initialHasUsedTrial, hasActiveSubscription = false }: Props) {
@@ -72,7 +72,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
         if (isInitialParamLoad) {
             const planParam = searchParams.get('plan');
             const tierIdxParam = searchParams.get('tierIdx');
-            
+
             if (planParam) {
                 const plan = PLANS_DATA.find((p: any) => p.id === planParam);
                 if (plan) {
@@ -99,7 +99,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
     useEffect(() => {
         pixel.viewContent({ contentName: 'Pricing Page', contentType: 'product' });
         pixel.planPageView('student_plans');
-        
+
         import('@/lib/conversionTracking').then(({ trackConversionEvent }) => {
             trackConversionEvent({
                 event_type: 'pricing_view',
@@ -140,8 +140,8 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
             { id: 'bump_1_1', title: '1-1 Personal Plan', desc: 'Get a fully customised face yoga plan built around your face.', originalPrice: 5499, discountedPrice: 4399, icon: Star }
         ],
         lms: [
-            selectedTierId === 'level_1' ? { id: 'bump_upgrade_l12', title: 'Complete Plan (Level 1 + Level 2)', desc: 'Level 2 is where the real transformation happens.', originalPrice: 3999, discountedPrice: 2999, icon: Sparkles } : 
-            { id: 'bump_group', title: '21-Day Live Group Transformation', desc: 'Pair your recorded plan with live group energy.', originalPrice: 3499, discountedPrice: 2799, icon: Users }
+            selectedTierId === 'level_1' ? { id: 'bump_upgrade_l12', title: 'Complete Plan (Level 1 + Level 2)', desc: 'Level 2 is where the real transformation happens.', originalPrice: 3999, discountedPrice: 2999, icon: Sparkles } :
+                { id: 'bump_group', title: '21-Day Live Group Transformation', desc: 'Pair your recorded plan with live group energy.', originalPrice: 3499, discountedPrice: 2799, icon: Users }
         ],
         one_on_one: [
             { id: 'bump_recorded_1_1', title: 'Recorded Plan (Level 1+2)', desc: 'Extra practice and deeper technique on days between consultations.', originalPrice: 3999, discountedPrice: 2999, icon: BookOpen },
@@ -171,7 +171,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
         try {
             const res = await fetch(`/api/coupons/verify?code=${couponCode.toUpperCase()}&planType=${selectedPlanId}`);
             const result = await res.json();
-            
+
             if (!res.ok || result.error) {
                 const errMsg = result.error || 'Invalid coupon code';
                 setCouponStatus({ type: 'error', message: errMsg });
@@ -338,7 +338,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                     subscriptionId: verifyData.subscriptionId,
                                 },
                             });
-                        }).catch(() => {}); // non-blocking
+                        }).catch(() => { }); // non-blocking
 
                         // ── Step 7: Redirect to success page ──────────────
                         const params = new URLSearchParams({
@@ -349,7 +349,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                             subscriptionId: verifyData.subscriptionId || '',
                             paymentId: response.razorpay_payment_id,
                         });
-                        
+
                         router.refresh(); // Force re-fetch of server data for current & next pages
                         router.push(`/student/purchase-success?${params.toString()}`);
 
@@ -377,7 +377,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                         amount: totalAmount,
                         page_path: window.location.pathname,
                     });
-                }).catch(() => {});
+                }).catch(() => { });
             });
 
             rzp.open();
@@ -400,7 +400,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
             planId: selectedPlanId,
             planLabel: currentPlan.title,
         });
-        
+
         import('@/lib/conversionTracking').then(({ trackConversionEvent }) => {
             trackConversionEvent({
                 event_type: 'buy_click',
@@ -471,8 +471,8 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                 {/* Panel 1: Ritual Selector */}
                 <div className="md:col-span-1 lg:col-span-3 flex flex-col gap-5 lg:gap-6">
                     <div>
-                         <h1 className="text-2xl sm:text-3xl font-aktiv font-bold text-slate-900 tracking-tight">Choose Your <span className="text-[#FF8A75]">Plan</span></h1>
-                         <p className="text-xs text-slate-400 font-medium mt-1">Face yoga plans for every goal</p>
+                        <h1 className="text-2xl sm:text-3xl font-aktiv font-bold text-slate-900 tracking-tight">Choose Your <span className="text-[#FF8A75]">Plan</span></h1>
+                        <p className="text-xs text-slate-400 font-medium mt-1">Face yoga plans for every goal</p>
                     </div>
 
                     {/* Active sub banner - NOW DYNAMIC */}
@@ -487,7 +487,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                             </div>
                         </div>
                     </div>
-                    
+
                     <div data-lenis-prevent className="space-y-3">
                         {PLANS_DATA.map((plan) => (
                             <button
@@ -495,8 +495,8 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                 onClick={() => setSelectedPlanId(plan.id)}
                                 className={`
                                     w-full p-4 rounded-2xl text-left transition-all relative group border
-                                    ${selectedPlanId === plan.id 
-                                        ? 'bg-white border-[#FF8A75] ring-1 ring-[#FF8A75]/20 shadow-sm' 
+                                    ${selectedPlanId === plan.id
+                                        ? 'bg-white border-[#FF8A75] ring-1 ring-[#FF8A75]/20 shadow-sm'
                                         : 'bg-white/50 border-[#FF8A75]/10 hover:border-[#FF8A75]/30'}
                                 `}
                             >
@@ -517,21 +517,21 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                     </div>
 
                     <div className="p-5 rounded-2xl flex flex-col gap-3 bg-slate-900 text-white border border-slate-800 shadow-xl flex-shrink-0">
-                         <div className="flex items-center gap-2">
-                             <ShieldCheck className="w-4 h-4 text-[#FF8A75]" />
-                             <h4 className="text-[9px] font-black uppercase tracking-[0.2em]">Purchase Security</h4>
-                         </div>
-                         <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
-                             All transactions are encrypted and processed securely via Razorpay. Your data is 100% safe.
-                         </p>
+                        <div className="flex items-center gap-2">
+                            <ShieldCheck className="w-4 h-4 text-[#FF8A75]" />
+                            <h4 className="text-[9px] font-black uppercase tracking-[0.2em]">Purchase Security</h4>
+                        </div>
+                        <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
+                            All transactions are encrypted and processed securely via Razorpay. Your data is 100% safe.
+                        </p>
                     </div>
 
                     <div className="p-5 rounded-2xl flex flex-col gap-3 bg-white border border-slate-100 shadow-sm flex-shrink-0">
-                         <div className="flex items-center gap-2">
-                             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                             <h4 className="text-[9px] font-black uppercase tracking-[0.2em]">Plan Benefits</h4>
-                         </div>
-                         <div className="space-y-1.5">
+                        <div className="flex items-center gap-2">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                            <h4 className="text-[9px] font-black uppercase tracking-[0.2em]">Plan Benefits</h4>
+                        </div>
+                        <div className="space-y-1.5">
                             {[
                                 'Daily Guided Sessions',
                                 'Direct Expert Support',
@@ -543,7 +543,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                     {b}
                                 </div>
                             ))}
-                         </div>
+                        </div>
                     </div>
                 </div>
 
@@ -557,82 +557,82 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
-                             <div className="space-y-2">
-                                 <h4 className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.2em]">Focus Areas</h4>
-                                 <div className="space-y-1.5">
-                                     {currentMeta?.workOn.map((f, i) => (
-                                         <div key={i} className="flex items-center gap-2 text-[10px] font-bold text-[#374151] uppercase tracking-wider">
-                                              <div className="w-1 h-1 rounded-full bg-[#FF8A75]" />
-                                              {f}
-                                         </div>
-                                     ))}
-                                 </div>
-                             </div>
-                             <div className="space-y-2">
-                                 <h4 className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.2em]">Methodology</h4>
-                                 <p className="text-[11px] font-medium leading-relaxed">{currentMeta?.solution}</p>
-                             </div>
+                            <div className="space-y-2">
+                                <h4 className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.2em]">Focus Areas</h4>
+                                <div className="space-y-1.5">
+                                    {currentMeta?.workOn.map((f, i) => (
+                                        <div key={i} className="flex items-center gap-2 text-[10px] font-bold text-[#374151] uppercase tracking-wider">
+                                            <div className="w-1 h-1 rounded-full bg-[#FF8A75]" />
+                                            {f}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <h4 className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.2em]">Methodology</h4>
+                                <p className="text-[11px] font-medium leading-relaxed">{currentMeta?.solution}</p>
+                            </div>
                         </div>
 
                         <div className="mt-auto grid grid-cols-2 gap-3">
-                             {currentMeta?.journey.map((step: any, i: number) => (
-                                 <div key={i} className="flex items-start gap-3 p-4 rounded-xl bg-[#FFFAF7]/40 border border-[#FF8A75]/10">
-                                     <div className="p-2 rounded-lg bg-[#FF8A75] text-white flex-shrink-0">
-                                         <step.icon className="w-3 h-3" />
-                                     </div>
-                                     <div>
-                                         <div className="text-[10px] font-bold leading-none mb-0.5">{step.title}</div>
-                                         <div className="text-[8px] text-[#1a1a1a]/70 font-medium">{step.desc}</div>
-                                     </div>
-                                 </div>
-                             ))}
+                            {currentMeta?.journey.map((step: any, i: number) => (
+                                <div key={i} className="flex items-start gap-3 p-4 rounded-xl bg-[#FFFAF7]/40 border border-[#FF8A75]/10">
+                                    <div className="p-2 rounded-lg bg-[#FF8A75] text-white flex-shrink-0">
+                                        <step.icon className="w-3 h-3" />
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] font-bold leading-none mb-0.5">{step.title}</div>
+                                        <div className="text-[8px] text-[#1a1a1a]/70 font-medium">{step.desc}</div>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
 
                     <div className={`p-5 rounded-2xl flex flex-col gap-3 ${cardBg} bg-[#FFFAF7]/60 flex-shrink-0`}>
-                         <h4 className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.2em]">Dashboard Experience</h4>
-                         <div className="flex items-center justify-between gap-3">
-                             {currentMeta?.dashboard.map((d: string, i: number) => (
-                                 <div key={i} className="flex flex-col items-center gap-2 text-center p-3 rounded-xl bg-white border border-[#FF8A75]/10 flex-1">
-                                     <div className="w-1 h-1 rounded-full bg-[#FF8A75]" />
-                                     <span className="text-[8px] font-black leading-tight uppercase text-[#6B7280] tracking-widest">{d}</span>
-                                 </div>
-                             ))}
-                         </div>
+                        <h4 className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.2em]">Dashboard Experience</h4>
+                        <div className="flex items-center justify-between gap-3">
+                            {currentMeta?.dashboard.map((d: string, i: number) => (
+                                <div key={i} className="flex flex-col items-center gap-2 text-center p-3 rounded-xl bg-white border border-[#FF8A75]/10 flex-1">
+                                    <div className="w-1 h-1 rounded-full bg-[#FF8A75]" />
+                                    <span className="text-[8px] font-black leading-tight uppercase text-[#6B7280] tracking-widest">{d}</span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
                 {/* Panel 3: Membership & Checkout */}
                 <div className="md:col-span-2 lg:col-span-3 flex flex-col md:flex-row lg:flex-col gap-5 lg:gap-6">
                     <div data-lenis-prevent className="flex-1 space-y-2">
-                         <h3 className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.2em] px-2 mb-1">Memberships</h3>
-                         {currentPlan.tiers.map((tier) => (
-                             <button
-                                 key={tier.id}
-                                 onClick={() => setSelectedTierId(tier.id)}
-                                 className={`
+                        <h3 className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.2em] px-2 mb-1">Memberships</h3>
+                        {currentPlan.tiers.map((tier) => (
+                            <button
+                                key={tier.id}
+                                onClick={() => setSelectedTierId(tier.id)}
+                                className={`
                                      w-full p-4 rounded-xl text-left transition-all border-2 relative
-                                     ${selectedTierId === tier.id 
-                                         ? 'border-[#FF8A75] bg-white ring-2 ring-[#FF8A75]/5' 
-                                         : 'bg-white border-[#FF8A75]/10 hover:border-[#FF8A75]/30'}
+                                     ${selectedTierId === tier.id
+                                        ? 'border-[#FF8A75] bg-white ring-2 ring-[#FF8A75]/5'
+                                        : 'bg-white border-[#FF8A75]/10 hover:border-[#FF8A75]/30'}
                                  `}
-                             >
-                                 <div className="flex justify-between items-center gap-2">
-                                     <div className="min-w-0">
-                                         <h5 className="font-aktiv font-bold text-xs tracking-tight text-[#1a1a1a] truncate">{tier.label}</h5>
-                                         {tier.badge && (
+                            >
+                                <div className="flex justify-between items-center gap-2">
+                                    <div className="min-w-0">
+                                        <h5 className="font-aktiv font-bold text-xs tracking-tight text-[#1a1a1a] truncate">{tier.label}</h5>
+                                        {tier.badge && (
                                             <span className="text-[7px] font-black text-[#FF8A75] uppercase tracking-widest">{tier.badge}</span>
-                                         )}
-                                     </div>
-                                     <div className="text-right flex-shrink-0">
-                                         {tier.originalPrice && (
-                                             <span className="text-[8px] text-[#FF8A75]/40 line-through font-bold block mb-0.5">₹{tier.originalPrice}</span>
-                                         )}
-                                         <span className={`text-lg font-aktiv font-bold ${selectedTierId === tier.id ? 'text-[#FF8A75]' : 'text-slate-900'}`}>₹{tier.discountedPrice}</span>
-                                     </div>
-                                 </div>
-                             </button>
-                         ))}
+                                        )}
+                                    </div>
+                                    <div className="text-right flex-shrink-0">
+                                        {tier.originalPrice && (
+                                            <span className="text-[8px] text-[#FF8A75]/40 line-through font-bold block mb-0.5">₹{tier.originalPrice}</span>
+                                        )}
+                                        <span className={`text-lg font-aktiv font-bold ${selectedTierId === tier.id ? 'text-[#FF8A75]' : 'text-slate-900'}`}>₹{tier.discountedPrice}</span>
+                                    </div>
+                                </div>
+                            </button>
+                        ))}
                     </div>
 
                     <div className="p-6 rounded-[1.75rem] bg-white border border-slate-100 shadow-sm space-y-4">
@@ -645,7 +645,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                 <Heart className="w-4 h-4 fill-current" />
                             </div>
                         </div>
-                        
+
                         <div className="space-y-2">
                             <button
                                 onClick={() => handlePay(false)}
@@ -682,14 +682,14 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                             {[
                                 '1438761681033-6461ffad8d80',
                                 '1544005313-94ddf0286df2',
-                                '1506794778242-aff56ffbd6a0',
+                                '1531746020798-e6953c6e8e04',
                                 '1534528741775-53994a69daeb',
                                 '1521119989659-a83eee488004'
                             ].map((id, i) => (
                                 <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 overflow-hidden shadow-sm relative">
-                                    <Image 
-                                        src={`https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=100&h=100&q=80`} 
-                                        alt="User" 
+                                    <Image
+                                        src={`https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=100&h=100&q=80`}
+                                        alt="User"
                                         fill
                                         className="object-cover"
                                         onError={(e) => {
@@ -707,96 +707,96 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
             {/* Mobile Layout (up to md breakpoint) */}
             <div className="md:hidden flex flex-col space-y-6">
                 <header>
-                     <h1 className="text-2xl font-aktiv font-bold text-slate-900 tracking-tight">Choose Your Plan</h1>
-                     <div className="flex gap-2 mt-4 overflow-x-auto pb-1 scrollbar-hide">
-                         {PLANS_DATA.map((plan) => (
-                             <button
-                                 key={plan.id}
-                                 onClick={() => setSelectedPlanId(plan.id)}
-                                 className={`
+                    <h1 className="text-2xl font-aktiv font-bold text-slate-900 tracking-tight">Choose Your Plan</h1>
+                    <div className="flex gap-2 mt-4 overflow-x-auto pb-1 scrollbar-hide">
+                        {PLANS_DATA.map((plan) => (
+                            <button
+                                key={plan.id}
+                                onClick={() => setSelectedPlanId(plan.id)}
+                                className={`
                                      px-4 py-2 rounded-full text-[9px] font-black uppercase tracking-[0.1em] whitespace-nowrap transition-all border
-                                     ${selectedPlanId === plan.id 
-                                        ? 'bg-[#FF8A75] text-white border-transparent' 
+                                     ${selectedPlanId === plan.id
+                                        ? 'bg-[#FF8A75] text-white border-transparent'
                                         : 'bg-[#FFFAF7] text-[#6B7280] border-[#FF8A75]/10'}
                                  `}
-                             >
-                                 {plan.title.split(' ')[0]}
-                             </button>
-                         ))}
-                     </div>
+                            >
+                                {plan.title.split(' ')[0]}
+                            </button>
+                        ))}
+                    </div>
                 </header>
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#FFFAF7]/60">
-                     <div className={`flex rounded-lg p-0.5 bg-white border border-[#FF8A75]/10`}>
-                         <button 
+                    <div className={`flex rounded-lg p-0.5 bg-white border border-[#FF8A75]/10`}>
+                        <button
                             onClick={() => setMobileTab('data')}
                             className={`flex-1 py-2.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all ${mobileTab === 'data' ? 'bg-[#FF8A75]/5 text-[#FF8A75]' : 'text-[#6B7280]'}`}
-                         >
-                             Details
-                         </button>
-                         <button 
+                        >
+                            Details
+                        </button>
+                        <button
                             onClick={() => setMobileTab('pricing')}
                             className={`flex-1 py-2.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all ${mobileTab === 'pricing' ? 'bg-[#FF8A75]/5 text-[#FF8A75]' : 'text-[#6B7280]'}`}
-                         >
-                             Plans
-                         </button>
-                     </div>
+                        >
+                            Plans
+                        </button>
+                    </div>
 
-                     {mobileTab === 'data' ? (
-                         <div className="space-y-3">
-                             <div className={`p-6 rounded-2xl space-y-3 bg-white border border-[#FF8A75]/10`}>
-                                 <h3 className="text-lg font-aktiv font-bold leading-none tracking-tight text-[#1a1a1a]">{currentPlan.title}</h3>
-                                 <p className="text-[#FF8A75] text-[9px] font-black uppercase tracking-widest">{currentPlan.subtitle}</p>
-                                 <p className="text-[12px] font-medium text-[#6B7280] leading-relaxed">{currentMeta?.solution}</p>
-                             </div>
-                             <div className="grid grid-cols-2 gap-3">
-                                 <div className={`p-5 rounded-2xl space-y-4 bg-[#FF8A75] text-white border border-[#FF8A75]/20`}>
-                                     <h4 className="text-[9px] font-black uppercase tracking-widest text-white/80">How It Works</h4>
-                                     <div className="space-y-3">
-                                         {currentMeta?.journey.map((step: any, i: number) => (
-                                             <div key={i} className="flex flex-col gap-0.5">
-                                                 <div className="text-[9px] font-bold leading-none">{step.title}</div>
-                                                 <div className="text-[7px] text-white/70 font-medium">{step.desc}</div>
-                                             </div>
-                                         ))}
-                                     </div>
-                                 </div>
-                                 <div className={`p-5 rounded-2xl space-y-3 bg-white border border-[#FF8A75]/10`}>
-                                     <h4 className="text-[9px] font-black text-[#FF8A75] uppercase tracking-widest">Focus</h4>
-                                     <div className="space-y-2">
-                                         {currentMeta?.workOn.slice(0, 4).map((f: string, i: number) => (
-                                             <div key={i} className="flex items-center gap-2 text-[7px] font-black text-[#374151] uppercase">
-                                                 <div className="w-1 h-1 rounded-full bg-[#FF8A75]" />
-                                                 {f}
-                                             </div>
-                                         ))}
-                                     </div>
-                                 </div>
-                             </div>
-                         </div>
-                     ) : (
-                         <div className="space-y-2 pb-20">
-                             {currentPlan.tiers.map((tier) => (
-                                 <button
-                                     key={tier.id}
-                                     onClick={() => setSelectedTierId(tier.id)}
-                                     className={`
+                    {mobileTab === 'data' ? (
+                        <div className="space-y-3">
+                            <div className={`p-6 rounded-2xl space-y-3 bg-white border border-[#FF8A75]/10`}>
+                                <h3 className="text-lg font-aktiv font-bold leading-none tracking-tight text-[#1a1a1a]">{currentPlan.title}</h3>
+                                <p className="text-[#FF8A75] text-[9px] font-black uppercase tracking-widest">{currentPlan.subtitle}</p>
+                                <p className="text-[12px] font-medium text-[#6B7280] leading-relaxed">{currentMeta?.solution}</p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className={`p-5 rounded-2xl space-y-4 bg-[#FF8A75] text-white border border-[#FF8A75]/20`}>
+                                    <h4 className="text-[9px] font-black uppercase tracking-widest text-white/80">How It Works</h4>
+                                    <div className="space-y-3">
+                                        {currentMeta?.journey.map((step: any, i: number) => (
+                                            <div key={i} className="flex flex-col gap-0.5">
+                                                <div className="text-[9px] font-bold leading-none">{step.title}</div>
+                                                <div className="text-[7px] text-white/70 font-medium">{step.desc}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className={`p-5 rounded-2xl space-y-3 bg-white border border-[#FF8A75]/10`}>
+                                    <h4 className="text-[9px] font-black text-[#FF8A75] uppercase tracking-widest">Focus</h4>
+                                    <div className="space-y-2">
+                                        {currentMeta?.workOn.slice(0, 4).map((f: string, i: number) => (
+                                            <div key={i} className="flex items-center gap-2 text-[7px] font-black text-[#374151] uppercase">
+                                                <div className="w-1 h-1 rounded-full bg-[#FF8A75]" />
+                                                {f}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="space-y-2 pb-20">
+                            {currentPlan.tiers.map((tier) => (
+                                <button
+                                    key={tier.id}
+                                    onClick={() => setSelectedTierId(tier.id)}
+                                    className={`
                                          w-full p-5 rounded-2xl text-left transition-all border flex items-center justify-between
                                          ${selectedTierId === tier.id ? 'border-[#FF8A75] bg-white ring-1 ring-[#FF8A75]/5' : 'bg-white border-[#FF8A75]/10'}
                                      `}
-                                 >
-                                     <div className="flex-1">
-                                         <h5 className="font-bold text-[11px] tracking-tight text-[#1a1a1a]">{tier.label}</h5>
-                                         {tier.badge && <span className="text-[7px] font-black text-[#FF8A75] uppercase tracking-widest">{tier.badge}</span>}
-                                     </div>
-                                     <div className="text-right">
-                                         {tier.originalPrice && <span className="text-[9px] text-[#FF8A75]/40 line-through font-bold block mb-0.5">₹{tier.originalPrice}</span>}
-                                         <span className="text-lg font-bold text-[#FF8A75]">₹{tier.discountedPrice}</span>
-                                     </div>
-                                 </button>
-                             ))}
-                         </div>
-                     )}
+                                >
+                                    <div className="flex-1">
+                                        <h5 className="font-bold text-[11px] tracking-tight text-[#1a1a1a]">{tier.label}</h5>
+                                        {tier.badge && <span className="text-[7px] font-black text-[#FF8A75] uppercase tracking-widest">{tier.badge}</span>}
+                                    </div>
+                                    <div className="text-right">
+                                        {tier.originalPrice && <span className="text-[9px] text-[#FF8A75]/40 line-through font-bold block mb-0.5">₹{tier.originalPrice}</span>}
+                                        <span className="text-lg font-bold text-[#FF8A75]">₹{tier.discountedPrice}</span>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* Mobile Fixed Bottom Cart */}
@@ -807,13 +807,13 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                             <p className="text-[10px] font-bold text-[#1a1a1a]">{currentTier.label}</p>
                         </div>
                         <div className="text-right">
-                             <span className="text-[7px] font-black text-[#6B7280] uppercase tracking-widest">Total</span>
-                             <p className="text-lg font-aktiv font-bold text-[#FF8A75]">₹{currentTier.discountedPrice}</p>
+                            <span className="text-[7px] font-black text-[#6B7280] uppercase tracking-widest">Total</span>
+                            <p className="text-lg font-aktiv font-bold text-[#FF8A75]">₹{currentTier.discountedPrice}</p>
                         </div>
                     </div>
-                    
+
                     <div className="space-y-1.5">
-                        <button 
+                        <button
                             onClick={() => handlePay(false)}
                             className="w-full bg-[#FF8A75] text-white py-3.5 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-[#FF8A75]/10"
                         >
@@ -879,10 +879,10 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                     </h4>
                                     <div className="space-y-3">
                                         {currentBumps.map((bump: any) => (
-                                            <button 
+                                            <button
                                                 key={bump.id}
                                                 onClick={() => {
-                                                    setSelectedBumps((prev: string[]) => 
+                                                    setSelectedBumps((prev: string[]) =>
                                                         prev.includes(bump.id) ? prev.filter((id: string) => id !== bump.id) : [...prev, bump.id]
                                                     );
                                                 }}
@@ -918,14 +918,13 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                 <h4 className="text-[11px] font-black uppercase tracking-widest text-[#1a1a1a] px-2">Apply Promo Code</h4>
                                 <div className="flex gap-2">
                                     <div className="relative flex-1">
-                                        <Tag className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${
-                                            couponStatus?.type === 'error' ? 'text-rose-400' :
-                                            couponStatus?.type === 'success' ? 'text-emerald-500' :
-                                            'text-[#6B7280]'
-                                        }`} />
-                                        <input 
-                                            type="text" 
-                                            placeholder="ENTER CODE" 
+                                        <Tag className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${couponStatus?.type === 'error' ? 'text-rose-400' :
+                                                couponStatus?.type === 'success' ? 'text-emerald-500' :
+                                                    'text-[#6B7280]'
+                                            }`} />
+                                        <input
+                                            type="text"
+                                            placeholder="ENTER CODE"
                                             value={couponCode}
                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                                 setCouponCode(e.target.value.toUpperCase());
@@ -935,16 +934,15 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                                     setAppliedCoupon(null);
                                                 }
                                             }}
-                                            className={`w-full bg-white border rounded-2xl py-4 pl-12 pr-4 text-[10px] font-black tracking-widest focus:outline-none focus:ring-2 transition-all ${
-                                                couponStatus?.type === 'error'
+                                            className={`w-full bg-white border rounded-2xl py-4 pl-12 pr-4 text-[10px] font-black tracking-widest focus:outline-none focus:ring-2 transition-all ${couponStatus?.type === 'error'
                                                     ? 'border-rose-300 focus:ring-rose-200'
                                                     : couponStatus?.type === 'success'
-                                                    ? 'border-emerald-300 focus:ring-emerald-200'
-                                                    : 'border-[#FF8A75]/10 focus:ring-[#FF8A75]/20'
-                                            }`}
+                                                        ? 'border-emerald-300 focus:ring-emerald-200'
+                                                        : 'border-[#FF8A75]/10 focus:ring-[#FF8A75]/20'
+                                                }`}
                                         />
                                     </div>
-                                    <button 
+                                    <button
                                         onClick={applyCoupon}
                                         disabled={verifyingCoupon || !couponCode}
                                         className="px-6 py-4 bg-[#1a1a1a] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all disabled:opacity-50"
@@ -955,11 +953,10 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
 
                                 {/* Inline coupon status message */}
                                 {couponStatus && (
-                                    <div className={`flex items-start gap-2.5 px-4 py-3 rounded-xl text-[10px] font-bold leading-relaxed transition-all ${
-                                        couponStatus.type === 'success'
+                                    <div className={`flex items-start gap-2.5 px-4 py-3 rounded-xl text-[10px] font-bold leading-relaxed transition-all ${couponStatus.type === 'success'
                                             ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
                                             : 'bg-rose-50 text-rose-600 border border-rose-100'
-                                    }`}>
+                                        }`}>
                                         {couponStatus.type === 'success'
                                             ? <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
                                             : <XCircle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
@@ -998,7 +995,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                     </div>
                 </div>
             )}
-            
+
             <style jsx global>{`
                 .scrollbar-hide::-webkit-scrollbar {
                     display: none;

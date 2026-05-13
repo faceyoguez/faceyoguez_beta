@@ -59,8 +59,8 @@ export function Plans() {
 
   const itemVariants: any = {
     hidden: { y: 30, opacity: 0 },
-    visible: { 
-      y: 0, 
+    visible: {
+      y: 0,
       opacity: 1,
       transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] }
     }
@@ -76,28 +76,28 @@ export function Plans() {
       <div className="absolute bottom-1/4 left-0 w-[300px] h-[300px] bg-[#e76f51]/3 rounded-full blur-[80px] pointer-events-none" />
 
       <div className="max-w-6xl mx-auto relative z-10" ref={containerRef}>
-        <motion.div 
+        <motion.div
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
           variants={itemVariants}
           className="text-center mb-20 space-y-6"
         >
           <div className="inline-flex flex-col items-center gap-3">
-             <span className="text-[11px] font-black uppercase tracking-[0.5em] text-[#e76f51]">Offerings</span>
-             <div className="w-12 h-[1px] bg-[#e76f51]/20" />
+            <span className="text-[11px] font-black uppercase tracking-[0.5em] text-[#e76f51]">Offerings</span>
+            <div className="w-12 h-[1px] bg-[#e76f51]/20" />
           </div>
-          
+
           <h2 className="text-3xl md:text-5xl font-aktiv text-[#2a2019] font-bold leading-tight tracking-tight">
             Choose Your Path to <br className="hidden md:block" />
             <span className="italic font-light opacity-60"> Radiant Skin</span>
           </h2>
-          
+
           <p className="max-w-2xl mx-auto text-base md:text-lg text-slate-600/80 font-jakarta leading-relaxed">
             Whether you seek a complete 1-on-1 transformation or the energy of a community, we have a programme built for you.
           </p>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
           variants={containerVariants}
@@ -112,11 +112,10 @@ export function Plans() {
                 if (plan.id === 'group_session') router.push('/plans/live-group');
                 if (plan.id === 'lms') router.push('/plans/video-courses');
               }}
-              className={`group p-8 md:p-10 rounded-[2.5rem] transition-all duration-500 relative cursor-pointer flex flex-col border ${
-                plan.popular 
-                  ? 'bg-white border-[#e76f51]/20 shadow-[0_32px_80px_rgba(231,111,81,0.08)]' 
+              className={`group p-8 md:p-10 rounded-[2.5rem] transition-all duration-500 relative cursor-pointer flex flex-col border ${plan.popular
+                  ? 'bg-white border-[#e76f51]/20 shadow-[0_32px_80px_rgba(231,111,81,0.08)]'
                   : 'bg-white/70 border-[#e76f51]/5 hover:border-[#e76f51]/20 hover:bg-white hover:shadow-[0_20px_50px_rgba(231,111,81,0.05)]'
-              }`}
+                }`}
             >
               {plan.popular && (
                 <div className="absolute top-6 right-6">
@@ -128,10 +127,9 @@ export function Plans() {
               )}
 
               <div className="space-y-8 flex-1">
-                <div 
-                  className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-transform duration-500 group-hover:rotate-[8deg] ${
-                    plan.popular ? 'bg-[#e76f51]/10 text-[#e76f51]' : 'bg-[#e76f51]/5 text-[#e76f51]/40 group-hover:bg-[#e76f51]/10 group-hover:text-[#e76f51]'
-                  }`}
+                <div
+                  className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-transform duration-500 group-hover:rotate-[8deg] ${plan.popular ? 'bg-[#e76f51]/10 text-[#e76f51]' : 'bg-[#e76f51]/5 text-[#e76f51]/40 group-hover:bg-[#e76f51]/10 group-hover:text-[#e76f51]'
+                    }`}
                 >
                   <plan.icon strokeWidth={1.5} className="w-7 h-7" />
                 </div>
@@ -160,19 +158,18 @@ export function Plans() {
               </div>
 
               <div className="mt-12">
-                 <div className={`flex items-center justify-between px-6 py-4 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
-                   plan.popular ? 'bg-[#2a2019] text-white' : 'bg-slate-100 text-[#2a2019] group-hover:bg-[#e76f51] group-hover:text-white'
-                 }`}>
-                   <span>{plan.cta}</span>
-                   <ArrowRight className="w-4 h-4" />
-                 </div>
+                <div className={`flex items-center justify-between px-6 py-4 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${plan.popular ? 'bg-[#2a2019] text-white' : 'bg-slate-100 text-[#2a2019] group-hover:bg-[#e76f51] group-hover:text-white'
+                  }`}>
+                  <span>{plan.cta}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </div>
               </div>
             </motion.div>
           ))}
         </motion.div>
 
         {/* Trial Note */}
-        <motion.div 
+        <motion.div
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
           variants={itemVariants}
@@ -184,7 +181,7 @@ export function Plans() {
             </span>
             <div className="hidden md:block w-px h-4 bg-[#e76f51]/20" />
             <Link href="/auth/signup" className="flex items-center justify-center gap-2 mt-2 md:mt-0 text-[12px] md:text-[11px] font-black text-[#e76f51] uppercase tracking-[0.2em] hover:text-[#d4603f] transition-colors">
-              Book a Free Consult 
+              Book a Free Consult
               <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </div>
