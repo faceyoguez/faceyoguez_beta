@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   Users, MessageCircle, Video, CheckCircle2, Clock, Send, Paperclip,
-  Loader2, Copy, ExternalLink, Phone, ChevronRight, Bell
+  Loader2, Copy, ExternalLink, Phone, ChevronRight, Bell, Mail
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
@@ -226,8 +226,19 @@ export default function StaffConsultationsPage() {
             </div>
             <div className="flex items-center gap-2">
               {selected.student?.phone && (
-                <a href={`tel:${selected.student.phone}`} className="p-2 text-slate-400 hover:text-slate-700 transition-colors">
+                <a href={`tel:${selected.student.phone}`} className="p-2 text-slate-400 hover:text-slate-700 transition-colors" title="Call Student">
                   <Phone className="w-4 h-4" />
+                </a>
+              )}
+              {selected.student?.email && (
+                <a 
+                  href={`https://mail.google.com/mail/?view=cm&fs=1&to=${selected.student.email}&su=${encodeURIComponent('Face Yoga Consultation')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 text-slate-400 hover:text-red-600 transition-colors"
+                  title="Send Gmail"
+                >
+                  <Mail className="w-4 h-4" />
                 </a>
               )}
               {selected.status === 'paid' && (
@@ -264,6 +275,9 @@ export default function StaffConsultationsPage() {
                 <a href={`https://wa.me/${selected.student?.phone?.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi ${selected.student?.full_name?.split(' ')[0]}! Your Zoom link: ${selected.zoom_call.join_url}`)}`}
                   target="_blank" rel="noopener noreferrer"
                   className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors text-xs font-bold">WhatsApp</a>
+                <a href={`https://mail.google.com/mail/?view=cm&fs=1&to=${selected.student?.email}&su=${encodeURIComponent('Your Zoom Session Link')}&body=${encodeURIComponent(`Hi ${selected.student?.full_name?.split(' ')[0]},\n\nHere is your Zoom link for our session: ${selected.zoom_call.join_url}\n\nSee you there!`)}`}
+                  target="_blank" rel="noopener noreferrer"
+                  className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-xs font-bold">Gmail</a>
               </div>
             </div>
           )}

@@ -45,7 +45,7 @@ interface CourseViewerProps {
   completedModuleIds: Set<string>;
   studentId: string;
   courseLevel: number;
-  isTrial?: boolean;
+  hasActiveSub?: boolean;
 }
 
 export function CourseViewer({
@@ -55,7 +55,7 @@ export function CourseViewer({
   completedModuleIds: initialCompleted,
   studentId,
   courseLevel,
-  isTrial = false
+  hasActiveSub = false
 }: CourseViewerProps) {
   const [completedIds, setCompletedIds] = useState<Set<string>>(initialCompleted);
   const [activeModuleId, setActiveModuleId] = useState<string>(() => {
@@ -398,13 +398,14 @@ export function CourseViewer({
               const isCompleted = completedIds.has(m.id);
               const isActive = activeModuleId === m.id;
               
-              // NEW LOGIC: 
-              // 1. Level 1, Module 1 is always unlocked.
-              // 2. Otherwise, check trial or sequential completion.
+              // LOCK LOGIC:
+              // - Level 1, Module 1 (index 0): FREE for everyone, always unlocked.
+              // - All other modules in Level 1: Require active subscription AND sequential completion.
+              // - Level 2 modules: Require active subscription (page-level redirect handles L2 entirely).
               const isFirstModule = index === 0;
-              const isUnlocked = (courseLevel === 1 && isFirstModule) 
-                ? true 
-                : (isTrial ? isFirstModule : (isFirstModule || completedIds.has(modules[index - 1].id)));
+              const isUnlocked = (courseLevel === 1 && isFirstModule)
+                ? true
+                : (hasActiveSub && (isFirstModule || completedIds.has(modules[index - 1].id)));
 
               return (
                 <button

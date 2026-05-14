@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import JSZip from 'jszip';
 import { ChatWindow } from '@/components/chat';
 import { searchStudents, getOrCreateSharedChat } from '@/lib/actions/chat';
 import { uploadResource, getStudentResources } from '@/lib/actions/resources';
@@ -19,11 +20,13 @@ import {
   Image as ImageIcon,
   FolderOpen,
   Plus,
+  File,
   FileText,
   PlayCircle,
   Download,
   X,
   ChevronRight,
+  ChevronLeft,
   RefreshCw,
   Crown,
   UserPlus,
@@ -34,7 +37,8 @@ import {
   ShieldCheck,
   Target,
   CheckCircle,
-  Filter
+  Filter,
+  Mail
 } from 'lucide-react';
 import type { Profile, StudentResource, LiveGrowthMetrics } from '@/types/database';
 import { AnglePhotoViewer } from '@/components/ui/angle-photo-tracker';
@@ -76,6 +80,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
   const [journeyLogs, setJourneyLogs] = useState<JourneyLog[]>([]);
   const [isLoadingJourney, setIsLoadingJourney] = useState(false);
   const [activeStepDay, setActiveStepDay] = useState<number>(1);
+  const [docPage, setDocPage] = useState(1);
 
   // Derived journey variables
   const activeLog = journeyLogs.find((l: JourneyLog) => l.day_number === activeStepDay);
@@ -84,6 +89,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedInstructorId, setSelectedInstructorId] = useState('');
   const [isAssigning, setIsAssigning] = useState(false);
+  const [isDownloadingPhotos, setIsDownloadingPhotos] = useState(false);
   const [isStartingChat, setIsStartingChat] = useState(false);
 
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
@@ -117,6 +123,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
 
     const loadData = async () => {
       setIsLoadingResources(true); setIsLoadingJourney(true);
+      setDocPage(1);
       const [resData, logsData] = await Promise.all([
         getStudentResources(selectedStudent.id),
         getJourneyLogs(selectedStudent.id),
@@ -216,6 +223,74 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
     return { icon: FileText, color: 'text-foreground/40' };
   };
 
+  const handleDownloadAllPhotos = async () => {
+    if (!selectedStudent || journeyLogs.length === 0) {
+      toast.error('No photos available to download.');
+      return;
+    }
+
+    // Collect all (url, filename) pairs from every log
+    const photoEntries: { url: string; fileName: string }[] = [];
+    for (const log of journeyLogs) {
+      if (log.photo_url) {
+        photoEntries.push({ url: log.photo_url, fileName: `Day_${log.day_number}_front.jpg` });
+      }
+      if (log.photo_url_left) {
+        photoEntries.push({ url: log.photo_url_left, fileName: `Day_${log.day_number}_left.jpg` });
+      }
+      if (log.photo_url_right) {
+        photoEntries.push({ url: log.photo_url_right, fileName: `Day_${log.day_number}_right.jpg` });
+      }
+    }
+
+    if (photoEntries.length === 0) {
+      toast.error('No photos have been uploaded by this student yet.');
+      return;
+    }
+
+    setIsDownloadingPhotos(true);
+    const loadingId = toast.loading(`Bundling ${photoEntries.length} photo(s)…`);
+
+    try {
+      const zip = new JSZip();
+      const studentFolder = zip.folder(
+        selectedStudent.full_name.replace(/\s+/g, '_') || 'student_photos'
+      )!;
+
+      // Fetch all photos in parallel via a proxy-safe approach
+      await Promise.all(
+        photoEntries.map(async ({ url, fileName }) => {
+          try {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const blob = await res.blob();
+            const ext = blob.type.includes('png') ? 'png' : blob.type.includes('webp') ? 'webp' : 'jpg';
+            const finalName = fileName.replace(/\.jpg$/, `.${ext}`);
+            studentFolder.file(finalName, blob);
+          } catch (err) {
+            console.warn(`Skipping ${fileName}:`, err);
+          }
+        })
+      );
+
+      const content = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(content);
+      link.download = `${selectedStudent.full_name.replace(/\s+/g, '_')}_all_photos.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+
+      toast.success(`Downloaded ${photoEntries.length} photos successfully!`, { id: loadingId });
+    } catch (err: any) {
+      toast.error('Download failed. Please try again.', { id: loadingId });
+      console.error('Photo download error:', err);
+    } finally {
+      setIsDownloadingPhotos(false);
+    }
+  };
+
   return (
     <div className="flex flex-col h-screen bg-background text-foreground selection:bg-primary/20 overflow-hidden font-jakarta">
 
@@ -252,6 +327,30 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                 </div>
               </div>
             ))}
+
+            {/* Download Photos shortcut */}
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center gap-1.5 ml-1">
+                <div className="h-1 w-1 rounded-full bg-primary/40" />
+                <p className="text-[8px] font-aktiv font-black uppercase tracking-[0.2em] text-foreground/40 leading-none">Progress Photos</p>
+              </div>
+              <button
+                onClick={handleDownloadAllPhotos}
+                disabled={isDownloadingPhotos || !selectedStudent}
+                title={selectedStudent ? `Download all photos for ${selectedStudent.full_name}` : 'Select a student first'}
+                className="flex items-center gap-3 bg-white/50 backdrop-blur-xl px-4 py-2.5 rounded-2xl border border-outline-variant/10 shadow-sm transition-all hover:bg-white/80 hover:border-primary/20 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <div className="h-7 w-7 rounded-lg flex items-center justify-center bg-primary/5 text-primary shrink-0">
+                  {isDownloadingPhotos
+                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                    : <Download className="w-4 h-4" />
+                  }
+                </div>
+                <p className="text-[11px] font-aktiv font-bold text-foreground/50 whitespace-nowrap leading-none">
+                  {isDownloadingPhotos ? 'Bundling…' : 'Download All'}
+                </p>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -280,7 +379,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
           <div className="flex gap-1 bg-white/40 backdrop-blur-xl p-1 rounded-2xl border border-outline-variant/10 shadow-sm">
             {[
               { id: 'all', label: 'All', count: students.length },
-              { id: 'trial', label: 'Trial', count: students.filter((s: StudentInfo) => s.isTrial).length },
+              { id: 'trial', label: 'Unsubscribed', count: students.filter((s: StudentInfo) => s.isTrial).length },
               { id: 'paid', label: 'Paid', count: students.filter((s: StudentInfo) => !s.isTrial).length }
             ].map((f) => (
               <button
@@ -307,7 +406,9 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
             <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
               {filtered.map((student) => {
                 const elapsedDays = student.startDate ? Math.floor((Date.now() - new Date(student.startDate).getTime()) / 86400000) + 1 : 1;
-                const isEmergency = elapsedDays >= 25;
+                const isEnded = elapsedDays > 30;
+                const isEnding = !isEnded && elapsedDays >= 25;
+                const isEmergency = isEnded || isEnding;
 
                 return (
                   <div
@@ -317,7 +418,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                     onClick={() => setSelectedStudent(student)}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedStudent(student); }}
                     className={cn(
-                      "w-full flex items-center gap-4 p-4 rounded-2xl transition-all text-left group cursor-pointer",
+                      "w-full flex items-center gap-3 py-2 px-3 rounded-xl transition-all text-left group cursor-pointer",
                       selectedStudent?.id === student.id
                         ? (isEmergency ? "bg-red-50/50 border border-red-500/20 shadow-md scale-[1.02]" : "bg-white border border-outline-variant/10 shadow-md scale-[1.02]")
                         : "bg-transparent border border-transparent hover:bg-white/40 hover:border-outline-variant/5"
@@ -325,69 +426,77 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                   >
                     <div className="relative shrink-0">
                       {student.avatar_url ? (
-                        <img src={student.avatar_url} alt="" className="w-10 h-10 rounded-xl object-cover" />
+                        <img src={student.avatar_url} alt="" className="w-9 h-9 rounded-lg object-cover" />
                       ) : (
-                        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold", isEmergency ? "bg-red-500/10 text-red-600" : "bg-primary/5 text-primary")}>
+                        <div className={cn("w-9 h-9 rounded-lg flex items-center justify-center text-xs font-bold", isEmergency ? "bg-red-500/10 text-red-600" : "bg-primary/5 text-primary")}>
                           {student.full_name[0]}
                         </div>
                       )}
-                      <div className={cn("absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white", isEmergency ? "bg-red-500 animate-pulse" : (student.isTrial ? "bg-primary animate-pulse" : "bg-brand-emerald"))} />
+                      <div className={cn("absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-white", isEmergency ? "bg-red-500 animate-pulse" : (student.isTrial ? "bg-primary animate-pulse" : "bg-brand-emerald"))} />
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className={cn("text-sm font-aktiv font-bold truncate transition-colors", isEmergency ? "text-red-600 group-hover:text-red-700" : "text-foreground group-hover:text-primary")}>
-                          {student.full_name}
-                        </h4>
-                        {student.isTrial && (
-                          <span className="text-[8px] font-aktiv font-black uppercase text-white bg-red-500 px-1.5 py-0.5 rounded shadow-sm leading-none whitespace-nowrap">
-                            Trial
-                          </span>
-                        )}
+                    <div className="min-w-0 flex-1 flex flex-col">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <h4 className={cn("text-[13px] font-aktiv font-bold truncate transition-colors", isEmergency ? "text-red-600 group-hover:text-red-700" : "text-foreground group-hover:text-primary")}>
+                            {student.full_name}
+                          </h4>
+                          {student.isTrial && (
+                            <span className="text-[7px] font-aktiv font-black uppercase text-white bg-amber-500 px-1 py-0.5 rounded shadow-sm leading-none whitespace-nowrap">
+                              Unsubscribed
+                            </span>
+                          )}
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            {student.phone && (
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  const msg = `Hi ${student.full_name.split(' ')[0]}! This is the Faceyoguez team. We are reaching out regarding your session...`;
+                                  const loadingToast = toast.loading('Sending WhatsApp...');
+                                  try {
+                                    if (!student.phone) throw new Error('No phone number');
+                                    const result = await sendWhatsAppMessage(student.phone, msg);
+                                    if (result.success) {
+                                      toast.success('Message sent via Official API', { id: loadingToast });
+                                    } else {
+                                      toast.dismiss(loadingToast);
+                                      const cleanPhone = student.phone?.replace(/[^0-9]/g, '');
+                                      window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+                                    }
+                                  } catch (err) {
+                                    toast.dismiss(loadingToast);
+                                    const cleanPhone = student.phone?.replace(/[^0-9]/g, '');
+                                    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+                                  }
+                                }}
+                                className="text-[#25D366] hover:text-[#1aad52] transition-colors z-10 p-0 flex items-center justify-center"
+                                title="Message on WhatsApp"
+                              >
+                                <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
+                                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
+                                </svg>
+                              </button>
+                            )}
+                            <a
+                              href={`https://mail.google.com/mail/?view=cm&fs=1&to=${student.email}&su=${encodeURIComponent('Face Yoga Update')}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-red-400 hover:text-red-600 transition-colors z-10 p-0 flex items-center justify-center"
+                              title="Send Gmail"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Mail className="w-3.5 h-3.5" />
+                            </a>
+                          </div>
+                        </div>
                       </div>
-                      <p className={cn("text-[8px] font-aktiv font-bold uppercase tracking-widest mt-0.5 truncate", isEmergency ? "text-red-500/70" : "text-foreground/30")}>
+                      <p className={cn("text-[9px] font-aktiv font-bold uppercase tracking-wider truncate", isEmergency ? "text-red-500/70" : "text-foreground/30")}>
                         {isEmergency
-                          ? `Day ${elapsedDays}: Ending Soon`
+                          ? (isEnded ? 'Plan Ended' : `Day ${elapsedDays}: Ending Soon`)
                           : (student.isTrial
-                            ? "Discovery"
+                            ? "Not Yet Subscribed"
                             : `Aligned: ${getInstructorName(student.assignedInstructorId) || 'Pending'}`)}
                       </p>
                     </div>
-                    {student.phone && (
-                      <button
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          const msg = `Hi ${student.full_name.split(' ')[0]}! This is the Faceyoguez team. We are reaching out regarding your session...`;
-                          
-                          // Check if we can use the official API (server-side)
-                          // For now, we attempt server-side send, and fallback to wa.me if not configured
-                          // Note: In production, you'd check a flag or env-based config
-                          const loadingToast = toast.loading('Sending WhatsApp...');
-                          
-                          try {
-                            if (!student.phone) throw new Error('No phone number');
-                            const result = await sendWhatsAppMessage(student.phone, msg);
-                            if (result.success) {
-                              toast.success('Message sent via Official API', { id: loadingToast });
-                            } else {
-                              // Fallback to wa.me if API not configured or failed
-                              toast.dismiss(loadingToast);
-                              const cleanPhone = student.phone?.replace(/[^0-9]/g, '');
-                              window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
-                            }
-                          } catch (err) {
-                            toast.dismiss(loadingToast);
-                            const cleanPhone = student.phone?.replace(/[^0-9]/g, '');
-                            window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
-                          }
-                        }}
-                        className="h-8 w-8 rounded-full bg-[#25D366]/10 text-[#25D366] flex flex-shrink-0 items-center justify-center hover:bg-[#25D366] hover:text-white transition-all shadow-sm z-10"
-                        title="Message on WhatsApp"
-                      >
-                         <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
-                         </svg>
-                      </button>
-                    )}
                   </div>
                 );
               })}
@@ -418,30 +527,38 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                           {selectedStudent.full_name}
                         </h2>
                         {selectedStudent.isTrial && (
-                          <span className="text-[10px] font-black uppercase text-white bg-red-500 px-2 py-0.5 rounded-full shadow-sm animate-pulse whitespace-nowrap">
-                            Trial
+                          <span className="text-[10px] font-black uppercase text-white bg-amber-500 px-2 py-0.5 rounded-full shadow-sm whitespace-nowrap">
+                            Unsubscribed
                           </span>
                         )}
+                        <button
+                          onClick={() => setShowAssignModal(true)}
+                          className="h-8 px-4 rounded-lg bg-primary/5 border border-primary/10 text-[9px] font-aktiv font-bold uppercase tracking-widest hover:bg-primary hover:text-white hover:scale-[1.02] transition-all flex items-center gap-2 shadow-sm"
+                        >
+                          <UserPlus className="w-3.5 h-3.5" />
+                          {selectedStudent.assignedInstructorId ? 'Change Instructor' : 'Assign Instructor'}
+                        </button>
                       </div>
                       <div className="flex items-center gap-6">
                         <div className="flex items-center gap-2 text-[10px] font-aktiv font-bold uppercase tracking-widest text-foreground/30">
                           <Clock className="w-3.5 h-3.5" /> Admission Date: {selectedStudent.startDate ? new Date(selectedStudent.startDate).toLocaleDateString() : 'Pending'}
                         </div>
                         <div className="flex items-center gap-2 text-[10px] font-aktiv font-bold uppercase tracking-widest text-foreground/30">
-                          <ShieldCheck className={cn("w-3.5 h-3.5", selectedStudent.isTrial ? "text-primary/60" : "text-brand-emerald/60")} /> {selectedStudent.isTrial ? "Trial Access" : "Full Enrolment"}
+                          <ShieldCheck className={cn("w-3.5 h-3.5", selectedStudent.isTrial ? "text-amber-500/60" : "text-brand-emerald/60")} /> {selectedStudent.isTrial ? "Not Yet Subscribed" : "Full Enrolment"}
                         </div>
+                        <a 
+                          href={`https://mail.google.com/mail/?view=cm&fs=1&to=${selectedStudent.email}&su=${encodeURIComponent('Face Yoga Consultation')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 text-[10px] font-aktiv font-bold uppercase tracking-widest text-foreground/30 hover:text-red-500 transition-colors"
+                        >
+                          <Mail className="w-3.5 h-3.5" /> {selectedStudent.email}
+                        </a>
                       </div>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => setShowAssignModal(true)}
-                      className="h-12 px-6 rounded-xl bg-white border border-outline-variant/10 text-[10px] font-aktiv font-bold uppercase tracking-widest hover:border-primary/20 hover:scale-[1.02] transition-all flex items-center gap-2 shadow-sm"
-                    >
-                      <UserPlus className="w-4 h-4 text-primary" />
-                      {selectedStudent.assignedInstructorId ? 'Change Instructor' : 'Assign Instructor'}
-                    </button>
                     {/* Communion button removed as chat is now persistent on right */}
                   </div>
                 </div>
@@ -455,7 +572,19 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">📸 Progress Photos</h3>
-                        <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20">Day {activeStepDay} · 3-Angle</span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20">Day {activeStepDay} · 3-Angle</span>
+                          <button
+                            onClick={handleDownloadAllPhotos}
+                            disabled={isDownloadingPhotos || journeyLogs.length === 0}
+                            title="Download all uploaded photos as ZIP"
+                            className="flex items-center gap-1.5 h-8 px-3 rounded-xl bg-primary/5 text-primary border border-primary/10 text-[9px] font-aktiv font-bold uppercase tracking-wider hover:bg-primary hover:text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            {isDownloadingPhotos
+                              ? <><Loader2 className="w-3 h-3 animate-spin" /> Bundling…</>
+                              : <><Download className="w-3 h-3" /> Download All</>}
+                          </button>
+                        </div>
                       </div>
                       {isLoadingJourney ? (
                         <div className="flex items-center justify-center h-40">
@@ -517,41 +646,66 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                     </div>
                   </div>
 
-                  {/* Moved Registry Artifacts (Update PDF) Section */}
-                  <div className="bg-white/40 backdrop-blur-md p-8 rounded-[2.5rem] border border-outline-variant/10 shadow-lg flex flex-col -mt-6">
-                    <div className="flex items-center justify-between mb-8 shrink-0">
-                      <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Shared Documents</h3>
-                      <button
-                        disabled={!selectedStudent || isUploading}
-                        onClick={() => fileInputRef.current?.click()}
-                        className="h-10 w-10 rounded-xl bg-primary/5 text-primary flex items-center justify-center transition-all hover:scale-110 active:scale-95 disabled:opacity-20 border border-primary/10"
-                      >
-                        {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-5 w-5" />}
-                      </button>
-                      <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
-                    </div>
-
-                    <div className="space-y-3 overflow-y-auto max-h-[300px] custom-scrollbar pr-2">
-                      {resources.map((res) => {
-                        const style = getFileIcon(res.content_type || '');
-                        return (
-                          <button key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="w-full flex items-center gap-4 p-4 bg-white border border-outline-variant/5 rounded-2xl hover:border-primary/20 hover:shadow-md transition-all text-left group">
-                            <div className={cn("h-10 w-10 rounded-xl bg-foreground/5 flex items-center justify-center text-foreground/20 group-hover:bg-primary/5 group-hover:text-primary transition-colors", style.color)}>
-                              <style.icon className="w-4 h-4" />
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-xs font-jakarta font-bold text-foreground truncate">{res.file_name}</p>
-                              <p className="text-[9px] font-aktiv font-bold text-foreground/20 uppercase tracking-widest mt-0.5">{formatFileSize(res.file_size)}</p>
-                            </div>
-                          </button>
-                        );
-                      })}
-                      {resources.length === 0 && (
-                        <div className="h-40 flex flex-col items-center justify-center opacity-20 bg-foreground/[0.02] border border-dashed border-outline-variant/20 rounded-2xl">
-                          <FolderOpen className="w-6 h-6 mb-2" />
-                          <p className="text-[9px] font-aktiv font-bold uppercase tracking-widest">Registry pristine</p>
+                    <div className="bg-white/40 backdrop-blur-md p-8 rounded-[2.5rem] border border-outline-variant/10 shadow-lg flex flex-col -mt-6">
+                      <div className="flex items-center justify-between mb-8 shrink-0">
+                        <div className="flex items-center gap-4">
+                          <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Shared Documents</h3>
+                          <span className="px-2 py-0.5 rounded-full bg-primary/5 text-primary text-[8px] font-black uppercase tracking-wider">{resources.length} Total</span>
                         </div>
-                      )}
+                        <button
+                          disabled={!selectedStudent || isUploading}
+                          onClick={() => fileInputRef.current?.click()}
+                          className="h-10 w-10 rounded-xl bg-primary/5 text-primary flex items-center justify-center transition-all hover:scale-110 active:scale-95 disabled:opacity-20 border border-primary/10"
+                        >
+                          {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-5 w-5" />}
+                        </button>
+                        <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
+                      </div>
+
+                      <div className="space-y-2 flex-1">
+                        {resources.slice((docPage - 1) * 5, docPage * 5).map((res) => {
+                          const style = getFileIcon(res.content_type || '');
+                          return (
+                            <button key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="w-full flex items-center gap-4 p-3 bg-white border border-outline-variant/5 rounded-2xl hover:border-primary/20 hover:shadow-md transition-all text-left group">
+                              <div className={cn("h-9 w-9 rounded-xl bg-foreground/5 flex items-center justify-center text-foreground/20 group-hover:bg-primary/5 group-hover:text-primary transition-colors", style.color)}>
+                                <style.icon className="w-3.5 h-3.5" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-xs font-jakarta font-bold text-foreground truncate">{res.file_name}</p>
+                                <p className="text-[9px] font-aktiv font-bold text-foreground/20 uppercase tracking-widest mt-0.5">{formatFileSize(res.file_size)}</p>
+                              </div>
+                            </button>
+                          );
+                        })}
+                        
+                        {resources.length > 5 && (
+                          <div className="mt-6 pt-6 border-t border-outline-variant/5 flex items-center justify-between">
+                            <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20">Page {docPage} of {Math.ceil(resources.length / 5)}</span>
+                            <div className="flex items-center gap-2">
+                              <button 
+                                onClick={() => setDocPage(p => Math.max(1, p - 1))}
+                                disabled={docPage === 1}
+                                className="h-8 w-8 rounded-lg border border-outline-variant/10 flex items-center justify-center disabled:opacity-20 hover:bg-white transition-colors"
+                              >
+                                <ChevronLeft className="w-3 h-3" />
+                              </button>
+                              <button 
+                                onClick={() => setDocPage(p => Math.min(Math.ceil(resources.length / 5), p + 1))}
+                                disabled={docPage === Math.ceil(resources.length / 5)}
+                                className="h-8 w-8 rounded-lg border border-outline-variant/10 flex items-center justify-center disabled:opacity-20 hover:bg-white transition-colors"
+                              >
+                                <ChevronRight className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {resources.length === 0 && (
+                          <div className="flex-1 flex flex-col items-center justify-center text-center opacity-20 py-10">
+                            <File className="w-12 h-12 mb-4" />
+                            <p className="text-[10px] font-bold uppercase tracking-widest">No documents shared yet</p>
+                          </div>
+                        )}
                     </div>
                   </div>
                 </div>

@@ -31,9 +31,9 @@ export default async function PlansPage() {
 
     const hasUsedTrial = (allSubscriptions as any[])?.some(s => s.is_trial) || false;
 
-    // Active paid subscription = is_active, not a trial, and end_date is today or future
+    // Active paid subscription = is_active, not a trial, and end_date is today or future (or null = lifetime)
     const hasActiveSubscription = (allSubscriptions as any[])?.some(
-        (s: any) => s.status === 'active' && !s.is_trial && s.end_date && s.end_date >= today
+        (s: any) => s.status === 'active' && !s.is_trial && (!s.end_date || s.end_date >= today)
     ) || false;
 
     const activeSubscription = (allSubscriptions as any[])?.filter((s: any) => ['active', 'pending'].includes(s.status)) || [];
@@ -44,7 +44,6 @@ export default async function PlansPage() {
                 currentSubscription={activeSubscription}
                 userId={user.id}
                 currentUser={profile}
-                hasUsedTrial={hasUsedTrial}
                 hasActiveSubscription={hasActiveSubscription}
             />
         </Suspense>

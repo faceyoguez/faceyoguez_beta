@@ -60,7 +60,7 @@ export default function VideoCoursesPage() {
                  
                  <h1 className="text-4xl md:text-7xl font-light text-[#2c2525] leading-none" style={{ fontFamily: 'var(--font-cormorant)' }}>
                    Your Transformation. <br /> 
-                   <span className="italic text-[#e76f51]">Your Pace. Your Time.</span>
+                   <span className="text-[#e76f51]">Your Pace. Your Time.</span>
                  </h1>
 
                  <div className="pt-4 space-y-4">

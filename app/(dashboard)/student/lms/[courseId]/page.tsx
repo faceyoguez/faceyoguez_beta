@@ -55,7 +55,6 @@ export default async function CourseViewerPage({ params }: PageProps) {
     .eq('student_id', user.id)
     .eq('status', 'active');
 
-  const isTrial = activeSubscriptions?.some((s: any) => s.is_trial) || false;
   const hasActiveSub = (activeSubscriptions && activeSubscriptions.length > 0) || isAdmin;
   const hasLevel2 = activeSubscriptions?.some((s: any) => s.plan_variant?.includes('Level 2')) || isAdmin;
 
@@ -118,7 +117,7 @@ export default async function CourseViewerPage({ params }: PageProps) {
           modules={sortedModules}
           completedModuleIds={completedModuleIds}
           studentId={user.id}
-          isTrial={isTrial}
+          hasActiveSub={hasActiveSub}
         />
       </div>
     </div>

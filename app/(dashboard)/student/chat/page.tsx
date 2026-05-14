@@ -31,7 +31,7 @@ export default async function StudentChatPage() {
   return (
     <StudentChatClient
       currentUser={profile}
-      planType={sub?.plan_type || 'one_on_one'}
+      planType={sub?.plan_type ?? null}
     />
   );
 }

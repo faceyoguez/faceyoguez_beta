@@ -239,7 +239,7 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
               </div>
               <h1 className="text-4xl md:text-6xl font-light text-[#2c2525] leading-none" style={{ fontFamily: 'var(--font-cormorant)' }}>
                 Because Your Face <br />
-                <span className="italic">Deserves a Plan Made Only for You.</span>
+                <span className="text-[#e76f51]">Deserves a Plan Made Only for You.</span>
               </h1>
               <div className="pt-6 space-y-4 border-t border-[#2c2525]/5">
                 <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[#e76f51]">😔 Does Any of This Sound Familiar?</h3>

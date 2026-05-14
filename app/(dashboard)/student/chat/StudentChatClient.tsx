@@ -14,7 +14,7 @@ import type {
 
 interface Props {
   currentUser: Profile;
-  planType: SubscriptionPlanType;
+  planType: SubscriptionPlanType | null;
 }
 
 export function StudentChatClient({ currentUser, planType }: Props) {
@@ -22,10 +22,29 @@ export function StudentChatClient({ currentUser, planType }: Props) {
 
   const { conversations, isLoading } = useConversations({
     userId: currentUser.id,
-    type: conversationType,
+    type: planType ? conversationType : 'direct', // fallback; rendered state guards null
   });
 
   const [selectedConv, setSelectedConv] = useState<ConversationWithDetails | null>(null);
+
+  // No plan at all — unsubscribed user
+  if (!planType) {
+    return (
+      <div className="flex items-center justify-center py-40">
+        <div className="max-w-md text-center space-y-6">
+          <div className="h-16 w-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto text-slate-300">
+            <MessageSquare className="w-8 h-8" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Chat Not Available</h2>
+            <p className="text-xs text-slate-400 font-medium leading-relaxed">
+              You don&apos;t have an active plan yet. Subscribe to a <span className="text-[#FF8A75]">1-on-1</span> or <span className="text-[#FF8A75]">Group</span> plan to unlock chat.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+ }
 
   if (planType === 'lms') {
     return (
@@ -37,7 +56,7 @@ export function StudentChatClient({ currentUser, planType }: Props) {
           <div className="space-y-2">
             <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Access Restricted</h2>
             <p className="text-xs text-slate-400 font-medium leading-relaxed">
-                You're on a self-paced plan. Upgrade to a <span className="text-[#FF8A75]">1-on-1 plan</span> to unlock direct chat with your instructor.
+                You&apos;re on a self-paced plan. Upgrade to a <span className="text-[#FF8A75]">1-on-1 plan</span> to unlock direct chat with your instructor.
             </p>
           </div>
         </div>

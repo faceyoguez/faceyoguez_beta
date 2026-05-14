@@ -12,7 +12,7 @@ import {
     Calendar, Image as ImageIcon, BookOpen, Clock, Activity, Users, CreditCard,
     XCircle, CheckCircle2, Tag
 } from 'lucide-react';
-import { activateTrial } from '@/app/actions/plans';
+// Trial feature removed — no free trials
 import type { Profile } from '@/types/database';
 import { consumeCouponAction } from '@/lib/actions/coupons';
 import { pixel } from '@/lib/pixel';
@@ -49,14 +49,11 @@ interface Props {
     currentSubscription: any[] | null;
     userId: string;
     currentUser?: Profile | null;
-    hasUsedTrial?: boolean;
     hasActiveSubscription?: boolean;
 }
 
-export default function PlansClient({ currentSubscription, userId, currentUser, hasUsedTrial: initialHasUsedTrial, hasActiveSubscription = false }: Props) {
+export default function PlansClient({ currentSubscription, userId, currentUser, hasActiveSubscription = false }: Props) {
     const searchParams = useSearchParams();
-    const [isStartingTrial, setIsStartingTrial] = useState(false);
-    const [hasUsedTrial, setHasUsedTrial] = useState(initialHasUsedTrial);
     const router = useRouter();
     const [selectedPlanId, setSelectedPlanId] = useState<string>(PLANS_DATA[0].id);
     const [selectedTierId, setSelectedTierId] = useState<string>(PLANS_DATA[0].tiers[0].id);
@@ -108,24 +105,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
         });
     }, []);
 
-    const handleStartTrial = async () => {
-        setIsStartingTrial(true);
-        try {
-            const res = await activateTrial(userId);
-            if (res.success) {
-                toast.success('Trial activated! You have 1 day of full access. 🧘‍♂️');
-                setHasUsedTrial(true);
-                router.refresh();
-                router.push('/student/dashboard');
-            } else {
-                toast.error(res.error || 'Failed to start trial');
-            }
-        } catch (err) {
-            toast.error('Something went wrong');
-        } finally {
-            setIsStartingTrial(false);
-        }
-    };
+    // Trial feature removed
 
     const [showCheckout, setShowCheckout] = useState(false);
     const [selectedBumps, setSelectedBumps] = useState<string[]>([]);
@@ -161,7 +141,8 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
         if (appliedCoupon) {
             total = total * (1 - appliedCoupon.discount_percentage / 100);
         }
-        return Math.round(total);
+        // Razorpay requires minimum ₹1 — guard against 100% coupons
+        return Math.max(1, Math.round(total));
     };
 
     const applyCoupon = async () => {
@@ -195,10 +176,13 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
      * Opens the Razorpay Checkout modal with a server-created order.
      * On payment success → calls verify-payment API → redirects to success page.
      * Handles all failure/dismissal scenarios gracefully.
+     * 100% coupons bypass Razorpay and activate directly.
      */
     const handleProceed = async () => {
         setLoading(true);
-        const totalAmount = calculateTotal();
+        const rawTotal = calculateTotal();
+        const isFreeOrder = appliedCoupon?.discount_percentage === 100;
+        const totalAmount = isFreeOrder ? 0 : rawTotal;
         const duration = durationFromTierId(selectedTierId);
 
         try {
@@ -210,6 +194,29 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                     setLoading(false);
                     return;
                 }
+            }
+
+            // ── 100% Coupon: Bypass Razorpay entirely ────────────────────
+            if (isFreeOrder) {
+                const freeRes = await fetch('/api/razorpay/activate-free', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        planType: selectedPlanId,
+                        planVariant: selectedTierId,
+                        durationMonths: duration,
+                        couponCode: appliedCoupon?.code,
+                    }),
+                });
+                const freeData = await freeRes.json();
+                if (freeRes.ok && freeData.success) {
+                    toast.success('Plan activated! Welcome to Faceyoguez 🎉');
+                    router.push(`/student/purchase-success?plan=${selectedPlanId}&variant=${selectedTierId}`);
+                } else {
+                    toast.error(freeData.error || 'Could not activate free plan. Please contact support.');
+                }
+                setLoading(false);
+                return;
             }
 
             // ── Step 2: Load Razorpay SDK ────────────────────────────────
@@ -465,11 +472,11 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
     const cardBg = "bg-white border border-[#FF8A75]/10";
 
     return (
-        <div className="min-h-full font-jakarta px-4 sm:px-6 md:px-8 lg:px-12 py-6 sm:py-8 space-y-6 sm:space-y-8 bg-slate-50/30 max-w-[1920px] mx-auto">
+        <div className="min-h-full font-jakarta px-4 sm:px-6 md:px-8 lg:px-12 py-3 sm:py-4 space-y-4 sm:space-y-5 bg-slate-50/30 max-w-[1920px] mx-auto">
             {/* Desktop & Tablet Professional Layout */}
-            <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-5 lg:gap-6">
+            <div className="hidden md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 lg:gap-5">
                 {/* Panel 1: Ritual Selector */}
-                <div className="md:col-span-1 lg:col-span-3 flex flex-col gap-5 lg:gap-6">
+                <div className="md:col-span-1 lg:col-span-3 flex flex-col gap-4 lg:gap-5">
                     <div>
                         <h1 className="text-2xl sm:text-3xl font-aktiv font-bold text-slate-900 tracking-tight">Choose Your <span className="text-[#FF8A75]">Plan</span></h1>
                         <p className="text-xs text-slate-400 font-medium mt-1">Face yoga plans for every goal</p>
@@ -548,20 +555,21 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                 </div>
 
                 {/* Panel 2: Deep Dive */}
-                <div className="md:col-span-1 lg:col-span-6 flex flex-col gap-5 lg:gap-6">
-                    <div className={`flex-1 p-8 rounded-[1.75rem] flex flex-col gap-6 relative overflow-hidden bg-white border border-slate-100 shadow-sm`}>
+                <div className="md:col-span-1 lg:col-span-6 flex flex-col gap-3 lg:gap-4">
+                    {/* Deep Dive Card */}
+                    <div className={`h-[460px] p-6 rounded-[1.75rem] flex flex-col gap-6 relative overflow-hidden bg-white border border-slate-100 shadow-sm`}>
                         <div className="space-y-1.5">
                             <span className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.3em]">Details</span>
-                            <h2 className="text-2xl font-aktiv font-bold text-[#1a1a1a] leading-tight">{currentMeta?.hook}</h2>
+                            <h2 className="text-2xl font-aktiv font-bold text-[#1a1a1a] leading-tight tracking-tight">{currentMeta?.hook}</h2>
                             <p className="text-xs font-medium leading-relaxed max-w-lg opacity-80">{currentMeta?.problem}</p>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <h4 className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.2em]">Focus Areas</h4>
+                                <h4 className="text-[10px] font-black text-[#FF8A75] uppercase tracking-[0.2em]">Focus Areas</h4>
                                 <div className="space-y-1.5">
                                     {currentMeta?.workOn.map((f, i) => (
-                                        <div key={i} className="flex items-center gap-2 text-[10px] font-bold text-[#374151] uppercase tracking-wider">
+                                        <div key={i} className="flex items-center gap-2 text-[11px] font-bold text-[#374151] uppercase tracking-wider">
                                             <div className="w-1 h-1 rounded-full bg-[#FF8A75]" />
                                             {f}
                                         </div>
@@ -569,23 +577,54 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <h4 className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.2em]">Methodology</h4>
-                                <p className="text-[11px] font-medium leading-relaxed">{currentMeta?.solution}</p>
+                                <h4 className="text-[10px] font-black text-[#FF8A75] uppercase tracking-[0.2em]">Methodology</h4>
+                                <p className="text-[12px] font-medium leading-relaxed">{currentMeta?.solution}</p>
                             </div>
                         </div>
 
                         <div className="mt-auto grid grid-cols-2 gap-3">
                             {currentMeta?.journey.map((step: any, i: number) => (
-                                <div key={i} className="flex items-start gap-3 p-4 rounded-xl bg-[#FFFAF7]/40 border border-[#FF8A75]/10">
+                                <div key={i} className="flex items-start gap-3 p-3.5 rounded-xl bg-[#FFFAF7]/40 border border-[#FF8A75]/10">
                                     <div className="p-2 rounded-lg bg-[#FF8A75] text-white flex-shrink-0">
                                         <step.icon className="w-3 h-3" />
                                     </div>
-                                    <div>
-                                        <div className="text-[10px] font-bold leading-none mb-0.5">{step.title}</div>
-                                        <div className="text-[8px] text-[#1a1a1a]/70 font-medium">{step.desc}</div>
+                                    <div className="min-w-0">
+                                        <div className="text-[11px] font-bold leading-none mb-0.5">{step.title}</div>
+                                        <div className="text-[9px] text-[#1a1a1a]/70 font-medium leading-tight">{step.desc}</div>
                                     </div>
                                 </div>
                             ))}
+                        </div>
+                    </div>
+
+                    {/* Consultation Card Moved Here */}
+                    <div className="p-5 rounded-[1.75rem] bg-gradient-to-br from-[#FF8A75]/15 via-[#FF8A75]/5 to-white border-2 border-[#FF8A75]/30 space-y-3 relative overflow-hidden animate-glow group shadow-xl shadow-[#FF8A75]/10">
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-[#FF8A75]/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-[#FF8A75]/20 transition-all duration-700" />
+                        <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[#FF8A75]/5 rounded-full blur-[60px] pointer-events-none" />
+                        
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
+                            <div className="space-y-0.5">
+                                <div className="flex items-center gap-1.5 mb-1.5">
+                                    <div className="h-4 w-4 rounded-full bg-[#FF8A75] flex items-center justify-center shadow-[0_0_10px_rgba(255,138,117,0.5)]">
+                                        <Sparkles className="w-2 h-2 text-white" />
+                                    </div>
+                                    <span className="text-[7px] font-black text-[#FF8A75] uppercase tracking-[0.25em]">Not Sure Yet?</span>
+                                </div>
+                                <h4 className="text-[15px] font-aktiv font-bold text-slate-900 leading-none">Book a Free Consultation</h4>
+                                <p className="text-[10px] font-medium text-slate-500 leading-tight">
+                                    One-on-one call with an expert for just <span className="text-slate-900 font-bold">₹999</span>.
+                                </p>
+                                <p className="text-[8px] font-bold text-[#FF8A75] leading-none flex items-start gap-1 mt-1">
+                                    <CheckCircle2 className="w-2.5 h-2.5 flex-shrink-0" />
+                                    ₹999 is fully credited back on any 1-on-1 plan.
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => { window.location.href = '/student/consultation'; }}
+                                className="shrink-0 h-11 px-6 bg-slate-900 hover:bg-[#FF8A75] text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-xl shadow-slate-900/20 active:scale-95"
+                            >
+                                Book Consultation — ₹999
+                            </button>
                         </div>
                     </div>
 
@@ -595,7 +634,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                             {currentMeta?.dashboard.map((d: string, i: number) => (
                                 <div key={i} className="flex flex-col items-center gap-2 text-center p-3 rounded-xl bg-white border border-[#FF8A75]/10 flex-1">
                                     <div className="w-1 h-1 rounded-full bg-[#FF8A75]" />
-                                    <span className="text-[8px] font-black leading-tight uppercase text-[#6B7280] tracking-widest">{d}</span>
+                                    <span className="text-[8.5px] font-black leading-tight uppercase text-[#6B7280] tracking-widest">{d}</span>
                                 </div>
                             ))}
                         </div>
@@ -603,7 +642,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                 </div>
 
                 {/* Panel 3: Membership & Checkout */}
-                <div className="md:col-span-2 lg:col-span-3 flex flex-col md:flex-row lg:flex-col gap-5 lg:gap-6">
+                <div className="md:col-span-2 lg:col-span-3 flex flex-col md:flex-row lg:flex-col gap-3 lg:gap-4">
                     <div data-lenis-prevent className="flex-1 space-y-2">
                         <h3 className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.2em] px-2 mb-1">Memberships</h3>
                         {currentPlan.tiers.map((tier) => (
@@ -635,6 +674,9 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                         ))}
                     </div>
 
+
+
+                    {/* ── Total Amount + Subscribe ──────────────────────── */}
                     <div className="p-6 rounded-[1.75rem] bg-white border border-slate-100 shadow-sm space-y-4">
                         <div className="flex items-center justify-between">
                             <div>
@@ -657,48 +699,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                 )}
                             </button>
 
-                            {!hasUsedTrial && currentPlan.hasTrial && !hasActiveSubscription && (
-                                <button
-                                    onClick={handleStartTrial}
-                                    disabled={loading || isStartingTrial}
-                                    className="w-full h-12 bg-white border border-slate-200 hover:border-slate-900 text-slate-900 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 group"
-                                >
-                                    {isStartingTrial ? <Loader2 className="w-4 h-4 animate-spin" /> : (
-                                        <>Try it for free <Sparkles className="w-3 h-3 text-[#FF8A75] group-hover:scale-125 transition-transform" /></>
-                                    )}
-                                </button>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="p-6 rounded-[1.75rem] bg-slate-50 border border-slate-100 space-y-4">
-                        <div className="space-y-1">
-                            <h4 className="text-[9px] font-black text-[#FF8A75] uppercase tracking-[0.2em]">Guaranteed Results</h4>
-                            <p className="text-[10px] font-medium text-slate-400 leading-relaxed">
-                                Join over <span className="text-slate-900 font-bold">12,000+</span> students who have transformed their radiance naturally.
-                            </p>
-                        </div>
-                        <div className="flex -space-x-2">
-                            {[
-                                '1438761681033-6461ffad8d80',
-                                '1544005313-94ddf0286df2',
-                                '1531746020798-e6953c6e8e04',
-                                '1534528741775-53994a69daeb',
-                                '1521119989659-a83eee488004'
-                            ].map((id, i) => (
-                                <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 overflow-hidden shadow-sm relative">
-                                    <Image
-                                        src={`https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=100&h=100&q=80`}
-                                        alt="User"
-                                        fill
-                                        className="object-cover"
-                                        onError={(e) => {
-                                            (e.currentTarget as any).src = `https://ui-avatars.com/api/?name=Student&background=FF8A75&color=fff`;
-                                        }}
-                                    />
-                                </div>
-                            ))}
-                            <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-900 text-white flex items-center justify-center text-[8px] font-black shadow-sm">+12k</div>
+                            {/* Trial button removed — no free trials */}
                         </div>
                     </div>
                 </div>
@@ -801,6 +802,20 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
 
                 {/* Mobile Fixed Bottom Cart */}
                 <div className="mt-auto p-4 border-t bg-white/80 backdrop-blur-xl space-y-2">
+                    {/* Mobile Consultation CTA */}
+                    <div className="p-4 rounded-2xl bg-gradient-to-br from-[#FF8A75]/8 to-[#FF8A75]/3 border border-[#FF8A75]/20 flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                            <p className="text-[9px] font-black text-slate-900 leading-tight">Not sure? Book a Consultation</p>
+                            <p className="text-[8px] text-[#FF8A75] font-bold leading-tight mt-0.5">₹999 · Credited back on 1-on-1 plan</p>
+                        </div>
+                        <button
+                            onClick={() => { window.location.href = '/student/consultation'; }}
+                            className="shrink-0 h-8 px-3 bg-white border border-[#FF8A75]/30 hover:bg-[#FF8A75] hover:text-white text-slate-900 rounded-lg font-black text-[8px] uppercase tracking-widest transition-all"
+                        >
+                            ₹999
+                        </button>
+                    </div>
+
                     <div className="flex items-center justify-between mb-1">
                         <div>
                             <span className="text-[7px] font-black text-[#FF8A75] uppercase tracking-widest">Selected Tier</span>
@@ -820,25 +835,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                             Subscribe Now <MoveRight className="w-3 h-3" />
                         </button>
 
-                        {!hasUsedTrial && (
-                            hasActiveSubscription ? (
-                                // Student has active paid plan — trial not available
-                                <div className="w-full py-2.5 flex items-center justify-center gap-2 rounded-xl bg-amber-50 border border-amber-100 text-[8px] font-bold text-amber-600 uppercase tracking-widest">
-                                    <ShieldCheck className="w-3 h-3" />
-                                    Active plan — trial not available
-                                </div>
-                            ) : (
-                                <button
-                                    onClick={handleStartTrial}
-                                    disabled={loading || isStartingTrial}
-                                    className="w-full py-2.5 bg-white border border-[#1a1a1a]/10 text-[#1a1a1a] rounded-xl font-black text-[8px] uppercase tracking-widest flex items-center justify-center gap-2"
-                                >
-                                    {isStartingTrial ? <Loader2 className="w-3 h-3 animate-spin" /> : (
-                                        <>Try it for free <Sparkles className="w-3 h-3 text-[#FF8A75]" /></>
-                                    )}
-                                </button>
-                            )
-                        )}
+                        {/* Trial button removed — no free trials */}
                     </div>
                 </div>
             </div>
@@ -919,8 +916,8 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                 <div className="flex gap-2">
                                     <div className="relative flex-1">
                                         <Tag className={`absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${couponStatus?.type === 'error' ? 'text-rose-400' :
-                                                couponStatus?.type === 'success' ? 'text-emerald-500' :
-                                                    'text-[#6B7280]'
+                                            couponStatus?.type === 'success' ? 'text-emerald-500' :
+                                                'text-[#6B7280]'
                                             }`} />
                                         <input
                                             type="text"
@@ -935,10 +932,10 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                                 }
                                             }}
                                             className={`w-full bg-white border rounded-2xl py-4 pl-12 pr-4 text-[10px] font-black tracking-widest focus:outline-none focus:ring-2 transition-all ${couponStatus?.type === 'error'
-                                                    ? 'border-rose-300 focus:ring-rose-200'
-                                                    : couponStatus?.type === 'success'
-                                                        ? 'border-emerald-300 focus:ring-emerald-200'
-                                                        : 'border-[#FF8A75]/10 focus:ring-[#FF8A75]/20'
+                                                ? 'border-rose-300 focus:ring-rose-200'
+                                                : couponStatus?.type === 'success'
+                                                    ? 'border-emerald-300 focus:ring-emerald-200'
+                                                    : 'border-[#FF8A75]/10 focus:ring-[#FF8A75]/20'
                                                 }`}
                                         />
                                     </div>
@@ -954,8 +951,8 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                 {/* Inline coupon status message */}
                                 {couponStatus && (
                                     <div className={`flex items-start gap-2.5 px-4 py-3 rounded-xl text-[10px] font-bold leading-relaxed transition-all ${couponStatus.type === 'success'
-                                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-                                            : 'bg-rose-50 text-rose-600 border border-rose-100'
+                                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                                        : 'bg-rose-50 text-rose-600 border border-rose-100'
                                         }`}>
                                         {couponStatus.type === 'success'
                                             ? <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />

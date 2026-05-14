@@ -53,7 +53,7 @@ export default function LiveGroupPage() {
                  
                  <h1 className="text-4xl md:text-7xl font-light text-[#2c2525] leading-none" style={{ fontFamily: 'var(--font-cormorant)' }}>
                    The Glow-Up <br /> 
-                   <span className="italic text-[#e76f51]">Your Skin Has Been Waiting For.</span>
+                   <span className="text-[#e76f51]">Your Skin Has Been Waiting For.</span>
                  </h1>
 
                  <div className="pt-4 space-y-4">
