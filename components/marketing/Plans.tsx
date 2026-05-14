@@ -7,7 +7,7 @@ import { User, Users, BookOpen, ArrowRight, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { trackConversionEvent } from '@/lib/conversionTracking';
 
-const PLANS_PREVIEW = [
+const PLANS_PREVIEW: any[] = [
   {
     id: 'one_on_one',
     title: '1-on-1 Personal Coaching',
@@ -18,17 +18,17 @@ const PLANS_PREVIEW = [
     accent: '#e76f51',
     cta: 'Apply for 1-on-1'
   },
-  {
-    id: 'group_session',
-    title: '21-Day Group Batch',
-    subtitle: 'Community Energy',
-    desc: 'Our most popular programme. Join a batch of like-minded women and build a habit that lasts a lifetime.',
-    icon: Users,
-    features: ['Live Daily Practice', 'Shared Progress', 'Community Support'],
-    accent: '#e76f51',
-    popular: true,
-    cta: 'Join Next Batch'
-  },
+  // {
+  //   id: 'group_session',
+  //   title: '21-Day Group Batch',
+  //   subtitle: 'Community Energy',
+  //   desc: 'Our most popular programme. Join a batch of like-minded women and build a habit that lasts a lifetime.',
+  //   icon: Users,
+  //   features: ['Live Daily Practice', 'Shared Progress', 'Community Support'],
+  //   accent: '#e76f51',
+  //   popular: true,
+  //   cta: 'Join Next Batch'
+  // },
   {
     id: 'lms',
     title: 'Self-Paced Video Course',
@@ -164,7 +164,7 @@ export function Plans() {
                 </p>
 
                 <div className="space-y-4">
-                  {plan.features.map((feature, fIdx) => (
+                  {plan.features.map((feature: string, fIdx: number) => (
                     <div key={fIdx} className="flex items-center gap-3 text-[11px] font-bold text-[#2a2019]/70 uppercase tracking-wider">
                       <div className={`w-1 h-1 rounded-full bg-[#e76f51]/30 group-hover:bg-[#e76f51] transition-colors`} />
                       {feature}

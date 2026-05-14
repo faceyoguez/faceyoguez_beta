@@ -402,7 +402,7 @@ export function StudentDashboardClient({
       {/* ── Quick Actions Row ── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 lg:gap-4">
         {/* Live Group Card */}
-        {(activePlanTypes.includes('group_session') || isTrial) && (
+        {/* {(activePlanTypes.includes('group_session') || isTrial) && (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -419,7 +419,7 @@ export function StudentDashboardClient({
             <h3 className="text-base font-aktiv font-bold text-[#1a1a1a] tracking-tight">Live Group</h3>
             <p className="text-[9px] font-black uppercase tracking-[0.15em] text-[#e76f51] mt-0.5">21-Day Ritual</p>
           </motion.div>
-        )}
+        )} */}
 
         {/* One-on-One Card */}
         {activePlanTypes.includes('one_on_one') && (

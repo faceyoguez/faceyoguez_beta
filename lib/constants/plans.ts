@@ -24,26 +24,26 @@ export const PLANS_DATA = [
             'Exclusive Skin Assessment'
         ]
     },
-    {
-        id: 'group_session',
-        title: 'Group Face Yoga Classes',
-        subtitle: '21-day live group classes — practise daily with your batch',
-        icon: Users,
-        color: 'teal',
-        note: 'Best for accountability & community',
-        hasTrial: false,
-        tiers: [
-            { id: '1_month_12d', label: '1 Month (12-Day Recording)', originalPrice: 4400, discountedPrice: 1499, note: 'EARLY BIRD' },
-            { id: '3_months_12d', label: '3 Months (12-Day Recording)', originalPrice: 12999, discountedPrice: 3499, note: 'EXTENDED' }
-        ],
-        features: [
-            '21 Days Live Group Classes',
-            'Every day at 7:30 PM',
-            'Community Accountability',
-            'Session Recordings Access',
-            'Group Support & Motivation'
-        ]
-    },
+    // {
+    //     id: 'group_session',
+    //     title: 'Group Face Yoga Classes',
+    //     subtitle: '21-day live group classes — practise daily with your batch',
+    //     icon: Users,
+    //     color: 'teal',
+    //     note: 'Best for accountability & community',
+    //     hasTrial: false,
+    //     tiers: [
+    //         { id: '1_month_12d', label: '1 Month (12-Day Recording)', originalPrice: 4400, discountedPrice: 1499, note: 'EARLY BIRD' },
+    //         { id: '3_months_12d', label: '3 Months (12-Day Recording)', originalPrice: 12999, discountedPrice: 3499, note: 'EXTENDED' }
+    //     ],
+    //     features: [
+    //         '21 Days Live Group Classes',
+    //         'Every day at 7:30 PM',
+    //         'Community Accountability',
+    //         'Session Recordings Access',
+    //         'Group Support & Motivation'
+    //     ]
+    // },
     {
         id: 'lms',
         title: 'Self-Paced Video Courses',

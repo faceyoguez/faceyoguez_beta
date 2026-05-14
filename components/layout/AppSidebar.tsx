@@ -49,7 +49,7 @@ const navConfig = {
   student: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/student/dashboard' },
     { label: 'One-on-One', icon: User, path: '/student/one-on-one' },
-    { label: 'Group Classes', icon: Users, path: '/student/group-session' },
+    // { label: 'Group Classes', icon: Users, path: '/student/group-session' },
     { label: 'Courses', icon: BookOpen, path: '/student/lms' },
     { label: 'Plans & Pricing', icon: CreditCard, path: '/student/plans' },
     { label: 'Consultation', icon: MessageCircle, path: '/student/consultation' },
