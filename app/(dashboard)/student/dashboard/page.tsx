@@ -28,7 +28,7 @@ export default async function StudentDashboardPage() {
       .eq('meeting_type', 'one_on_one')
       .gte('start_time', windowStart)
       .order('start_time', { ascending: true })
-      .then(res => res.data || [])
+      .then((res: { data: any[] | null }) => res.data || [])
   ]);
 
   const batchIds = enrollments.map((e: { batch_id: string }) => e.batch_id);
