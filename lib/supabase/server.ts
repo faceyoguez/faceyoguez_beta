@@ -1,8 +1,9 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { createClient } from '@supabase/supabase-js';
+import { cache } from 'react';
 
-export async function createServerSupabaseClient() {
+export const createServerSupabaseClient = cache(async () => {
   const cookieStore = await cookies();
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -23,7 +24,6 @@ export async function createServerSupabaseClient() {
   return createServerClient(
     url,
     key,
-
     {
       cookies: {
         getAll() {
@@ -41,9 +41,9 @@ export async function createServerSupabaseClient() {
       },
     }
   );
-}
+});
 
-export function createAdminClient() {
+export const createAdminClient = cache(() => {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -65,5 +65,5 @@ export function createAdminClient() {
     key,
     { auth: { autoRefreshToken: false, persistSession: false } }
   );
-}
+});
 

@@ -48,16 +48,16 @@ export function Hero({ visible }: HeroProps) {
         variants={itemVariants}
         className="fixed top-4 sm:top-6 left-1/2 -translate-x-1/2 w-[94%] sm:w-[85%] z-[100] will-change-transform"
       >
-        <div className="flex items-center justify-between px-4 py-2.5 sm:px-6 sm:py-4 rounded-full bg-white/60 sm:bg-white/40 backdrop-blur-lg sm:backdrop-blur-xl border border-white/40 shadow-[0_8px_32px_rgba(255,138,117,0.04)] will-change-[backdrop-filter]">
+        <div className="flex items-center justify-between px-4 py-2 sm:px-6 sm:py-4 rounded-full bg-white/60 sm:bg-white/40 backdrop-blur-lg sm:backdrop-blur-xl border border-white/40 shadow-[0_8px_32px_rgba(255,138,117,0.04)] will-change-[backdrop-filter]">
           <div className="font-sooner text-xl sm:text-3xl font-bold text-[#2a2019] leading-none flex items-center tracking-tight">
             faceyoguez
           </div>
 
-          <div className="flex items-center gap-3 sm:gap-8">
+          <div className="flex items-center gap-2 sm:gap-8">
             <Link href="/auth/login" className="hidden sm:flex text-xs sm:text-sm font-black uppercase tracking-widest text-[#2a2019]/60 hover:text-[#e76f51] transition-colors leading-none items-center">
               Login
             </Link>
-            <Link href="/auth/signup" className="inline-flex items-center justify-center px-6 py-3 bg-[#1a1a1a] text-white rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] hover:bg-[#e76f51] transition-all shadow-md active:scale-95 leading-none">
+            <Link href="/auth/signup" className="inline-flex items-center justify-center px-4 py-2.5 sm:px-6 sm:py-3 bg-[#1a1a1a] text-white rounded-full text-[9px] sm:text-[11px] font-black uppercase tracking-[0.2em] hover:bg-[#e76f51] transition-all shadow-md active:scale-95 leading-none">
               Get Started
             </Link>
           </div>

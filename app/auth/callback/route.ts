@@ -7,6 +7,7 @@ export async function GET(request: Request) {
   const code = searchParams.get('code');
   const error = searchParams.get('error');
   const errorDescription = searchParams.get('error_description');
+  const next = searchParams.get('next');
   
   if (error) {
     console.error('OAuth Error Redirected from Supabase:', error, errorDescription);
@@ -18,6 +19,10 @@ export async function GET(request: Request) {
     const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
     
     if (!exchangeError) {
+      if (next) {
+        return NextResponse.redirect(`${origin}${next}`);
+      }
+
       // Determine proper role-based redirection
       const { data: { user } } = await supabase.auth.getUser();
       

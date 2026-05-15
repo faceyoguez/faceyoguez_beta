@@ -25,10 +25,19 @@ const GoogleIcon = () => (
 );
 
 const formSchema = z.object({
-  fullName: z.string().trim().min(2, 'Full Name must be at least 2 characters'),
+  fullName: z.string().trim()
+    .min(2, 'Full Name must be at least 2 characters')
+    .regex(/^[a-zA-Z\s]*$/, 'Full Name can only contain letters and spaces'),
   email: z.string().trim().email('Please enter a valid email address'),
-  phone: z.string().trim().optional(),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  phone: z.string().trim().optional().refine(val => !val || /^[0-9]{7,15}$/.test(val), {
+    message: 'Phone number must be 7-15 digits',
+  }),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[^a-zA-Z0-9]/, 'Password must contain at least one special character'),
 });
 
 const COUNTRY_CODES = [
@@ -104,36 +113,17 @@ export default function SignUpForm() {
       return;
     }
 
-    // Attempt auto-login if confirmed is not required or auto-complete succeeds
-    const { error: loginError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+    // Enforce Email Verification: Do not attempt auto-login
+    toast.success('Account created!', {
+      description: 'Please check your email and click the verification link to activate your sanctuary access.',
+      duration: 10000,
     });
 
-    if (loginError) {
-      toast.success('Account created!', {
-        description: 'Please confirm your email before signing in.',
-      });
-      setErrors({ form: 'Success! Please confirm your email before signing in.' });
-      setLoading(false);
-      return;
-    }
+    setErrors({ form: 'Success! A verification link has been sent to your email. Please verify before signing in.' });
+    setLoading(false);
 
-    toast.success('Account created successfully!', {
-      description: 'Welcome to Faceyoguez.',
-    });
-
-    // Pixel: account fully created & logged in
-    pixel.completeRegistration({ method: 'email' });
-
-    // Fire welcome email — non-blocking, doesn't delay login redirect
-    fetch('/api/auth/welcome', { method: 'POST' }).catch(() => {});
-
-    const redirectTo = searchParams.get('redirectTo');
-    const redirectPath = redirectTo || getRoleRedirectPath('student');
-    router.push(redirectPath);
-
-    router.refresh();
+    // Redirect to a specific "Check Email" page or back to login with a message
+    router.push('/auth/login?message=verify-email');
 
   }
 

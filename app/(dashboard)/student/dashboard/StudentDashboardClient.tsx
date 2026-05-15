@@ -15,7 +15,10 @@ import {
   Flame,
   Timer,
   Eye,
-  MessageCircle
+  MessageCircle,
+  ShieldCheck,
+  X,
+  AlertTriangle
 } from 'lucide-react';
 import { format, addMinutes, isAfter } from 'date-fns';
 import Link from 'next/link';
@@ -34,6 +37,8 @@ const ImageComparison = dynamic(() => import('@/components/ui/image-comparison-s
 
 interface StudentDashboardClientProps {
   profile: any;
+  emailVerified: boolean;
+  phoneVerified: boolean;
   todaysMeetings: any[];
   activePlanTypes: string[];
   daysLeft: number;
@@ -56,6 +61,8 @@ const QUOTES = [
 
 export function StudentDashboardClient({
   profile,
+  emailVerified,
+  phoneVerified,
   todaysMeetings,
   activePlanTypes,
   daysLeft,
@@ -72,9 +79,27 @@ export function StudentDashboardClient({
   const firstName = rawName.charAt(0).toUpperCase() + rawName.slice(1).toLowerCase();
   const [meetings, setMeetings] = React.useState(todaysMeetings);
   const [selectedAngle, setSelectedAngle] = React.useState('Front');
+  const [showVerificationBanner, setShowVerificationBanner] = React.useState(true);
+  const [showPlanBanner, setShowPlanBanner] = React.useState(true);
   const supabase = createClient();
 
   const quote = QUOTES[journeyDay % QUOTES.length];
+
+  const needsEmailVerification = !emailVerified;
+  const needsPhoneVerification = !phoneVerified;
+  const showBanner = showVerificationBanner && (needsEmailVerification || needsPhoneVerification);
+
+  const isPlanEnding = daysLeft > 0 && daysLeft <= 5;
+  const displayPlanBanner = showPlanBanner && isPlanEnding;
+
+  let verificationMessage = '';
+  if (needsEmailVerification && needsPhoneVerification) {
+    verificationMessage = 'Please verify your email address and phone number to secure your account.';
+  } else if (needsEmailVerification) {
+    verificationMessage = 'Please verify your email address to secure your account.';
+  } else if (needsPhoneVerification) {
+    verificationMessage = 'Please verify your phone number to secure your account.';
+  }
 
   // ─── Real-Time Subscription & Expiry Logic ───
   React.useEffect(() => {
@@ -147,21 +172,87 @@ export function StudentDashboardClient({
   return (
     <div className="min-h-full p-4 sm:p-6 lg:p-8 space-y-5 lg:space-y-6 font-jakarta">
 
+      {/* ── Verification Banner ── */}
+      <AnimatePresence>
+        {showBanner && (
+          <motion.div
+            initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+            animate={{ opacity: 1, height: 'auto', marginBottom: 20 }}
+            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="bg-red-50 border border-red-100 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between shadow-sm relative gap-4 sm:gap-0">
+              <div className="flex items-start sm:items-center gap-3">
+                <div className="h-10 w-10 shrink-0 rounded-xl bg-red-100 flex items-center justify-center">
+                  <ShieldCheck className="h-5 w-5 text-red-600" />
+                </div>
+                <Link href="/student/profile#verify" className="flex-1 min-w-0 group/link">
+                  <h3 className="text-sm font-aktiv font-bold text-red-900 group-hover/link:text-red-700 transition-colors">Account Verification Required</h3>
+                  <p className="text-xs text-red-700 mt-0.5 group-hover/link:text-red-600 transition-colors flex flex-wrap items-center">
+                    {verificationMessage}
+                    <span className="sm:ml-2 text-red-600 font-bold underline hover:text-red-800 block sm:inline mt-1 sm:mt-0">Verify Now</span>
+                  </p>
+                </Link>
+              </div>
+              <div className="flex items-center shrink-0 ml-4">
+                <button
+                  onClick={() => setShowVerificationBanner(false)}
+                  className="text-red-300 hover:text-red-600 transition-colors p-1"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Plan Expiry Banner ── */}
+      <AnimatePresence>
+        {displayPlanBanner && (
+          <motion.div
+            initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+            animate={{ opacity: 1, height: 'auto', marginBottom: 20 }}
+            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="bg-rose-50 border border-rose-100 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between shadow-sm relative gap-4 sm:gap-0">
+              <div className="flex items-start sm:items-center gap-3">
+                <div className="h-10 w-10 shrink-0 rounded-xl bg-rose-100 flex items-center justify-center">
+                  <AlertTriangle className="h-5 w-5 text-rose-600" />
+                </div>
+                <Link href="/student/plans" className="flex-1 min-w-0 group/link">
+                  <h3 className="text-sm font-aktiv font-bold text-rose-900 group-hover/link:text-rose-700 transition-colors">Plan Ending Soon</h3>
+                  <p className="text-xs text-rose-700 mt-0.5 group-hover/link:text-rose-600 transition-colors flex flex-wrap items-center">
+                    Your sanctuary journey expires in {daysLeft} {daysLeft === 1 ? 'day' : 'days'}.
+                    <span className="sm:ml-2 text-rose-600 font-bold underline hover:text-rose-800 block sm:inline mt-1 sm:mt-0">Renew Now</span>
+                  </p>
+                </Link>
+              </div>
+              <div className="flex items-center shrink-0 ml-4">
+                <button
+                  onClick={() => setShowPlanBanner(false)}
+                  className="text-rose-300 hover:text-rose-600 transition-colors p-1"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── Greeting Header ── */}
       <motion.div
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3"
       >
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/60 backdrop-blur-xl border border-[#e76f51]/10 shadow-sm mb-3">
-            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Active Session</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-aktiv font-bold tracking-tight text-[#1a1a1a] leading-none">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-aktiv font-bold tracking-tight text-[#1a1a1a] leading-tight">
             Welcome back, <span className="text-[#e76f51]">{firstName}</span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 font-medium mt-1.5">
+          <p className="text-xs sm:text-sm text-slate-400 font-medium mt-1">
             {format(new Date(), 'EEEE, MMMM do yyyy')}
           </p>
         </div>
@@ -489,7 +580,7 @@ export function StudentDashboardClient({
         <div className="h-9 w-9 rounded-xl bg-[#e76f51]/10 flex items-center justify-center shrink-0">
           <Sparkles className="w-4 h-4 text-[#e76f51]" />
         </div>
-        <p className="flex-1 text-sm lg:text-base text-slate-600 italic font-jakarta leading-snug line-clamp-1">
+        <p className="flex-1 text-sm lg:text-base text-slate-600 italic font-jakarta leading-snug line-clamp-2 sm:line-clamp-1">
           &ldquo;{quote}&rdquo;
         </p>
         <div className="hidden sm:flex items-center gap-2 shrink-0">

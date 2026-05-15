@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import {
   LayoutDashboard,
   User,
+  UserCircle,
   Users,
   BookOpen,
   Megaphone,
@@ -101,6 +102,7 @@ interface AppSidebarProps {
   user: Profile;
   activePlans?: string[];
   unreadNotificationsCount?: number;
+  isVerified?: boolean;
   children: React.ReactNode;
 }
 
@@ -108,6 +110,7 @@ export function AppSidebar({
   user,
   activePlans = [],
   unreadNotificationsCount = 0,
+  isVerified = true,
   children,
 }: AppSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
@@ -409,94 +412,106 @@ export function AppSidebar({
             </ul>
           </nav>
 
-          {/* ── USER FOOTER ─────────────────────────────────────────── */}
-          <div className={cn(
-            'shrink-0 border-t transition-all duration-500',
-            isAdmin ? 'border-white/[0.04]' : 'border-[#FF8A75]/8',
-            collapsed ? 'p-2' : 'p-3'
-          )}>
-            <div className={cn(
-              'flex items-center rounded-2xl transition-all duration-300',
-              isAdmin
-                ? 'bg-white/5 hover:bg-white/8'
-                : 'bg-[#FFFAF7] hover:bg-white border border-[#FF8A75]/8',
-              collapsed
-                ? 'flex-col gap-2 py-3 px-0 justify-center items-center'
-                : 'gap-3 p-3'
-            )}>
-              {/* Avatar */}
-              <div className="relative shrink-0">
-                {user.avatar_url ? (
-                  <img
-                    src={user.avatar_url}
-                    alt={user.full_name ?? 'User avatar'}
-                    className="h-9 w-9 rounded-xl object-cover ring-2 ring-white shadow-sm"
-                  />
-                ) : (
-                  <div className="h-9 w-9 flex items-center justify-center rounded-xl bg-[#FF8A75]/10 text-[#FF8A75] font-black text-sm">
-                    {user.full_name?.charAt(0)?.toUpperCase()}
+          {/* ── BOTTOM ACTIONS (Profile & Logout) ──────────────────────── */}
+          <div className="shrink-0 pb-3">
+            <ul className={cn('space-y-1', collapsed ? 'px-2' : 'px-3')}>
+              {/* Profile Link */}
+              <li className="relative group/item">
+                <Link
+                  href="/student/profile"
+                  className={cn(
+                    'relative flex items-center rounded-2xl transition-all duration-300',
+                    'min-h-[44px]',
+                    collapsed ? 'justify-center w-full h-12 px-0' : 'gap-3 px-4 h-12',
+                    pathname === '/student/profile'
+                      ? isAdmin ? 'bg-white/10 text-white ring-1 ring-white/10 shadow-lg' : 'bg-[#FF8A75]/8 text-[#FF8A75] shadow-sm'
+                      : isAdmin ? 'text-slate-400 hover:text-white hover:bg-white/5' : 'text-slate-500 hover:text-[#FF8A75] hover:bg-[#FF8A75]/5'
+                  )}
+                >
+                  <span className={cn(
+                    'shrink-0 flex items-center justify-center h-9 w-9 rounded-xl transition-all duration-300 relative',
+                    collapsed ? 'mx-auto' : '',
+                    pathname === '/student/profile' ? (isAdmin ? 'bg-white/8' : 'bg-[#FF8A75]/10') : 'bg-transparent'
+                  )}>
+                    <UserCircle className={cn('transition-transform duration-200 group-hover/item:scale-110', collapsed ? 'h-[18px] w-[18px]' : 'h-4 w-4')} />
+                    {!isVerified && (
+                      <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-red-500 border border-white" />
+                    )}
+                  </span>
+                  <AnimatePresence initial={false}>
+                    {!collapsed && (
+                      <motion.span
+                        initial={{ opacity: 0, width: 0 }}
+                        animate={{ opacity: 1, width: 'auto' }}
+                        exit={{ opacity: 0, width: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="flex-1 flex items-center justify-between overflow-hidden whitespace-nowrap"
+                      >
+                        <span className="text-[13px] font-aktiv font-bold tracking-tight">Profile</span>
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </Link>
+                {/* Tooltip */}
+                {collapsed && (
+                  <div className={cn(
+                    'pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 z-[200]',
+                    'px-3 py-1.5 rounded-xl text-xs font-aktiv font-bold whitespace-nowrap opacity-0 translate-x-[-4px] group-hover/item:opacity-100 group-hover/item:translate-x-0 transition-all duration-150 ease-out hidden lg:block',
+                    isAdmin ? 'bg-white text-[#0a0a0a] shadow-lg' : 'bg-[#1a1a1a] text-white shadow-xl shadow-slate-900/20'
+                  )}>
+                    Profile
+                    <span className={cn('absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent', isAdmin ? 'border-r-white' : 'border-r-[#1a1a1a]')} />
                   </div>
                 )}
-                <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-white shadow-sm" />
-              </div>
+              </li>
 
-              {/* Name + role */}
-              <AnimatePresence initial={false}>
-                {!collapsed && (
-                  <motion.div
-                    key="user-info"
-                    initial={{ opacity: 0, width: 0 }}
-                    animate={{ opacity: 1, width: 'auto' }}
-                    exit={{ opacity: 0, width: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="flex-1 min-w-0 overflow-hidden"
-                  >
-                    <p className={cn(
-                      'truncate text-[13px] font-bold leading-tight',
-                      isAdmin ? 'text-white' : 'text-[#1a1a1a]'
-                    )}>
-                      {user.full_name}
-                    </p>
-                    <p className={cn(
-                      'truncate text-[9px] font-black uppercase tracking-[0.2em] mt-0.5',
-                      isAdmin ? 'text-slate-500' : 'text-[#FF8A75]/60'
-                    )}>
-                      {user.role.replace(/_/g, ' ')}
-                    </p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Logout button */}
-              <AnimatePresence initial={false}>
-                {!collapsed && (
-                  <motion.button
-                    key="logout-btn"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.15 }}
-                    onClick={handleLogout}
-                    aria-label="Log out"
-                    className="h-8 w-8 shrink-0 flex items-center justify-center rounded-lg text-slate-300 hover:text-red-400 hover:bg-red-50 transition-all"
-                  >
-                    <LogOut className="h-3.5 w-3.5" />
-                  </motion.button>
-                )}
-              </AnimatePresence>
-
-              {/* Collapsed logout (separate small button below avatar) */}
-              {collapsed && (
+              {/* Logout Button */}
+              <li className="relative group/item">
                 <button
                   onClick={handleLogout}
-                  aria-label="Log out"
-                  className="h-8 w-8 flex items-center justify-center rounded-lg text-slate-300 hover:text-red-400 hover:bg-red-50 transition-all"
+                  className={cn(
+                    'w-full relative flex items-center rounded-2xl transition-all duration-300',
+                    'min-h-[44px]',
+                    collapsed ? 'justify-center w-full h-12 px-0' : 'gap-3 px-4 h-12',
+                    isAdmin ? 'text-slate-400 hover:text-red-400 hover:bg-white/5' : 'text-slate-500 hover:text-red-500 hover:bg-red-50'
+                  )}
                 >
-                  <LogOut className="h-3.5 w-3.5" />
+                  <span className={cn(
+                    'shrink-0 flex items-center justify-center h-9 w-9 rounded-xl transition-all duration-300',
+                    collapsed ? 'mx-auto' : '',
+                    'bg-transparent'
+                  )}>
+                    <LogOut className={cn('transition-transform duration-200 group-hover/item:scale-110', collapsed ? 'h-[18px] w-[18px]' : 'h-4 w-4')} />
+                  </span>
+                  <AnimatePresence initial={false}>
+                    {!collapsed && (
+                      <motion.span
+                        initial={{ opacity: 0, width: 0 }}
+                        animate={{ opacity: 1, width: 'auto' }}
+                        exit={{ opacity: 0, width: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="flex-1 flex items-center justify-between overflow-hidden whitespace-nowrap"
+                      >
+                        <span className="text-[13px] font-aktiv font-bold tracking-tight">Log Out</span>
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                 </button>
-              )}
-            </div>
+                {/* Tooltip */}
+                {collapsed && (
+                  <div className={cn(
+                    'pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 z-[200]',
+                    'px-3 py-1.5 rounded-xl text-xs font-aktiv font-bold whitespace-nowrap opacity-0 translate-x-[-4px] group-hover/item:opacity-100 group-hover/item:translate-x-0 transition-all duration-150 ease-out hidden lg:block',
+                    isAdmin ? 'bg-white text-[#0a0a0a] shadow-lg' : 'bg-[#1a1a1a] text-white shadow-xl shadow-slate-900/20'
+                  )}>
+                    Log Out
+                    <span className={cn('absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent', isAdmin ? 'border-r-white' : 'border-r-[#1a1a1a]')} />
+                  </div>
+                )}
+              </li>
+            </ul>
           </div>
+
         </aside>
 
         {/* ── MAIN CONTENT AREA ─────────────────────────────────────── */}

@@ -160,10 +160,10 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
           className="flex flex-col sm:flex-row sm:items-end justify-between gap-3"
         >
           <div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-aktiv font-bold text-[#1a1a1a] tracking-tight leading-none">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-aktiv font-bold text-[#1a1a1a] tracking-tight leading-tight">
               Personal <span className="text-[#e76f51]">Journey</span>
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 font-medium mt-1.5">
+            <p className="text-xs sm:text-sm text-slate-400 font-medium mt-1">
               Your dedicated 1-on-1 face yoga path
             </p>
           </div>

@@ -96,16 +96,16 @@ export function Plans() {
             Whether you seek a complete 1-on-1 transformation or the energy of a community, we have a programme built for you.
           </p>
 
-          <div className="mt-8 flex justify-center px-4">
-            <div className="relative group w-full md:w-auto">
-              <div className="absolute -inset-1 bg-gradient-to-r from-[#e76f51] via-[#f4a261] to-[#e76f51] rounded-3xl md:rounded-full blur opacity-50 group-hover:opacity-100 transition duration-500 animate-[pulse_3s_cubic-bezier(0.4,0,0.6,1)_infinite]"></div>
-              <div className="relative flex flex-col md:flex-row items-center justify-center gap-2 md:gap-4 px-8 py-5 md:py-3.5 rounded-3xl md:rounded-full bg-white/95 backdrop-blur-md border border-[#e76f51]/20 shadow-xl transition-all duration-300 w-full md:w-auto max-w-sm md:max-w-none text-center">
-                <span className="text-[11px] md:text-[10px] font-bold text-[#2a2019]/70 uppercase tracking-widest">
+          <div className="mt-8 flex justify-center px-2">
+            <div className="relative group w-full sm:w-auto">
+              <div className="absolute -inset-1 bg-gradient-to-r from-[#e76f51] via-[#f4a261] to-[#e76f51] rounded-3xl sm:rounded-full blur opacity-50 group-hover:opacity-100 transition duration-500 animate-[pulse_3s_cubic-bezier(0.4,0,0.6,1)_infinite]"></div>
+              <div className="relative flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 px-6 py-4 sm:py-3.5 rounded-3xl sm:rounded-full bg-white/95 backdrop-blur-md border border-[#e76f51]/20 shadow-xl transition-all duration-300 w-full sm:w-auto text-center">
+                <span className="text-[10px] sm:text-[10px] font-bold text-[#2a2019]/70 uppercase tracking-widest leading-tight">
                   Not sure where to start?
                 </span>
-                <div className="hidden md:block w-px h-4 bg-[#e76f51]/20" />
-                <Link href="/auth/signup?redirectTo=/student/plans" className="flex items-center justify-center gap-2 mt-2 md:mt-0 text-[12px] md:text-[11px] font-black text-[#e76f51] uppercase tracking-[0.2em] hover:text-[#d4603f] transition-colors">
-                  Book a consultation at just 999 rupees 
+                <div className="hidden sm:block w-px h-4 bg-[#e76f51]/20" />
+                <Link href="/auth/signup?redirectTo=/student/plans" className="flex items-center justify-center gap-2 text-[11px] sm:text-[11px] font-black text-[#e76f51] uppercase tracking-[0.2em] hover:text-[#d4603f] transition-colors">
+                  Book a consultation — ₹999
                   <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" />
                 </Link>
               </div>

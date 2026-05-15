@@ -60,14 +60,14 @@ export function LmsClient({
         />
       )}
 
-      <header className="flex items-center justify-between">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-aktiv font-bold text-slate-900 tracking-tight">
             Program <span className="text-[#e76f51]">Curriculum</span>
           </h1>
           <p className="text-xs text-slate-400 font-medium mt-1">Master the art of natural radiance step-by-step</p>
         </div>
-        <div className="h-10 w-10 rounded-xl bg-[#e76f51]/10 flex items-center justify-center">
+        <div className="h-10 w-10 rounded-xl bg-[#e76f51]/10 flex items-center justify-center shrink-0 w-fit sm:w-10">
           <Layout className="w-5 h-5 text-[#e76f51]" />
         </div>
       </header>

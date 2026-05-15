@@ -1,6 +1,7 @@
 'use client';
 
 import { Suspense, useState, useEffect } from 'react';
+import { z } from 'zod';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -26,6 +27,7 @@ function LoginContent() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -35,12 +37,37 @@ function LoginContent() {
     if (errorParam) {
       setError(decodeURIComponent(errorParam));
     }
+    const messageParam = searchParams.get('message');
+    if (messageParam === 'verify-email') {
+      toast.info('Verification Required', {
+        description: 'Please verify your email address before logging in. We have sent a link to your inbox.',
+        duration: 8000,
+      });
+    }
   }, [searchParams]);
+
+  const loginSchema = z.object({
+    email: z.string().trim().email('Please enter a valid email address'),
+    password: z.string().min(1, 'Password is required'),
+  });
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setErrors({});
+
+    const result = loginSchema.safeParse({ email, password });
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.issues.forEach(issue => {
+        fieldErrors[issue.path[0] as string] = issue.message;
+        toast.error("Validation Error", { description: issue.message });
+      });
+      setErrors(fieldErrors);
+      setLoading(false);
+      return;
+    }
 
     const { error: signInError } = await supabase.auth.signInWithPassword({ 
       email: email.trim(), 
@@ -106,6 +133,7 @@ function LoginContent() {
           onChange={(e) => setEmail(e.target.value)}
           required
           placeholder="email@example.com"
+          error={errors.email}
         />
 
         <div className="space-y-1">
@@ -116,6 +144,8 @@ function LoginContent() {
             onChange={(e) => setPassword(e.target.value)}
             required
             placeholder="Enter your password"
+            error={errors.password}
+            isPassword
           />
           <div className="text-right">
             <Link
@@ -126,6 +156,15 @@ function LoginContent() {
             </Link>
           </div>
         </div>
+
+        {searchParams.get('message') === 'verify-email' && (
+          <div className="p-4 bg-zen-peach/10 border border-zen-peach/20 rounded-2xl">
+            <p className="text-xs text-zen-taupe font-bold text-center leading-relaxed">
+              Verification link sent! 🌿<br/>
+              Please check your inbox and click the link to activate your sanctuary access.
+            </p>
+          </div>
+        )}
 
         {error && (
           <div className="p-4 bg-red-50/50 border border-red-100 rounded-2xl">

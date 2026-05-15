@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createAdminClient } from '@/lib/supabase/server';
 import { getServerUser, getServerProfile } from '@/lib/data/auth';
+import { getStudentSubscriptions, getStudentEnrollments, getStudentJourneyLogs } from '@/lib/data/dashboard';
 import { differenceInDays } from 'date-fns';
 import { StudentDashboardClient } from './StudentDashboardClient';
 
@@ -13,39 +14,22 @@ export default async function StudentDashboardPage() {
   const profile = await getServerProfile(user.id);
   if (!profile || profile.role !== 'student') redirect('/auth/login');
 
-  // ─── Batch 1: Fire all independent queries in parallel ───
+  // ─── Parallelize all independent queries ───
   const windowStart = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
 
-  const [subsResult, enrollResult, logsResult, oneOnOneResult] = await Promise.all([
-    admin
-      .from('subscriptions')
-      .select('*')
-      .eq('student_id', user.id)
-      .in('status', ['active', 'pending'])
-      .order('start_date', { ascending: true }),
-    admin
-      .from('batch_enrollments')
-      .select('batch_id')
-      .eq('student_id', user.id)
-      .in('status', ['active', 'extended']),
-    admin
-      .from('journey_logs')
-      .select('*')
-      .eq('student_id', user.id)
-      .order('day_number', { ascending: true }),
+  const [subscriptions, enrollments, journeyLogs, oneOnOneMeetings] = await Promise.all([
+    getStudentSubscriptions(user.id),
+    getStudentEnrollments(user.id),
+    getStudentJourneyLogs(user.id),
     admin
       .from('meetings')
       .select('*, host:profiles!meetings_host_id_fkey(full_name, avatar_url)')
       .eq('student_id', user.id)
       .eq('meeting_type', 'one_on_one')
       .gte('start_time', windowStart)
-      .order('start_time', { ascending: true }),
+      .order('start_time', { ascending: true })
+      .then(res => res.data || [])
   ]);
-
-  const subscriptions = subsResult.data || [];
-  const enrollments = enrollResult.data || [];
-  const journeyLogs = logsResult.data || [];
-  const oneOnOneMeetings = oneOnOneResult.data || [];
 
   const batchIds = enrollments.map((e: { batch_id: string }) => e.batch_id);
 
@@ -110,6 +94,8 @@ export default async function StudentDashboardPage() {
   return (
     <StudentDashboardClient 
       profile={profile}
+      emailVerified={!!user.email_confirmed_at}
+      phoneVerified={!!user.phone_confirmed_at}
       todaysMeetings={todaysMeetings}
       activePlanTypes={activePlanTypes}
       daysLeft={daysLeft}
