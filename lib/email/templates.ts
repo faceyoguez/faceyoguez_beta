@@ -201,7 +201,7 @@ export function invoiceEmailHtml(data: InvoiceData): string {
       <tr>
         <td>
           <p style="margin:0 0 4px;font-size:13px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:${C.primary};">Payment Confirmed 🎉</p>
-          <h1 style="margin:0;font-size:26px;font-weight:700;color:${C.dark};">Invoice</h1>
+          <h1 style="margin:0;font-size:26px;font-weight:700;color:${C.dark};">Thank You!</h1>
         </td>
         <td style="text-align:right;vertical-align:top;">
           <p style="margin:0;font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:${C.muted};">Invoice No.</p>

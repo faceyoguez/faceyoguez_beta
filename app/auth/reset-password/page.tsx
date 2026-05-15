@@ -91,7 +91,6 @@ export default function ResetPasswordPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               placeholder="••••••••"
-              icon={<Lock className="h-4 w-4" />}
             />
             <AuthInput
               label="Confirm New Password"
@@ -100,7 +99,6 @@ export default function ResetPasswordPage() {
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               placeholder="••••••••"
-              icon={<ShieldCheck className="h-4 w-4" />}
               error={error}
             />
           </div>

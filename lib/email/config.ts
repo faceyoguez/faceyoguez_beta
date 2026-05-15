@@ -10,8 +10,8 @@
 export const EMAIL_CONFIG = {
   // ── Sender ────────────────────────────────────────────────────
   senderName: 'Simrat from Faceyoguez',
-  senderEmail: 'info@faceyoguez.com',
-  replyTo: 'info@faceyoguez.com',
+  senderEmail: 'simrat@faceyoguez.com',
+  replyTo: 'simrat@faceyoguez.com',
 
   // ── Brand ─────────────────────────────────────────────────────
   brandName: 'Faceyoguez',
@@ -80,10 +80,10 @@ export const EMAIL_CONFIG = {
 
   // ── Invoice email config ──────────────────────────────────────
   invoice: {
-    subject: (planLabel: string) => `Your Faceyoguez Invoice — ${planLabel} 🧾`,
+    subject: (planLabel: string) => `Thank you for your purchase! Welcome to ${planLabel} ❤️`,
     // Footer note below the invoice table
-    note: 'Thank you for investing in yourself. Your journey to radiant skin starts now.',
-    supportText: 'Questions about your purchase? Reply to this email — we respond within 24 hours.',
+    note: 'Thank you so much for investing in yourself. We are absolutely thrilled to support you on your wellness journey. Your glow-up starts right now!',
+    supportText: 'If you have any questions about your plan or your purchase, simply reply to this email. We are always here for you.',
   },
 
   // ── Consultation email configs ─────────────────────────────────
