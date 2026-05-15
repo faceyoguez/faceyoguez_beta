@@ -49,8 +49,8 @@ export const useSidebar = () => useContext(SidebarContext);
 const navConfig = {
   student: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/student/dashboard' },
-    { label: 'One-on-One', icon: User, path: '/student/one-on-one' },
-    // { label: 'Group Classes', icon: Users, path: '/student/group-session' },
+    { label: '1 to 1 PERSONALISED TRANSFORMATION PLAN', icon: User, path: '/student/one-on-one' },
+    { label: 'LIVE GROUP TRANSFORMATION PLAN', icon: Users, path: '/student/group-session' },
     { label: 'Courses', icon: BookOpen, path: '/student/lms' },
     { label: 'Plans & Pricing', icon: CreditCard, path: '/student/plans' },
     { label: 'Consultation', icon: MessageCircle, path: '/student/consultation' },

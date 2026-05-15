@@ -528,7 +528,7 @@ export function StudentDashboardClient({
               <ArrowUpRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-[#e76f51] transition-colors" />
             </div>
             <h3 className="text-base font-aktiv font-bold text-[#1a1a1a] tracking-tight">Personal</h3>
-            <p className="text-[9px] font-black uppercase tracking-[0.15em] text-[#e76f51] mt-0.5">1-on-1 Sessions</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.15em] text-[#e76f51] mt-0.5">Personalised Sessions</p>
           </motion.div>
         )}
 
@@ -565,7 +565,7 @@ export function StudentDashboardClient({
             <ArrowUpRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-[#e76f51] transition-colors" />
           </div>
           <h3 className="text-base font-aktiv font-bold text-[#1a1a1a] tracking-tight">Consult</h3>
-          <p className="text-[9px] font-black uppercase tracking-[0.15em] text-[#e76f51] mt-0.5">1-on-1 Guidance</p>
+          <p className="text-[9px] font-black uppercase tracking-[0.15em] text-[#e76f51] mt-0.5">Personalised Guidance</p>
         </motion.div>
       </div>
 

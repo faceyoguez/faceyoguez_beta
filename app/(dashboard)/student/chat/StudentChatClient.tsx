@@ -38,7 +38,7 @@ export function StudentChatClient({ currentUser, planType }: Props) {
           <div className="space-y-2">
             <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Chat Not Available</h2>
             <p className="text-xs text-slate-400 font-medium leading-relaxed">
-              You don&apos;t have an active plan yet. Subscribe to a <span className="text-[#FF8A75]">1-on-1</span> or <span className="text-[#FF8A75]">Group</span> plan to unlock chat.
+              You don&apos;t have an active plan yet. Subscribe to a <span className="text-[#FF8A75]">Personalised</span> or <span className="text-[#FF8A75]">Group</span> plan to unlock chat.
             </p>
           </div>
         </div>
@@ -56,7 +56,7 @@ export function StudentChatClient({ currentUser, planType }: Props) {
           <div className="space-y-2">
             <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Access Restricted</h2>
             <p className="text-xs text-slate-400 font-medium leading-relaxed">
-                You&apos;re on a self-paced plan. Upgrade to a <span className="text-[#FF8A75]">1-on-1 plan</span> to unlock direct chat with your instructor.
+                You&apos;re on a self-paced plan. Upgrade to a <span className="text-[#FF8A75]">personalised plan</span> to unlock direct chat with your instructor.
             </p>
           </div>
         </div>
@@ -104,7 +104,7 @@ export function StudentChatClient({ currentUser, planType }: Props) {
                 <h1 className="text-2xl sm:text-3xl font-aktiv font-bold text-slate-900 tracking-tight">
                     Direct <span className="text-[#FF8A75]">Chat</span>
                 </h1>
-                <p className="text-xs text-slate-400 font-medium mt-1">1-on-1 connection with your personal guide</p>
+                <p className="text-xs text-slate-400 font-medium mt-1">Personalised connection with your guide</p>
             </div>
             <div className="h-10 w-10 rounded-xl bg-[#FF8A75]/10 flex items-center justify-center">
                 <ShieldCheck className="w-5 h-5 text-[#FF8A75]" />

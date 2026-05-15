@@ -3,7 +3,7 @@ import { User, Users, BookOpen } from 'lucide-react';
 export const PLANS_DATA = [
     {
         id: 'one_on_one',
-        title: 'Personal 1-on-1 Classes',
+        title: '1 to 1 PERSONALISED TRANSFORMATION PLAN',
         subtitle: 'Get a customised face yoga routine made just for you',
         icon: User,
         color: 'rose',
@@ -17,7 +17,7 @@ export const PLANS_DATA = [
             { id: '12_months', label: '12 Months', originalPrice: 96000, discountedPrice: 30000, note: '70% OFF' }
         ],
         features: [
-            'Initial 1-on-1 Consultation',
+            'Initial Personalised Consultation',
             '30-Day Custom Routine',
             '30 Daily Instruction Videos',
             '2 Dedicated Q&A Support Sessions',

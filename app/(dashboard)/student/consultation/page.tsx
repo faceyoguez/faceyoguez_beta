@@ -194,7 +194,7 @@ export default function StudentConsultationPage() {
                 <h1 className="text-2xl sm:text-3xl font-aktiv font-bold text-slate-900 tracking-tight">
                     Personal <span className="text-[#FF8A75]">Consultation</span>
                 </h1>
-                <p className="text-xs text-slate-400 font-medium mt-1">Get 1-on-1 guidance from our expert team</p>
+                <p className="text-xs text-slate-400 font-medium mt-1">Get personalised guidance from our expert team</p>
             </div>
             <div className="h-10 w-10 rounded-xl bg-[#FF8A75]/10 flex items-center justify-center">
                 <MessageCircle className="w-5 h-5 text-[#FF8A75]" />
@@ -233,7 +233,7 @@ export default function StudentConsultationPage() {
           <div className="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-sm">
             <p className="text-[10px] font-black text-[#FF8A75] uppercase tracking-[0.2em] mb-1">💰 Smart Investment</p>
             <p className="text-xs text-slate-400 leading-relaxed font-medium">
-              Pay ₹999 for consultation. When you buy any 1-on-1 plan after, ₹999 is automatically deducted — making your consultation <span className="text-white">essentially free</span>!
+              Pay ₹999 for consultation. When you buy any personalised plan after, ₹999 is automatically deducted — making your consultation <span className="text-white">essentially free</span>!
             </p>
           </div>
 
@@ -277,7 +277,7 @@ export default function StudentConsultationPage() {
           <div className="flex-1">
             <p className="font-bold text-slate-900 text-sm">Consultation Complete! 🎉</p>
             <p className="text-slate-400 text-xs mt-0.5 leading-relaxed">
-              {hasCredit ? 'Your ₹999 credit is still active — use it on any 1-on-1 plan!' : 'Your consultation credit has been applied to your plan. Thank you!'}
+              {hasCredit ? 'Your ₹999 credit is still active — use it on any personalised plan!' : 'Your consultation credit has been applied to your plan. Thank you!'}
             </p>
             {hasCredit && (
               <button
@@ -302,7 +302,7 @@ export default function StudentConsultationPage() {
         <div className="absolute top-0 right-0 w-32 h-32 bg-[#FF8A75]/10 rounded-full blur-3xl -z-10" />
         <div>
           <p className="text-[10px] font-black uppercase tracking-widest text-[#FF8A75]">💰 Credit Available</p>
-          <p className="text-lg font-bold text-white">₹999 OFF any 1-on-1 plan</p>
+          <p className="text-lg font-bold text-white">₹999 OFF any personalised plan</p>
           <p className="text-[11px] text-slate-400 font-medium">Auto-applied on your first purchase</p>
         </div>
         <button

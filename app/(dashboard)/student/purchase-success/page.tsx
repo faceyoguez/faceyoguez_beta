@@ -82,7 +82,7 @@ function PurchaseSuccessContent() {
     };
 
     const getPlanLabel = (id: string) => {
-        if (id === 'one_on_one') return '1-on-1 Personal Plan';
+        if (id === 'one_on_one') return '1 to 1 PERSONALISED TRANSFORMATION PLAN';
         if (id === 'lms') return 'Self-Paced Video Course';
         return '21-Day Group Transformation';
     };
