@@ -98,24 +98,31 @@ export async function POST(request: NextRequest) {
 
     console.log('[Razorpay] Creating order:', { planType, planVariant, finalAmount, amountInPaise });
 
+    const notes: Record<string, string> = {
+      userId: user.id,
+      userEmail: profile?.email || user.email || 'N/A',
+      userName: profile?.full_name || 'N/A',
+      userPhone: profile?.phone || 'N/A',
+      planType,
+      planVariant,
+      durationMonths: String(durationMonths || 1),
+      source: 'faceyoguez_web',
+      environment: process.env.NODE_ENV || 'development',
+      consultationCredit: String(creditValidated),
+    };
+
+    if (bumps && bumps.length > 0) {
+      notes.bumps = bumps.join(',');
+    }
+    if (couponCode) {
+      notes.couponCode = couponCode;
+    }
+
     const order = await razorpay.orders.create({
       amount: amountInPaise,
       currency: 'INR',
       receipt: `fyg_${user.id.slice(0, 8)}_${Date.now()}`,
-      notes: {
-        userId: user.id,
-        userEmail: profile?.email || user.email || '',
-        userName: profile?.full_name || '',
-        userPhone: profile?.phone || '',
-        planType,
-        planVariant,
-        durationMonths: String(durationMonths || 1),
-        bumps: (bumps || []).join(','),
-        couponCode: couponCode || '',
-        consultationCredit: String(creditValidated),
-        source: 'faceyoguez_web',
-        environment: process.env.NODE_ENV || 'development',
-      },
+      notes,
     });
 
     console.log('[Razorpay] Order created successfully:', order.id);

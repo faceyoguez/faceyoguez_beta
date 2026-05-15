@@ -33,6 +33,28 @@ export async function GET(request: Request) {
       const role = await fetchUserRole(supabase, user.id);
       const redirectPath = getRoleRedirectPath(role);
       
+      // Trigger welcome email if this is a new signup (account created < 5 mins ago)
+      try {
+        const { createAdminClient } = await import('@/lib/supabase/server');
+        const { sendWelcomeEmail } = await import('@/lib/email/sender');
+        const admin = createAdminClient();
+        const { data: profile } = await admin.from('profiles').select('created_at, full_name, email').eq('id', user.id).single();
+        
+        const createdAt = new Date(profile?.created_at || user.created_at);
+        const ageMs = Date.now() - createdAt.getTime();
+        if (ageMs < 5 * 60 * 1000) {
+            const rawName = profile?.full_name || user.user_metadata?.full_name || 'there';
+            const firstName = rawName.split(' ')[0];
+            const capitalized = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
+            const email = profile?.email || user.email;
+            if (email) {
+                await sendWelcomeEmail(email, capitalized).catch(err => console.error('[Welcome Email Error]:', err));
+            }
+        }
+      } catch (err) {
+        console.error('Failed to process welcome email in callback:', err);
+      }
+
       console.log(`OAuth Success: User ${user.id} logged in as ${role}. Redirecting to ${redirectPath}`);
       return NextResponse.redirect(`${origin}${redirectPath}`);
     } else {

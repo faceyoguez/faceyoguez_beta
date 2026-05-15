@@ -114,7 +114,27 @@ export default function SignUpForm() {
       return;
     }
 
-    // Enforce Email Verification: Do not attempt auto-login
+    // Try triggering the welcome email.
+    // If Supabase has "Confirm Email" disabled, the user is auto-logged in here
+    // and the API will send the welcome email immediately.
+    // If "Confirm Email" is enabled, this will fail (401) because there's no session yet,
+    // and the email will be sent by the callback route after verification instead.
+    fetch('/api/auth/welcome', { method: 'POST' }).catch(() => {});
+
+    // If authData.session is present, it means "Confirm Email" is disabled in Supabase.
+    // The user is automatically logged in, so we can route them directly to their dashboard.
+    if (authData.session) {
+      toast.success('Account created successfully!', {
+        description: 'Welcome to your sanctuary.',
+        duration: 5000,
+      });
+      setLoading(false);
+      // Let the session cookie be set and redirect to callback/dashboard
+      router.push('/auth/callback');
+      return;
+    }
+
+    // Otherwise, Email Verification is required.
     toast.success('Account created!', {
       description: 'Please check your email and click the verification link to activate your sanctuary access.',
       duration: 10000,
@@ -123,7 +143,7 @@ export default function SignUpForm() {
     setErrors({ form: 'Success! A verification link has been sent to your email. Please verify before signing in.' });
     setLoading(false);
 
-    // Redirect to a specific "Check Email" page or back to login with a message
+    // Redirect to login with a message
     router.push('/auth/login?message=verify-email');
 
   }
