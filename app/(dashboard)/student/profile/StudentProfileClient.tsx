@@ -19,6 +19,9 @@ export default function StudentProfileClient({
   const [emailOtpSent, setEmailOtpSent] = useState(false);
   const [emailOtp, setEmailOtp] = useState('');
   const [verifyingEmailOtp, setVerifyingEmailOtp] = useState(false);
+  const [phoneOtpSent, setPhoneOtpSent] = useState(false);
+  const [phoneOtp, setPhoneOtp] = useState('');
+  const [verifyingPhoneOtp, setVerifyingPhoneOtp] = useState(false);
   const supabase = createClient();
   const [isEditingPhone, setIsEditingPhone] = useState(false);
   const [newPhone, setNewPhone] = useState(profile?.phone || user.phone || '');
@@ -36,59 +39,21 @@ export default function StudentProfileClient({
 
   const handleVerifyEmail = async () => {
     setLoadingEmail(true);
-    // Switch to OTP-based email verification
-    const { error } = await supabase.auth.signInWithOtp({
+    // Standard Supabase resend for signup verification
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
       email: user.email!,
       options: {
-        shouldCreateUser: false,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       }
     });
 
     if (error) {
-      toast.error('Failed to send verification code', { description: error.message });
+      toast.error('Failed to send verification link', { description: error.message });
     } else {
-      toast.success('Verification code sent', { description: 'Please check your email inbox.' });
-      setEmailOtpSent(true);
+      toast.success('Verification link sent', { description: 'Please check your email inbox and spam.' });
     }
     setLoadingEmail(false);
-  };
-
-  const handleVerifyEmailOtp = async () => {
-    if (!emailOtp) return;
-    setVerifyingEmailOtp(true);
-    const { error } = await supabase.auth.verifyOtp({
-      email: user.email!,
-      token: emailOtp,
-      type: 'email',
-    });
-
-    if (error) {
-      toast.error('Verification failed', { description: error.message });
-    } else {
-      // Unified Verification & Change Handler
-      const updates: any = {
-        email_confirmed_at: new Date().toISOString(),
-        phone_confirmed_at: new Date().toISOString(),
-      };
-
-      if (isEditingPhone && newPhone) {
-        updates.phone = newPhone;
-      } else {
-        updates.phone = newPhone || user.phone || profile?.phone;
-      }
-
-      const { error: profileError } = await supabase.from('profiles').update(updates).eq('id', user.id);
-
-      if (profileError) {
-        console.error('Failed to update profile:', profileError);
-      }
-
-      toast.success('Changes saved successfully!', { description: 'Your identity has been verified and updated.' });
-      setEmailOtpSent(false);
-      setIsEditingPhone(false);
-      setTimeout(() => window.location.reload(), 1500);
-    }
-    setVerifyingEmailOtp(false);
   };
 
   const handleUpdateAndVerifyPhone = async () => {
@@ -98,21 +63,48 @@ export default function StudentProfileClient({
     }
     
     setLoadingPhone(true);
-    // Send OTP to EMAIL to authorize this change
-    const { error } = await supabase.auth.signInWithOtp({
-      email: user.email!,
-      options: {
-        shouldCreateUser: false,
-      }
+    // Triggers SMS OTP to the NEW number
+    const { error } = await supabase.auth.updateUser({ 
+      phone: newPhone 
     });
 
     if (error) {
-      toast.error('Failed to send authorization code', { description: error.message });
+      toast.error('SMS Failed', { description: error.message });
     } else {
-      toast.success('Authorization code sent', { description: 'Please check your email to confirm this change.' });
-      setEmailOtpSent(true);
+      toast.success('OTP sent via SMS', { description: 'Enter the 6-digit code sent to your phone.' });
+      setPhoneOtpSent(true);
     }
     setLoadingPhone(false);
+  };
+
+  const handleVerifyPhoneOtp = async () => {
+    if (!phoneOtp) return;
+    setVerifyingPhoneOtp(true);
+    
+    const { error } = await supabase.auth.verifyOtp({
+      phone: isEditingPhone ? newPhone : (user.phone || profile?.phone),
+      token: phoneOtp,
+      type: 'phone_change',
+    });
+
+    if (error) {
+      toast.error('Verification failed', { description: error.message });
+    } else {
+      // Update profile record
+      const { error: profileError } = await supabase.from('profiles').update({
+        phone: isEditingPhone ? newPhone : (user.phone || profile?.phone),
+        phone_confirmed_at: new Date().toISOString()
+      }).eq('id', user.id);
+
+      if (profileError) console.error('Profile sync error:', profileError);
+
+      toast.success('Phone verified successfully!');
+      setPhoneOtpSent(false);
+      setPhoneOtp('');
+      setIsEditingPhone(false);
+      setTimeout(() => window.location.reload(), 1000);
+    }
+    setVerifyingPhoneOtp(false);
   };
 
   const handleVerifyPhone = async () => {
@@ -123,19 +115,16 @@ export default function StudentProfileClient({
     }
     
     setLoadingPhone(true);
-    // Send OTP to EMAIL for verification
-    const { error } = await supabase.auth.signInWithOtp({
-      email: user.email!,
-      options: {
-        shouldCreateUser: false,
-      }
+    // Triggers SMS OTP to the EXISTING number
+    const { error } = await supabase.auth.updateUser({ 
+      phone: phoneToVerify 
     });
     
     if (error) {
-      toast.error('Failed to send verification code', { description: error.message });
+      toast.error('SMS Failed', { description: error.message });
     } else {
-      toast.success('Verification code sent', { description: 'Please check your email to verify your identity.' });
-      setEmailOtpSent(true);
+      toast.success('OTP sent via SMS', { description: 'Enter the 6-digit code.' });
+      setPhoneOtpSent(true);
     }
     setLoadingPhone(false);
   };
@@ -186,16 +175,29 @@ export default function StudentProfileClient({
 
           <div className="mb-8 p-6 bg-zen-peach/5 border border-zen-peach/10 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-4">
             <div>
-              <h3 className="font-aktiv text-lg text-zen-taupe">Unified Verification</h3>
-              <p className="text-xs text-warm-gray">Verify both email and mobile via a single OTP sent to your email.</p>
+              <h3 className="font-aktiv text-lg text-zen-taupe">Multi-Channel Security</h3>
+              <p className="text-xs text-warm-gray">Verify your identity via independent security channels.</p>
             </div>
-            <button 
-              onClick={handleVerifyEmail}
-              disabled={loadingEmail || !(newPhone || user.phone || profile?.phone)}
-              className="px-8 py-3 rounded-full bg-[#E76F51] text-white font-bold text-sm hover:opacity-90 transition-all disabled:opacity-50"
-            >
-              Verify Both Now
-            </button>
+            <div className="flex items-center gap-4">
+              {!user.email_confirmed_at && (
+                <button 
+                  onClick={handleVerifyEmail}
+                  disabled={loadingEmail}
+                  className="px-6 py-2.5 rounded-full bg-zen-taupe text-white font-bold text-xs hover:opacity-90 transition-all disabled:opacity-50"
+                >
+                  Verify Email
+                </button>
+              )}
+              {!(user.phone_confirmed_at || profile?.phone_confirmed_at) && (
+                <button 
+                  onClick={handleVerifyPhone}
+                  disabled={loadingPhone || !(newPhone || user.phone || profile?.phone)}
+                  className="px-6 py-2.5 rounded-full bg-[#E76F51] text-white font-bold text-xs hover:opacity-90 transition-all disabled:opacity-50"
+                >
+                  Verify Phone
+                </button>
+              )}
+            </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -226,32 +228,16 @@ export default function StudentProfileClient({
               
               {!user.email_confirmed_at && (
                 <div className="space-y-3">
-                  {emailOtpSent ? (
-                    <div className="flex items-center gap-3">
-                      <input 
-                        type="text" 
-                        placeholder="6-digit Code" 
-                        value={emailOtp}
-                        onChange={(e) => setEmailOtp(e.target.value)}
-                        className="flex-1 bg-slate-50 border border-outline-variant/50 rounded-full px-5 py-3.5 text-sm font-bold tracking-[0.2em] text-center outline-none focus:border-[#E76F51] transition-colors"
-                      />
-                      <button 
-                        onClick={handleVerifyEmailOtp}
-                        disabled={verifyingEmailOtp || emailOtp.length < 6}
-                        className="h-[52px] px-6 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center hover:bg-[#e76f51] transition-all disabled:opacity-50"
-                      >
-                        {verifyingEmailOtp ? '...' : <ArrowRight className="w-5 h-5" />}
-                      </button>
-                    </div>
-                  ) : (
-                    <button 
-                      onClick={handleVerifyEmail}
-                      disabled={loadingEmail}
-                      className="w-full py-4 rounded-full bg-[#1a1a1a] text-white font-bold text-sm hover:bg-[#e76f51] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                    >
-                      {loadingEmail ? 'Sending Code...' : 'Get Email Code'}
-                    </button>
-                  )}
+                  <button 
+                    onClick={handleVerifyEmail}
+                    disabled={loadingEmail}
+                    className="w-full py-4 rounded-full bg-[#1a1a1a] text-white font-bold text-sm hover:bg-[#e76f51] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {loadingEmail ? 'Sending Link...' : 'Send Verification Link'}
+                  </button>
+                  <p className="text-[10px] text-center text-warm-gray italic">
+                    Click the link in your inbox to verify
+                  </p>
                 </div>
               )}
               {user.email_confirmed_at && (
@@ -265,7 +251,7 @@ export default function StudentProfileClient({
             {/* Phone Card */}
             <div className={cn(
               "p-6 sm:p-8 rounded-[2.5rem] border transition-all duration-500 flex flex-col justify-between",
-              user.phone_confirmed_at 
+              user.phone_confirmed_at || profile?.phone_confirmed_at
                 ? "bg-white/40 border-emerald-100 shadow-sm" 
                 : "bg-white border-outline-variant/30 premium-shadow"
             )}>
@@ -273,11 +259,11 @@ export default function StudentProfileClient({
                 <div className="flex items-center justify-between mb-6">
                   <div className={cn(
                     "w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center",
-                    user.phone_confirmed_at ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"
+                    user.phone_confirmed_at || profile?.phone_confirmed_at ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"
                   )}>
                     <Phone className="w-6 h-6" />
                   </div>
-                  {user.phone_confirmed_at ? (
+                  {(user.phone_confirmed_at || profile?.phone_confirmed_at) ? (
                     <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">Verified</span>
                   ) : (
                     <span className="text-[10px] font-black uppercase tracking-widest text-red-500 bg-red-50 px-3 py-1 rounded-full">Unverified</span>
@@ -289,7 +275,7 @@ export default function StudentProfileClient({
                   <div className="mt-2 mb-6">
                     <input 
                       type="tel"
-                      placeholder="+1234567890"
+                      placeholder="+91..."
                       value={newPhone}
                       onChange={(e) => setNewPhone(e.target.value)}
                       className="w-full bg-slate-50 border border-outline-variant/50 rounded-2xl px-4 py-3 text-sm font-medium outline-none focus:border-[#E76F51] transition-colors"
@@ -306,7 +292,7 @@ export default function StudentProfileClient({
                 ) : (
                   <div className="flex items-center justify-between mb-6 group">
                     <p className="text-body-md text-warm-gray">{user.phone || profile?.phone || 'No phone added'}</p>
-                    {!user.phone_confirmed_at && !profile?.phone_confirmed_at ? (
+                    {!(user.phone_confirmed_at || profile?.phone_confirmed_at) ? (
                       <button 
                         onClick={() => setIsEditingPhone(true)}
                         className="text-xs text-[#E76F51] font-bold opacity-0 group-hover:opacity-100 transition-opacity"
@@ -325,23 +311,23 @@ export default function StudentProfileClient({
                 )}
               </div>
               
-              {!(user.phone_confirmed_at || profile?.phone_confirmed_at) || isEditingPhone ? (
+              {(!(user.phone_confirmed_at || profile?.phone_confirmed_at) || isEditingPhone) ? (
                 <div className="space-y-3">
-                  {emailOtpSent ? (
+                  {phoneOtpSent ? (
                     <div className="flex items-center gap-3">
                       <input 
                         type="text" 
-                        placeholder="Email OTP" 
-                        value={emailOtp}
-                        onChange={(e) => setEmailOtp(e.target.value)}
+                        placeholder="SMS Code" 
+                        value={phoneOtp}
+                        onChange={(e) => setPhoneOtp(e.target.value)}
                         className="flex-1 bg-slate-50 border border-outline-variant/50 rounded-full px-5 py-3.5 text-sm font-bold tracking-[0.2em] text-center outline-none focus:border-[#E76F51] transition-colors"
                       />
                       <button 
-                        onClick={handleVerifyEmailOtp}
-                        disabled={verifyingEmailOtp || emailOtp.length < 6}
+                        onClick={handleVerifyPhoneOtp}
+                        disabled={verifyingPhoneOtp || phoneOtp.length < 6}
                         className="h-[52px] px-6 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center hover:bg-[#e76f51] transition-all disabled:opacity-50"
                       >
-                        {verifyingEmailOtp ? '...' : <ArrowRight className="w-5 h-5" />}
+                        {verifyingPhoneOtp ? '...' : <ArrowRight className="w-5 h-5" />}
                       </button>
                     </div>
                   ) : (
@@ -350,14 +336,14 @@ export default function StudentProfileClient({
                       disabled={loadingPhone || (isEditingPhone && !newPhone)}
                       className="w-full py-4 rounded-full bg-[#1a1a1a] text-white font-bold text-sm hover:bg-[#e76f51] transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm"
                     >
-                      {loadingPhone ? 'Sending Email Code...' : isEditingPhone ? 'Update via Email Code' : 'Verify via Email Code'}
+                      {loadingPhone ? 'Sending SMS...' : isEditingPhone ? 'Update via SMS' : 'Verify via SMS'}
                     </button>
                   )}
                 </div>
               ) : (
                 <div className="flex items-center gap-2 text-emerald-600 text-sm font-medium">
                   <CheckCircle2 className="w-4 h-4" />
-                  Mobile verified via email
+                  Mobile verified
                 </div>
               )}
             </div>

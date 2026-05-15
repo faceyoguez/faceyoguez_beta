@@ -90,6 +90,7 @@ export default function SignUpForm() {
       email,
       password,
       options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
         data: {
           full_name: fullName,
           phone: phone ? `${countryCode}${phone.replace(/[^0-9]/g, '')}` : undefined,
