@@ -6,7 +6,7 @@ import {
     Calendar, Users, Star,
     Flame, PlayCircle, FileText, Download, CheckCircle, Send,
     Video, Clock, Sparkles, ChevronRight, Play, ShieldCheck, MessageSquare, X,
-    ArrowUpRight
+    ArrowUpRight, Camera
 } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -376,27 +376,27 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                 </div>
             </header>
 
-            <main className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <main className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 {/* ── LEFT RAIL: Batch Meta ── */}
-                <div className="lg:col-span-3 flex flex-col gap-6">
-                    {/* Batch Overview Card */}
-                    <div className="p-6 rounded-[2rem] bg-slate-900 text-white shadow-xl shadow-slate-200/50 relative overflow-hidden group">
+                <div className="lg:col-span-3 flex flex-col gap-6 sticky top-8">
+                    {/* Batch Card */}
+                    <div className="p-6 rounded-[2rem] bg-slate-900 text-white shadow-2xl shadow-slate-900/10 relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform duration-700">
                             <Sparkles className="w-24 h-24" />
                         </div>
                         <div className="relative z-10 space-y-6">
                             <div className="space-y-1">
-                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#e76f51]">Your Batch</p>
+                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#e76f51]">Your Sanctuary</p>
                                 <h3 className="text-xl font-bold tracking-tight leading-tight">{activeBatch?.name || 'Sanctuary Batch'}</h3>
                             </div>
                             
-                            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
+                            <div className="flex items-center gap-6 pt-4 border-t border-white/10">
                                 <div className="space-y-1">
                                     <p className="text-[9px] font-bold uppercase tracking-widest text-white/40">Members</p>
                                     <p className="text-lg font-bold">{activeBatch?.enrollment_count || 0}</p>
                                 </div>
                                 <div className="space-y-1">
-                                    <p className="text-[9px] font-bold uppercase tracking-widest text-white/40">Streak</p>
+                                    <p className="text-[9px] font-bold uppercase tracking-widest text-white/40">Journey</p>
                                     <div className="flex items-center gap-1.5">
                                         <Flame className="w-4 h-4 text-[#e76f51]" />
                                         <p className="text-lg font-bold">{currentDay}d</p>
@@ -407,75 +407,55 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                     </div>
 
                     {/* Instructor Card */}
-                    <div className="p-5 rounded-[1.75rem] border border-slate-100 bg-white shadow-sm flex items-center gap-4 group hover:border-[#e76f51]/20 transition-all">
-                        <div className="h-14 w-14 rounded-2xl overflow-hidden border-2 border-slate-50 shrink-0 group-hover:scale-105 transition-transform">
+                    <div className="p-4 rounded-[1.75rem] border border-slate-100 bg-white shadow-sm flex items-center gap-4 group hover:border-[#e76f51]/20 transition-all">
+                        <div className="h-12 w-12 rounded-xl overflow-hidden border-2 border-slate-50 shrink-0 group-hover:scale-105 transition-transform">
                             {activeBatch?.instructor?.avatar_url ? (
                                 <img src={activeBatch.instructor.avatar_url} className="w-full h-full object-cover" />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center text-lg font-bold text-slate-300 bg-slate-50">{(activeBatch?.instructor?.full_name || 'I').charAt(0).toUpperCase()}</div>
+                                <div className="w-full h-full flex items-center justify-center text-sm font-bold text-slate-300 bg-slate-50">{(activeBatch?.instructor?.full_name || 'I').charAt(0).toUpperCase()}</div>
                             )}
                         </div>
                         <div className="min-w-0">
-                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Guided By</p>
-                            <p className="text-sm font-bold text-slate-900 truncate">{activeBatch?.instructor?.full_name || 'Instructor Name'}</p>
-                            <div className="flex items-center gap-1 mt-1">
-                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                                <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Active Now</span>
-                            </div>
+                            <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Guided By</p>
+                            <p className="text-xs font-bold text-slate-900 truncate">{activeBatch?.instructor?.full_name || 'Instructor'}</p>
                         </div>
                     </div>
 
-                    {/* Resources */}
-                    <div className="p-6 rounded-[1.75rem] border border-slate-100 bg-white shadow-sm flex flex-col gap-5">
+                    {/* Vault Resources */}
+                    <div className="p-6 rounded-[2rem] border border-slate-100 bg-white shadow-sm flex flex-col gap-5">
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <div className="h-2 w-2 rounded-full bg-[#e76f51]" />
-                                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">Resources</h3>
-                            </div>
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900">Vault</h3>
                             <FileText className="w-4 h-4 text-slate-300" />
                         </div>
-                        <div className="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-1">
+                        <div className="space-y-2 max-h-[250px] overflow-y-auto custom-scrollbar pr-1">
                             {initialResources.length > 0 ? (
-                                initialResources.map((res: { id: string; file_url: string; title?: string; file_name: string }) => (
+                                initialResources.map((res: any) => (
                                     <button key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="w-full flex items-center gap-3 p-3 bg-slate-50/50 border border-slate-100/50 rounded-xl hover:border-[#e76f51]/20 hover:bg-white hover:shadow-sm transition-all text-left group">
                                         <div className="h-8 w-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-300 group-hover:text-[#e76f51] transition-colors">
                                             <Download className="w-3.5 h-3.5" />
                                         </div>
                                         <div className="min-w-0">
                                             <p className="text-[11px] font-bold text-slate-700 truncate">{res.title || res.file_name}</p>
-                                            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">PDF Document</p>
                                         </div>
                                     </button>
                                 ))
                             ) : (
-                                <div className="py-10 text-center space-y-3 bg-slate-50/50 rounded-2xl border border-dashed border-slate-100">
-                                    <FileText className="w-6 h-6 text-slate-200 mx-auto" />
-                                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-300">No resources yet</p>
-                                </div>
+                                <div className="py-6 text-center text-[9px] font-bold uppercase tracking-widest text-slate-300">No resources</div>
                             )}
                         </div>
                     </div>
 
-                    {/* Recordings Suite */}
-                    <div className="p-6 rounded-[1.75rem] border border-slate-100 bg-white shadow-sm flex flex-col gap-5">
+                    {/* Recordings */}
+                    <div className="p-6 rounded-[2rem] border border-slate-100 bg-white shadow-sm flex flex-col gap-5">
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <div className="h-2 w-2 rounded-full bg-slate-300" />
-                                <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-900">Recordings</h3>
-                            </div>
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900">Recordings</h3>
                             <PlayCircle className="w-4 h-4 text-slate-300" />
                         </div>
-                        <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar pr-1">
+                        <div className="space-y-3 max-h-[250px] overflow-y-auto custom-scrollbar pr-1">
                             {recordings.map((rec: RecordedSession) => (
                                 <button key={rec.id} onClick={() => rec.is_available && window.open(rec.play_url!, '_blank')} className="w-full flex items-center gap-3 p-3 bg-slate-50/50 border border-slate-100/50 rounded-xl hover:border-[#e76f51]/20 hover:bg-white hover:shadow-sm transition-all text-left group">
-                                    <div className="h-10 w-16 rounded-lg bg-slate-200/50 overflow-hidden relative shrink-0">
-                                        <div className="absolute inset-0 flex items-center justify-center">
-                                            {rec.is_available ? (
-                                                <Play className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#e76f51] group-hover:scale-110 transition-all fill-current" />
-                                            ) : (
-                                                <Clock className="w-3.5 h-3.5 text-slate-300" />
-                                            )}
-                                        </div>
+                                    <div className="h-9 w-9 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-300 group-hover:text-[#e76f51] transition-colors">
+                                        <Play className="w-3.5 h-3.5 fill-current" />
                                     </div>
                                     <div className="min-w-0">
                                         <p className="text-[11px] font-bold text-slate-700 truncate">{rec.topic}</p>
@@ -484,136 +464,156 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                 </button>
                             ))}
                             {recordings.length === 0 && (
-                                <div className="py-10 text-center space-y-3 bg-slate-50/50 rounded-2xl border border-dashed border-slate-100">
-                                    <PlayCircle className="w-6 h-6 text-slate-200 mx-auto" />
-                                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-300">No recordings yet</p>
-                                </div>
+                                <div className="py-6 text-center text-[9px] font-bold uppercase tracking-widest text-slate-300">No recordings</div>
                             )}
                         </div>
                     </div>
                 </div>
 
                 {/* ── CENTER: Focus Area ── */}
-                <div className="lg:col-span-9 xl:col-span-5 space-y-6">
+                <div className="lg:col-span-9 xl:col-span-6 space-y-8">
                     {/* Live Section */}
                     {nextBatchMeeting ? (
-                        <div className="group relative w-full aspect-[16/9] sm:aspect-[2.5/1] rounded-[1.75rem] overflow-hidden shadow-lg border border-slate-100 bg-slate-900 shrink-0">
+                        <div className="group relative w-full aspect-[16/9] sm:aspect-[21/9] rounded-[2.5rem] overflow-hidden shadow-2xl border border-slate-100 bg-slate-900 shrink-0">
                             <Image 
                                 src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2420&auto=format&fit=crop" 
                                 alt="Live Session"
                                 fill
-                                className="object-cover opacity-50 transition-transform duration-[2000ms] group-hover:scale-105" 
+                                className="object-cover opacity-60 transition-transform duration-[3000ms] group-hover:scale-110" 
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
-                            <div className="absolute top-4 left-4 sm:top-6 sm:left-6 z-20">
-                                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[9px] font-bold uppercase tracking-widest">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-[#e76f51] animate-pulse" />
-                                    Session Upcoming
-                                </div>
-                            </div>
-                            <div className="absolute inset-x-4 bottom-4 sm:inset-x-6 sm:bottom-6 z-20 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-                                <div className="space-y-2 max-w-md">
-                                    <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-tight line-clamp-1">{nextBatchMeeting.topic}</h2>
-                                    <div className="flex gap-4">
-                                        <div className="flex items-center gap-2 text-white/50 text-[9px] font-bold uppercase tracking-widest">
-                                            <Calendar className="w-3 h-3" /> {new Date(nextBatchMeeting.start_time).toLocaleDateString()}
-                                        </div>
-                                        <div className="flex items-center gap-2 text-white/50 text-[9px] font-bold uppercase tracking-widest">
-                                            <Clock className="w-3 h-3" /> {new Date(nextBatchMeeting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
+                            <div className="absolute inset-0 p-8 flex flex-col justify-end gap-6">
+                                <div className="space-y-4 z-10">
+                                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[9px] font-black uppercase tracking-widest">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-[#e76f51] animate-pulse" />
+                                        Session Upcoming
+                                    </div>
+                                    <div className="space-y-2">
+                                        <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight leading-tight line-clamp-2">{nextBatchMeeting.topic}</h2>
+                                        <div className="flex gap-4">
+                                            <div className="flex items-center gap-2 text-white/50 text-[10px] font-bold uppercase tracking-widest">
+                                                <Calendar className="w-3.5 h-3.5" /> {new Date(nextBatchMeeting.start_time).toLocaleDateString()}
+                                            </div>
+                                            <div className="flex items-center gap-2 text-white/50 text-[10px] font-bold uppercase tracking-widest">
+                                                <Clock className="w-3.5 h-3.5" /> {new Date(nextBatchMeeting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                                <button disabled={!isJoinEnabled} onClick={() => window.open(nextBatchMeeting.join_url, '_blank')} className={cn("h-12 px-8 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 shrink-0", isJoinEnabled ? "bg-[#e76f51] text-white hover:scale-[1.02] shadow-lg shadow-[#e76f51]/20" : "bg-white/10 text-white/20 backdrop-blur-md border border-white/10 cursor-not-allowed")}>
-                                    {isJoinEnabled ? <><Video className="w-4 h-4" /> Join Now</> : 'Opens Soon'}
+                                <button disabled={!isJoinEnabled} onClick={() => window.open(nextBatchMeeting.join_url, '_blank')} className={cn("h-14 w-full sm:w-auto sm:px-12 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shrink-0 z-20 relative overflow-hidden", isJoinEnabled ? "bg-[#e76f51] text-white hover:scale-105 shadow-xl shadow-[#e76f51]/30" : "bg-white/10 text-white/20 backdrop-blur-md border border-white/10 cursor-not-allowed")}>
+                                    {isJoinEnabled ? <><Video className="w-5 h-5" /> Join Session</> : 'Opens Soon'}
                                 </button>
                             </div>
                         </div>
                     ) : (
-                        <div className="group relative overflow-hidden rounded-[1.75rem] w-full aspect-[16/9] sm:aspect-[2.5/1] border border-slate-100 flex flex-col items-center justify-center gap-4 bg-slate-50">
-                            <div className="h-12 w-12 rounded-xl bg-white border border-slate-100 flex items-center justify-center shadow-sm transition-transform duration-500 group-hover:scale-110">
-                                <Video className="w-5 h-5 text-slate-300" />
+                        <div className="group relative overflow-hidden rounded-[2.5rem] w-full py-16 border border-slate-100 flex flex-col items-center justify-center gap-4 bg-slate-50/50">
+                            <div className="h-16 w-16 rounded-2xl bg-white border border-slate-100 flex items-center justify-center shadow-sm transition-transform duration-500 group-hover:scale-110">
+                                <Video className="w-6 h-6 text-slate-200" />
                             </div>
                             <div className="space-y-1 text-center">
-                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">No Sessions Scheduled</p>
-                                <p className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">Your Zoom link will appear here</p>
+                                <p className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-900">No Sessions Scheduled</p>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Your Zoom link will appear here</p>
                             </div>
                         </div>
                     )}
 
-                    {/* Journey Rail */}
-                    <div className="p-6 sm:p-8 rounded-[1.75rem] border border-slate-100 flex flex-col gap-8 bg-white shadow-sm shrink-0">
-                        <div className="flex flex-col gap-6">
+                    {/* Journey Central - Premium Stack */}
+                    <div className="p-8 sm:p-10 rounded-[3rem] border border-slate-100 flex flex-col gap-10 bg-white shadow-xl shadow-slate-200/50">
+                        <div className="flex flex-col gap-10">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                                <h3 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">Day {currentDay} Journey</h3>
+                                <div className="space-y-1">
+                                    <h3 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Day {currentDay} Journey</h3>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Progress Tracker & Daily Log</p>
+                                </div>
+                                <div className="flex items-center gap-3 bg-slate-50 px-5 py-2.5 rounded-2xl border border-slate-100">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-[#e76f51] shadow-[0_0_12px_rgba(231,111,81,0.5)]" />
+                                    <span className="text-[11px] font-black uppercase tracking-widest text-slate-600">Active</span>
+                                </div>
                             </div>
 
-                            <JourneyProgress
-                                currentDay={currentDayInMonth}
-                                activeDay={activeStepDay}
-                                onSelectDay={(day) => setActiveStepDay(day)}
-                                completedDays={new Set(journeyLogs.map((l: JourneyLog) => l.day_number).filter((d: number) => Math.ceil(d / 30) === currentMonth).map((d: number) => ((d - 1) % 30) + 1))}
-                            />
-
-                            {/* 3-Angle Photo Tracker */}
-                            <div>
-                                <div className="flex items-center gap-2 mb-3">
-                                    <span className="text-[9px] font-black uppercase tracking-[0.3em] text-primary">📸 3-Angle Progress</span>
-                                    <span className="text-[8px] text-foreground/30 font-medium">— Front, Left &amp; Right profiles</span>
-                                </div>
-                                <AnglePhotoTracker
-                                    dayNumber={activeStepDay}
-                                    savedPhotos={{
-                                        front: activeLog?.photo_url ?? [...journeyLogs].filter((l: JourneyLog) => l.photo_url).sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0]?.photo_url ?? null,
-                                        left:  activeLog?.photo_url_left ?? [...journeyLogs].filter((l: JourneyLog) => l.photo_url_left).sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0]?.photo_url_left ?? null,
-                                        right: activeLog?.photo_url_right ?? [...journeyLogs].filter((l: JourneyLog) => l.photo_url_right).sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0]?.photo_url_right ?? null,
-                                    }}
-                                    day1Photos={{
-                                        front: day1Log?.photo_url ?? null,
-                                        left:  day1Log?.photo_url_left ?? null,
-                                        right: day1Log?.photo_url_right ?? null,
-                                    }}
-                                    onSave={handleSavePhotos}
-                                    isSaving={isSavingLog}
-                                    accentColor="#e76f51"
+                            <div className="bg-slate-50/30 p-6 rounded-[2rem] border border-slate-100/50">
+                                <JourneyProgress
+                                    currentDay={currentDayInMonth}
+                                    activeDay={activeStepDay}
+                                    onSelectDay={(day) => setActiveStepDay(day)}
+                                    completedDays={new Set(journeyLogs.map((l: JourneyLog) => l.day_number).filter((d: number) => Math.ceil(d / 30) === currentMonth).map((d: number) => ((d - 1) % 30) + 1))}
                                 />
                             </div>
 
-                            {/* Notes */}
-                            <div className="space-y-3">
-                                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-primary">📝 Daily Notes — Day {activeStepDay}</p>
-                                <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
-                                    <textarea
-                                        value={notesInput}
-                                        onChange={(e) => setNotesInput(e.target.value)}
-                                        className="w-full resize-none bg-transparent text-foreground/70 text-sm font-medium outline-none border-none focus:ring-0 custom-scrollbar min-h-[80px]"
-                                        placeholder="How are you feeling today?"
+                            {/* 3-Angle Photo Tracker */}
+                            <div className="space-y-6">
+                                <div className="flex items-center gap-3">
+                                    <div className="h-8 w-8 rounded-lg bg-[#e76f51]/10 flex items-center justify-center">
+                                        <Camera className="w-4 h-4 text-[#e76f51]" />
+                                    </div>
+                                    <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-900">📸 Somatic Progress</h4>
+                                </div>
+                                <div className="p-1 rounded-[2.5rem] bg-slate-50/50 border border-slate-100 shadow-inner">
+                                    <AnglePhotoTracker
+                                        dayNumber={activeStepDay}
+                                        savedPhotos={{
+                                            front: activeLog?.photo_url ?? [...journeyLogs].filter((l: JourneyLog) => l.photo_url).sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0]?.photo_url ?? null,
+                                            left:  activeLog?.photo_url_left ?? [...journeyLogs].filter((l: JourneyLog) => l.photo_url_left).sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0]?.photo_url_left ?? null,
+                                            right: activeLog?.photo_url_right ?? [...journeyLogs].filter((l: JourneyLog) => l.photo_url_right).sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0]?.photo_url_right ?? null,
+                                        }}
+                                        day1Photos={{
+                                            front: day1Log?.photo_url ?? null,
+                                            left:  day1Log?.photo_url_left ?? null,
+                                            right: day1Log?.photo_url_right ?? null,
+                                        }}
+                                        onSave={handleSavePhotos}
+                                        isSaving={isSavingLog}
+                                        accentColor="#e76f51"
                                     />
                                 </div>
-                                <button
-                                    onClick={async () => {
-                                        setIsSavingLog(true);
-                                        const { success } = await saveDailyCheckIn(currentUser.id, activeStepDay, notesInput.trim() || null);
-                                        setIsSavingLog(false);
-                                    }}
-                                    disabled={isSavingLog}
-                                    className="h-11 w-full rounded-xl bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest hover:bg-[#e76f51] transition-colors duration-300 disabled:opacity-60"
-                                >
-                                    {isSavingLog ? 'Saving…' : 'Save Update'}
-                                </button>
+                            </div>
+
+                            {/* Notes */}
+                            <div className="space-y-6">
+                                <div className="flex items-center gap-3">
+                                    <div className="h-8 w-8 rounded-lg bg-slate-100 flex items-center justify-center">
+                                        <MessageSquare className="w-4 h-4 text-slate-400" />
+                                    </div>
+                                    <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-900">📝 Daily Notes</h4>
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="rounded-[2rem] bg-slate-50 p-6 border border-slate-100 focus-within:border-[#e76f51]/30 focus-within:bg-white transition-all duration-300">
+                                        <textarea
+                                            value={notesInput}
+                                            onChange={(e) => setNotesInput(e.target.value)}
+                                            className="w-full resize-none bg-transparent text-slate-600 text-base font-medium outline-none border-none focus:ring-0 custom-scrollbar min-h-[160px]"
+                                            placeholder="Capture your breakthrough moments..."
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={async () => {
+                                            setIsSavingLog(true);
+                                            const { success } = await saveDailyCheckIn(currentUser.id, activeStepDay, notesInput.trim() || null);
+                                            setIsSavingLog(false);
+                                        }}
+                                        disabled={isSavingLog}
+                                        className="h-14 w-full rounded-2xl bg-slate-900 text-white text-[11px] font-black uppercase tracking-[0.2em] hover:bg-[#e76f51] shadow-xl shadow-slate-900/10 transition-all duration-300 disabled:opacity-60 flex items-center justify-center gap-3"
+                                    >
+                                        {isSavingLog ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                                        {isSavingLog ? 'Saving…' : 'Update Journal'}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="lg:hidden h-20" /> {/* Mobile Spacing */}
+                    <div className="lg:hidden h-24" /> {/* Mobile Spacing */}
                 </div>
 
                 {/* ── RIGHT RAIL: Communion (Desktop) ── */}
-                <div className="hidden xl:flex xl:col-span-4 flex-col gap-6 shrink-0 h-[calc(100vh-8rem)] sticky top-8">
-                    <div className="rounded-[1.75rem] border border-slate-100 h-full flex flex-col overflow-hidden bg-white shadow-sm">
+                <div className="hidden xl:flex xl:col-span-3 flex-col gap-6 shrink-0 h-[calc(100vh-8rem)] sticky top-8">
+                    <div className="rounded-[2.5rem] border border-slate-100 h-full flex flex-col overflow-hidden bg-white shadow-2xl shadow-slate-200/50">
                         {chatContent}
                     </div>
                 </div>
             </main>
+
+
 
             <div className="xl:hidden fixed bottom-6 right-6 z-[60]">
                <motion.button
