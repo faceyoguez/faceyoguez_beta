@@ -447,7 +447,7 @@ export function AppSidebar({
                         transition={{ duration: 0.2 }}
                         className="flex-1 flex items-center justify-between overflow-hidden whitespace-nowrap"
                       >
-                        <span className="text-[13px] font-aktiv font-bold tracking-tight">Profile</span>
+                        <span className="text-[13px] font-aktiv font-bold tracking-tight">{user.full_name}</span>
                       </motion.span>
                     )}
                   </AnimatePresence>
@@ -459,7 +459,7 @@ export function AppSidebar({
                     'px-3 py-1.5 rounded-xl text-xs font-aktiv font-bold whitespace-nowrap opacity-0 translate-x-[-4px] group-hover/item:opacity-100 group-hover/item:translate-x-0 transition-all duration-150 ease-out hidden lg:block',
                     isAdmin ? 'bg-white text-[#0a0a0a] shadow-lg' : 'bg-[#1a1a1a] text-white shadow-xl shadow-slate-900/20'
                   )}>
-                    Profile
+                    {user.full_name}
                     <span className={cn('absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent', isAdmin ? 'border-r-white' : 'border-r-[#1a1a1a]')} />
                   </div>
                 )}

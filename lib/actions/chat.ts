@@ -719,7 +719,7 @@ export async function sendBatchMessage(batchId: string, content: string, senderI
   const role = senderProfile?.role || '';
 
   if (!['admin', 'staff', 'instructor', 'client_management'].includes(role)) {
-     const { data: enrolled } = await admin.from('batch_students').select('id').eq('batch_id', batchId).eq('student_id', senderId).maybeSingle();
+     const { data: enrolled } = await admin.from('batch_enrollments').select('id').eq('batch_id', batchId).eq('student_id', senderId).maybeSingle();
      if (!enrolled) {
          return { success: false, error: 'Forbidden. Not enrolled in this batch.' };
      }

@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { createAndPopulateBatch, type CreateBatchInput, toggleBatchChat, getInstructorBatches } from '@/lib/actions/batches';
 import { useRouter } from 'next/navigation';
-import type { RecordedSession, StudentResource } from '@/types/database';
+import type { RecordedSession, StudentResource, Profile } from '@/types/database';
 import { uploadBatchResource, getBatchResources } from '@/lib/actions/resources';
 import { sendBatchMessage, getBatchMessages, getOrCreateSharedChat } from '@/lib/actions/chat';
 import { getBatchRecordedSessions, scheduleGroupSession, getInstructorUpcomingMeetings, startMeeting } from '@/lib/actions/meetings';
@@ -30,7 +30,15 @@ import { ChatWindow } from '@/components/chat';
 import { sendDirectStudentEmail } from '@/lib/actions/email';
 import JSZip from 'jszip';
 
-export function InstructorGroupClient({ currentUser, initialBatches, initialBatchResources, instructors, waitingQueue }: any) {
+interface InstructorGroupClientProps {
+   currentUser: Profile;
+   initialBatches: any[];
+   initialBatchResources: StudentResource[];
+   instructors: Profile[];
+   waitingQueue: any[];
+}
+
+export function InstructorGroupClient({ currentUser, initialBatches, initialBatchResources, instructors, waitingQueue }: InstructorGroupClientProps) {
    const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
    const [isPending, startTransition] = useTransition();
    const router = useRouter();
@@ -62,7 +70,13 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
 
    // Meetings State
    const [upcomingMeetings, setUpcomingMeetings] = useState<any[]>([]);
-   const [now, setNow] = useState(Date.now());
+   const [now, setNow] = useState(0);
+   const [isMounted, setIsMounted] = useState(false);
+
+   useEffect(() => {
+       setIsMounted(true);
+       setNow(Date.now());
+   }, []);
 
    useEffect(() => {
       getInstructorUpcomingMeetings().then(setUpcomingMeetings).catch(console.error);
@@ -733,6 +747,9 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                                    )}>
                                                       {msg.content}
                                                    </div>
+                                                   <span className="text-[8px] font-bold text-slate-400 mt-1 uppercase tracking-widest">
+                                                      {isMounted ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                                                   </span>
                                                 </div>
                                              );
                                           })

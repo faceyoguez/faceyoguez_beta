@@ -59,6 +59,11 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const [notes, setNotes] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -210,7 +215,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
             <div className="flex-1 flex flex-col lg:flex-row items-stretch lg:items-center gap-3 overflow-y-auto lg:overflow-x-auto no-scrollbar py-2" ref={compassScrollRef}>
                {filteredStudents.map((student: StudentInfo, idx: number) => {
                   const isSelected = selectedStudent?.id === student.id;
-                  const currentDay = student.startDate ? Math.max(1, Math.floor((Date.now() - new Date(student.startDate).getTime()) / 86400000) + 1) : 1;
+                  const currentDay = student.startDate && isMounted ? Math.max(1, Math.floor((Date.now() - new Date(student.startDate).getTime()) / 86400000) + 1) : 1;
                   return (
                      <motion.button
                         initial={{ opacity: 0, scale: 0.9 }}
@@ -274,7 +279,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                          <div className="h-1.5 w-1.5 rounded-full bg-[#FF8A75] animate-pulse" />
                          <div className="text-left">
                             <span className="text-[6px] font-black uppercase tracking-[0.3em] text-slate-400 block leading-none mb-0.5">Consistency</span>
-                            <span className="text-base lg:text-lg font-bold text-slate-900 leading-none">Day {Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate).getTime()) / 86400000) + 1))}</span>
+                            <span className="text-base lg:text-lg font-bold text-slate-900 leading-none">Day {selectedStudent.startDate && isMounted ? Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate).getTime()) / 86400000) + 1)) : 1}</span>
                          </div>
                       </div>
                    )}

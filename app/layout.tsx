@@ -129,7 +129,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="//www.googletagmanager.com" />
         <link rel="dns-prefetch" href="//images.unsplash.com" />
         <link rel="dns-prefetch" href="//tivvuxyitgqaslqfccit.supabase.co" />
-        
+
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://tivvuxyitgqaslqfccit.supabase.co" crossOrigin="anonymous" />
@@ -165,11 +165,11 @@ export default function RootLayout({
         <div className="relative z-10">
           {children}
         </div>
-        <Toaster 
-          position="top-right" 
-          richColors 
-          duration={4000} 
-          closeButton 
+        <Toaster
+          position="top-right"
+          richColors
+          duration={4000}
+          closeButton
           visibleToasts={3}
         />
         <Suspense fallback={null}>

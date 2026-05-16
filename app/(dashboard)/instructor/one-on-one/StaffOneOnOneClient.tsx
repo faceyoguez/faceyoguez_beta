@@ -92,21 +92,54 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
   const [isDownloadingPhotos, setIsDownloadingPhotos] = useState(false);
   const [isStartingChat, setIsStartingChat] = useState(false);
 
-  const [globalSearchQuery, setGlobalSearchQuery] = useState('');
   const [globalSearchResults, setGlobalSearchResults] = useState<
     Array<{ id: string; full_name: string; email: string; avatar_url: string | null }>
   >([]);
+  const [studentListPage, setStudentListPage] = useState(1);
+  const STUDENTS_PER_PAGE = 5;
+  const [isMounted, setIsMounted] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [globalSearchQuery, setGlobalSearchQuery] = useState('');
 
-  const filtered = students.filter((s) => {
-    const matchesQuery =
-      s.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.email.toLowerCase().includes(searchQuery.toLowerCase());
-    if (!matchesQuery) return false;
-    if (filterTrial === 'trial') return s.isTrial;
-    if (filterTrial === 'paid') return !s.isTrial;
-    return true;
-  });
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const sortedAndFiltered = React.useMemo(() => {
+    return [...students]
+      .filter((s) => {
+        const matchesQuery =
+          s.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          s.email.toLowerCase().includes(searchQuery.toLowerCase());
+        if (!matchesQuery) return false;
+        if (filterTrial === 'trial') return s.isTrial;
+        if (filterTrial === 'paid') return !s.isTrial;
+        return true;
+      })
+      .sort((a, b) => {
+        // 1. Expiry priority (within 5 days)
+        const aExpiring = a.daysLeft !== null && a.daysLeft !== undefined && a.daysLeft <= 5;
+        const bExpiring = b.daysLeft !== null && b.daysLeft !== undefined && b.daysLeft <= 5;
+        
+        if (aExpiring && !bExpiring) return -1;
+        if (!aExpiring && bExpiring) return 1;
+        
+        // 2. Latest onboarding (startDate desc)
+        const aDate = a.startDate ? new Date(a.startDate).getTime() : 0;
+        const bDate = b.startDate ? new Date(b.startDate).getTime() : 0;
+        return bDate - aDate;
+      });
+  }, [students, searchQuery, filterTrial]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setStudentListPage(1);
+  }, [searchQuery, filterTrial]);
+
+  const paginatedStudents = sortedAndFiltered.slice(
+    (studentListPage - 1) * STUDENTS_PER_PAGE,
+    studentListPage * STUDENTS_PER_PAGE
+  );
 
   const expiringStudents = students.filter((s) => s.daysLeft !== null && s.daysLeft !== undefined && s.daysLeft <= 3);
   const trialStudents = students.filter((s) => s.isTrial);
@@ -142,14 +175,14 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
     const channel = supabase
       .channel(`staff-resources:${selectedStudent.id}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'student_resources', filter: `student_id=eq.${selectedStudent.id}` },
-        (payload: any) => setResources((prev: StudentResource[]) => [payload.new as StudentResource, ...prev]))
+        (payload: { new: StudentResource }) => setResources((prev: StudentResource[]) => [payload.new, ...prev]))
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
   }, [selectedStudent]);
 
   const handleGlobalSearch = async (query: string) => {
-    setGlobalSearchQuery(query);
+    setSearchQuery(query); // Update local search too for consistency
     if (query.length < 2) { setGlobalSearchResults([]); return; }
     setIsSearching(true);
     try {
@@ -174,7 +207,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
       } else {
         setSelectedStudent((prev: StudentInfo | null) => prev ? { ...prev, conversationId } : prev);
       }
-      setGlobalSearchQuery(''); setGlobalSearchResults([]);
+      setSearchQuery(''); setGlobalSearchResults([]);
     } catch (e) { console.error(e); }
     setIsStartingChat(false);
   };
@@ -404,11 +437,12 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
-              {filtered.map((student) => {
+              {paginatedStudents.map((student) => {
                 const elapsedDays = student.startDate ? Math.floor((Date.now() - new Date(student.startDate).getTime()) / 86400000) + 1 : 1;
                 const isEnded = elapsedDays > 30;
                 const isEnding = !isEnded && elapsedDays >= 25;
                 const isEmergency = isEnded || isEnding;
+                const isExpiringSoon = student.daysLeft !== null && student.daysLeft !== undefined && student.daysLeft <= 5;
 
                 return (
                   <div
@@ -421,7 +455,8 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                       "w-full flex items-center gap-3 py-2 px-3 rounded-xl transition-all text-left group cursor-pointer",
                       selectedStudent?.id === student.id
                         ? (isEmergency ? "bg-red-50/50 border border-red-500/20 shadow-md scale-[1.02]" : "bg-white border border-outline-variant/10 shadow-md scale-[1.02]")
-                        : "bg-transparent border border-transparent hover:bg-white/40 hover:border-outline-variant/5"
+                        : "bg-transparent border border-transparent hover:bg-white/40 hover:border-outline-variant/5",
+                      isExpiringSoon && selectedStudent?.id !== student.id && "bg-amber-50/30 border-amber-100/50"
                     )}
                   >
                     <div className="relative shrink-0">
@@ -441,52 +476,15 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                             {student.full_name}
                           </h4>
                           {student.isTrial && (
-                            <span className="text-[7px] font-aktiv font-black uppercase text-white bg-amber-500 px-1 py-0.5 rounded shadow-sm leading-none whitespace-nowrap">
+                            <span className="text-[7px] font-aktiv font-medium uppercase text-white bg-amber-500 px-1 py-0.5 rounded shadow-sm leading-none whitespace-nowrap">
                               Unsubscribed
                             </span>
                           )}
-                          <div className="flex items-center gap-1.5 flex-shrink-0">
-                            {student.phone && (
-                              <button
-                                onClick={async (e) => {
-                                  e.stopPropagation();
-                                  const msg = `Hi ${student.full_name.split(' ')[0]}! This is the Faceyoguez team. We are reaching out regarding your session...`;
-                                  const loadingToast = toast.loading('Sending WhatsApp...');
-                                  try {
-                                    if (!student.phone) throw new Error('No phone number');
-                                    const result = await sendWhatsAppMessage(student.phone, msg);
-                                    if (result.success) {
-                                      toast.success('Message sent via Official API', { id: loadingToast });
-                                    } else {
-                                      toast.dismiss(loadingToast);
-                                      const cleanPhone = student.phone?.replace(/[^0-9]/g, '');
-                                      window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
-                                    }
-                                  } catch (err) {
-                                    toast.dismiss(loadingToast);
-                                    const cleanPhone = student.phone?.replace(/[^0-9]/g, '');
-                                    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
-                                  }
-                                }}
-                                className="text-[#25D366] hover:text-[#1aad52] transition-colors z-10 p-0 flex items-center justify-center"
-                                title="Message on WhatsApp"
-                              >
-                                <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
-                                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
-                                </svg>
-                              </button>
-                            )}
-                            <a
-                              href={`https://mail.google.com/mail/?view=cm&fs=1&to=${student.email}&su=${encodeURIComponent('Face Yoga Update')}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-red-400 hover:text-red-600 transition-colors z-10 p-0 flex items-center justify-center"
-                              title="Send Gmail"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Mail className="w-3.5 h-3.5" />
-                            </a>
-                          </div>
+                          {isExpiringSoon && (
+                             <span className="text-[7px] font-aktiv font-medium uppercase text-amber-600 bg-amber-100 px-1 py-0.5 rounded shadow-sm leading-none whitespace-nowrap flex items-center gap-1">
+                               <Clock className="w-2 h-2" /> {student.daysLeft}d left
+                             </span>
+                          )}
                         </div>
                       </div>
                       <p className={cn("text-[9px] font-aktiv font-bold uppercase tracking-wider truncate", isEmergency ? "text-red-500/70" : "text-foreground/30")}>
@@ -501,6 +499,31 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                 );
               })}
             </div>
+
+            {/* Student List Pagination */}
+            {sortedAndFiltered.length > STUDENTS_PER_PAGE && (
+              <div className="p-4 border-t border-outline-variant/5 bg-white/20 backdrop-blur-sm flex items-center justify-between shrink-0">
+                <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20">
+                  Page {studentListPage} of {Math.ceil(sortedAndFiltered.length / STUDENTS_PER_PAGE)}
+                </span>
+                <div className="flex items-center gap-2">
+                  <button 
+                    onClick={() => setStudentListPage(p => Math.max(1, p - 1))}
+                    disabled={studentListPage === 1}
+                    className="h-8 w-8 rounded-lg border border-outline-variant/10 flex items-center justify-center disabled:opacity-20 hover:bg-white transition-colors"
+                  >
+                    <ChevronLeft className="w-3 h-3" />
+                  </button>
+                  <button 
+                    onClick={() => setStudentListPage(p => Math.min(Math.ceil(sortedAndFiltered.length / STUDENTS_PER_PAGE), p + 1))}
+                    disabled={studentListPage === Math.ceil(sortedAndFiltered.length / STUDENTS_PER_PAGE)}
+                    className="h-8 w-8 rounded-lg border border-outline-variant/10 flex items-center justify-center disabled:opacity-20 hover:bg-white transition-colors"
+                  >
+                    <ChevronRight className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -527,7 +550,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                           {selectedStudent.full_name}
                         </h2>
                         {selectedStudent.isTrial && (
-                          <span className="text-[10px] font-black uppercase text-white bg-amber-500 px-2 py-0.5 rounded-full shadow-sm whitespace-nowrap">
+                          <span className="text-[10px] font-medium uppercase text-white bg-amber-500 px-2 py-0.5 rounded-full shadow-sm whitespace-nowrap">
                             Unsubscribed
                           </span>
                         )}
@@ -539,9 +562,8 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                           {selectedStudent.assignedInstructorId ? 'Change Instructor' : 'Assign Instructor'}
                         </button>
                       </div>
-                      <div className="flex items-center gap-6">
                         <div className="flex items-center gap-2 text-[10px] font-aktiv font-bold uppercase tracking-widest text-foreground/30">
-                          <Clock className="w-3.5 h-3.5" /> Admission Date: {selectedStudent.startDate ? new Date(selectedStudent.startDate).toLocaleDateString() : 'Pending'}
+                          <Clock className="w-3.5 h-3.5" /> Admission Date: {selectedStudent.startDate && isMounted ? new Date(selectedStudent.startDate).toLocaleDateString() : (selectedStudent.startDate ? '---' : 'Pending')}
                         </div>
                         <div className="flex items-center gap-2 text-[10px] font-aktiv font-bold uppercase tracking-widest text-foreground/30">
                           <ShieldCheck className={cn("w-3.5 h-3.5", selectedStudent.isTrial ? "text-amber-500/60" : "text-brand-emerald/60")} /> {selectedStudent.isTrial ? "Not Yet Subscribed" : "Full Enrolment"}
@@ -556,7 +578,6 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                         </a>
                       </div>
                     </div>
-                  </div>
 
                   <div className="flex items-center gap-3">
                     {/* Communion button removed as chat is now persistent on right */}
@@ -593,7 +614,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                       ) : (
                         <div className="space-y-8">
                           <JourneyProgress
-                            currentDay={Math.min(30, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate!).getTime()) / 86400000) + 1))}
+                            currentDay={selectedStudent.startDate ? Math.min(30, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate).getTime()) / 86400000) + 1)) : 1}
                             activeDay={activeStepDay}
                             onSelectDay={(day) => setActiveStepDay(day)}
                             completedDays={new Set(journeyLogs.map((l: JourneyLog) => l.day_number))}
@@ -624,7 +645,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                           <div className="flex-1 flex flex-col">
                             <div className="flex items-center justify-between mb-6">
                               <span className="text-[9px] font-aktiv font-bold uppercase tracking-widest text-primary">Day {activeStepDay} Notes</span>
-                              <span className="text-[8px] font-jakarta text-foreground/20">{new Date(activeLog.created_at).toLocaleDateString()}</span>
+                              <span className="text-[8px] font-jakarta text-foreground/20">{isMounted ? new Date(activeLog.created_at).toLocaleDateString() : '---'}</span>
                             </div>
                             <p className="text-sm font-medium leading-relaxed text-foreground/70 whitespace-pre-wrap flex-1">
                               "{activeLog.notes || 'No notes added for today.'}"
@@ -707,9 +728,9 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                           </div>
                         )}
                     </div>
+                    </div>
                   </div>
                 </div>
-              </div>
             ) : (
               <div className="h-full flex flex-col items-center justify-center opacity-10 grayscale">
                 <Users className="w-16 h-16 mb-6" />
@@ -725,9 +746,53 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
           {/* Interaction Box (ChatWindow) */}
           <div className="flex-1 bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col overflow-hidden">
             <div className="p-8 border-b border-outline-variant/5 flex items-center justify-between shrink-0 bg-white/20">
-              <div className="space-y-1">
-                <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Chat Window</h3>
-                <p className="text-sm font-aktiv font-bold text-foreground">Direct Message</p>
+              <div className="flex items-center gap-4">
+                <div className="space-y-1">
+                  <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Chat Window</h3>
+                  <p className="text-sm font-aktiv font-bold text-foreground">Direct Message</p>
+                </div>
+                {selectedStudent && (
+                  <div className="flex items-center gap-3 ml-2">
+                    {selectedStudent.phone && (
+                      <button
+                        onClick={async (e) => {
+                          const msg = `Hi ${selectedStudent.full_name.split(' ')[0]}! This is the Faceyoguez team. We are reaching out regarding your session...`;
+                          const loadingToast = toast.loading('Sending WhatsApp...');
+                          try {
+                            if (!selectedStudent.phone) throw new Error('No phone number');
+                            const result = await sendWhatsAppMessage(selectedStudent.phone, msg);
+                            if (result.success) {
+                              toast.success('Message sent via Official API', { id: loadingToast });
+                            } else {
+                              toast.dismiss(loadingToast);
+                              const cleanPhone = selectedStudent.phone?.replace(/[^0-9]/g, '');
+                              window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+                            }
+                          } catch (err) {
+                            toast.dismiss(loadingToast);
+                            const cleanPhone = selectedStudent.phone?.replace(/[^0-9]/g, '');
+                            window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+                          }
+                        }}
+                        className="h-8 w-8 rounded-full bg-[#25D366]/10 text-[#25D366] flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+                        title="Message on WhatsApp"
+                      >
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
+                        </svg>
+                      </button>
+                    )}
+                    <a
+                      href={`https://mail.google.com/mail/?view=cm&fs=1&to=${selectedStudent.email}&su=${encodeURIComponent('Face Yoga Update')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="h-8 w-8 rounded-full bg-red-50 text-red-500 flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+                      title="Send Gmail"
+                    >
+                      <Mail className="w-4 h-4" />
+                    </a>
+                  </div>
+                )}
               </div>
               <div className={cn("h-2.5 w-2.5 rounded-full border-2 border-white", selectedStudent ? "bg-brand-emerald animate-pulse" : "bg-foreground/10")} />
             </div>
@@ -736,7 +801,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
               {selectedStudent?.conversationId ? (
                 <ChatWindow
                   key={selectedStudent.conversationId}
-                  conversationId={selectedStudent.conversationId}
+                  conversationId={selectedStudent.conversationId!}
                   currentUser={currentUser}
                   conversationType="direct"
                   title={selectedStudent.full_name}

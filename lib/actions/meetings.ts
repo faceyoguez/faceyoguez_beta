@@ -135,14 +135,18 @@ export async function getBatchRecordedSessions(
   if (new Date() > new Date(batchEndDate)) return [];
 
   const admin = createAdminClient();
+  const now = new Date();
+  const fiveDaysAgo = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000);
 
   // Get past group meetings for this batch, limited to avoid excessive API calls
+  // Also filter by meetings that started within the last 5 days
   const { data: meetings } = await admin
     .from('meetings')
     .select('id, topic, start_time, duration_minutes, zoom_meeting_id')
     .eq('batch_id', batchId)
     .eq('meeting_type', 'group_session')
-    .lt('start_time', new Date().toISOString())
+    .lt('start_time', now.toISOString())
+    .gte('start_time', fiveDaysAgo.toISOString())
     .order('start_time', { ascending: false })
     .limit(limit);
 
@@ -502,4 +506,26 @@ export async function startMeeting(meetingId: string) {
   revalidatePath('/instructor/groups');
   
   return { success: true };
+}
+
+export async function getLatestMeetingForBatch(batchId: string): Promise<MeetingWithDetails | null> {
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase
+    .from('meetings')
+    .select(`
+      id, topic, start_time, duration_minutes, meeting_type, join_url, start_url, zoom_meeting_id, batch_id, student_id, host_id,
+      host:host_id(id, full_name, avatar_url, role),
+      student:student_id(id, full_name, avatar_url),
+      batch:batch_id(id, name, start_date, end_date)
+    `)
+    .eq('batch_id', batchId)
+    .order('start_time', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Failed to get latest batch meeting', error);
+    return null;
+  }
+  return data as MeetingWithDetails;
 }
