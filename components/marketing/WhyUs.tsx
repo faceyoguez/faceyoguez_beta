@@ -89,7 +89,7 @@ export function WhyUs() {
             <div className="hidden md:block p-5" />
             <div className="p-5 md:p-5 flex justify-center items-center md:border-l border-slate-100 col-span-3">
               <Link href="/auth/signup" className="w-full max-w-[240px] md:w-auto text-center px-6 py-3.5 md:px-5 md:py-2.5 bg-[#e76f51] text-white rounded-full text-[11px] font-black uppercase tracking-[0.25em] hover:bg-[#d4603f] transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 whitespace-nowrap">
-                Start Free →
+                Join now →
               </Link>
             </div>
           </div>

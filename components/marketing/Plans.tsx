@@ -19,17 +19,6 @@ const PLANS_PREVIEW: any[] = [
     cta: 'Apply for 1-on-1'
   },
   {
-    id: 'group_session',
-    title: '21-Day Group Batch',
-    subtitle: 'Community Energy',
-    desc: 'Our most popular programme. Join a batch of like-minded women and build a habit that lasts a lifetime.',
-    icon: Users,
-    features: ['Live Daily Practice', 'Shared Progress', 'Community Support'],
-    accent: '#e76f51',
-    popular: true,
-    cta: 'Join Next Batch'
-  },
-  {
     id: 'lms',
     title: 'Self-Paced Video Course',
     subtitle: 'Lifetime Access',
@@ -38,6 +27,17 @@ const PLANS_PREVIEW: any[] = [
     features: ['Step-by-Step Modules', 'Lifetime Access', 'Bonus Morning Rituals'],
     accent: '#e76f51',
     cta: 'Get Instant Access'
+  },
+  {
+    id: 'group_session',
+    title: '21-Day Group Batch',
+    subtitle: 'Community Energy',
+    desc: 'Our most popular programme. Join a batch of like-minded women and build a habit that lasts a lifetime.',
+    icon: Users,
+    features: ['Live Daily Practice', 'Shared Progress', 'Community Support', 'Expert Guidance', 'Progress Tracking'],
+    accent: '#e76f51',
+    popular: true,
+    cta: 'Learn More & Join Batch'
   }
 ];
 
@@ -108,7 +108,7 @@ export function Plans() {
                   onClick={() => {
                     const redirectPath = '/student/plans?plan=one_on_one';
                     // We don't have userId here easily, but we can redirect to a route that handles it or just use the signup/login flow
-                    window.location.href = `/auth/signup?redirectTo=${encodeURIComponent(redirectPath)}`;
+                    window.location.href = `/auth/signup`;
                   }}
                   className="flex items-center justify-center gap-2 text-[11px] sm:text-[11px] font-black text-[#e76f51] uppercase tracking-[0.2em] hover:text-[#d4603f] transition-colors"
                 >
@@ -131,18 +131,12 @@ export function Plans() {
               key={plan.id}
               variants={itemVariants}
               onClick={() => {
-                if (plan.id === 'one_on_one') {
-                  router.push('/plans/personal-classes');
-                  return;
-                }
                 if (plan.id === 'group_session') {
-                  router.push('/plans/live-group');
+                  window.location.href = 'https://www.faceyoguez.com/plans/live-group';
                   return;
                 }
                 
-                // LMS remains direct funnel
-                const redirectPath = `/student/plans?plan=${plan.id}`;
-                window.location.href = `/auth/signup?redirectTo=${encodeURIComponent(redirectPath)}`;
+                window.location.href = '/auth/signup';
               }}
               className={`group p-8 md:p-10 rounded-[2.5rem] transition-all duration-500 relative cursor-pointer flex flex-col border ${plan.popular
                   ? 'bg-white border-[#e76f51]/20 shadow-[0_32px_80px_rgba(231,111,81,0.08)]'

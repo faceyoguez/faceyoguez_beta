@@ -116,7 +116,7 @@ export function HowItWorks() {
             href="/auth/signup"
             className="inline-flex items-center justify-center gap-2 px-10 py-5 bg-[#e76f51] text-white rounded-full text-[11px] font-black uppercase tracking-[0.3em] hover:bg-[#d4603f] transition-all shadow-[0_12px_32px_rgba(231,111,81,0.3)] hover:scale-105 active:scale-95"
           >
-            Begin Step 1 Right Now → Book Your Free Trial
+            Begin Step 1 Right Now → Book Your FREE Trial Class
           </Link>
         </motion.div>
       </div>

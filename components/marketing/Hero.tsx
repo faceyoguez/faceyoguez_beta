@@ -102,7 +102,7 @@ export function Hero({ visible }: HeroProps) {
               href="/auth/signup"
               className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#e76f51] text-white rounded-full text-[11px] font-black uppercase tracking-[0.25em] hover:bg-[#d4603f] transition-all shadow-[0_12px_32px_rgba(231,111,81,0.35)] hover:scale-105 active:scale-95"
             >
-              🌸 Book Your FREE Trial Class →
+              🌸 Book Your Class →
             </Link>
           </motion.div>
         </div>

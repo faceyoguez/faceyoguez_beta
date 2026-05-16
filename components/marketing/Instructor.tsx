@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
+import Link from 'next/link';
 import { motion, useInView, Variants } from 'framer-motion';
 import { Heart, Instagram, Users, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -107,9 +108,9 @@ export function Instructor() {
 
               {/* Call to Action */}
               <motion.div variants={fadeUp} className="pt-6 flex flex-col sm:flex-row items-center gap-8">
-                <button className="w-full sm:w-auto px-10 py-5 bg-[#1a1a1a] text-white rounded-full text-[11px] font-black uppercase tracking-[0.3em] hover:bg-[#e76f51] transition-all shadow-xl hover:scale-105 active:scale-95">
-                  Try a Class
-                </button>
+                <Link href="/auth/signup" className="w-full sm:w-auto px-10 py-5 bg-[#1a1a1a] text-white rounded-full text-[11px] font-black uppercase tracking-[0.3em] hover:bg-[#e76f51] transition-all shadow-xl hover:scale-105 active:scale-95 flex items-center justify-center">
+                  Join a Class
+                </Link>
                 <div className="flex items-center gap-4 text-[#2a2019]/40">
                   <Sparkles className="w-5 h-5" />
                   <span className="text-[10px] font-black uppercase tracking-widest italic">See for yourself.</span>
