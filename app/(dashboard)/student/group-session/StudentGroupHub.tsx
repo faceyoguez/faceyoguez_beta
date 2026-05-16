@@ -91,20 +91,29 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
         if (!activeBatch?.id) return;
 
         const init = async () => {
-            setIsLoadingRecordings(true);
-            const [msgs, pollsMap, logs, meetingsData, recs] = await Promise.all([
+            // Fetch critical dashboard data first
+            const [msgs, pollsMap, logs, meetingsData] = await Promise.all([
                 getBatchMessages(activeBatch.id),
                 getBatchPollsMap(activeBatch.id, currentUser.id),
                 getJourneyLogs(currentUser.id),
                 getUpcomingMeetingsForStudent(),
-                getBatchRecordedSessions(activeBatch.id, activeBatch.end_date ?? ''),
             ]);
+            
             setMessages(msgs);
             setPolls(pollsMap);
-            setRecordings(recs);
-            setIsLoadingRecordings(false);
             setJourneyLogs(logs);
             setUpcomingMeetings(meetingsData || []);
+
+            // Fetch recordings separately so they don't block the critical path
+            setIsLoadingRecordings(true);
+            try {
+                const recs = await getBatchRecordedSessions(activeBatch.id, activeBatch.end_date ?? '');
+                setRecordings(recs);
+            } catch (err) {
+                console.error("Error fetching recordings:", err);
+            } finally {
+                setIsLoadingRecordings(false);
+            }
         };
         init();
 

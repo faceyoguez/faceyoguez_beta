@@ -10,16 +10,21 @@ export default async function StudentDashboardPage() {
   const user = await getServerUser();
   if (!user) redirect('/auth/login');
 
-  const admin = createAdminClient();
-  const profile = await getServerProfile(user.id);
+  // ─── Phase 1: Basic Profile & Enrollments ───
+  const [profile, enrollments] = await Promise.all([
+    getServerProfile(user.id),
+    getStudentEnrollments(user.id)
+  ]);
+
   if (!profile || profile.role !== 'student') redirect('/auth/login');
 
-  // ─── Parallelize all independent queries ───
+  const batchIds = enrollments.map((e: { batch_id: string }) => e.batch_id);
   const windowStart = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+  const admin = createAdminClient();
 
-  const [subscriptions, enrollments, journeyLogs, oneOnOneMeetings] = await Promise.all([
+  // ─── Phase 2: Everything else in parallel ───
+  const [subscriptions, journeyLogs, oneOnOneMeetings, groupMeetings] = await Promise.all([
     getStudentSubscriptions(user.id),
-    getStudentEnrollments(user.id),
     getStudentJourneyLogs(user.id),
     admin
       .from('meetings')
@@ -28,23 +33,18 @@ export default async function StudentDashboardPage() {
       .eq('meeting_type', 'one_on_one')
       .gte('start_time', windowStart)
       .order('start_time', { ascending: true })
-      .then((res: { data: any[] | null }) => res.data || [])
+      .then((res: { data: any[] | null }) => res.data || []),
+    batchIds.length > 0 
+      ? admin
+          .from('meetings')
+          .select('*, host:profiles!meetings_host_id_fkey(full_name, avatar_url)')
+          .in('batch_id', batchIds)
+          .eq('meeting_type', 'group_session')
+          .gte('start_time', windowStart)
+          .order('start_time', { ascending: true })
+          .then((res: { data: any[] | null }) => res.data || [])
+      : Promise.resolve([])
   ]);
-
-  const batchIds = enrollments.map((e: { batch_id: string }) => e.batch_id);
-
-  // ─── Batch 2: Group meetings (depends on batchIds from batch 1) ───
-  let groupMeetings: any[] = [];
-  if (batchIds.length > 0) {
-    const { data: gMeetings } = await admin
-      .from('meetings')
-      .select('*, host:profiles!meetings_host_id_fkey(full_name, avatar_url)')
-      .in('batch_id', batchIds)
-      .eq('meeting_type', 'group_session')
-      .gte('start_time', windowStart)
-      .order('start_time', { ascending: true });
-    groupMeetings = gMeetings || [];
-  }
 
   const todaysMeetings = [...oneOnOneMeetings, ...groupMeetings]
     .sort((a: any, b: any) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());

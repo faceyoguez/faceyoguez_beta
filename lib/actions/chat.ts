@@ -81,7 +81,7 @@ export async function getChatMessages(conversationId: string, limit = 50) {
   const { data, error } = await admin
     .from('chat_messages')
     .select(`
-      *,
+      id, content, content_type, created_at, sender_id, conversation_id,
       sender:profiles!sender_id(id, full_name, avatar_url, role)
     `)
     .eq('conversation_id', conversationId)
@@ -695,7 +695,7 @@ export async function getBatchMessages(batchId: string, limit = 50) {
   const { data, error } = await admin
     .from('batch_messages')
     .select(`
-      *,
+      id, content, content_type, created_at, sender_id, batch_id, message_type, poll_id,
       sender:profiles!sender_id(id, full_name, avatar_url, role)
     `)
     .eq('batch_id', batchId)

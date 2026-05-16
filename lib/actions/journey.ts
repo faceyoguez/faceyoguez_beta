@@ -20,7 +20,7 @@ export async function getJourneyLogs(studentId: string): Promise<JourneyLog[]> {
     const admin = createAdminClient();
     const { data, error } = await admin
         .from('journey_logs')
-        .select('*')
+        .select('id, student_id, day_number, notes, photo_url, photo_url_left, photo_url_right, created_at, updated_at')
         .eq('student_id', studentId)
         .order('day_number', { ascending: true });
 
@@ -108,14 +108,6 @@ export async function saveDailyCheckIn(
         rightB64  ? uploadAnglePhoto(supabase, studentId, dayNumber, 'right', rightB64, rightMime!)  : Promise.resolve(null),
     ]);
 
-    // Check if existing log exists
-    const { data: existingLog } = await supabase
-        .from('journey_logs')
-        .select('id')
-        .eq('student_id', studentId)
-        .eq('day_number', dayNumber)
-        .single();
-
     const payload: any = {
         student_id: studentId,
         day_number: dayNumber,
@@ -127,27 +119,11 @@ export async function saveDailyCheckIn(
     if (leftUrl)         payload.photo_url_left  = leftUrl;
     if (rightUrl)        payload.photo_url_right = rightUrl;
 
-    let dbError = null;
-    let row = null;
-
-    if (existingLog) {
-        const { data: updated, error: e } = await supabase
-            .from('journey_logs')
-            .update(payload)
-            .eq('id', existingLog.id)
-            .select()
-            .single();
-        dbError = e;
-        row = updated;
-    } else {
-        const { data: inserted, error: e } = await supabase
-            .from('journey_logs')
-            .insert(payload)
-            .select()
-            .single();
-        dbError = e;
-        row = inserted;
-    }
+    const { data: row, error: dbError } = await supabase
+        .from('journey_logs')
+        .upsert(payload, { onConflict: 'student_id,day_number' })
+        .select()
+        .single();
 
     if (dbError) {
         console.error('Database save error:', dbError);

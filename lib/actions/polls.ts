@@ -163,6 +163,13 @@ export async function getBatchPollsMap(
     const options = ((poll.options || []) as any[]).sort(
       (a: any, b: any) => a.position - b.position
     );
+    
+    // Optimize vote counting with a frequency map
+    const voteCounts: Record<string, number> = {};
+    votes.forEach(v => {
+      voteCounts[v.option_id] = (voteCounts[v.option_id] || 0) + 1;
+    });
+
     const myVote = votes.find((v) => v.voter_id === voterId);
 
     map[poll.id] = {
@@ -175,7 +182,7 @@ export async function getBatchPollsMap(
       creator: (Array.isArray(poll.creator) ? poll.creator[0] : poll.creator) as any,
       options: options.map((opt: any) => ({
         ...opt,
-        vote_count: votes.filter((v) => v.option_id === opt.id).length,
+        vote_count: voteCounts[opt.id] || 0,
       })),
       total_votes: votes.length,
       my_vote_option_id: myVote?.option_id || null,

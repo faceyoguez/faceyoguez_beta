@@ -15,18 +15,35 @@ export async function getUpcomingMeetingsForStudent(): Promise<MeetingWithDetail
     throw new Error('Not authenticated');
   }
 
-  // Let's allow meetings that started within the last 2 hours (so active meetings don't disappear)
+  // Get student's active batch enrollment
+  const { data: enrollment } = await supabase
+    .from('batch_enrollments')
+    .select('batch_id')
+    .eq('student_id', user.id)
+    .eq('status', 'active')
+    .maybeSingle();
+
+  // Allow meetings that started within the last 2 hours
   const windowStart = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('meetings')
     .select(`
-      *,
-      host:host_id(*),
-      student:student_id(*),
-      batch:batch_id(*)
+      id, topic, start_time, duration_minutes, meeting_type, join_url, start_url, zoom_meeting_id, batch_id, student_id, host_id,
+      host:host_id(id, full_name, avatar_url, role),
+      student:student_id(id, full_name, avatar_url),
+      batch:batch_id(id, name, start_date, end_date)
     `)
-    .gte('start_time', windowStart)
+    .gte('start_time', windowStart);
+
+  // Filter: 1:1 meetings for this student OR group sessions for their batch
+  const filters = [`student_id.eq.${user.id}`];
+  if (enrollment?.batch_id) {
+    filters.push(`batch_id.eq.${enrollment.batch_id}`);
+  }
+
+  const { data, error } = await query
+    .or(filters.join(','))
     .order('start_time', { ascending: true });
 
   if (error) {
@@ -59,10 +76,10 @@ export async function getInstructorUpcomingMeetings(): Promise<MeetingWithDetail
   let query = supabase
     .from('meetings')
     .select(`
-      *,
-      host:host_id(*),
-      student:student_id(*),
-      batch:batch_id(*)
+      id, topic, start_time, duration_minutes, meeting_type, join_url, start_url, zoom_meeting_id, batch_id, student_id, host_id,
+      host:host_id(id, full_name, avatar_url, role),
+      student:student_id(id, full_name, avatar_url),
+      batch:batch_id(id, name, start_date, end_date)
     `);
 
   const seesAll = profile && (
@@ -107,7 +124,8 @@ interface CreateMeetingDBPayload {
  */
 export async function getBatchRecordedSessions(
   batchId: string,
-  batchEndDate: string
+  batchEndDate: string,
+  limit = 10
 ): Promise<RecordedSession[]> {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -118,14 +136,15 @@ export async function getBatchRecordedSessions(
 
   const admin = createAdminClient();
 
-  // Get all past group meetings for this batch
+  // Get past group meetings for this batch, limited to avoid excessive API calls
   const { data: meetings } = await admin
     .from('meetings')
     .select('id, topic, start_time, duration_minutes, zoom_meeting_id')
     .eq('batch_id', batchId)
     .eq('meeting_type', 'group_session')
     .lt('start_time', new Date().toISOString())
-    .order('start_time', { ascending: false });
+    .order('start_time', { ascending: false })
+    .limit(limit);
 
   if (!meetings || meetings.length === 0) return [];
 
