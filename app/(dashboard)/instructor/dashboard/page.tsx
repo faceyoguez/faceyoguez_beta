@@ -133,7 +133,7 @@ export default async function InstructorDashboardPage() {
       .select('id, full_name, avatar_url')
       .eq('role', 'instructor');
     
-    instructorAllocations = instructors?.map(inst => ({
+    instructorAllocations = instructors?.map((inst: any) => ({
       instructor: inst,
       studentCount: 0 // Placeholder or fetch actual count if needed
     })) || [];
