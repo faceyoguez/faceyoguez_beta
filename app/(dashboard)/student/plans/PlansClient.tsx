@@ -65,31 +65,46 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
     const currentPlan = PLANS_DATA.find((p: any) => p.id === selectedPlanId)!;
     const currentTier = (currentPlan.tiers as any[]).find((t: any) => t.id === selectedTierId) || currentPlan.tiers[0];
 
+    // 1. Initial Param Load
     useEffect(() => {
-        if (isInitialParamLoad) {
-            const planParam = searchParams.get('plan');
-            const tierIdxParam = searchParams.get('tierIdx');
+        if (!isInitialParamLoad) return;
 
-            if (planParam) {
-                const plan = PLANS_DATA.find((p: any) => p.id === planParam);
-                if (plan) {
-                    setSelectedPlanId(planParam);
-                    if (tierIdxParam) {
-                        const tierIdx = parseInt(tierIdxParam);
-                        if (!isNaN(tierIdx) && plan.tiers[tierIdx]) {
-                            setSelectedTierId(plan.tiers[tierIdx].id);
-                            setIsInitialParamLoad(false);
-                            return;
-                        }
+        const planParam = searchParams.get('plan');
+        const tierIdxParam = searchParams.get('tierIdx');
+
+        if (planParam) {
+            const plan = PLANS_DATA.find((p: any) => p.id === planParam);
+            if (plan) {
+                setSelectedPlanId(planParam);
+                if (tierIdxParam) {
+                    const tierIdx = parseInt(tierIdxParam);
+                    if (!isNaN(tierIdx) && plan.tiers[tierIdx]) {
+                        setSelectedTierId(plan.tiers[tierIdx].id);
+                    } else {
+                        // Default to popular if tierIdx is invalid
+                        const popular = plan.tiers.find((t: any) => t.badge === 'MOST POPULAR') || plan.tiers[0];
+                        setSelectedTierId(popular.id);
                     }
+                } else {
+                    // Default to popular if no tierIdx provided
+                    const popular = plan.tiers.find((t: any) => t.badge === 'MOST POPULAR') || plan.tiers[0];
+                    setSelectedTierId(popular.id);
                 }
             }
-            setIsInitialParamLoad(false);
         }
+        setIsInitialParamLoad(false);
+    }, [searchParams, isInitialParamLoad]);
 
-        const popular = currentPlan.tiers.find((t: { id: string; label: string; badge?: string; originalPrice?: number; discountedPrice: number }) => t.badge === 'MOST POPULAR') || currentPlan.tiers[0];
-        setSelectedTierId(popular.id);
-    }, [selectedPlanId, searchParams, isInitialParamLoad]);
+    // 2. Handle Manual Plan Switching (Only AFTER initial load)
+    useEffect(() => {
+        if (isInitialParamLoad) return;
+
+        const plan = PLANS_DATA.find((p: any) => p.id === selectedPlanId);
+        if (plan) {
+            const popular = plan.tiers.find((t: any) => t.badge === 'MOST POPULAR') || plan.tiers[0];
+            setSelectedTierId(popular.id);
+        }
+    }, [selectedPlanId]);
 
 
     // Meta Pixel & Supabase Analytics: Track pricing page view
@@ -117,15 +132,13 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
     const bumps = {
         group_session: [
             { id: 'bump_recorded', title: 'Recorded Plan (Level 1+2)', desc: 'Get 32 lifetime recorded sessions to practise between live sessions.', originalPrice: 3999, discountedPrice: 2799, icon: BookOpen },
-            { id: 'bump_1_1', title: '1 to 1 PERSONALISED TRANSFORMATION PLAN', desc: 'Get a fully customised face yoga plan built around your face.', originalPrice: 5499, discountedPrice: 4399, icon: Star }
+            { id: 'bump_1_1', title: '1-1 Personal Plan', desc: 'Get a fully customised face yoga plan built around your face.', originalPrice: 5499, discountedPrice: 4399, icon: Star }
         ],
         lms: [
-            selectedTierId === 'level_1' ? { id: 'bump_upgrade_l12', title: 'Complete Plan (Level 1 + Level 2)', desc: 'Level 2 is where the real transformation happens.', originalPrice: 3999, discountedPrice: 2999, icon: Sparkles } :
-                { id: 'bump_group', title: 'LIVE GROUP TRANSFORMATION PLAN', desc: 'Pair your recorded plan with live group energy.', originalPrice: 3499, discountedPrice: 2799, icon: Users }
-        ],
+            selectedTierId === 'level_1' ? { id: 'bump_upgrade_l12', title: 'Complete Plan (Level 1 + Level 2)', desc: 'Level 2 is where the real transformation happens.', originalPrice: 3999, discountedPrice: 2999, icon: Sparkles } : null
+        ].filter(Boolean) as any[],
         one_on_one: [
-            { id: 'bump_recorded_1_1', title: 'Recorded Plan (Level 1+2)', desc: 'Extra practice and deeper technique on days between consultations.', originalPrice: 3999, discountedPrice: 2999, icon: BookOpen },
-            { id: 'bump_group_1_1', title: 'LIVE GROUP TRANSFORMATION PLAN', desc: 'Stay motivated and accountable with the energy of a live group.', originalPrice: 1499, discountedPrice: 999, icon: Users }
+            { id: 'bump_recorded_1_1', title: 'Recorded Plan (Level 1+2)', desc: 'Extra practice and deeper technique on days between consultations.', originalPrice: 3999, discountedPrice: 2999, icon: BookOpen }
         ]
     };
 
@@ -428,22 +441,22 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
 
     const planContent = {
         one_on_one: {
-            hook: "1 to 1 PERSONALISED TRANSFORMATION PLAN",
+            hook: "A Face Yoga Plan Made Just for You",
             problem: "Group programs can't address your unique facial structure and skin concerns.",
             solution: "A personalised routine designed around your face, your goals, and your schedule.",
             workOn: ["Sagging & Firmness", "Jawline Definition", "Double Chin", "Deep Wrinkles", "Eye Area"],
             journey: [
                 { icon: Star, title: "Enrol", desc: "Instant Access" },
                 { icon: ImageIcon, title: "Photo Assessment", desc: "Expert skin assessment" },
-                { icon: Video, title: "Personalised Call", desc: "Private video call" },
+                { icon: Video, title: "1-on-1 Call", desc: "Private video call" },
                 { icon: BookOpen, title: "Your Routine", desc: "Your custom videos" }
             ],
             dashboard: ["Progress Tracker", "Chat with Instructor", "Quick Session Link", "Daily Practice Log"]
         },
         group_session: {
-            hook: "LIVE GROUP TRANSFORMATION PLAN",
+            hook: "21 Days to a Visibly Lifted, Glowing Face",
             problem: "Surface treatments alone can't give you lasting results.",
-            solution: "21 days of guided live group sessions to help you look and feel your best.",
+            solution: "21 days of guided group classes to help you look and feel your best.",
             workOn: ["Facial Sculpting", "Natural Facelift", "Neck Toning", "Complexion Glow"],
             journey: [
                 { icon: Calendar, title: "Batch Starts", desc: "Starting soon" },
@@ -512,7 +525,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                         {plan.id === 'one_on_one' ? <Star className="w-4.5 h-4.5" /> : plan.id === 'lms' ? <BookOpen className="w-4.5 h-4.5" /> : <Users className="w-4.5 h-4.5" />}
                                     </div>
                                     <div>
-                                        <h2 className="text-base font-aktiv font-bold tracking-tight text-[#1a1a1a]">{plan.title.split(' ')[0]}</h2>
+                                        <h2 className="text-base font-aktiv font-bold tracking-tight text-[#1a1a1a]">{plan.title}</h2>
                                         <p className="text-[8px] font-black uppercase tracking-widest text-[#FF8A75]">{plan.id.replace('_', ' ')}</p>
                                     </div>
                                 </div>
@@ -616,7 +629,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                 </p>
                                 <p className="text-[8px] font-bold text-[#FF8A75] leading-none flex items-start gap-1 mt-1">
                                     <CheckCircle2 className="w-2.5 h-2.5 flex-shrink-0" />
-                                    ₹999 is fully credited back on any personalised plan.
+                                    ₹999 is fully credited back on any 1-on-1 plan.
                                 </p>
                             </div>
                             <button
@@ -806,7 +819,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                     <div className="p-4 rounded-2xl bg-gradient-to-br from-[#FF8A75]/8 to-[#FF8A75]/3 border border-[#FF8A75]/20 flex items-center justify-between gap-3">
                         <div className="min-w-0">
                             <p className="text-[9px] font-black text-slate-900 leading-tight">Not sure? Book a Consultation</p>
-                            <p className="text-[8px] text-[#FF8A75] font-bold leading-tight mt-0.5">₹999 · Credited back on personalised plan</p>
+                            <p className="text-[8px] text-[#FF8A75] font-bold leading-tight mt-0.5">₹999 · Credited back on 1-on-1 plan</p>
                         </div>
                         <button
                             onClick={() => { window.location.href = '/student/consultation'; }}

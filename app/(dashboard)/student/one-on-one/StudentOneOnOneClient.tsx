@@ -164,7 +164,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
               Personal <span className="text-[#e76f51]">Journey</span>
             </h1>
             <p className="text-xs sm:text-sm text-slate-400 font-medium mt-1">
-              Your dedicated 1 to 1 PERSONALISED TRANSFORMATION PLAN
+              Your dedicated 1-on-1 face yoga path
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -242,7 +242,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                     <Video className="w-5 h-5 text-slate-300" />
                   </div>
                   <p className="text-sm font-aktiv font-bold text-slate-400">No sessions scheduled</p>
-                  <p className="text-[10px] text-slate-300 font-medium">Your next personalised session will appear here</p>
+                  <p className="text-[10px] text-slate-300 font-medium">Your next 1-on-1 session will appear here</p>
                 </div>
               )}
             </motion.div>
@@ -453,7 +453,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                         </div>
                         <div>
                            <h3 className="text-base font-aktiv font-bold">Instructor Chat</h3>
-                           <p className="text-[8px] font-black uppercase tracking-widest text-[#e76f51]">Personalised Channel</p>
+                           <p className="text-[8px] font-black uppercase tracking-widest text-[#e76f51]">Private Channel</p>
                         </div>
                      </div>
                      <button 

@@ -324,55 +324,84 @@ export function StudentDashboardClient({
                   </div>
                 </div>
               ) : (
-                meetings.map((meeting: any, i: number) => (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.97 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: i * 0.04 }}
-                    key={meeting.id}
-                    className="p-3.5 rounded-2xl bg-[#FFFAF7] border border-[#e76f51]/5 hover:bg-white hover:border-[#e76f51]/15 hover:shadow-md transition-all duration-300 group/card"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "h-10 w-10 rounded-xl flex items-center justify-center shrink-0 overflow-hidden relative",
-                        meeting.meeting_type === 'one_on_one'
-                          ? 'bg-[#e76f51]/10 text-[#e76f51]'
-                          : 'bg-slate-100 text-slate-400'
-                      )}>
-                        {meeting.host?.avatar_url ? (
-                          <Image 
-                            src={meeting.host.avatar_url} 
-                            alt={meeting.host.full_name || 'Host'} 
-                            fill 
-                            className="object-cover" 
-                          />
-                        ) : (
-                          meeting.meeting_type === 'one_on_one' ? <User className="w-4.5 h-4.5" /> : <Users className="w-4.5 h-4.5" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-aktiv font-bold text-[#1a1a1a] truncate">{meeting.topic}</h4>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-[10px] font-bold text-[#e76f51]">
-                            {format(new Date(meeting.start_time), 'h:mm a')}
-                          </span>
-                          <span className="text-[9px] text-slate-300">•</span>
-                          <span className="text-[10px] text-slate-400 font-medium">
-                            {meeting.host?.full_name || 'Instructor'}
-                          </span>
+                  meetings.map((meeting: any, i: number) => {
+                  const isLive = meeting.calendar_event_id === 'LIVE';
+                  const isGroup = meeting.meeting_type === 'group_session';
+                  const startTime = new Date(meeting.start_time).getTime();
+                  const isTimeReady = Date.now() >= startTime - 300000;
+                  const canJoin = isGroup ? isLive : isTimeReady;
+
+                  return (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.97 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: i * 0.04 }}
+                      key={meeting.id}
+                      className={cn(
+                        "p-3.5 rounded-2xl border transition-all duration-500 group/card relative overflow-hidden",
+                        isLive 
+                          ? "bg-[#e76f51] border-[#e76f51] shadow-[0_0_20px_rgba(231,111,81,0.4)]" 
+                          : "bg-[#FFFAF7] border-[#e76f51]/5 hover:bg-white hover:border-[#e76f51]/15 hover:shadow-md"
+                      )}
+                    >
+                      {isLive && (
+                        <div className="absolute top-0 right-0 p-2">
+                           <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/20 backdrop-blur-md">
+                              <div className="h-1 w-1 rounded-full bg-white animate-pulse" />
+                              <span className="text-[7px] font-black uppercase tracking-widest text-white">Live</span>
+                           </div>
                         </div>
+                      )}
+                      
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "h-10 w-10 rounded-xl flex items-center justify-center shrink-0 overflow-hidden relative",
+                          isLive ? "bg-white/20" : (meeting.meeting_type === 'one_on_one' ? 'bg-[#e76f51]/10 text-[#e76f51]' : 'bg-slate-100 text-slate-400')
+                        )}>
+                          {meeting.host?.avatar_url ? (
+                            <Image 
+                              src={meeting.host.avatar_url} 
+                              alt={meeting.host.full_name || 'Host'} 
+                              fill 
+                              className="object-cover" 
+                            />
+                          ) : (
+                            meeting.meeting_type === 'one_on_one' ? <User className="w-4.5 h-4.5" /> : <Users className="w-4.5 h-4.5" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className={cn("text-sm font-aktiv font-bold truncate", isLive ? "text-white" : "text-[#1a1a1a]")}>{meeting.topic}</h4>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className={cn("text-[10px] font-bold", isLive ? "text-white/80" : "text-[#e76f51]")}>
+                              {format(new Date(meeting.start_time), 'h:mm a')}
+                            </span>
+                            <span className={cn("text-[9px]", isLive ? "text-white/40" : "text-slate-300")}>•</span>
+                            <span className={cn("text-[10px] font-medium", isLive ? "text-white/80" : "text-slate-400")}>
+                              {meeting.host?.full_name || 'Instructor'}
+                            </span>
+                          </div>
+                        </div>
+                        <a
+                          href={canJoin ? meeting.join_url : undefined}
+                          onClick={(e) => !canJoin && e.preventDefault()}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={cn(
+                            "h-9 w-9 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-xl transition-all duration-300",
+                            isLive 
+                              ? "bg-white text-[#e76f51] hover:scale-110" 
+                              : canJoin
+                                ? "bg-[#1a1a1a] text-white hover:bg-[#e76f51] group-hover/card:scale-105"
+                                : "bg-slate-200 text-slate-400 cursor-not-allowed opacity-50"
+                          )}
+                          title={!canJoin ? "Instructor hasn't started the session yet" : "Join Session"}
+                        >
+                          <ArrowUpRight className="w-3.5 h-3.5" />
+                        </a>
                       </div>
-                      <a
-                        href={meeting.join_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="h-9 w-9 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-xl bg-[#1a1a1a] text-white hover:bg-[#e76f51] transition-colors shadow-sm group-hover/card:scale-105 transition-transform"
-                      >
-                        <ArrowUpRight className="w-3.5 h-3.5" />
-                      </a>
-                    </div>
-                  </motion.div>
-                ))
+                    </motion.div>
+                  )
+                })
               )}
             </div>
           </div>
@@ -463,8 +492,8 @@ export function StudentDashboardClient({
                           afterImage={after}
                           altBefore="Day 1"
                           altAfter={`Day ${journeyDay}`}
-                          beforeLabel="Start"
-                          afterLabel="Now"
+                          beforeLabel="Day 1"
+                          afterLabel={`Day ${journeyDay}`}
                         />
                       </div>
                     </motion.div>
@@ -528,7 +557,7 @@ export function StudentDashboardClient({
               <ArrowUpRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-[#e76f51] transition-colors" />
             </div>
             <h3 className="text-base font-aktiv font-bold text-[#1a1a1a] tracking-tight">Personal</h3>
-            <p className="text-[9px] font-black uppercase tracking-[0.15em] text-[#e76f51] mt-0.5">Personalised Sessions</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.15em] text-[#e76f51] mt-0.5">1-on-1 Sessions</p>
           </motion.div>
         )}
 
@@ -565,7 +594,7 @@ export function StudentDashboardClient({
             <ArrowUpRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-[#e76f51] transition-colors" />
           </div>
           <h3 className="text-base font-aktiv font-bold text-[#1a1a1a] tracking-tight">Consult</h3>
-          <p className="text-[9px] font-black uppercase tracking-[0.15em] text-[#e76f51] mt-0.5">Personalised Guidance</p>
+          <p className="text-[9px] font-black uppercase tracking-[0.15em] text-[#e76f51] mt-0.5">1-on-1 Guidance</p>
         </motion.div>
       </div>
 

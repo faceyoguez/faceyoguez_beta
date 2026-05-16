@@ -1,9 +1,10 @@
 'use server';
 
-import { unstable_noStore as noStore } from 'next/cache';
+import { unstable_noStore as noStore, revalidatePath } from 'next/cache';
 import { createServerSupabaseClient, createAdminClient } from '../supabase/server';
 import { MeetingWithDetails, Meeting, type RecordedSession } from '../../types/database';
 import { getZoomMeetingRecordings, createZoomMeeting } from '../zoom';
+import { sendMeetingInviteEmail } from '../email';
 
 export async function getUpcomingMeetingsForStudent(): Promise<MeetingWithDetails[]> {
   noStore();
@@ -48,7 +49,7 @@ export async function getInstructorUpcomingMeetings(): Promise<MeetingWithDetail
   // Fetch user role to determine if they should see all meetings or only theirs
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('role, is_master_instructor')
     .eq('id', user.id)
     .single();
 
@@ -64,8 +65,13 @@ export async function getInstructorUpcomingMeetings(): Promise<MeetingWithDetail
       batch:batch_id(*)
     `);
 
-  // If not admin, restrict to their own meetings
-  if (profile?.role !== 'admin') {
+  const seesAll = profile && (
+      ['admin', 'client_management', 'staff'].includes(profile.role) ||
+      profile.is_master_instructor === true
+  );
+
+  // If not admin/staff/master, restrict to their own meetings
+  if (!seesAll) {
     query = query.eq('host_id', user.id);
   }
 
@@ -174,6 +180,7 @@ export async function saveMeetingToDb(payload: CreateMeetingDBPayload): Promise<
     .insert([
       {
         ...payload,
+        calendar_event_id: null, // Used for live status tracking
         created_by: user.id,
         updated_by: user.id
       }
@@ -186,7 +193,202 @@ export async function saveMeetingToDb(payload: CreateMeetingDBPayload): Promise<
     throw new Error('Failed to save meeting to database');
   }
 
+  // Automated Email Notifications for Group Sessions
+  if (payload.meeting_type === 'group_session' && payload.batch_id) {
+    const admin = createAdminClient();
+    
+    // 1. Fetch all students enrolled in the batch
+    const { data: enrollments } = await admin
+      .from('batch_enrollments')
+      .select('student:profiles!student_id(full_name, email)')
+      .eq('batch_id', payload.batch_id)
+      .eq('status', 'active');
+
+    // 2. Also fetch "new" students in the waiting queue — they bought a plan but haven't
+    //    been formally enrolled in a batch yet. They still deserve to receive the invite.
+    const { data: queueEntries } = await admin
+      .from('waiting_queue')
+      .select('student:profiles!student_id(full_name, email)')
+      .eq('status', 'waiting');
+
+    // 3. Fetch instructor name
+    const { data: host } = await admin
+      .from('profiles')
+      .select('full_name')
+      .eq('id', payload.host_id)
+      .single();
+
+    // Merge both lists, deduplicate by email
+    const allRecipients = new Map<string, { full_name: string; email: string }>();
+    for (const e of enrollments || []) {
+      const s = e.student as any;
+      if (s?.email) allRecipients.set(s.email, s);
+    }
+    for (const q of queueEntries || []) {
+      const s = q.student as any;
+      if (s?.email) allRecipients.set(s.email, s);
+    }
+
+    if (allRecipients.size > 0) {
+      const dateObj = new Date(payload.start_time);
+      const meetingDate = dateObj.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      const meetingTime = dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+      const calendarLink = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(payload.topic)}&details=${encodeURIComponent('Face Yoga Live Group Session')}&location=${encodeURIComponent(payload.join_url)}&dates=${dateObj.toISOString().replace(/-|:|\.\d\d\d/g, '')}/${new Date(dateObj.getTime() + payload.duration_minutes * 60000).toISOString().replace(/-|:|\.\d\d\d/g, '')}`;
+
+      // Send emails in parallel
+      await Promise.allSettled([...allRecipients.values()].map(async (student) => {
+        return sendMeetingInviteEmail({
+          to: student.email,
+          studentName: student.full_name,
+          instructorName: host?.full_name || 'Your Instructor',
+          meetingTitle: payload.topic,
+          meetingDate,
+          meetingTime,
+          zoomLink: payload.join_url,
+          zoomId: payload.zoom_meeting_id,
+          zoomPassword: '',
+          calendarLink,
+        });
+      }));
+    }
+  }
+
   return data as Meeting;
+}
+
+export async function scheduleGroupSession(batchId: string, startTime: string, topic: string = 'Face Yoga Live Group Session', duration: number = 60): Promise<Meeting> {
+  const supabase = await createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error('Not authenticated');
+  }
+
+  const zoomMeeting = await createZoomMeeting({
+    topic: topic,
+    startTime: startTime,
+    durationMinutes: duration,
+  });
+
+  const admin = createAdminClient();
+  const { data: batch } = await admin.from('batches').select('instructor_id, end_date').eq('id', batchId).single();
+  const hostId = batch?.instructor_id || user.id;
+
+  // ─── Enroll all "New" (waiting) students into this batch ───────────────────
+  // We process every student currently in the "New" queue and move them into this active batch.
+  const { data: queueEntries } = await admin
+    .from('waiting_queue')
+    .select('*')
+    .eq('status', 'waiting');
+
+  if (queueEntries && queueEntries.length > 0) {
+    const processedIds: string[] = [];
+    
+    for (const entry of queueEntries) {
+      try {
+        // Fetch their subscription
+        const { data: sub } = await admin
+          .from('subscriptions')
+          .select('*')
+          .eq('id', entry.subscription_id)
+          .single();
+
+        if (!sub) {
+          // If no subscription, mark as assigned anyway to clear from "New" tab
+          // as it's a corrupted record that shouldn't block others.
+          processedIds.push(entry.id);
+          continue;
+        }
+
+        // Determine activation details
+        let effectiveEndDate = sub.end_date;
+        if (sub.status === 'pending' || !sub.start_date) {
+          const start = new Date(startTime);
+          const end = new Date(start);
+          end.setMonth(start.getMonth() + (sub.duration_months || 1));
+          effectiveEndDate = end.toISOString().split('T')[0];
+
+          await admin
+            .from('subscriptions')
+            .update({ 
+              status: 'active', 
+              start_date: startTime.split('T')[0], 
+              end_date: effectiveEndDate 
+            })
+            .eq('id', sub.id);
+        }
+
+        // Clean up stale trial access (real enrollment supersedes trial)
+        await admin
+          .from('batch_enrollments')
+          .delete()
+          .eq('student_id', entry.student_id)
+          .eq('is_trial_access', true);
+
+        // Check if already active in THIS batch
+        const { data: existing } = await admin
+          .from('batch_enrollments')
+          .select('id')
+          .eq('student_id', entry.student_id)
+          .eq('batch_id', batchId)
+          .eq('status', 'active')
+          .maybeSingle();
+
+        if (!existing) {
+          // Enroll into this batch
+          await admin.from('batch_enrollments').insert({
+            batch_id: batchId,
+            student_id: entry.student_id,
+            subscription_id: entry.subscription_id,
+            status: 'active',
+            effective_end_date: effectiveEndDate,
+            is_extended: false,
+            is_trial_access: false,
+          });
+
+          // Increment batch count
+          await admin.rpc('increment_batch_count', { batch_id: batchId }).catch(() => {});
+
+          // Notify student
+          await admin.from('notifications').insert({
+            user_id: entry.student_id,
+            title: 'Welcome to your new session!',
+            message: `A session "${topic}" has been scheduled. You are now enrolled and will receive details via email.`,
+            type: 'batch_enrollment',
+            is_read: false,
+          });
+        }
+
+        processedIds.push(entry.id);
+      } catch (studentErr) {
+        console.error(`Error processing student ${entry.student_id} in queue:`, studentErr);
+      }
+    }
+
+    // Bulk clear from queue
+    if (processedIds.length > 0) {
+      await admin.from('waiting_queue').update({ status: 'assigned' }).in('id', processedIds);
+    }
+  }
+  // ───────────────────────────────────────────────────────────────────────────
+
+  const meeting = await saveMeetingToDb({
+    host_id: hostId,
+    batch_id: batchId,
+    zoom_meeting_id: zoomMeeting.id.toString(),
+    topic: zoomMeeting.topic,
+    start_time: zoomMeeting.start_time,
+    duration_minutes: zoomMeeting.duration,
+    join_url: zoomMeeting.join_url,
+    start_url: zoomMeeting.start_url,
+    meeting_type: 'group_session'
+  });
+
+  revalidatePath('/instructor/groups');
+  revalidatePath('/staff/groups');
+  revalidatePath('/student/group-session');
+
+  return meeting as Meeting;
 }
 
 export async function scheduleOneOnOne(startTime: string, topic: string = 'One-on-One Session'): Promise<Meeting> {
@@ -249,9 +451,36 @@ export async function scheduleOneOnOne(startTime: string, topic: string = 'One-o
     meeting_type: 'one_on_one'
   });
 
-  const { revalidatePath } = await import('next/cache');
   revalidatePath('/student/dashboard');
   revalidatePath('/student/one-on-one');
+  revalidatePath('/instructor/one-on-one');
 
   return meeting as Meeting;
+}
+
+export async function startMeeting(meetingId: string) {
+  const supabase = await createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) throw new Error('Not authenticated');
+
+  const { error } = await supabase
+    .from('meetings')
+    .update({ 
+      calendar_event_id: 'LIVE',
+      updated_at: new Date().toISOString(),
+      updated_by: user.id
+    })
+    .eq('id', meetingId);
+
+  if (error) {
+    console.error('Failed to start meeting', error);
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath('/instructor/dashboard');
+  revalidatePath('/student/dashboard');
+  revalidatePath('/instructor/groups');
+  
+  return { success: true };
 }

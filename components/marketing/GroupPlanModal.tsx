@@ -137,20 +137,39 @@ export function GroupPlanModal({ isOpen, onClose }: GroupPlanModalProps) {
 
                <div className="space-y-8">
                   <div>
-                    <h4 className="text-xs font-black text-[#2a2019] mb-4 text-center text-opacity-40 uppercase tracking-widest">🌟 1 Month Plan</h4>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-white p-5 rounded-2xl border border-[#2a2019]/5 text-center">
-                           <div className="text-[9px] font-bold text-[#2a2019]/40 mb-2 whitespace-nowrap">12-Day Access</div>
-                           <div className="text-[10px] line-through opacity-20">₹4,400</div>
-                           <div className="text-lg font-black text-[#2a2019]">₹1,499</div>
-                        </div>
-                        <div className="bg-white p-5 rounded-2xl border-2 border-[#e76f51]/20 text-center relative shadow-xl">
-                           <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-[#e76f51] text-white text-[7px] font-black uppercase px-2 py-0.5 rounded-full whitespace-nowrap">Best Value</div>
-                           <div className="text-[9px] font-bold text-[#2a2019]/40 mb-2 whitespace-nowrap">Lifetime Access</div>
-                           <div className="text-[10px] line-through opacity-20">₹4,400</div>
-                           <div className="text-lg font-black text-[#e76f51]">₹1,998</div>
-                        </div>
-                    </div>
+                     <h4 className="text-xs font-black text-[#2a2019] mb-4 text-center text-opacity-40 uppercase tracking-widest">Choose Your Plan</h4>
+                     <div className="space-y-4">
+                         {/* Tier 1 — 1 Month */}
+                         <div className="bg-white p-5 rounded-2xl border border-[#2a2019]/5">
+                            <div className="flex justify-between items-start mb-2">
+                               <div>
+                                  <div className="text-[9px] font-black text-[#e76f51] uppercase tracking-widest mb-1">Early Bird</div>
+                                  <div className="text-[12px] font-bold text-[#2a2019]">1 Month Plan</div>
+                                  <div className="text-[9px] text-[#2a2019]/40 mt-0.5">Live Sessions + Recordings (12-day access)</div>
+                               </div>
+                               <div className="text-right">
+                                  <div className="text-[10px] line-through opacity-20">₹4,400</div>
+                                  <div className="text-lg font-black text-[#2a2019]">₹1,499</div>
+                               </div>
+                            </div>
+                         </div>
+
+                         {/* Tier 2 — 3 Months */}
+                         <div className="bg-white p-5 rounded-2xl border-2 border-[#e76f51]/20 relative shadow-xl">
+                            <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-[#e76f51] text-white text-[7px] font-black uppercase px-2 py-0.5 rounded-full whitespace-nowrap">Most Popular</div>
+                            <div className="flex justify-between items-start mb-2">
+                               <div>
+                                  <div className="text-[9px] font-black text-[#e76f51] uppercase tracking-widest mb-1">Best Value</div>
+                                  <div className="text-[12px] font-bold text-[#2a2019]">3 Months Plan</div>
+                                  <div className="text-[9px] text-[#e76f51]/60 mt-0.5">Live Sessions + Recordings (lifetime access)</div>
+                               </div>
+                               <div className="text-right">
+                                  <div className="text-[10px] line-through opacity-20">₹12,999</div>
+                                  <div className="text-lg font-black text-[#e76f51]">₹3,499</div>
+                               </div>
+                            </div>
+                         </div>
+                     </div>
                   </div>
                </div>
             </section>

@@ -66,24 +66,24 @@ export default function LiveGroupPage() {
                  </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-[#2c2525]/5 relative z-10">
-                 <div className="space-y-1">
-                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#e76f51]/60">📅 Starts</span>
-                    <p className="text-xs font-bold text-[#2c2525]">6th April</p>
-                 </div>
-                 <div className="space-y-1">
-                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#e76f51]/60">⏰ Time</span>
-                    <p className="text-xs font-bold text-[#2c2525]">7:30 PM Daily</p>
-                 </div>
-                 <div className="space-y-1">
-                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#e76f51]/60">📹 Access</span>
-                    <p className="text-xs font-bold text-[#2c2525]">Live Zoom</p>
-                 </div>
-                 <div className="space-y-1">
-                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#e76f51]/60">👥 Format</span>
-                    <p className="text-xs font-bold text-[#2c2525]">Small Group</p>
-                 </div>
-              </div>
+                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-[#2c2525]/5 relative z-10">
+                  <div className="space-y-1">
+                     <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#e76f51]/60">📅 Starts</span>
+                     <p className="text-xs font-bold text-[#2c2525]">Next Batch Soon</p>
+                  </div>
+                  <div className="space-y-1">
+                     <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#e76f51]/60">⏰ Time</span>
+                     <p className="text-xs font-bold text-[#2c2525]">7:30 PM Daily</p>
+                  </div>
+                  <div className="space-y-1">
+                     <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#e76f51]/60">📹 Access</span>
+                     <p className="text-xs font-bold text-[#2c2525]">Live Zoom</p>
+                  </div>
+                  <div className="space-y-1">
+                     <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#e76f51]/60">👥 Format</span>
+                     <p className="text-xs font-bold text-[#2c2525]">Small Group</p>
+                  </div>
+               </div>
             </motion.div>
 
             {/* BENTO: Transforms */}
@@ -178,51 +178,59 @@ export default function LiveGroupPage() {
                <div className="space-y-6 pt-4">
                   <div className="text-center">
                      <Star className="w-8 h-8 text-[#e76f51] mx-auto mb-2" strokeWidth={1.5} />
-                     <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#e76f51]">Early Bird Offer</span>
-                     <h3 className="text-lg font-bold text-[#2c2525] mt-2">1 Month Plan</h3>
+                     <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#e76f51]">Limited Time Offer</span>
+                     <h3 className="text-lg font-bold text-[#2c2525] mt-2">21-Day Program</h3>
                   </div>
 
-                  <div className="space-y-4">
-                     {/* 1 Month Card */}
-                     <div className="p-6 bg-[#fcf8f7] border border-[#2c2525]/5 rounded-2xl relative group hover:border-[#e76f51]/30 transition-all">
-                        <div className="flex justify-between items-start mb-4">
+               <div className="space-y-4">
+                     {/* Tier 1 — 1 Month */}
+                     <div className="p-6 bg-[#fcf8f7] border border-[#2c2525]/5 rounded-2xl relative group hover:border-[#e76f51]/30 transition-all cursor-pointer"
+                       onClick={() => {
+                         pixel.initiateCheckout({ value: 1499, planId: 'group_session', planLabel: '1 Month Plan — Early Bird' });
+                         const redirectPath = encodeURIComponent('/student/plans?plan=group_session&tierIdx=0');
+                         window.location.href = `/auth/signup?redirectTo=${redirectPath}`;
+                       }}
+                     >
+                        <div className="flex justify-between items-start mb-3">
                            <div>
-                              <span className="text-[8px] font-black uppercase tracking-widest text-[#e76f51] mb-1 block">Early Bird Offer</span>
-                              <h3 className="text-sm font-bold text-[#2c2525]">1 Month Ritual</h3>
+                              <span className="text-[8px] font-black uppercase tracking-widest text-[#e76f51] mb-1 block">Early Bird</span>
+                              <h3 className="text-sm font-bold text-[#2c2525]">1 Month Plan</h3>
+                              <p className="text-[9px] text-[#2c2525]/40 font-medium mt-1">Live Sessions + Recordings (12-day access)</p>
                            </div>
                            <div className="text-right">
-                              <span className="text-[8px] text-[#2c2525]/20 line-through font-bold block">₹4,400</span>
-                              <span className="text-xl font-black text-[#2c2525]">₹1,499</span>
+                              <span className="text-[10px] text-[#2c2525]/25 line-through font-bold block">₹4,400</span>
+                              <span className="text-2xl font-black text-[#2c2525]">₹1,499</span>
                            </div>
                         </div>
-                        <p className="text-[9px] text-[#2c2525]/40 font-medium leading-relaxed">
-                          Includes 21 Days Live Classes + 12-Day Recording Access.
-                        </p>
                      </div>
 
-                     {/* 3 Month Card */}
-                     <div className="p-6 bg-[#e76f51]/5 border-2 border-[#e76f51]/20 rounded-2xl relative shadow-sm hover:shadow-md transition-all">
-                        <div className="absolute top-0 right-4 -translate-y-1/2 bg-[#e76f51] text-white text-[7px] font-black px-3 py-0.5 rounded-full tracking-widest uppercase">Best Value</div>
-                        <div className="flex justify-between items-start mb-4">
+                     {/* Tier 2 — 3 Months */}
+                     <div className="p-6 bg-[#e76f51]/5 border-2 border-[#e76f51]/20 rounded-2xl relative shadow-sm hover:shadow-md transition-all cursor-pointer"
+                       onClick={() => {
+                         pixel.initiateCheckout({ value: 3499, planId: 'group_session', planLabel: '3 Months Plan — Best Value' });
+                         const redirectPath = encodeURIComponent('/student/plans?plan=group_session&tierIdx=1');
+                         window.location.href = `/auth/signup?redirectTo=${redirectPath}`;
+                       }}
+                     >
+                        <div className="absolute top-0 right-4 -translate-y-1/2 bg-[#e76f51] text-white text-[7px] font-black px-3 py-0.5 rounded-full tracking-widest uppercase">Most Popular</div>
+                        <div className="flex justify-between items-start mb-3">
                            <div>
-                              <span className="text-[8px] font-black uppercase tracking-widest text-[#e76f51] mb-1 block">Sustained Results</span>
-                              <h3 className="text-sm font-bold text-[#2c2525]">3 Months Ritual</h3>
+                              <span className="text-[8px] font-black uppercase tracking-widest text-[#e76f51] mb-1 block">Best Value</span>
+                              <h3 className="text-sm font-bold text-[#2c2525]">3 Months Plan</h3>
+                              <p className="text-[9px] text-[#e76f51]/60 font-medium mt-1">Live Sessions + Recordings (lifetime access)</p>
                            </div>
                            <div className="text-right">
-                              <span className="text-[8px] text-[#2c2525]/20 line-through font-bold block">₹12,999</span>
-                              <span className="text-xl font-black text-[#e76f51]">₹3,499</span>
+                              <span className="text-[10px] text-[#2c2525]/25 line-through font-bold block">₹12,999</span>
+                              <span className="text-2xl font-black text-[#e76f51]">₹3,499</span>
                            </div>
                         </div>
-                        <p className="text-[9px] text-[#e76f51]/60 font-medium leading-relaxed">
-                          Ideal for personal transformation. 3 batches + 12-day recordings per session.
-                        </p>
                      </div>
                   </div>
 
                   <button 
                     onClick={() => {
-                      pixel.initiateCheckout({ value: 1499, planId: 'group_session', planLabel: 'Live Group — 1 Month' });
-                      const redirectPath = encodeURIComponent('/student/plans?plan=group_session');
+                      pixel.initiateCheckout({ value: 1499, planId: 'group_session', planLabel: 'Live Group — 21 Days' });
+                      const redirectPath = encodeURIComponent('/student/plans?plan=group_session&tierIdx=0');
                       window.location.href = `/auth/signup?redirectTo=${redirectPath}`;
                     }}
                     className="w-full py-5 bg-[#2c2525] text-white rounded-xl text-[10px] font-black uppercase tracking-[0.4em] hover:bg-[#e76f51] transition-all duration-500 shadow-lg shadow-[#e76f51]/10"

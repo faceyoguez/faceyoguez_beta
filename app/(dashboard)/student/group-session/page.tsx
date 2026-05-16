@@ -126,7 +126,7 @@ export default async function StudentGroupPage() {
                 </div>
 
                 <div className="space-y-2">
-                    <h2 className="text-2xl font-bold text-slate-900 tracking-tight">LIVE GROUP TRANSFORMATION PLAN</h2>
+                    <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Group Classes</h2>
                     <p className="text-xs text-slate-400 font-medium leading-relaxed max-w-sm mx-auto">
                         You haven&apos;t joined a group class yet. Pick a plan to start practising with a batch.
                     </p>

@@ -3,7 +3,7 @@ import { User, Users, BookOpen } from 'lucide-react';
 export const PLANS_DATA = [
     {
         id: 'one_on_one',
-        title: '1 to 1 PERSONALISED TRANSFORMATION PLAN',
+        title: 'Personal 1-on-1 Classes',
         subtitle: 'Get a customised face yoga routine made just for you',
         icon: User,
         color: 'rose',
@@ -17,33 +17,33 @@ export const PLANS_DATA = [
             { id: '12_months', label: '12 Months', originalPrice: 96000, discountedPrice: 30000, note: '70% OFF' }
         ],
         features: [
-            'Initial Personalised Consultation',
+            'Initial 1-on-1 Consultation',
             '30-Day Custom Routine',
             '30 Daily Instruction Videos',
             '2 Dedicated Q&A Support Sessions',
             'Exclusive Skin Assessment'
         ]
     },
-    // {
-    //     id: 'group_session',
-    //     title: 'Group Face Yoga Classes',
-    //     subtitle: '21-day live group classes — practise daily with your batch',
-    //     icon: Users,
-    //     color: 'teal',
-    //     note: 'Best for accountability & community',
-    //     hasTrial: false,
-    //     tiers: [
-    //         { id: '1_month_12d', label: '1 Month (12-Day Recording)', originalPrice: 4400, discountedPrice: 1499, note: 'EARLY BIRD' },
-    //         { id: '3_months_12d', label: '3 Months (12-Day Recording)', originalPrice: 12999, discountedPrice: 3499, note: 'EXTENDED' }
-    //     ],
-    //     features: [
-    //         '21 Days Live Group Classes',
-    //         'Every day at 7:30 PM',
-    //         'Community Accountability',
-    //         'Session Recordings Access',
-    //         'Group Support & Motivation'
-    //     ]
-    // },
+    {
+        id: 'group_session',
+        title: 'Face Yoga 21-Day Transformation',
+        subtitle: 'The Glow-Up Your Skin Has Been Waiting For',
+        icon: Users,
+        color: 'teal',
+        note: 'Best for accountability & community',
+        hasTrial: false,
+        tiers: [
+            { id: '1_month', label: '1 Month Plan', originalPrice: 4400, discountedPrice: 1499, note: 'EARLY BIRD' },
+            { id: '3_months', label: '3 Months Plan', originalPrice: 12999, discountedPrice: 3499, badge: 'MOST POPULAR', note: 'BEST VALUE' }
+        ],
+        features: [
+            '21 Days Live Group Classes',
+            'Every day at 7:30 PM',
+            'Community Accountability',
+            'Session Recordings Access',
+            'Group Support & Motivation'
+        ]
+    },
     {
         id: 'lms',
         title: 'Self-Paced Video Courses',

@@ -41,7 +41,8 @@ export async function sendMessageToBatch(conversationId: string, content: string
   // If this is a batch conversation, we should ideally use batch_messages table
   // but many parts of the UI might expect chat_messages if they use ChatWindow.
   // For now, keep using chat_messages for consistency with ChatWindow.
-  const { error } = await supabase
+  const admin = createAdminClient();
+  const { error } = await admin
     .from('chat_messages')
     .insert({
       conversation_id: conversationId,
@@ -743,20 +744,22 @@ export async function sendBatchMessage(batchId: string, content: string, senderI
     }
   }
 
-  const { error } = await supabase
+  const { data, error } = await admin
     .from('batch_messages')
     .insert({
       batch_id: batchId,
       sender_id: senderId,
       content: content,
       content_type: 'text'
-    });
+    })
+    .select()
+    .single();
 
   if (error) {
     console.error("SEND BATCH MESSAGE ERROR:", error);
     return { success: false, error: error.message || JSON.stringify(error) };
   }
-  return { success: true };
+  return { success: true, message: data };
 }
 
 export async function toggleBatchChat(batchId: string, isEnabled: boolean) {

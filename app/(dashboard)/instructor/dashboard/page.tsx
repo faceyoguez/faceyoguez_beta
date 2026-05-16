@@ -128,20 +128,15 @@ export default async function InstructorDashboardPage() {
   let instructorAllocations: any[] = [];
 
   if (isMaster) {
-    const { data: batches } = await admin
-      .from('batches')
-      .select(`
-        id,
-        name,
-        current_students,
-        instructor:profiles!batches_instructor_id_fkey (
-          full_name,
-          avatar_url
-        )
-      `)
-      .in('status', ['active', 'upcoming'])
-      .not('instructor_id', 'is', null);
-    activeBatches = batches || [];
+    const { data: instructors } = await admin
+      .from('profiles')
+      .select('id, full_name, avatar_url')
+      .eq('role', 'instructor');
+    
+    instructorAllocations = instructors?.map(inst => ({
+      instructor: inst,
+      studentCount: 0 // Placeholder or fetch actual count if needed
+    })) || [];
 
     const { data: active1on1Subs } = await admin
       .from('subscriptions')
@@ -217,8 +212,7 @@ export default async function InstructorDashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
         {[
           { label: 'One-on-One', val: totalOneOnOne || 0, daily: todayOneOnOne || 0, sub: 'Total Active', icon: User },
-          { label: 'Collective Batches', val: totalGroup || 0, daily: activeBatches.length, sub: 'Live Students', icon: Users },
-          { label: 'New Admissions', val: newJoineesCount, daily: todayNewJoinees || 0, sub: 'Monthly Growth', icon: Sparkles },
+          { label: 'Total Reach', val: totalGroup || 0, daily: instructorAllocations.length, sub: 'Live Students', icon: Users },
           { label: 'Loyalty Renewals', val: rejoineesCount, daily: 0, sub: 'Re-enrolled', icon: Activity }
         ].map((stat, i) => (
           <div key={i} className="group p-5 rounded-3xl bg-white border border-[#FF8A75]/5 shadow-sm hover:shadow-2xl hover:shadow-[#FF8A75]/10 hover:-translate-y-1 transition-all duration-700 overflow-hidden relative">
@@ -298,8 +292,17 @@ export default async function InstructorDashboardPage() {
 
                     <div className="shrink-0">
                       {(isLive || isUpcoming) ? (
-                        <Link href={meeting.start_url || meeting.join_url} target="_blank" className="h-10 px-4 rounded-xl bg-[#1a1a1a] text-white text-[8px] font-black uppercase tracking-widest flex items-center justify-center hover:bg-[#FF8A75] transition-all">
-                          {isLive ? 'Join' : 'View'}
+                        <Link 
+                          href={meeting.start_url || meeting.join_url} 
+                          target="_blank" 
+                          className={cn(
+                            "h-10 px-4 rounded-xl text-white text-[8px] font-black uppercase tracking-widest flex items-center justify-center transition-all",
+                            isLive 
+                              ? "bg-[#FF8A75] shadow-[0_0_15px_rgba(255,138,117,0.4)] animate-pulse" 
+                              : "bg-[#1a1a1a] hover:bg-[#FF8A75]"
+                          )}
+                        >
+                          {isLive ? 'Join Live' : 'View'}
                         </Link>
                       ) : (
                         <span className="text-[7px] font-black uppercase text-slate-300">Done</span>
@@ -315,33 +318,13 @@ export default async function InstructorDashboardPage() {
         {/* ─── 4. MASTER INSIGHTS (VISIBLE ONLY TO MASTER) ─── */}
         {isMaster && (
           <>
-            <section className="xl:col-span-8 flex flex-col gap-6">
+            <section className="xl:col-span-12 flex flex-col gap-6">
               <div className="space-y-1">
                 <h2 className="text-2xl font-aktiv font-bold text-[#1a1a1a] tracking-tight">Lead Overview</h2>
                 <p className="text-[8px] font-black uppercase tracking-[0.4em] text-[#FF8A75] opacity-60">Global Operations</p>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
-                    <h3 className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-4">Batch Allocation</h3>
-                    <div className="space-y-3">
-                       {activeBatches.map((batch: any) => (
+              <div className="grid grid-cols-1 gap-4">
 
-                          <div key={batch.id} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100 group hover:border-[#FF8A75]/30 transition-all">
-                             <div className="flex items-center gap-3">
-                                <div className="h-8 w-8 rounded-lg bg-white flex items-center justify-center text-[#FF8A75] shadow-sm"><Users className="w-4 h-4"/></div>
-                                <div>
-                                   <p className="text-xs font-bold text-slate-800">{batch.name}</p>
-                                   <p className="text-[8px] font-medium text-slate-400">{batch.instructor?.full_name}</p>
-                                </div>
-                             </div>
-                             <div className="text-right">
-                                <p className="text-xs font-black text-[#FF8A75]">{batch.current_students}</p>
-                                <p className="text-[7px] font-bold text-slate-300 uppercase tracking-widest">Students</p>
-                             </div>
-                          </div>
-                       ))}
-                    </div>
-                 </div>
 
                  <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm">
                     <h3 className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-4">Instructor Tasklist</h3>
@@ -366,49 +349,6 @@ export default async function InstructorDashboardPage() {
             </section>
           </>
         )}
-
-        {/* ─── 5. NEW ADMISSIONS ─── */}
-        <section className={cn("flex flex-col gap-6", isMaster ? "xl:col-span-4" : "xl:col-span-12")}>
-          <div className="space-y-1">
-            <h2 className="text-2xl font-aktiv font-bold text-[#1a1a1a] tracking-tight">New Admissions</h2>
-            <p className="text-[8px] font-black uppercase tracking-[0.4em] text-[#FF8A75] opacity-60">Latest students</p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3">
-            {!newAllocations || newAllocations.length === 0 ? (
-              <div className="p-10 bg-white/40 backdrop-blur-3xl border border-dashed border-[#FF8A75]/10 rounded-3xl text-center opacity-30">
-                <p className="text-[8px] font-black uppercase tracking-widest text-[#1a1a1a]">No fresh assignments</p>
-              </div>
-            ) : (
-              newAllocations.map((alloc: any) => {
-                const student = Array.isArray(alloc.student) ? alloc.student[0] : alloc.student;
-
-                return (
-                  <div key={alloc.id} className="group p-4 bg-white border border-[#FF8A75]/5 rounded-3xl flex items-center justify-between hover:shadow-xl hover:shadow-[#FF8A75]/10 hover:border-[#FF8A75]/20 transition-all duration-700">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-xl bg-[#FF8A75]/5 flex items-center justify-center text-[#FF8A75] overflow-hidden border border-[#FF8A75]/10">
-                        {student?.avatar_url ? (
-                          <img src={student.avatar_url} className="w-full h-full object-cover" />
-                        ) : (
-                          <span className="text-sm font-bold">{student?.full_name?.charAt(0)}</span>
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-[#1a1a1a] truncate">{student?.full_name}</p>
-                        <p className="text-[8px] font-medium text-slate-400">
-                          Joined {alloc.start_date ? format(new Date(alloc.start_date), 'MMM d') : 'New'}
-                        </p>
-                      </div>
-                    </div>
-                    <Link href="/instructor/one-on-one" className="h-8 w-8 rounded-lg bg-slate-50 text-slate-400 border border-slate-100 flex items-center justify-center hover:bg-[#FF8A75] hover:text-white transition-all">
-                      <ArrowUpRight className="w-3.5 h-3.5" />
-                    </Link>
-                  </div>
-                )
-              })
-            )}
-          </div>
-        </section>
 
       </div>
     </div>

@@ -1,7 +1,7 @@
 'use server';
 
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, unstable_noStore as noStore } from 'next/cache';
 
 export interface CreateBatchInput {
     name: string;
@@ -96,6 +96,14 @@ export async function createAndPopulateBatch(input: CreateBatchInput) {
                     .single();
 
                 if (!subData) continue;
+
+                // Pre-clear ANY stale trial enrollments for this student so they
+                // don't block enrollment into the new batch (trial access is replaced by real enrollment)
+                await admin
+                    .from('batch_enrollments')
+                    .delete()
+                    .eq('student_id', entry.student_id)
+                    .eq('is_trial_access', true);
 
                 let updatedEndDate = subData.end_date;
 
@@ -251,6 +259,7 @@ export async function createAndPopulateBatch(input: CreateBatchInput) {
  * Retrieves all batches — master instructors, staff, admins see all; regular instructors see only theirs.
  */
 export async function getInstructorBatches(instructorId: string) {
+    noStore();
     const adminClient = createAdminClient();
 
     const { data: profile } = await adminClient
@@ -272,7 +281,7 @@ export async function getInstructorBatches(instructorId: string) {
                 id,
                 student_id,
                 status,
-                student:profiles!student_id(id, full_name, avatar_url, phone),
+                student:profiles!student_id(id, full_name, avatar_url, phone, email),
                 subscription:subscriptions!subscription_id(id, status, end_date, plan_type)
             ),
             instructor:profiles!instructor_id(id, full_name, avatar_url)
@@ -328,10 +337,17 @@ export async function getStudentBatchEnrollment(studentId: string) {
 export async function enrollInWaitingQueue(studentId: string, subscriptionId: string) {
     const admin = createAdminClient();
 
-    // Check if there's an active batch with available slots
+    // 1. Fetch subscription to see if it's a trial or paid
+    const { data: sub } = await admin
+        .from('subscriptions')
+        .select('is_trial, plan_type')
+        .eq('id', subscriptionId)
+        .single();
+
+    // 2. Check if there's an active batch with available slots
     const { data: activeBatches } = await admin
         .from('batches')
-        .select('id, max_students, current_students')
+        .select('id, max_students, current_students, name, instructor_id')
         .eq('status', 'active')
         .order('created_at', { ascending: false })
         .limit(1);
@@ -340,12 +356,28 @@ export async function enrollInWaitingQueue(studentId: string, subscriptionId: st
     const hasSlots = activeBatch && (activeBatch.current_students || 0) < (activeBatch.max_students || 30);
 
     if (activeBatch) {
-        // Always grant 2-day trial access to the running batch if someone buys a plan or takes a trial,
-        // even if slots are full, because trials are short-lived and this allows them to explore the platform.
-        await grantTrialAccess(studentId, subscriptionId, activeBatch.id);
+        if (sub?.is_trial) {
+            // Trials get 2-day access
+            await grantTrialAccess(studentId, subscriptionId, activeBatch.id);
+        } else {
+            // Paid plans get FULL access to the current batch immediately while they wait for the next batch
+            await grantFullAccess(studentId, subscriptionId, activeBatch.id);
+            
+            // Notify the instructor about the new enrollment
+            if (activeBatch.instructor_id) {
+                const { data: student } = await admin.from('profiles').select('full_name').eq('id', studentId).single();
+                await admin.from('notifications').insert({
+                    user_id: activeBatch.instructor_id,
+                    title: 'New Student Joined Batch!',
+                    message: `${student?.full_name || 'A new student'} has joined your active batch "${activeBatch.name}".`,
+                    type: 'batch_enrollment',
+                    is_read: false,
+                });
+            }
+        }
     }
 
-    // Always add to waiting queue (even with trial access, they wait for the NEXT proper batch)
+    // Always add to waiting queue (they wait for the NEXT proper cohort-start batch)
     const { error } = await admin.from('waiting_queue').insert({
         student_id: studentId,
         subscription_id: subscriptionId,
@@ -360,16 +392,44 @@ export async function enrollInWaitingQueue(studentId: string, subscriptionId: st
     // Notify the student
     await admin.from('notifications').insert({
         user_id: studentId,
-        title: hasSlots ? 'Trial access granted!' : 'You\'re in the queue!',
-        message: hasSlots
-            ? 'You have 2-day trial access to the current batch. Your full subscription will start with the next batch.'
+        title: activeBatch ? 'Access Granted!' : 'You\'re in the queue!',
+        message: activeBatch
+            ? sub?.is_trial 
+                ? 'You have 2-day trial access to the current batch. Your full subscription will start with the next batch.'
+                : 'You have immediate access to the current active batch! Your formal 21-day program will start with the next upcoming cohort.'
             : 'A batch is currently in progress. You\'ll be notified when the next batch starts. Your subscription will begin on the first day of your batch.',
         type: 'waiting_queue',
         is_read: false,
     });
 
     revalidatePath('/student/group-session');
-    return { success: true, trialGranted: !!hasSlots };
+    return { success: true, accessGranted: !!activeBatch };
+}
+
+/**
+ * Grants full access to an active batch until it ends.
+ */
+export async function grantFullAccess(studentId: string, subscriptionId: string, batchId: string) {
+    const admin = createAdminClient();
+
+    // Fetch batch end date
+    const { data: batch } = await admin.from('batches').select('end_date').eq('id', batchId).single();
+
+    await admin.from('batch_enrollments').insert({
+        batch_id: batchId,
+        student_id: studentId,
+        subscription_id: subscriptionId,
+        status: 'active',
+        is_trial_access: false, // It's full access for this batch
+        effective_end_date: batch?.end_date,
+        is_extended: false,
+    });
+
+    try {
+        await admin.rpc('increment_batch_count', { batch_id: batchId });
+    } catch (e) {
+        console.error('Failed to increment batch count atomically:', e);
+    }
 }
 
 /**
@@ -486,12 +546,13 @@ export async function checkExpiringSubscriptions() {
 }
 
 export async function getWaitingQueue() {
+    noStore();
     const admin = createAdminClient();
     const { data, error } = await admin
         .from('waiting_queue')
         .select(`
             *,
-            student:profiles!student_id(id, full_name, avatar_url, phone)
+            student:profiles!student_id(id, full_name, avatar_url, phone, email)
         `)
         .eq('status', 'waiting')
         .order('requested_at', { ascending: true });

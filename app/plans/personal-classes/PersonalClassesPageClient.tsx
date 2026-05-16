@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, ArrowRight, Sparkles, Star, Target, MessageCircle, Calendar, ShieldCheck, Heart, Camera, Clock, Zap, Loader2, X } from 'lucide-react';
+import { Check, MessageCircle, Calendar, ShieldCheck, Heart, Camera, Zap } from 'lucide-react';
 import { PlanNavigation } from '@/components/marketing/PlanNavigation';
 import { LuxuryBackground } from '@/components/marketing/LuxuryBackground';
-import { toast } from 'sonner';
 import { pixel } from '@/lib/pixel';
 
 declare global {
@@ -35,10 +35,7 @@ function formatINR(n: number) {
 }
 
 export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsultation }: Props) {
-  const [selectedTier, setSelectedTier] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [consultLoading, setConsultLoading] = useState(false);
-  const [showConsultModal, setShowConsultModal] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     pixel.viewContent({ contentName: 'Personal Classes Plan Page', contentIds: ['one_on_one'] });
@@ -61,160 +58,24 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
     "Aging & Loss of Elasticity", "Dryness & Dehydration", "Stress Lines", "Loss of Jawline Definition"
   ];
 
-  const loadRazorpay = () =>
-    new Promise<void>((resolve) => {
-      if (window.Razorpay) { resolve(); return; }
-      const s = document.createElement('script');
-      s.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      s.onload = () => resolve();
-      document.body.appendChild(s);
-    });
-
   const handleConsultationPurchase = async () => {
+    // Per user logic: clicking consultation redirects to plans section on the sidebar
+    const redirectPath = '/student/plans?plan=one_on_one';
+    
     if (!userId) {
-      const redirectPath = encodeURIComponent('/student/plans?plan=one_on_one');
-      window.location.href = `/auth/signup?redirectTo=${redirectPath}`;
+      window.location.href = `/auth/signup?redirectTo=${encodeURIComponent(redirectPath)}`;
       return;
-    }
-
-    if (hasActiveConsultation) {
-      toast.info('You already have an active consultation!', {
-        description: 'Check your consultation section in the dashboard.',
-        action: { label: 'Go there', onClick: () => window.location.href = '/student/consultation' }
-      });
-      return;
-    }
-    try {
-      setConsultLoading(true);
-      await loadRazorpay();
-
-      const res = await fetch('/api/razorpay/create-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          planType: 'consultation',
-          planVariant: 'personal-consultation',
-          amount: CONSULTATION_PRICE,
-        }),
-      });
-      const data = await res.json();
-      
-      if (data.error) {
-        toast.error('Failed to initiate payment', { description: data.error });
-        setConsultLoading(false);
-        return;
-      }
-      
-      const { orderId, amount: orderAmount, currency, keyId } = data;
-
-      const rzp = new window.Razorpay({
-        key: keyId,
-        amount: orderAmount,
-        currency,
-        order_id: orderId,
-        name: 'Faceyoguez',
-        description: 'Personal Consultation Session',
-        theme: { color: '#bc162d' },
-        handler: async (response: any) => {
-          const verifyRes = await fetch('/api/razorpay/verify-payment', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              ...response,
-              planType: 'consultation',
-              planVariant: 'personal-consultation',
-              amount: CONSULTATION_PRICE,
-            }),
-          });
-          const data = await verifyRes.json();
-          if (data.success) {
-            pixel.consultationBooked({ amount: CONSULTATION_PRICE });
-            toast.success('Consultation booked! 🎉', {
-              description: 'Your ₹999 credit is active. Our team will connect with you shortly.',
-            });
-            setTimeout(() => window.location.href = '/student/consultation', 1500);
-          } else {
-            toast.error('Payment verification failed', { description: data.error });
-          }
-        },
-        modal: { ondismiss: () => setConsultLoading(false) },
-      });
-      rzp.open();
-    } catch (err: any) {
-      toast.error('Failed to initiate payment', { description: err.message });
-      setConsultLoading(false);
-    }
+    } 
+    
+    // If logged in, we check if they already have an active consultation
+    // However, per user request: "if some one clicks on consultation redirect to plans section on the sidebar"
+    // So we just redirect them to plans.
+    router.push(redirectPath);
   };
 
   const handlePlanPurchase = async (tierIdx: number) => {
-    if (!userId) {
-      const redirectPath = encodeURIComponent(`/student/plans?plan=one_on_one&tierIdx=${tierIdx}`);
-      window.location.href = `/auth/signup?redirectTo=${redirectPath}`;
-      return;
-    }
-
-    const tier = TIERS[tierIdx];
-    const finalAmount = hasCredit ? Math.max(tier.disc - CONSULTATION_CREDIT, 0) : tier.disc;
-
-    try {
-      setLoading(true);
-      setSelectedTier(tierIdx);
-      await loadRazorpay();
-
-      const res = await fetch('/api/razorpay/create-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          planType: 'one_on_one',
-          planVariant: tier.label,
-          amount: finalAmount,
-          durationMonths: tier.months,
-          applyConsultationCredit: hasCredit,
-        }),
-      });
-      const { orderId, amount: orderAmount, currency, keyId, error } = await res.json();
-      if (error) { toast.error(error); setLoading(false); setSelectedTier(null); return; }
-
-      const rzp = new window.Razorpay({
-        key: keyId,
-        amount: orderAmount,
-        currency,
-        order_id: orderId,
-        name: 'Faceyoguez',
-        description: tier.label,
-        theme: { color: '#bc162d' },
-        handler: async (response: any) => {
-          const verifyRes = await fetch('/api/razorpay/verify-payment', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              ...response,
-              planType: 'one_on_one',
-              planVariant: tier.label,
-              amount: finalAmount,
-              durationMonths: tier.months,
-              applyConsultationCredit: hasCredit,
-            }),
-          });
-          const data = await verifyRes.json();
-          if (data.success) {
-            pixel.purchase({ value: finalAmount, planId: 'one_on_one', planLabel: tier.label, paymentId: response.razorpay_payment_id });
-            toast.success('Plan activated! 🎉', {
-              description: hasCredit ? 'Your ₹999 consultation credit was applied!' : 'Welcome to the Faceyoguez family!',
-            });
-            setTimeout(() => window.location.href = '/student/dashboard', 1500);
-          } else {
-            toast.error('Payment verification failed', { description: data.error });
-          }
-          setLoading(false); setSelectedTier(null);
-        },
-        modal: { ondismiss: () => { setLoading(false); setSelectedTier(null); } },
-      });
-      rzp.open();
-    } catch (err: any) {
-      toast.error('Failed to initiate payment', { description: err.message });
-      setLoading(false); setSelectedTier(null);
-    }
+    const redirectPath = encodeURIComponent(`/student/plans?plan=one_on_one&tierIdx=${tierIdx}`);
+    window.location.href = `/auth/signup?redirectTo=${redirectPath}`;
   };
 
   return (
@@ -366,14 +227,12 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
               <div className="space-y-3">
                 {TIERS.map((tier, tidx) => {
                   const displayPrice = hasCredit ? Math.max(tier.disc - CONSULTATION_CREDIT, 0) : tier.disc;
-                  const isSelected = selectedTier === tidx;
 
                   return (
                     <button
                       key={tidx}
                       onClick={() => handlePlanPurchase(tidx)}
-                      disabled={loading}
-                      className={`w-full p-4 rounded-2xl border text-left ${tidx === 1 ? 'border-[#e76f51] bg-[#e76f51]/5' : 'border-[#2c2525]/5 bg-[#fcf8f7]'} relative transition-transform hover:scale-[1.02] cursor-pointer disabled:opacity-60`}
+                      className={`w-full p-4 rounded-2xl border text-left ${tidx === 1 ? 'border-[#e76f51] bg-[#e76f51]/5' : 'border-[#2c2525]/5 bg-[#fcf8f7]'} relative transition-transform hover:scale-[1.02] cursor-pointer`}
                     >
                       <div className="flex justify-between items-start mb-2">
                         <div className="space-y-0.5">
@@ -391,7 +250,6 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
                         </div>
                         <div className="flex flex-col items-end gap-1">
                           <span className="px-2 py-0.5 bg-[#e76f51] text-white text-[7px] font-black uppercase rounded-full tracking-widest">{tier.tag}</span>
-                          {isSelected && loading && <Loader2 className="w-3 h-3 animate-spin text-[#e76f51]" />}
                         </div>
                       </div>
                     </button>
@@ -433,7 +291,7 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
                   </p>
                   <button
                     onClick={handleConsultationPurchase}
-                    disabled={consultLoading || hasActiveConsultation}
+                    disabled={hasActiveConsultation}
                     id="book-consultation-btn"
                     className={`w-full py-3.5 rounded-xl text-[10px] font-black uppercase tracking-[0.3em] transition-all duration-500 flex items-center justify-center gap-2 ${
                       hasActiveConsultation
@@ -441,9 +299,7 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
                         : 'bg-[#e76f51]/10 text-[#e76f51] border border-[#e76f51]/20 hover:bg-[#e76f51] hover:text-white'
                     }`}
                   >
-                    {consultLoading ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    ) : hasActiveConsultation ? (
+                    {hasActiveConsultation ? (
                       <>✅ Consultation Active</>
                     ) : (
                       <>
@@ -458,19 +314,11 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
                 <button
                   onClick={() => {
                     pixel.initiateCheckout({ value: TIERS[1].disc, planId: 'one_on_one', planLabel: TIERS[1].label });
-                    if (!userId) {
-                      const redirectPath = encodeURIComponent(`/student/plans?plan=one_on_one&tierIdx=1`);
-                      window.location.href = `/auth/signup?redirectTo=${redirectPath}`;
-                    } else {
-                      handlePlanPurchase(1);
-                    }
+                    handlePlanPurchase(1);
                   }}
-
-                  disabled={loading}
                   id="subscribe-now-btn"
-                  className="w-full py-5 bg-[#2c2525] text-[#FAF9F6] rounded-xl text-[10px] font-black uppercase tracking-[0.4em] hover:bg-[#e76f51] transition-all duration-500 shadow-lg shadow-[#2c2525]/10 flex items-center justify-center gap-2 disabled:opacity-60"
+                  className="w-full py-5 bg-[#2c2525] text-[#FAF9F6] rounded-xl text-[10px] font-black uppercase tracking-[0.4em] hover:bg-[#e76f51] transition-all duration-500 shadow-lg shadow-[#2c2525]/10 flex items-center justify-center gap-2"
                 >
-                  {loading && selectedTier === 1 ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                   Subscribe Now
                 </button>
               </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -64,6 +64,18 @@ export default function SignUpForm() {
   const searchParams = useSearchParams();
   const supabase = createClient();
 
+  // Redirect if already logged in
+  useEffect(() => {
+    async function checkSession() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const nextParam = searchParams.get('redirectTo') || searchParams.get('next') || '/student/dashboard';
+        router.push(nextParam);
+      }
+    }
+    checkSession();
+  }, [supabase, router, searchParams]);
+
 
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
@@ -86,11 +98,19 @@ export default function SignUpForm() {
 
     setLoading(true);
 
+    const nextParam = searchParams.get('redirectTo') || searchParams.get('next');
+    const callbackUrl = nextParam && nextParam.startsWith('/')
+      ? `/auth/callback?next=${encodeURIComponent(nextParam)}`
+      : '/auth/callback';
+    const emailRedirectTo = nextParam && nextParam.startsWith('/')
+      ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextParam)}`
+      : `${window.location.origin}/auth/callback`;
+
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo,
         data: {
           full_name: fullName,
           phone: phone ? `${countryCode}${phone.replace(/[^0-9]/g, '')}` : undefined,
@@ -121,6 +141,8 @@ export default function SignUpForm() {
     // and the email will be sent by the callback route after verification instead.
     fetch('/api/auth/welcome', { method: 'POST' }).catch(() => {});
 
+    // Use the already determined callbackUrl
+
     // If authData.session is present, it means "Confirm Email" is disabled in Supabase.
     // The user is automatically logged in, so we can route them directly to their dashboard.
     if (authData.session) {
@@ -130,7 +152,7 @@ export default function SignUpForm() {
       });
       setLoading(false);
       // Let the session cookie be set and redirect to callback/dashboard
-      router.push('/auth/callback');
+      router.push(callbackUrl);
       return;
     }
 
@@ -143,8 +165,11 @@ export default function SignUpForm() {
     setErrors({ form: 'Success! A verification link has been sent to your email. Please verify before signing in.' });
     setLoading(false);
 
-    // Redirect to login with a message
-    router.push('/auth/login?message=verify-email');
+    // Redirect to login with a message and the next path
+    const loginUrl = nextParam && nextParam.startsWith('/')
+      ? `/auth/login?message=verify-email&redirectTo=${encodeURIComponent(nextParam)}`
+      : '/auth/login?message=verify-email';
+    router.push(loginUrl);
 
   }
 
@@ -152,10 +177,15 @@ export default function SignUpForm() {
     setLoading(true);
     setErrors({});
     
+    const nextParam = searchParams.get('redirectTo') || searchParams.get('next');
+    const callbackUrl = nextParam && nextParam.startsWith('/')
+      ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextParam)}`
+      : `${window.location.origin}/auth/callback`;
+
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: provider as any,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: callbackUrl,
       },
     });
 
@@ -252,7 +282,13 @@ export default function SignUpForm() {
 
       <div className="text-center pt-2">
         <Link
-          href="/auth/login"
+          href={
+            searchParams.get('redirectTo') 
+              ? `/auth/login?redirectTo=${encodeURIComponent(searchParams.get('redirectTo')!)}` 
+              : searchParams.get('next')
+                ? `/auth/login?next=${encodeURIComponent(searchParams.get('next')!)}`
+                : "/auth/login"
+          }
           className="text-sm font-jakarta text-warm-gray hover:text-primary transition-colors block"
         >
           Already have an account?{' '}

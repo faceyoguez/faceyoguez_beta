@@ -91,14 +91,18 @@ function LoginContent() {
     }
 
     const role = await fetchUserRole(supabase, user.id);
-    const redirectPath = getRoleRedirectPath(role);
+    const defaultRedirectPath = getRoleRedirectPath(role);
+    
+    // Support 'redirectTo' or 'next' parameters
+    const nextParam = searchParams.get('redirectTo') || searchParams.get('next');
+    const finalRedirectPath = (nextParam && nextParam.startsWith('/')) ? nextParam : defaultRedirectPath;
 
-    console.log(`Login Success: User ${user.id} logged in as ${role}. Redirecting to ${redirectPath}`);
+    console.log(`Login Success: User ${user.id} logged in as ${role}. Redirecting to ${finalRedirectPath}`);
     toast.success('Successfully logged in!', {
       description: 'Welcome back to your face yoga sanctuary.',
     });
     pixel.loginSuccess();
-    router.push(redirectPath);
+    router.push(finalRedirectPath);
     router.refresh();
   };
 
@@ -106,10 +110,15 @@ function LoginContent() {
     setLoading(true);
     setError('');
     
+    const nextParam = searchParams.get('redirectTo') || searchParams.get('next');
+    const callbackUrl = nextParam && nextParam.startsWith('/')
+      ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextParam)}`
+      : `${window.location.origin}/auth/callback`;
+
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: provider as any,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: callbackUrl,
       },
     });
 
@@ -185,7 +194,13 @@ function LoginContent() {
 
       <div className="text-center pt-2">
         <Link
-          href="/auth/signup"
+          href={
+            searchParams.get('redirectTo') 
+              ? `/auth/signup?redirectTo=${encodeURIComponent(searchParams.get('redirectTo')!)}` 
+              : searchParams.get('next')
+                ? `/auth/signup?next=${encodeURIComponent(searchParams.get('next')!)}`
+                : "/auth/signup"
+          }
           className="text-sm text-warm-gray hover:text-primary transition-colors block"
         >
           New here?{' '}

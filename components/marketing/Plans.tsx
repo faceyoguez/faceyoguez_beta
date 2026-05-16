@@ -18,17 +18,17 @@ const PLANS_PREVIEW: any[] = [
     accent: '#e76f51',
     cta: 'Apply for 1-on-1'
   },
-  // {
-  //   id: 'group_session',
-  //   title: '21-Day Group Batch',
-  //   subtitle: 'Community Energy',
-  //   desc: 'Our most popular programme. Join a batch of like-minded women and build a habit that lasts a lifetime.',
-  //   icon: Users,
-  //   features: ['Live Daily Practice', 'Shared Progress', 'Community Support'],
-  //   accent: '#e76f51',
-  //   popular: true,
-  //   cta: 'Join Next Batch'
-  // },
+  {
+    id: 'group_session',
+    title: '21-Day Group Batch',
+    subtitle: 'Community Energy',
+    desc: 'Our most popular programme. Join a batch of like-minded women and build a habit that lasts a lifetime.',
+    icon: Users,
+    features: ['Live Daily Practice', 'Shared Progress', 'Community Support'],
+    accent: '#e76f51',
+    popular: true,
+    cta: 'Join Next Batch'
+  },
   {
     id: 'lms',
     title: 'Self-Paced Video Course',
@@ -104,10 +104,17 @@ export function Plans() {
                   Not sure where to start?
                 </span>
                 <div className="hidden sm:block w-px h-4 bg-[#e76f51]/20" />
-                <Link href="/auth/signup?redirectTo=/student/plans" className="flex items-center justify-center gap-2 text-[11px] sm:text-[11px] font-black text-[#e76f51] uppercase tracking-[0.2em] hover:text-[#d4603f] transition-colors">
+                <button 
+                  onClick={() => {
+                    const redirectPath = '/student/plans?plan=one_on_one';
+                    // We don't have userId here easily, but we can redirect to a route that handles it or just use the signup/login flow
+                    window.location.href = `/auth/signup?redirectTo=${encodeURIComponent(redirectPath)}`;
+                  }}
+                  className="flex items-center justify-center gap-2 text-[11px] sm:text-[11px] font-black text-[#e76f51] uppercase tracking-[0.2em] hover:text-[#d4603f] transition-colors"
+                >
                   Book a consultation — ₹999
                   <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" />
-                </Link>
+                </button>
               </div>
             </div>
           </div>
@@ -124,9 +131,18 @@ export function Plans() {
               key={plan.id}
               variants={itemVariants}
               onClick={() => {
-                if (plan.id === 'one_on_one') router.push('/plans/personal-classes');
-                if (plan.id === 'group_session') router.push('/plans/live-group');
-                if (plan.id === 'lms') router.push('/plans/video-courses');
+                if (plan.id === 'one_on_one') {
+                  router.push('/plans/personal-classes');
+                  return;
+                }
+                if (plan.id === 'group_session') {
+                  router.push('/plans/live-group');
+                  return;
+                }
+                
+                // LMS remains direct funnel
+                const redirectPath = `/student/plans?plan=${plan.id}`;
+                window.location.href = `/auth/signup?redirectTo=${encodeURIComponent(redirectPath)}`;
               }}
               className={`group p-8 md:p-10 rounded-[2.5rem] transition-all duration-500 relative cursor-pointer flex flex-col border ${plan.popular
                   ? 'bg-white border-[#e76f51]/20 shadow-[0_32px_80px_rgba(231,111,81,0.08)]'

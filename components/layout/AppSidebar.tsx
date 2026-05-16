@@ -49,8 +49,8 @@ export const useSidebar = () => useContext(SidebarContext);
 const navConfig = {
   student: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/student/dashboard' },
-    { label: '1 to 1 PERSONALISED TRANSFORMATION PLAN', icon: User, path: '/student/one-on-one' },
-    { label: 'LIVE GROUP TRANSFORMATION PLAN', icon: Users, path: '/student/group-session' },
+    { label: 'Personal 1-on-1 Classes', icon: User, path: '/student/one-on-one' },
+    { label: 'Live Group Sessions', icon: Users, path: '/student/group-session' },
     { label: 'Courses', icon: BookOpen, path: '/student/lms' },
     { label: 'Plans & Pricing', icon: CreditCard, path: '/student/plans' },
     { label: 'Consultation', icon: MessageCircle, path: '/student/consultation' },
@@ -58,8 +58,8 @@ const navConfig = {
   ],
   instructor: [
     { label: 'Home', icon: LayoutDashboard, path: '/instructor/dashboard' },
-    { label: 'One-on-One Guidance', icon: User, path: '/instructor/one-on-one' },
-    { label: 'Batch Classes', icon: Users, path: '/instructor/groups' },
+    { label: 'Personal 1-on-1 Classes', icon: User, path: '/instructor/one-on-one' },
+    { label: 'Live Group Sessions', icon: Users, path: '/instructor/groups' },
     { label: 'Broadcast Circulars', icon: Megaphone, path: '/instructor/broadcast' },
     { label: 'Course Library', icon: BookOpen, path: '/instructor/lms' },
   ],
@@ -71,9 +71,9 @@ const navConfig = {
   ],
   staff: [
     { label: 'Operations Hub', icon: LayoutDashboard, path: '/staff/dashboard' },
-    { label: '1:1 Guidance Support', icon: User, path: '/staff/one-on-one' },
+    { label: 'Personal 1-on-1 Classes', icon: User, path: '/staff/one-on-one' },
     { label: 'Consultation Queue', icon: MessageCircle, path: '/staff/consultations' },
-    { label: 'Batch Operations', icon: Users, path: '/staff/groups' },
+    { label: 'Live Group Sessions', icon: Users, path: '/staff/groups' },
     { label: 'Notice Board', icon: Megaphone, path: '/staff/broadcast' },
     { label: 'Curriculum Library', icon: BookOpen, path: '/staff/lms' },
     { label: 'Discount Coupons', icon: Ticket, path: '/staff/coupons' },

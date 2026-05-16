@@ -77,7 +77,7 @@ export function Testimonials() {
     } else {
       setIsMuted(false);
       setActiveVideoIndex(index);
-      
+
       // Attempt to unmute after a short delay for the iframe to mount
       setTimeout(() => {
         const iframe = document.querySelector(`iframe[src*="${videos[index % videos.length].id}"]`) as HTMLIFrameElement;
@@ -174,7 +174,7 @@ export function Testimonials() {
                         className="absolute inset-0 w-full h-full object-cover"
                       />
                     )}
-                    
+
                     <div className={`absolute inset-0 transition-opacity duration-300 ${isActive ? 'opacity-0' : 'opacity-100'}`}>
                       {video.title && (
                         <div className="absolute bottom-6 left-6 right-6">
@@ -194,7 +194,7 @@ export function Testimonials() {
 
                     {/* Mobile Sound Overlay */}
                     {isActive && isMobile && (
-                      <div 
+                      <div
                         className="absolute top-4 right-4 z-30"
                         onClick={(e) => {
                           e.stopPropagation();

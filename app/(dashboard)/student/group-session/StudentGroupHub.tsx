@@ -336,7 +336,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
             {subscriptionStartDate && (
                 <PlanExpiryPill 
                     subscriptionStartDate={subscriptionStartDate} 
-                    planName={activeBatch?.name || "LIVE GROUP TRANSFORMATION PLAN"}
+                    planName={activeBatch?.name || "Group Classes"}
                 />
             )}
 
