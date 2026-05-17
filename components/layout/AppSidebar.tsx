@@ -25,6 +25,7 @@ import {
   Globe,
   Instagram,
   MessageCircle,
+  Video,
 } from 'lucide-react';
 import type { Profile } from '@/types/database';
 import { cn } from '@/lib/utils';
@@ -78,6 +79,7 @@ const navConfig = {
     { label: 'Curriculum Library', icon: BookOpen, path: '/staff/lms' },
     { label: 'Discount Coupons', icon: Ticket, path: '/staff/coupons' },
     { label: 'Student Feedback', icon: Heart, path: '/staff/feedbacks' },
+    { label: 'Webinar Link', icon: Video, path: '/staff/webinar' },
   ],
   client_management: [
     { label: 'Operations Hub', icon: LayoutDashboard, path: '/staff/dashboard' },
@@ -88,6 +90,7 @@ const navConfig = {
     { label: 'Curriculum Library', icon: BookOpen, path: '/staff/lms' },
     { label: 'Discount Coupons', icon: Ticket, path: '/staff/coupons' },
     { label: 'Student Feedback', icon: Heart, path: '/staff/feedbacks' },
+    { label: 'Webinar Link', icon: Video, path: '/staff/webinar' },
   ],
   sales_team: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/instructor/dashboard' },

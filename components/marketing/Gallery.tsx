@@ -76,7 +76,7 @@ function LoopingCard({ src, index, baseX, cardWidth, gap, wrapRange, isMobile }:
   );
 }
 
-export function Gallery() {
+export function Gallery({ showHeaders = true }: { showHeaders?: boolean } = {}) {
   const [isMobile, setIsMobile] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
@@ -122,30 +122,32 @@ export function Gallery() {
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden py-24 md:py-32 bg-transparent"
+      className="relative overflow-hidden py-12 md:py-16 bg-transparent"
     >
-      <div className="max-w-4xl mx-auto px-6 md:px-12 mb-16 md:mb-24 text-center space-y-8">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-          className="space-y-6"
-        >
-          <div className="inline-flex flex-col items-center gap-3">
-            <span className="text-[11px] font-black uppercase tracking-[0.5em] text-[#e76f51] mb-2">Real Results</span>
-            <div className="w-12 h-[1px] bg-[#e76f51]/20" />
-          </div>
+      {showHeaders && (
+        <div className="max-w-4xl mx-auto px-6 md:px-12 mb-16 md:mb-24 text-center space-y-8">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+            className="space-y-6"
+          >
+            <div className="inline-flex flex-col items-center gap-3">
+              <span className="text-[11px] font-black uppercase tracking-[0.5em] text-[#e76f51] mb-2">Real Results</span>
+              <div className="w-12 h-[1px] bg-[#e76f51]/20" />
+            </div>
 
-          <h2 className="text-4xl md:text-6xl font-aktiv text-[#2a2019] font-bold leading-[1.1] tracking-tight">
-            What 21 Days of <br className="hidden md:block" /> Face Wellness Looks Like
-          </h2>
+            <h2 className="text-4xl md:text-6xl font-aktiv text-[#2a2019] font-bold leading-[1.1] tracking-tight">
+              What 21 Days of <br className="hidden md:block" /> Face Wellness Looks Like
+            </h2>
 
-          <p className="text-base md:text-xl text-[#2a2019]/60 font-jakarta leading-relaxed max-w-2xl mx-auto">
-            These aren't filters. These aren't edited. These are women — just like you — who committed to the practice and let their faces do the rest.
-          </p>
-        </motion.div>
-      </div>
+            <p className="text-base md:text-xl text-[#2a2019]/60 font-jakarta leading-relaxed max-w-2xl mx-auto">
+              These aren't filters. These aren't edited. These are women — just like you — who committed to the practice and let their faces do the rest.
+            </p>
+          </motion.div>
+        </div>
+      )}
 
       <div
         className="relative"
