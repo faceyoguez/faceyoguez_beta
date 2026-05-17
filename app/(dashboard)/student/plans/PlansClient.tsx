@@ -199,17 +199,10 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
         const duration = durationFromTierId(selectedTierId);
 
         try {
-            // ── Step 1: Consume coupon on server (if applied) ────────────
-            if (appliedCoupon) {
-                const couponRes = await consumeCouponAction(appliedCoupon.code, selectedPlanId);
-                if (!couponRes.success) {
-                    toast.error(couponRes.error || 'Failed to apply coupon. Please try again.');
-                    setLoading(false);
-                    return;
-                }
-            }
-
             // ── 100% Coupon: Bypass Razorpay entirely ────────────────────
+            // The activate-free endpoint handles its own coupon validation
+            // and usage increment — do NOT call consumeCouponAction here
+            // to avoid double-consuming the coupon.
             if (isFreeOrder) {
                 const freeRes = await fetch('/api/razorpay/activate-free', {
                     method: 'POST',
@@ -230,6 +223,17 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                 }
                 setLoading(false);
                 return;
+            }
+
+            // ── Step 1: Consume partial coupon on server (if applied) ────
+            // Only runs for non-100% coupons that go through Razorpay.
+            if (appliedCoupon) {
+                const couponRes = await consumeCouponAction(appliedCoupon.code, selectedPlanId);
+                if (!couponRes.success) {
+                    toast.error(couponRes.error || 'Failed to apply coupon. Please try again.');
+                    setLoading(false);
+                    return;
+                }
             }
 
             // ── Step 2: Load Razorpay SDK ────────────────────────────────
