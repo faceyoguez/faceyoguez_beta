@@ -68,25 +68,42 @@ export async function POST(request: NextRequest) {
       .toISOString()
       .split('T')[0];
 
-    const { error: subError } = await admin.from('subscriptions').insert({
+    const isGroupSession = planType === 'group_session';
+    const paymentId = `FREE_${couponCode}_${Date.now()}`;
+    
+    const { data: subscription, error: subError } = await admin.from('subscriptions').insert({
       student_id: user.id,
       plan_type: planType,
       plan_variant: planVariant,
-      status: 'active',
-      is_trial: false,
-      start_date: startDate,
-      end_date: endDate,
-      amount_paid: 0,
+      status: isGroupSession ? 'pending' : 'active',
+      duration_months: durationMonths || 1,
+      start_date: isGroupSession ? null : startDate,
+      end_date: isGroupSession ? null : endDate,
+      amount: 0,
+      currency: 'INR',
+      payment_id: paymentId,
+      batches_remaining: isGroupSession ? (durationMonths || 1) : 0,
+      batches_used: 0,
       metadata: {
         coupon_code: couponCode,
         activation_method: 'free_coupon',
-        payment_id: `FREE_${couponCode}_${Date.now()}`,
+        purchased_at: new Date().toISOString(),
       },
-    });
+    }).select().single();
 
-    if (subError) {
+    if (subError || !subscription) {
       console.error('[activate-free] Subscription creation error:', subError);
       return NextResponse.json({ error: 'Failed to activate subscription' }, { status: 500 });
+    }
+
+    // ── Group Session Queue Enrollment ──────────────────────────────────
+    if (isGroupSession) {
+      try {
+        const { enrollInWaitingQueue } = await import('@/lib/actions/batches');
+        await enrollInWaitingQueue(user.id, subscription.id);
+      } catch (queueErr) {
+        console.error('[activate-free] Queue enroll failed:', queueErr);
+      }
     }
 
     // ── Increment coupon usage ──────────────────────────────────────────
