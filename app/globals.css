@@ -95,6 +95,7 @@ html {
 
 html {
   scroll-behavior: smooth;
+  position: relative;
 }
 
 @layer base {
@@ -110,6 +111,7 @@ html {
     -moz-osx-font-smoothing: grayscale;
     /* Prevent horizontal scroll caused by layout shifts */
     overflow-x: hidden;
+    position: relative;
   }
 
   h1,

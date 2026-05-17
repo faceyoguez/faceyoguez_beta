@@ -121,7 +121,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" translate="no" suppressHydrationWarning data-scroll-behavior="smooth" className={`${plusJakartaSans.variable} ${aktivGrotesk.variable} ${sooner.variable}`}>
+    <html lang="en" translate="no" suppressHydrationWarning data-scroll-behavior="smooth" className={`${plusJakartaSans.variable} ${aktivGrotesk.variable} ${sooner.variable}`} style={{ position: 'relative' }}>
       <head>
         {/* ── DNS Prefetch for third-party domains ── */}
         <link rel="dns-prefetch" href="//fonts.googleapis.com" />
@@ -129,11 +129,11 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="//www.googletagmanager.com" />
         <link rel="dns-prefetch" href="//images.unsplash.com" />
         <link rel="dns-prefetch" href="//tivvuxyitgqaslqfccit.supabase.co" />
-
+ 
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://tivvuxyitgqaslqfccit.supabase.co" crossOrigin="anonymous" />
-
+ 
         {/* ── Structured Data ── */}
         <Script
           id="structured-data"
@@ -141,7 +141,7 @@ export default function RootLayout({
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-
+ 
         {/* ── Google Analytics (deferred — non-blocking) ── */}
         <Script
           strategy="afterInteractive"
@@ -161,7 +161,7 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      <body translate="no" suppressHydrationWarning className="antialiased font-sans text-foreground bg-background relative overflow-x-hidden">
+      <body translate="no" suppressHydrationWarning className="antialiased font-sans text-foreground bg-background relative overflow-x-hidden" style={{ position: 'relative' }}>
         <div className="relative z-10">
           {children}
         </div>
