@@ -129,6 +129,7 @@ export function Hero({ visible }: HeroProps) {
                 alt="Face Wellness with Harsimrat"
                 fill
                 priority
+                sizes="(max-width: 768px) 100vw, 480px"
                 className="object-cover object-center scale-110"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#2a2019]/20 to-transparent pointer-events-none" />

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
-import { motion, useInView, useScroll, useTransform, Variants } from 'framer-motion';
+import { motion, useInView, Variants } from 'framer-motion';
 import { Sparkles, Zap, Heart, Droplets, Moon, Search, CheckCircle } from 'lucide-react';
 
 const containerVariants: Variants = {
@@ -30,8 +30,6 @@ const features = [
 export function Philosophy() {
   const containerRef = useRef(null);
   const isInView = useInView(containerRef, { once: true, amount: 0.1 });
-  const { scrollYProgress } = useScroll({ target: containerRef, offset: ["start end", "end start"] });
-  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
 
   return (
     <section
