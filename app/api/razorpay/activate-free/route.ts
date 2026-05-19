@@ -112,6 +112,38 @@ export async function POST(request: NextRequest) {
       .update({ used_count: (coupon.used_count || 0) + 1 })
       .eq('code', couponCode.toUpperCase());
 
+    // ── Notification & Conversion Tracking ──────────────────────────────
+    const planLabels: Record<string, string> = {
+      one_on_one: '1-on-1 Personal Plan',
+      group_session: '21-Day Group Transformation',
+      lms: 'Self-Paced Video Course',
+    };
+    try {
+      await admin.from('notifications').insert({
+        user_id: user.id,
+        title: '🎉 Plan Activated!',
+        message: `Your ${planLabels[planType] || planType} plan has been activated using a 100% free coupon.`,
+        type: 'purchase_confirmation',
+        is_read: false,
+      });
+
+      await admin.from('conversion_events').insert({
+        session_id: paymentId,
+        user_id: user.id,
+        event_type: 'payment_complete',
+        plan_type: planType,
+        amount: 0,
+        page_path: '/student/plans',
+        metadata: { planVariant, couponCode, isFree: true },
+      });
+    } catch { /* non-fatal */ }
+
+    // ── Revalidate caches to instantly update the user's dashboard ──────
+    const { revalidatePath } = await import('next/cache');
+    revalidatePath('/student/plans');
+    revalidatePath('/student/dashboard');
+    revalidatePath('/student/purchase-success');
+
     console.log(`[activate-free] Activated ${planType}/${planVariant} for user ${user.id} using coupon ${couponCode}`);
 
     return NextResponse.json({ success: true, planType, planVariant });

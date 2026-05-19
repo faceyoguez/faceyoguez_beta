@@ -24,7 +24,6 @@ import { LuxuryBackground } from '@/components/marketing/LuxuryBackground';
 import { Gallery } from '@/components/marketing/Gallery';
 import { Testimonials } from '@/components/marketing/Testimonials';
 import { VerifiedProofs } from '@/components/marketing/VerifiedProofs';
-import { Plans } from '@/components/marketing/Plans';
 
 
 
@@ -347,8 +346,6 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
           </div>
         </section>
 
-        {/* ── 8. PLANS / OFFERINGS ── */}
-        <Plans />
 
         {/* ── 9. HOW IT WORKS ── */}
         <section className="py-24 sm:py-32 relative">
