@@ -5,6 +5,7 @@ import { createServerSupabaseClient, createAdminClient } from '../supabase/serve
 import { MeetingWithDetails, Meeting, type RecordedSession } from '../../types/database';
 import { getZoomMeetingRecordings, createZoomMeeting } from '../zoom';
 import { sendMeetingInviteEmail } from '../email';
+import { sendBrandedMeetingInviteEmail, sendMeetingStartedEmail } from '../email/sender';
 
 export async function getUpcomingMeetingsForStudent(): Promise<MeetingWithDetails[]> {
   noStore();
@@ -276,6 +277,49 @@ export async function saveMeetingToDb(payload: CreateMeetingDBPayload): Promise<
     }
   }
 
+  // ── Automated Email Notifications for One-on-One Sessions ──────────
+  if (payload.meeting_type === 'one_on_one' && payload.student_id) {
+    try {
+      const admin = createAdminClient();
+
+      // Fetch student profile
+      const { data: student } = await admin
+        .from('profiles')
+        .select('full_name, email')
+        .eq('id', payload.student_id)
+        .single();
+
+      // Fetch instructor name
+      const { data: host } = await admin
+        .from('profiles')
+        .select('full_name')
+        .eq('id', payload.host_id)
+        .single();
+
+      if (student?.email) {
+        const dateObj = new Date(payload.start_time);
+        const meetingDate = dateObj.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        const meetingTime = dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+        const calendarLink = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(payload.topic)}&details=${encodeURIComponent('Face Yoga 1-on-1 Session')}&location=${encodeURIComponent(payload.join_url)}&dates=${dateObj.toISOString().replace(/-|:|\.\d\d\d/g, '')}/${new Date(dateObj.getTime() + payload.duration_minutes * 60000).toISOString().replace(/-|:|\.\d\d\d/g, '')}`;
+
+        sendBrandedMeetingInviteEmail(student.email, {
+          studentName: student.full_name || 'Student',
+          instructorName: host?.full_name || 'Your Instructor',
+          meetingTitle: payload.topic,
+          meetingDate,
+          meetingTime,
+          zoomLink: payload.join_url,
+          zoomId: payload.zoom_meeting_id,
+          zoomPassword: '',
+          calendarLink,
+          meetingType: 'one_on_one',
+        }).catch(err => console.error('[Email] 1-on-1 invite failed:', err));
+      }
+    } catch (emailErr) {
+      console.error('[Email] 1-on-1 meeting invite error (non-fatal):', emailErr);
+    }
+  }
+
   return data as Meeting;
 }
 
@@ -501,9 +545,72 @@ export async function startMeeting(meetingId: string) {
     return { success: false, error: error.message };
   }
 
+  // ── Send "Session is Live!" notifications ──────────────────────────
+  try {
+    const admin = createAdminClient();
+
+    // Fetch the full meeting details
+    const { data: meeting } = await admin
+      .from('meetings')
+      .select('id, topic, join_url, meeting_type, batch_id, student_id')
+      .eq('id', meetingId)
+      .single();
+
+    if (meeting) {
+      const recipients: { email: string; full_name: string; id: string }[] = [];
+
+      if (meeting.meeting_type === 'one_on_one' && meeting.student_id) {
+        // Notify the single student
+        const { data: student } = await admin
+          .from('profiles')
+          .select('id, full_name, email')
+          .eq('id', meeting.student_id)
+          .single();
+        if (student?.email) recipients.push(student);
+      } else if (meeting.meeting_type === 'group_session' && meeting.batch_id) {
+        // Notify all enrolled students in the batch
+        const { data: enrollments } = await admin
+          .from('batch_enrollments')
+          .select('student:profiles!student_id(id, full_name, email)')
+          .eq('batch_id', meeting.batch_id)
+          .eq('status', 'active');
+
+        for (const e of enrollments || []) {
+          const s = e.student as any;
+          if (s?.email) recipients.push(s);
+        }
+      }
+
+      // Send emails + in-app notifications in parallel
+      await Promise.allSettled(recipients.map(async (student) => {
+        // Email notification
+        sendMeetingStartedEmail(student.email, {
+          studentName: student.full_name || 'Student',
+          meetingTitle: meeting.topic,
+          zoomLink: meeting.join_url,
+          meetingType: meeting.meeting_type as 'one_on_one' | 'group_session',
+        }).catch(err => console.error(`[Email] Meeting-started failed for ${student.email}:`, err));
+
+        // In-app notification
+        await admin.from('notifications').insert({
+          user_id: student.id,
+          title: '🔴 Session is LIVE!',
+          message: `"${meeting.topic}" has started. Join now!`,
+          type: 'meeting_started',
+          is_read: false,
+        }).catch(() => {});
+      }));
+    }
+  } catch (notifyErr) {
+    // Non-fatal: don't fail the start if notifications fail
+    console.error('[startMeeting] Notification error (non-fatal):', notifyErr);
+  }
+
   revalidatePath('/instructor/dashboard');
   revalidatePath('/student/dashboard');
   revalidatePath('/instructor/groups');
+  revalidatePath('/student/group-session');
+  revalidatePath('/student/one-on-one');
   
   return { success: true };
 }
