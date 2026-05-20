@@ -13,8 +13,12 @@ import {
   welcomeEmailHtml,
   invoiceEmailHtml,
   feedbackEmailHtml,
+  meetingInviteEmailHtml,
+  meetingStartedEmailHtml,
   type InvoiceData,
   type FeedbackEmailData,
+  type MeetingInviteData,
+  type MeetingStartedData,
 } from './templates';
 import {
   consultationReceiptEmailHtml,
@@ -142,5 +146,38 @@ export async function sendConsultationPostNudgeEmail(to: string, data: Consultat
     console.log(`[Email] Post-consultation nudge sent → ${to}`);
   } catch (err) {
     console.error('[Email] Post-consultation nudge failed:', err);
+  }
+}
+
+// ── 8. Branded Meeting Invite ─────────────────────────────────
+export async function sendBrandedMeetingInviteEmail(to: string, data: MeetingInviteData): Promise<void> {
+  const typeLabel = data.meetingType === 'one_on_one' ? 'Personal Session' : 'Live Group Session';
+  try {
+    await transporter.sendMail({
+      from: FROM,
+      replyTo: EMAIL_CONFIG.replyTo,
+      to,
+      subject: `📅 ${typeLabel}: ${data.meetingTitle}`,
+      html: meetingInviteEmailHtml(data),
+    });
+    console.log(`[Email] Meeting invite sent → ${to} (${data.meetingType})`);
+  } catch (err) {
+    console.error('[Email] Meeting invite failed:', err);
+  }
+}
+
+// ── 9. Meeting Started (LIVE) ─────────────────────────────────
+export async function sendMeetingStartedEmail(to: string, data: MeetingStartedData): Promise<void> {
+  try {
+    await transporter.sendMail({
+      from: FROM,
+      replyTo: EMAIL_CONFIG.replyTo,
+      to,
+      subject: `🔴 LIVE NOW: ${data.meetingTitle}`,
+      html: meetingStartedEmailHtml(data),
+    });
+    console.log(`[Email] Meeting-started sent → ${to}`);
+  } catch (err) {
+    console.error('[Email] Meeting-started failed:', err);
   }
 }

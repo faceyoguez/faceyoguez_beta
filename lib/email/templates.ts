@@ -327,3 +327,123 @@ export function feedbackEmailHtml(data: FeedbackEmailData): string {
 
   return baseLayout(body);
 }
+
+// ─────────────────────────────────────────────────────────────
+//  4. MEETING INVITE EMAIL (Branded Version)
+// ─────────────────────────────────────────────────────────────
+export interface MeetingInviteData {
+  studentName: string;
+  instructorName: string;
+  meetingTitle: string;
+  meetingDate: string;
+  meetingTime: string;
+  zoomLink: string;
+  zoomId: string;
+  zoomPassword: string;
+  calendarLink: string;
+  meetingType: 'one_on_one' | 'group_session';
+}
+
+export function meetingInviteEmailHtml(data: MeetingInviteData): string {
+  const typeLabel = data.meetingType === 'one_on_one' ? 'Personal 1-on-1 Session' : 'Live Group Session';
+
+  const body = `
+    <!-- Greeting -->
+    <p style="margin:0 0 8px;font-size:13px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:${C.primary};">📅 ${typeLabel} Scheduled</p>
+    <h1 style="margin:0 0 20px;font-size:26px;font-weight:700;color:${C.dark};line-height:1.2;">${data.meetingTitle}</h1>
+
+    <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:${C.dark};">
+      Hi ${data.studentName},
+    </p>
+    <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:${C.dark};">
+      <strong>${data.instructorName}</strong> has scheduled a new session for you. Here are the details:
+    </p>
+
+    ${divider()}
+
+    <!-- Session Details Card -->
+    <div style="background-color:${C.background};border-radius:12px;padding:20px 24px;border:1px solid ${C.border};">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+        <tr>
+          <td style="padding:8px 0;">
+            <p style="margin:0;font-size:12px;color:${C.muted};text-transform:uppercase;letter-spacing:0.1em;font-weight:700;">Date</p>
+            <p style="margin:4px 0 0;font-size:15px;font-weight:600;color:${C.dark};">${data.meetingDate}</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:8px 0;">
+            <p style="margin:0;font-size:12px;color:${C.muted};text-transform:uppercase;letter-spacing:0.1em;font-weight:700;">Time</p>
+            <p style="margin:4px 0 0;font-size:15px;font-weight:600;color:${C.dark};">${data.meetingTime} (IST)</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:8px 0;">
+            <p style="margin:0;font-size:12px;color:${C.muted};text-transform:uppercase;letter-spacing:0.1em;font-weight:700;">Meeting ID</p>
+            <p style="margin:4px 0 0;font-size:15px;font-weight:600;color:${C.dark};font-family:monospace;">${data.zoomId}</p>
+          </td>
+        </tr>
+        ${data.zoomPassword ? `
+        <tr>
+          <td style="padding:8px 0;">
+            <p style="margin:0;font-size:12px;color:${C.muted};text-transform:uppercase;letter-spacing:0.1em;font-weight:700;">Passcode</p>
+            <p style="margin:4px 0 0;font-size:15px;font-weight:600;color:${C.dark};">${data.zoomPassword}</p>
+          </td>
+        </tr>` : ''}
+      </table>
+    </div>
+
+    ${ctaButton('Join Zoom Meeting', data.zoomLink)}
+
+    <p style="margin:16px 0 0;text-align:center;">
+      <a href="${data.calendarLink}" style="color:${C.primary};font-size:13px;text-decoration:none;font-weight:600;">Add to Google Calendar →</a>
+    </p>
+
+    ${divider()}
+
+    <p style="margin:0 0 16px;font-size:14px;line-height:1.7;color:${C.dark};">
+      Please join 5 minutes early to ensure your audio and video are working perfectly.
+    </p>
+
+    <p style="margin:0 0 4px;font-size:15px;color:${C.dark};">With warmth,</p>
+    <p style="margin:0;font-size:15px;font-weight:700;color:${C.dark};">Faceyoguez Desk</p>
+  `;
+
+  return baseLayout(body);
+}
+
+// ─────────────────────────────────────────────────────────────
+//  5. MEETING STARTED (LIVE) EMAIL
+// ─────────────────────────────────────────────────────────────
+export interface MeetingStartedData {
+  studentName: string;
+  meetingTitle: string;
+  zoomLink: string;
+  meetingType: 'one_on_one' | 'group_session';
+}
+
+export function meetingStartedEmailHtml(data: MeetingStartedData): string {
+  const typeLabel = data.meetingType === 'one_on_one' ? 'Personal Session' : 'Group Session';
+
+  const body = `
+    <!-- Greeting -->
+    <p style="margin:0 0 8px;font-size:13px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:${C.primary};">🔴 NOW LIVE</p>
+    <h1 style="margin:0 0 20px;font-size:26px;font-weight:700;color:${C.dark};line-height:1.2;">Your ${typeLabel} Has Started!</h1>
+
+    <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:${C.dark};">
+      Hi ${data.studentName},
+    </p>
+    <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:${C.dark};">
+      Your instructor has just started <strong>${data.meetingTitle}</strong>. Join now to begin your session!
+    </p>
+
+    ${ctaButton('Join Now', data.zoomLink)}
+
+    ${divider()}
+
+    <p style="margin:0;font-size:13px;color:${C.muted};">
+      Can't make it? Don't worry — your instructor will follow up with you.
+    </p>
+  `;
+
+  return baseLayout(body);
+}
