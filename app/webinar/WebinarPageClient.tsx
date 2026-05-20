@@ -100,9 +100,13 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
 
             <motion.p variants={fadeUp} className="text-sm sm:text-base font-jakarta text-[#2a2019]/60 max-w-3xl mx-auto leading-relaxed px-4">
               Join Harsimrat — India's #1 Face Wellness Coach — for a free live session where you'll discover the exact facial muscle techniques that 2,000+ women have used to visibly lift, tone, and glow.
-              <br className="hidden sm:block" />
-              <span className="font-semibold text-[#1a1a1a] mt-2 inline-block">No creams. No needles. No surgery.</span>
             </motion.p>
+
+            <motion.div variants={fadeUp} className="inline-block mt-2">
+              <span className="inline-flex items-center justify-center px-6 py-2.5 rounded-full text-[11px] font-black uppercase tracking-[0.2em] text-[#FF8A75] bg-[#FF8A75]/10 border border-[#FF8A75]/25 animate-glow shadow-[0_0_20px_rgba(255,138,117,0.15)]">
+                No creams. No needles. No surgery.
+              </span>
+            </motion.div>
 
             {/* Quick Info Bar */}
             <motion.div variants={fadeUp} className="flex flex-wrap justify-center gap-3 sm:gap-6 mt-8">
@@ -156,7 +160,7 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
         </section>
 
         {/* ── 3. MEET HARSIMRAT / VIDEO ── */}
-        <section className="max-w-5xl mx-auto px-6 py-24 sm:py-32">
+        <section className="max-w-5xl mx-auto px-6 pt-24 sm:pt-32 pb-10 sm:pb-12">
           <div className="text-center mb-12">
             <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#FF8A75] mb-4 block">Meet Your Coach</span>
             <h2 className="text-3xl sm:text-5xl font-aktiv font-bold text-[#2a2019] tracking-tight">
@@ -206,7 +210,7 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
         </AnimatePresence>
 
         {/* ── 4. WHAT THIS SESSION COVERS ── */}
-        <section className="bg-white py-24 sm:py-32 border-y border-[#FF8A75]/10">
+        <section className="bg-transparent pt-10 sm:pt-12 pb-24 sm:pb-32 border-y border-[#FF8A75]/10">
           <div className="max-w-4xl mx-auto px-6">
             <div className="text-center mb-16">
               <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#FF8A75] mb-4 block">The Curriculum</span>
@@ -294,7 +298,7 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
         <VerifiedProofs />
 
         {/* ── 7. IS THIS FOR ME? ── */}
-        <section className="py-24 sm:py-32">
+        <section className="pt-24 sm:pt-32 pb-10 sm:pb-12">
           <div className="max-w-5xl mx-auto px-6">
             <div className="grid md:grid-cols-2 gap-12 sm:gap-20">
               <div>
@@ -348,7 +352,7 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
 
 
         {/* ── 9. HOW IT WORKS ── */}
-        <section className="py-24 sm:py-32 relative">
+        <section className="pt-10 sm:pt-12 pb-10 sm:pb-12 relative">
           <div className="max-w-4xl mx-auto px-6">
             <div className="text-center mb-16">
               <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#FF8A75] mb-4 block">How It Works</span>
@@ -381,7 +385,7 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
         <WhyUs />
 
         {/* ── 11. FAQ ── */}
-        <section className="bg-white py-24 sm:py-32 border-t border-[#FF8A75]/10">
+        <section className="bg-transparent py-24 sm:py-32 border-t border-[#FF8A75]/10">
           <div className="max-w-3xl mx-auto px-6">
             <div className="text-center mb-16">
               <h2 className="text-3xl sm:text-4xl font-aktiv font-bold text-[#2a2019] tracking-tight">Frequently Asked Questions</h2>
@@ -431,7 +435,7 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
       </main>
 
       {/* ── Footer ── */}
-      <footer className="bg-white py-12 border-t border-[#FF8A75]/10 text-center relative z-10">
+      <footer className="bg-transparent py-12 border-t border-[#FF8A75]/10 text-center relative z-10">
         <p className="text-sm font-aktiv font-bold text-[#2a2019] mb-4">Train your face. Love your reflection.</p>
         <div className="flex justify-center gap-6 text-[11px] font-medium uppercase tracking-widest text-[#2a2019]/40">
           <a href="mailto:support@faceyoguez.com" className="hover:text-[#FF8A75]">support@faceyoguez.com</a>
