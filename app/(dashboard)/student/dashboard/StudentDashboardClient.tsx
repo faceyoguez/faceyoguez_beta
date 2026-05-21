@@ -87,7 +87,7 @@ export function StudentDashboardClient({
   const [typeFilter, setTypeFilter] = React.useState<'all' | 'group' | 'one_on_one' | 'assigned'>('all');
 
   const filteredMeetings = React.useMemo(() => {
-    return meetings.filter((meeting) => {
+    const filtered = meetings.filter((meeting) => {
       // 1. Time Filter
       const startTime = new Date(meeting.start_time).getTime();
       const durationMs = (meeting.duration_minutes || 45) * 60 * 1000;
@@ -106,6 +106,14 @@ export function StudentDashboardClient({
 
       return true;
     });
+
+    // For past meetings: show the 5 most recent (reverse-chronological)
+    if (timeFilter === 'past') {
+      return [...filtered].sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime()).slice(0, 5);
+    }
+
+    // For upcoming meetings: show all (chronological)
+    return [...filtered].sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
   }, [meetings, timeFilter, typeFilter, profile.id]);
 
   const quote = QUOTES[journeyDay % QUOTES.length];
@@ -316,7 +324,7 @@ export function StudentDashboardClient({
           transition={{ delay: 0.05 }}
           className="md:col-span-1 lg:col-span-5 flex flex-col"
         >
-          <div className="flex-1 bg-white rounded-[1.75rem] border border-slate-100 shadow-sm p-5 lg:p-6 flex flex-col overflow-hidden relative group hover:shadow-lg hover:shadow-[#e76f51]/5 transition-shadow duration-500">
+          <div className="bg-white rounded-[1.75rem] border border-slate-100 shadow-sm p-5 lg:p-6 flex flex-col overflow-hidden relative group hover:shadow-lg hover:shadow-[#e76f51]/5 transition-shadow duration-500 h-[480px]">
             {/* Card Header */}
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-50">
               <div className="flex items-center gap-3">
