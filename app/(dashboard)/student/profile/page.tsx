@@ -7,7 +7,7 @@ export default async function StudentProfilePage() {
   if (!user) redirect('/auth/login');
 
   const profile = await getServerProfile(user.id);
-  if (!profile || profile.role !== 'student') redirect('/auth/login');
+  if (!profile) redirect('/auth/login');
 
   return (
     <StudentProfileClient user={user} profile={profile} />

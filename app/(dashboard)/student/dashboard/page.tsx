@@ -10,44 +10,54 @@ export default async function StudentDashboardPage() {
   const user = await getServerUser();
   if (!user) redirect('/auth/login');
 
-  // ─── Phase 1: Basic Profile & Enrollments ───
-  const [profile, enrollments] = await Promise.all([
+  // ─── Phase 1: Basic Profile, Enrollments, & Subscriptions ───
+  const [profile, enrollments, subscriptions] = await Promise.all([
     getServerProfile(user.id),
-    getStudentEnrollments(user.id)
+    getStudentEnrollments(user.id),
+    getStudentSubscriptions(user.id)
   ]);
 
   if (!profile || profile.role !== 'student') redirect('/auth/login');
 
   const batchIds = enrollments.map((e: { batch_id: string }) => e.batch_id);
-  const windowStart = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+  const today = new Date();
+  const todayDateStr = today.toISOString().split('T')[0];
+
+  const currentSubs = subscriptions.filter(
+    (s: any) => s.end_date === null || s.end_date >= todayDateStr
+  );
+  const activePlanTypes: string[] = [...new Set<string>(currentSubs.map((s: any) => s.plan_type as string))];
+
   const admin = createAdminClient();
 
-  // ─── Phase 2: Everything else in parallel ───
-  const [subscriptions, journeyLogs, oneOnOneMeetings, groupMeetings] = await Promise.all([
-    getStudentSubscriptions(user.id),
+  // ─── Phase 2: Journey logs & secure/authorized meetings ───
+  const [journeyLogs, todaysMeetings] = await Promise.all([
     getStudentJourneyLogs(user.id),
-    admin
-      .from('meetings')
-      .select('*, host:profiles!meetings_host_id_fkey(full_name, avatar_url)')
-      .eq('student_id', user.id)
-      .eq('meeting_type', 'one_on_one')
-      .gte('start_time', windowStart)
-      .order('start_time', { ascending: true })
-      .then((res: { data: any[] | null }) => res.data || []),
-    batchIds.length > 0 
-      ? admin
-          .from('meetings')
-          .select('*, host:profiles!meetings_host_id_fkey(full_name, avatar_url)')
-          .in('batch_id', batchIds)
-          .eq('meeting_type', 'group_session')
-          .gte('start_time', windowStart)
-          .order('start_time', { ascending: true })
-          .then((res: { data: any[] | null }) => res.data || [])
-      : Promise.resolve([])
+    Promise.all([
+      // Query 1: Individual or assigned meetings (assigned directly to this student)
+      admin
+        .from('meetings')
+        .select('*, host:profiles!meetings_host_id_fkey(full_name, avatar_url)')
+        .eq('student_id', user.id)
+        .order('start_time', { ascending: true })
+        .then((res: { data: any[] | null }) => res.data || []),
+      // Query 2: Group sessions related to the student's enrolled batches (only if they have active Group Plan)
+      activePlanTypes.includes('group_session') && batchIds.length > 0
+        ? admin
+            .from('meetings')
+            .select('*, host:profiles!meetings_host_id_fkey(full_name, avatar_url)')
+            .in('batch_id', batchIds)
+            .eq('meeting_type', 'group_session')
+            .order('start_time', { ascending: true })
+            .then((res: { data: any[] | null }) => res.data || [])
+        : Promise.resolve([])
+    ]).then(([oneOnOne, group]) => {
+      const all = [...oneOnOne, ...group];
+      // Deduplicate by meeting ID
+      const unique = all.filter((m, i) => all.findIndex(x => x.id === m.id) === i);
+      return unique.sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+    })
   ]);
-
-  const todaysMeetings = [...oneOnOneMeetings, ...groupMeetings]
-    .sort((a: any, b: any) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
 
   // ─── Compute derived state ───
   const joinedDate = subscriptions.length > 0 && subscriptions[0].start_date
@@ -61,9 +71,6 @@ export default async function StudentDashboardPage() {
         return !latest || d > latest ? d : latest;
       }, null as Date | null)
     : null;
-
-  const today = new Date();
-  const todayDateStr = today.toISOString().split('T')[0];
 
   const hasLifetimeSub = subscriptions.some((s: any) => s.end_date === null || s.end_date === undefined);
 
@@ -79,11 +86,6 @@ export default async function StudentDashboardPage() {
     : hasLifetimeSub
     ? -1
     : 0;
-
-  const currentSubs = subscriptions.filter(
-    (s: any) => s.end_date === null || s.end_date >= todayDateStr
-  );
-  const activePlanTypes: string[] = [...new Set<string>(currentSubs.map((s: any) => s.plan_type as string))];
 
   const expiryDate = furthestEndDate ? furthestEndDate.toISOString().split('T')[0] : null;
 
