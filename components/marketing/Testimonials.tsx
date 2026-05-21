@@ -89,9 +89,9 @@ export function Testimonials() {
   return (
     <section
       ref={sectionRef}
-      className="py-10 md:py-16 overflow-hidden relative bg-transparent"
+      className="py-4 md:py-8 overflow-hidden relative bg-transparent"
     >
-      <div className="max-w-[1400px] mx-auto px-6 md:px-12 mb-6 md:mb-10 relative z-10">
+      <div className="max-w-[1400px] mx-auto px-6 md:px-12 mb-4 md:mb-6 relative z-10">
         <motion.div
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
@@ -112,11 +112,8 @@ export function Testimonials() {
 
       {/* YouTube Video Marquee Section */}
       <div className="relative w-full" ref={containerRef}>
-        {/* Smooth fade gradients at edges */}
-        <div className="absolute left-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-r from-[#fcf8f7] to-transparent z-10 pointer-events-none" />
-        <div className="absolute right-0 top-0 bottom-0 w-16 md:w-32 bg-gradient-to-l from-[#fcf8f7] to-transparent z-10 pointer-events-none" />
 
-        <div className={`overflow-visible py-8 flex items-center relative z-50 ${isMobile ? 'h-[450px]' : 'h-[600px]'}`}>
+        <div className={`overflow-visible py-3 flex items-center relative z-50 ${isMobile ? 'h-[420px]' : 'h-[580px]'}`}>
           {isLoading ? (
             <div className="w-full flex justify-center py-20">
               <div className="w-8 h-8 border-2 border-[#e76f51] border-t-transparent rounded-full animate-spin"></div>

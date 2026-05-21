@@ -55,6 +55,7 @@ import { Toaster } from 'sonner';
 import Script from 'next/script';
 import { Suspense } from 'react';
 import MetaPixel from '@/components/MetaPixel';
+import MicrosoftClarity from '@/components/MicrosoftClarity';
 
 export const metadata: Metadata = {
   title: {
@@ -174,6 +175,7 @@ export default function RootLayout({
         />
         <Suspense fallback={null}>
           <MetaPixel />
+          <MicrosoftClarity />
         </Suspense>
       </body>
     </html>
