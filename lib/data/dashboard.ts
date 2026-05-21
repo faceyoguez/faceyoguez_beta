@@ -42,7 +42,7 @@ export const getStudentNotificationsCount = cache(async (userId: string) => {
     .eq('user_id', userId)
     .eq('is_read', false);
 
-  if (error) console.error('Error fetching notifications count:', error);
+  if (error) console.error('Error fetching notifications count:', error.message || error, error.code || '');
   return count || 0;
 });
 

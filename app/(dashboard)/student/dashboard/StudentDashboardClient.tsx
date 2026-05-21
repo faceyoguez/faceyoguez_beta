@@ -83,6 +83,39 @@ export function StudentDashboardClient({
   const [showPlanBanner, setShowPlanBanner] = React.useState(true);
   const supabase = createClient();
 
+  const [timeFilter, setTimeFilter] = React.useState<'upcoming' | 'past'>('upcoming');
+  const [typeFilter, setTypeFilter] = React.useState<'all' | 'group' | 'one_on_one' | 'assigned'>('all');
+
+  const filteredMeetings = React.useMemo(() => {
+    const filtered = meetings.filter((meeting) => {
+      // 1. Time Filter
+      const startTime = new Date(meeting.start_time).getTime();
+      const durationMs = (meeting.duration_minutes || 45) * 60 * 1000;
+      const isEnded = startTime + durationMs < Date.now();
+      const isLive = meeting.calendar_event_id === 'LIVE';
+      
+      const isMeetingPast = !isLive && isEnded;
+
+      if (timeFilter === 'upcoming' && isMeetingPast) return false;
+      if (timeFilter === 'past' && !isMeetingPast) return false;
+
+      // 2. Type Filter
+      if (typeFilter === 'group' && meeting.meeting_type !== 'group_session') return false;
+      if (typeFilter === 'one_on_one' && meeting.meeting_type !== 'one_on_one') return false;
+      if (typeFilter === 'assigned' && meeting.student_id !== profile.id) return false;
+
+      return true;
+    });
+
+    // For past meetings: show the 5 most recent (reverse-chronological)
+    if (timeFilter === 'past') {
+      return [...filtered].sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime()).slice(0, 5);
+    }
+
+    // For upcoming meetings: show all (chronological)
+    return [...filtered].sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+  }, [meetings, timeFilter, typeFilter, profile.id]);
+
   const quote = QUOTES[journeyDay % QUOTES.length];
 
   const needsEmailVerification = !emailVerified;
@@ -114,11 +147,12 @@ export function StudentDashboardClient({
           table: 'meetings'
         },
         async (payload: any) => {
-          const isOneOnOne = payload.new?.student_id === profile.id || payload.old?.student_id === profile.id;
-          const isRelevantGroup = payload.new?.meeting_type === 'group_session' && batchIds.includes(payload.new?.batch_id);
-          const isDeletedGroup = payload.old?.meeting_type === 'group_session' && batchIds.includes(payload.old?.batch_id);
+          const isAssigned = payload.new?.student_id === profile.id || payload.old?.student_id === profile.id;
+          const hasGroupPlan = activePlanTypes.includes('group_session');
+          const isRelevantGroup = hasGroupPlan && payload.new?.meeting_type === 'group_session' && batchIds.includes(payload.new?.batch_id);
+          const isDeletedGroup = hasGroupPlan && payload.old?.meeting_type === 'group_session' && batchIds.includes(payload.old?.batch_id);
 
-          if (!isOneOnOne && !isRelevantGroup && !isDeletedGroup) return;
+          if (!isAssigned && !isRelevantGroup && !isDeletedGroup) return;
 
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
             const { data: enrichedMeeting } = await supabase
@@ -165,7 +199,7 @@ export function StudentDashboardClient({
       supabase.removeChannel(channel);
       supabase.removeChannel(subChannel);
     };
-  }, [supabase, profile.id, batchIds, router]);
+  }, [supabase, profile.id, batchIds, router, activePlanTypes]);
 
   const hasPhotos = journeyLogs.some((l: any) => l.photo_url || l.photo_url_left || l.photo_url_right);
 
@@ -290,7 +324,7 @@ export function StudentDashboardClient({
           transition={{ delay: 0.05 }}
           className="md:col-span-1 lg:col-span-5 flex flex-col"
         >
-          <div className="flex-1 bg-white rounded-[1.75rem] border border-slate-100 shadow-sm p-5 lg:p-6 flex flex-col overflow-hidden relative group hover:shadow-lg hover:shadow-[#e76f51]/5 transition-shadow duration-500">
+          <div className="bg-white rounded-[1.75rem] border border-slate-100 shadow-sm p-5 lg:p-6 flex flex-col overflow-hidden relative group hover:shadow-lg hover:shadow-[#e76f51]/5 transition-shadow duration-500 h-[480px]">
             {/* Card Header */}
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-50">
               <div className="flex items-center gap-3">
@@ -298,38 +332,98 @@ export function StudentDashboardClient({
                   <Clock className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-base lg:text-lg font-aktiv font-bold text-[#1a1a1a] tracking-tight">Upcoming Sessions</h2>
+                  <h2 className="text-base lg:text-lg font-aktiv font-bold text-[#1a1a1a] tracking-tight">Scheduled Sessions</h2>
                   <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 mt-0.5">Live & Scheduled</p>
                 </div>
               </div>
-              {meetings.length > 0 && (
+              {filteredMeetings.length > 0 && (
                 <span className="h-6 min-w-[1.5rem] px-1.5 bg-[#1a1a1a] text-white text-[10px] font-black rounded-lg flex items-center justify-center">
-                  {meetings.length}
+                  {filteredMeetings.length}
                 </span>
               )}
             </div>
 
+            {/* Filter Tabs & Pills */}
+            <div className="flex flex-col gap-3 mb-4 pb-3 border-b border-slate-50">
+              {/* Segmented Control for Time */}
+              <div className="flex bg-slate-100 p-0.5 rounded-xl w-full">
+                <button
+                  onClick={() => setTimeFilter('upcoming')}
+                  className={cn(
+                    "flex-1 text-[11px] font-aktiv font-bold py-1.5 rounded-lg transition-all duration-200",
+                    timeFilter === 'upcoming'
+                      ? "bg-white text-[#1a1a1a] shadow-sm"
+                      : "text-slate-400 hover:text-slate-600"
+                  )}
+                >
+                  Upcoming
+                </button>
+                <button
+                  onClick={() => setTimeFilter('past')}
+                  className={cn(
+                    "flex-1 text-[11px] font-aktiv font-bold py-1.5 rounded-lg transition-all duration-200",
+                    timeFilter === 'past'
+                      ? "bg-white text-[#1a1a1a] shadow-sm"
+                      : "text-slate-400 hover:text-slate-600"
+                  )}
+                >
+                  Past
+                </button>
+              </div>
+
+              {/* Pills for Meeting Types */}
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { id: 'all', label: 'All' },
+                  { id: 'group', label: 'Group' },
+                  { id: 'one_on_one', label: '1-on-1' },
+                  { id: 'assigned', label: 'Assigned' }
+                ].map((type) => (
+                  <button
+                    key={type.id}
+                    onClick={() => setTypeFilter(type.id as any)}
+                    className={cn(
+                      "text-[9px] font-aktiv font-black uppercase tracking-wider px-2.5 py-1 rounded-md transition-all duration-200 border",
+                      typeFilter === type.id
+                        ? "bg-[#e76f51] text-white border-[#e76f51] shadow-sm"
+                        : "bg-white text-slate-500 border-slate-100 hover:bg-slate-50"
+                    )}
+                  >
+                    {type.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Meeting List */}
             <div className="flex-1 overflow-y-auto no-scrollbar space-y-2.5 min-h-[140px]">
-              {meetings.length === 0 ? (
+              {filteredMeetings.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-3">
                   <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center">
                     <Radio className="w-6 h-6 text-slate-300" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-aktiv font-bold text-slate-400">No sessions today</h3>
+                    <h3 className="text-sm font-aktiv font-bold text-slate-400">
+                      {timeFilter === 'upcoming' ? 'No upcoming sessions' : 'No past sessions'}
+                    </h3>
                     <p className="text-[10px] text-slate-300 font-medium mt-1 max-w-[200px]">
-                      Your upcoming sessions will appear here
+                      {typeFilter === 'all'
+                        ? `You have no ${timeFilter} sessions scheduled.`
+                        : `You have no ${timeFilter} ${typeFilter === 'group' ? 'group' : typeFilter === 'one_on_one' ? '1-on-1' : 'assigned'} sessions.`
+                      }
                     </p>
                   </div>
                 </div>
               ) : (
-                  meetings.map((meeting: any, i: number) => {
+                filteredMeetings.map((meeting: any, i: number) => {
                   const isLive = meeting.calendar_event_id === 'LIVE';
                   const isGroup = meeting.meeting_type === 'group_session';
                   const startTime = new Date(meeting.start_time).getTime();
+                  const durationMs = (meeting.duration_minutes || 45) * 60 * 1000;
+                  const isEnded = !isLive && (startTime + durationMs < Date.now());
                   const isTimeReady = Date.now() >= startTime - 300000;
-                  const canJoin = isGroup ? isLive : isTimeReady;
+                  const canJoin = isGroup ? isLive : (isTimeReady && !isEnded);
+                  const isManuallyAssigned = meeting.student_id === profile.id && !activePlanTypes.includes('one_on_one');
 
                   return (
                     <motion.div
@@ -371,36 +465,63 @@ export function StudentDashboardClient({
                         </div>
                         <div className="flex-1 min-w-0">
                           <h4 className={cn("text-sm font-aktiv font-bold truncate", isLive ? "text-white" : "text-[#1a1a1a]")}>{meeting.topic}</h4>
-                          <div className="flex items-center gap-2 mt-0.5">
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-0.5">
                             <span className={cn("text-[10px] font-bold", isLive ? "text-white/80" : "text-[#e76f51]")}>
-                              {format(new Date(meeting.start_time), 'h:mm a')}
+                              {format(new Date(meeting.start_time), 'MMM d • h:mm a')}
                             </span>
                             <span className={cn("text-[9px]", isLive ? "text-white/40" : "text-slate-300")}>•</span>
                             <span className={cn("text-[10px] font-medium", isLive ? "text-white/80" : "text-slate-400")}>
                               {meeting.host?.full_name || 'Instructor'}
                             </span>
+                            <span className={cn("text-[9px]", isLive ? "text-white/40" : "text-slate-300")}>•</span>
+                            <span className={cn(
+                              "text-[8px] font-aktiv font-black uppercase tracking-wider px-1.5 py-0.5 rounded",
+                              isLive 
+                                ? "bg-white/20 text-white" 
+                                : isGroup
+                                  ? "bg-[#e76f51]/10 text-[#e76f51]" 
+                                  : isManuallyAssigned
+                                    ? "bg-amber-100 text-amber-800"
+                                    : "bg-blue-50 text-blue-600"
+                            )}>
+                              {isGroup 
+                                ? 'Group' 
+                                : isManuallyAssigned
+                                  ? 'Assigned'
+                                  : '1-on-1'
+                              }
+                            </span>
                           </div>
                         </div>
-                        <a
-                          href={canJoin ? meeting.join_url : undefined}
-                          onClick={(e) => !canJoin && e.preventDefault()}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={cn(
-                            "h-9 w-9 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-xl transition-all duration-300",
-                            isLive 
-                              ? "bg-white text-[#e76f51] hover:scale-110" 
-                              : canJoin
-                                ? "bg-[#1a1a1a] text-white hover:bg-[#e76f51] group-hover/card:scale-105"
-                                : "bg-slate-200 text-slate-400 cursor-not-allowed opacity-50"
-                          )}
-                          title={!canJoin ? "Instructor hasn't started the session yet" : "Join Session"}
-                        >
-                          <ArrowUpRight className="w-3.5 h-3.5" />
-                        </a>
+                        {isEnded ? (
+                          <span className={cn(
+                            "text-[10px] font-aktiv font-black uppercase tracking-wider px-2.5 py-1.5 rounded-lg shrink-0",
+                            isLive ? "text-white bg-white/20" : "text-slate-400 bg-slate-100"
+                          )}>
+                            Ended
+                          </span>
+                        ) : (
+                          <a
+                            href={canJoin ? meeting.join_url : undefined}
+                            onClick={(e) => !canJoin && e.preventDefault()}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={cn(
+                              "h-9 w-9 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-xl transition-all duration-300 shrink-0",
+                              isLive 
+                                ? "bg-white text-[#e76f51] hover:scale-110" 
+                                : canJoin
+                                  ? "bg-[#1a1a1a] text-white hover:bg-[#e76f51] group-hover/card:scale-105"
+                                  : "bg-slate-200 text-slate-400 cursor-not-allowed opacity-50"
+                            )}
+                            title={!canJoin ? "Instructor hasn't started the session yet" : "Join Session"}
+                          >
+                            <ArrowUpRight className="w-3.5 h-3.5" />
+                          </a>
+                        )}
                       </div>
                     </motion.div>
-                  )
+                  );
                 })
               )}
             </div>

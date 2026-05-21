@@ -130,19 +130,19 @@ export default function StudentProfileClient({
   };
 
   return (
-    <div className="container-app py-12 md:py-24 max-w-4xl mx-auto px-4 sm:px-6">
-      <div className="mb-12">
-        <h1 className="font-aktiv text-3xl sm:text-4xl md:text-5xl mb-4 text-zen-taupe leading-tight">Profile & Verification</h1>
-        <p className="text-body-lg text-warm-gray">Manage your sanctuary access and contact details.</p>
+    <div className="container-app py-8 sm:py-12 md:py-24 max-w-4xl mx-auto px-4 sm:px-6">
+      <div className="mb-8 md:mb-12">
+        <h1 className="font-aktiv text-2xl sm:text-4xl md:text-5xl mb-3 text-zen-taupe leading-tight">Profile & Verification</h1>
+        <p className="text-sm sm:text-body-lg text-warm-gray">Manage your sanctuary access and contact details.</p>
       </div>
 
       <div className="space-y-8">
         {/* Profile Info */}
-        <section className="bg-surface-container-lowest rounded-[2.5rem] p-8 md:p-12 premium-shadow relative overflow-hidden border border-outline-variant/30">
+        <section className="bg-surface-container-lowest rounded-3xl sm:rounded-[2.5rem] p-6 sm:p-8 md:p-12 premium-shadow relative overflow-hidden border border-outline-variant/30">
           <div className="absolute top-0 right-0 w-64 h-64 bg-zen-peach/10 blur-3xl rounded-full -mr-32 -mt-32 pointer-events-none"></div>
           
-          <h2 className="font-aktiv text-2xl mb-8 relative z-10 text-zen-taupe">Basic Details</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+          <h2 className="font-aktiv text-xl sm:text-2xl mb-6 md:mb-8 relative z-10 text-zen-taupe">Basic Details</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 relative z-10">
             <div>
               <p className="text-label-sm text-warm-gray uppercase tracking-wider mb-2 font-bold">Full Name</p>
               <p className="text-body-lg font-medium text-foreground">{profile?.full_name || 'Not provided'}</p>
@@ -158,11 +158,11 @@ export default function StudentProfileClient({
 
         {/* Contact Details & Verification */}
         <section id="verification-hub" className="relative scroll-mt-12">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
-            <h2 className="font-aktiv text-2xl text-zen-taupe">Verification Hub</h2>
-            <div className="flex items-center gap-2 px-4 py-1.5 bg-zen-peach/5 rounded-full border border-zen-peach/10 w-fit">
-              <ShieldCheck className="w-4 h-4 text-[#E76F51]" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#E76F51]">Security Level: {(user.email_confirmed_at || profile?.email_confirmed_at) && (user.phone || profile?.phone) && (user.phone_confirmed_at || profile?.phone_confirmed_at) ? 'High' : 'Action Required'}</span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 md:mb-8 gap-3 sm:gap-4">
+            <h2 className="font-aktiv text-xl sm:text-2xl text-zen-taupe">Verification Hub</h2>
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-zen-peach/5 rounded-full border border-zen-peach/10 w-fit max-w-full">
+              <ShieldCheck className="w-4 h-4 text-[#E76F51] shrink-0" />
+              <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-[#E76F51] truncate">Security Level: {(user.email_confirmed_at || profile?.email_confirmed_at) && (user.phone || profile?.phone) && (user.phone_confirmed_at || profile?.phone_confirmed_at) ? 'High' : 'Action Required'}</span>
             </div>
           </div>
           
@@ -173,12 +173,12 @@ export default function StudentProfileClient({
             </div>
           )}
 
-          <div className="mb-8 p-6 bg-zen-peach/5 border border-zen-peach/10 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="mb-6 md:mb-8 p-5 sm:p-6 bg-zen-peach/5 border border-zen-peach/10 rounded-2xl sm:rounded-[2rem] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
-              <h3 className="font-aktiv text-lg text-zen-taupe">Multi-Channel Security</h3>
-              <p className="text-xs text-warm-gray">Verify your identity via independent security channels.</p>
+              <h3 className="font-aktiv text-base sm:text-lg text-zen-taupe">Multi-Channel Security</h3>
+              <p className="text-xs text-warm-gray mt-1">Verify your identity via independent security channels.</p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4 w-full md:w-auto">
               {!user.email_confirmed_at && (
                 <button 
                   onClick={handleVerifyEmail}
@@ -203,7 +203,7 @@ export default function StudentProfileClient({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Email Card */}
             <div className={cn(
-              "p-6 sm:p-8 rounded-[2.5rem] border transition-all duration-500 flex flex-col justify-between",
+              "p-5 sm:p-8 rounded-3xl sm:rounded-[2.5rem] border transition-all duration-500 flex flex-col justify-between",
               user.email_confirmed_at 
                 ? "bg-white/40 border-emerald-100 shadow-sm" 
                 : "bg-white border-outline-variant/30 premium-shadow"
@@ -250,7 +250,7 @@ export default function StudentProfileClient({
 
             {/* Phone Card */}
             <div className={cn(
-              "p-6 sm:p-8 rounded-[2.5rem] border transition-all duration-500 flex flex-col justify-between",
+              "p-5 sm:p-8 rounded-3xl sm:rounded-[2.5rem] border transition-all duration-500 flex flex-col justify-between",
               user.phone_confirmed_at || profile?.phone_confirmed_at
                 ? "bg-white/40 border-emerald-100 shadow-sm" 
                 : "bg-white border-outline-variant/30 premium-shadow"
@@ -314,18 +314,18 @@ export default function StudentProfileClient({
               {(!(user.phone_confirmed_at || profile?.phone_confirmed_at) || isEditingPhone) ? (
                 <div className="space-y-3">
                   {phoneOtpSent ? (
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2.5 sm:gap-3">
                       <input 
                         type="text" 
                         placeholder="SMS Code" 
                         value={phoneOtp}
                         onChange={(e) => setPhoneOtp(e.target.value)}
-                        className="flex-1 bg-slate-50 border border-outline-variant/50 rounded-full px-5 py-3.5 text-sm font-bold tracking-[0.2em] text-center outline-none focus:border-[#E76F51] transition-colors"
+                        className="flex-1 bg-slate-50 border border-outline-variant/50 rounded-full px-4 sm:px-5 py-3.5 text-sm font-bold tracking-[0.1em] sm:tracking-[0.2em] text-center outline-none focus:border-[#E76F51] transition-colors"
                       />
                       <button 
                         onClick={handleVerifyPhoneOtp}
                         disabled={verifyingPhoneOtp || phoneOtp.length < 6}
-                        className="h-[52px] px-6 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center hover:bg-[#e76f51] transition-all disabled:opacity-50"
+                        className="h-[52px] px-4 sm:px-6 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center hover:bg-[#e76f51] transition-all disabled:opacity-50 shrink-0"
                       >
                         {verifyingPhoneOtp ? '...' : <ArrowRight className="w-5 h-5" />}
                       </button>
