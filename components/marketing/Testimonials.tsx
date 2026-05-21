@@ -89,27 +89,24 @@ export function Testimonials() {
   return (
     <section
       ref={sectionRef}
-      className="py- md:py- overflow-hidden relative bg-transparent"
+      className="py-10 md:py-16 overflow-hidden relative bg-transparent"
     >
-      <div className="max-w-[1400px] mx-auto px-6 md:px-12 mb-10 md:mb-16 relative z-10">
+      <div className="max-w-[1400px] mx-auto px-6 md:px-12 mb-6 md:mb-10 relative z-10">
         <motion.div
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
           variants={fadeUp}
-          className="flex flex-col items-center text-center md:flex-row md:text-left md:items-end md:justify-between gap-8 md:gap-12"
+          className="flex flex-col items-center text-center gap-8 md:gap-12 w-full justify-center"
         >
-          <div className="space-y-4 md:space-y-6 md:pl-8 flex flex-col items-center md:items-start w-full">
-            <div className="inline-flex flex-col items-center md:items-start gap-3">
+          <div className="space-y-4 md:space-y-6 flex flex-col items-center text-center w-full">
+            <div className="inline-flex flex-col items-center gap-3">
               <span className="text-[11px] font-black uppercase tracking-[0.5em] text-[#e76f51]">Real Stories</span>
               <div className="w-12 h-[1px] bg-[#e76f51]/20" />
             </div>
             <h2 className="text-3xl md:text-5xl font-aktiv text-[#2a2019] font-bold leading-[1.1] tracking-tight">
-              Real Stories. <br className="hidden md:block" />{' '}
-              <span className="italic font-light opacity-60">Verified Results.</span>
+              Real Stories. <span className="italic font-light opacity-60">Verified Results.</span>
             </h2>
           </div>
-
-
         </motion.div>
       </div>
 

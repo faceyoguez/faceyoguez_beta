@@ -654,3 +654,34 @@ html.lenis body {
 .animate-glow {
   animation: glow-pulse 2.5s ease-in-out infinite;
 }
+
+@keyframes shimmer-move {
+  0% {
+    transform: translateX(-150%) skewX(-20deg);
+  }
+  50% {
+    transform: translateX(250%) skewX(-20deg);
+  }
+  100% {
+    transform: translateX(250%) skewX(-20deg);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer-move 4s infinite cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes dynamic-glow {
+  0%, 100% {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04), 0 0 15px rgba(255, 138, 117, 0.15);
+    border-color: rgba(255, 138, 117, 0.2);
+  }
+  50% {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04), 0 0 25px rgba(255, 138, 117, 0.45);
+    border-color: rgba(255, 138, 117, 0.6);
+  }
+}
+
+.animate-dynamic-glow {
+  animation: dynamic-glow 3s infinite ease-in-out;
+}

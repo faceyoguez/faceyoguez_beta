@@ -33,8 +33,8 @@ interface WebinarPageClientProps {
 
 // ── Shared Animation Variants ──
 const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
+  hidden: { opacity: 0, y: 15 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 1, 0.5, 1] } }
 };
 
 const staggerContainer: Variants = {
@@ -64,10 +64,7 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
             faceyoguez
           </div>
           <Link
-            href={targetLink}
-            onClick={handleJoinClick}
-            target={whatsappLink ? "_blank" : undefined}
-            rel="noopener noreferrer"
+            href="/webinar/register"
             className="inline-flex items-center justify-center px-4 py-2.5 sm:px-6 sm:py-3 bg-[#1a1a1a] text-white rounded-full text-[9px] sm:text-[11px] font-black uppercase tracking-[0.2em] hover:bg-[#FF8A75] transition-all shadow-md active:scale-95 leading-none"
           >
             Join Free Weekend Batch
@@ -77,10 +74,10 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
 
 
 
-      <main className="relative z-10 pt-24 sm:pt-32 pb-20">
+      <main className="relative z-10 pt-20 sm:pt-28 pb-12 sm:pb-20">
 
         {/* ── 1. HERO SECTION ── */}
-        <section className="relative max-w-5xl mx-auto px-6 pt-10 sm:pt-16 pb-16 sm:pb-24 text-center">
+        <section className="relative max-w-5xl mx-auto px-6 pt-6 sm:pt-16 pb-10 sm:pb-20 text-center">
           <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="space-y-6 sm:space-y-8">
             <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#FF8A75]/10 border border-[#FF8A75]/20 text-[#FF8A75] text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em]">
               <span className="relative flex h-2 w-2">
@@ -103,8 +100,9 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
             </motion.p>
 
             <motion.div variants={fadeUp} className="inline-block mt-2">
-              <span className="inline-flex items-center justify-center px-6 py-2.5 rounded-full text-[11px] font-black uppercase tracking-[0.2em] text-[#FF8A75] bg-[#FF8A75]/10 border border-[#FF8A75]/25 animate-glow shadow-[0_0_20px_rgba(255,138,117,0.15)]">
-                No creams. No needles. No surgery.
+              <span className="relative overflow-hidden inline-flex items-center justify-center px-6 py-2.5 rounded-full text-[11px] font-black uppercase tracking-[0.2em] text-[#2a2019] bg-white border border-[#2a2019]/15 shadow-[0_4px_16px_rgba(0,0,0,0.04)] animate-dynamic-glow">
+                <span className="relative z-10">No creams 🧴. No needles 💉. No surgery 🩺.</span>
+                <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-zinc-400/15 via-white/40 via-zinc-400/15 to-transparent -translate-x-full animate-shimmer" />
               </span>
             </motion.div>
 
@@ -124,10 +122,7 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
 
             <motion.div variants={fadeUp} className="pt-8 flex flex-col items-center gap-4">
               <Link
-                href={targetLink}
-                onClick={handleJoinClick}
-                target={whatsappLink ? "_blank" : undefined}
-                rel="noopener noreferrer"
+                href="/webinar/register"
                 className="group relative inline-flex items-center justify-center px-8 sm:px-10 py-5 sm:py-6 text-sm sm:text-base font-black uppercase tracking-[0.15em] text-white bg-[#e76f51] hover:bg-[#d4603f] rounded-full overflow-hidden transition-all shadow-[0_20px_40px_-15px_rgba(231,111,81,0.5)] hover:-translate-y-1 w-full sm:w-auto"
               >
                 <span className="relative z-10 flex items-center gap-3">
@@ -160,7 +155,7 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
         </section>
 
         {/* ── 3. MEET HARSIMRAT / VIDEO ── */}
-        <section className="max-w-5xl mx-auto px-6 pt-24 sm:pt-32 pb-10 sm:pb-12">
+        <section className="max-w-5xl mx-auto px-6 pt-12 sm:pt-24 pb-8 sm:pb-12">
           <div className="text-center mb-12">
             <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#FF8A75] mb-4 block">Meet Your Coach</span>
             <h2 className="text-3xl sm:text-5xl font-aktiv font-bold text-[#2a2019] tracking-tight">
@@ -209,10 +204,14 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
           )}
         </AnimatePresence>
 
+        {/* ── 6. DYNAMIC TESTIMONIALS (VIDEO MARQUEE & VERIFIED PROOFS) ── */}
+        <Testimonials />
+        <VerifiedProofs />
+
         {/* ── 4. WHAT THIS SESSION COVERS ── */}
-        <section className="bg-transparent pt-10 sm:pt-12 pb-24 sm:pb-32 border-y border-[#FF8A75]/10">
+        <section className="bg-transparent pt-8 sm:pt-12 pb-16 sm:pb-24 border-y border-[#FF8A75]/10">
           <div className="max-w-4xl mx-auto px-6">
-            <div className="text-center mb-16">
+            <div className="text-center mb-10 sm:mb-16">
               <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#FF8A75] mb-4 block">The Curriculum</span>
               <h2 className="text-3xl sm:text-5xl font-aktiv font-bold text-[#2a2019] tracking-tight leading-tight">
                 In 60 Minutes, You'll Walk Away With Things No Skincare Brand Will Ever Tell You.
@@ -242,16 +241,13 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
               ))}
             </div>
 
-            <div className="mt-16 p-8 bg-[#1a1a1a] rounded-[2rem] text-center">
+            <div className="mt-10 sm:mt-16 p-8 bg-[#1a1a1a] rounded-[2rem] text-center">
               <p className="text-white/90 font-jakarta text-lg sm:text-xl leading-relaxed italic">
                 "This isn't a 60-minute sales pitch. It's a real, working session. You'll practice, you'll learn, and you'll leave with something you can use tomorrow morning."
               </p>
               <div className="mt-8">
                 <Link
-                  href={targetLink}
-                  onClick={handleJoinClick}
-                  target={whatsappLink ? "_blank" : undefined}
-                  rel="noopener noreferrer"
+                  href="/webinar/register"
                   className="inline-flex items-center justify-center px-8 py-4 text-sm font-black uppercase tracking-widest text-white bg-[#FF8A75] hover:bg-[#d4603f] rounded-full transition-all shadow-lg"
                 >
                   Reserve My Spot For Free
@@ -261,46 +257,169 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
           </div>
         </section>
 
-        {/* ── 5. SOUND FAMILIAR? (PAIN POINTS) ── */}
-        <section className="py-24 sm:py-32 relative">
-          <div className="max-w-4xl mx-auto px-6 text-center">
-            <h2 className="text-3xl sm:text-5xl font-aktiv font-bold text-[#2a2019] tracking-tight mb-8">
-              You've Been Doing Everything Right. So Why Isn't Your Skin Responding?
-            </h2>
-            <div className="space-y-6 text-lg font-jakarta text-[#2a2019]/70 leading-relaxed max-w-3xl mx-auto">
-              <p>
-                You drink water. You use the good serums. You get enough sleep. You've probably even tried gua sha, jade rollers, and that expensive eye cream.
+        {/* ── 5. SOUND FAMILIAR? (PAIN POINTS ROADMAP) ── */}
+        <section className="pt-2 sm:pt-4 pb-12 sm:pb-20 relative overflow-hidden">
+          <div className="max-w-5xl mx-auto px-6">
+            
+            {/* Header */}
+            <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
+              <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#FF8A75] mb-4 block">The Skincare Roadmap</span>
+              <h2 className="text-3xl sm:text-5xl font-aktiv font-bold text-[#2a2019] tracking-tight leading-tight">
+                You've Been Doing Everything Right. So Why Isn't Your Skin Responding?
+              </h2>
+              <p className="mt-4 text-[#2a2019]/60 font-jakarta">
+                Let's trace the journey from high-effort skincare to the actual biological solution.
               </p>
-              <p>
-                But every morning, the same story: fine lines, puffiness, a jawline that isn't as sharp as it used to be, and skin that just looks… tired.
-              </p>
-              <div className="py-8 my-8 border-y border-[#FF8A75]/20">
-                <p className="text-xl sm:text-2xl font-aktiv font-bold text-[#e76f51]">
-                  Here's what nobody in the skincare industry wants you to know: <br />
-                  You can't cream your way to a lifted face.
-                </p>
+            </div>
+
+            {/* Timeline / Roadmap Container */}
+            <div className="relative">
+              
+              {/* Vertical line connector */}
+              <div className="absolute left-[20px] md:left-1/2 top-6 bottom-6 md:top-8 md:bottom-8 w-[2px] -translate-x-[50%] bg-gradient-to-b from-[#FF8A75]/10 via-[#FF8A75]/40 to-[#e76f51]/10" />
+
+              <div className="space-y-12 md:space-y-20">
+                {/* Step 1 */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 15 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-20px" }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  className="flex flex-col md:flex-row items-start md:justify-between relative group"
+                >
+                  <div className="w-full md:w-[45%] flex flex-col pl-12 md:pl-0 md:items-end md:text-right">
+                    <div className="w-full p-5 sm:p-8 rounded-[2rem] bg-white/60 backdrop-blur-md border border-[#FF8A75]/10 hover:border-[#FF8A75]/30 hover:bg-white/90 transition-all duration-300 shadow-[0_4px_20px_-4px_rgba(255,138,117,0.02)] hover:shadow-[0_12px_32px_rgba(255,138,117,0.08)]">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-[#FF8A75] mb-3 bg-[#FF8A75]/10 px-3 py-1 rounded-full inline-block self-start md:self-end">Step 01</span>
+                      <h3 className="text-xl sm:text-2xl font-bold font-aktiv text-[#2a2019] mb-3">The Good Efforts</h3>
+                      <p className="text-sm sm:text-base font-jakarta text-[#2a2019]/70 leading-relaxed">
+                        You drink water. You use the good serums. You get enough sleep. You've probably even tried gua sha, jade rollers, and that expensive eye cream.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Circle Indicator */}
+                  <div className="absolute left-[20px] md:left-1/2 top-5 md:top-8 w-10 h-10 md:w-16 md:h-16 rounded-full bg-white border border-[#FF8A75]/30 shadow-[0_4px_12px_rgba(255,138,117,0.1)] flex items-center justify-center -translate-x-1/2 z-10 transition-all duration-300 group-hover:scale-110 group-hover:border-[#FF8A75] group-hover:shadow-[0_4px_20px_rgba(255,138,117,0.25)]">
+                    <span className="text-base md:text-2xl">🧴</span>
+                  </div>
+                  
+                  <div className="hidden md:block w-[45%]" />
+                </motion.div>
+
+                {/* Step 2 */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 15 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-20px" }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  className="flex flex-col md:flex-row items-start md:justify-between relative group"
+                >
+                  <div className="hidden md:block w-[45%]" />
+                  
+                  {/* Circle Indicator */}
+                  <div className="absolute left-[20px] md:left-1/2 top-5 md:top-8 w-10 h-10 md:w-16 md:h-16 rounded-full bg-white border border-[#FF8A75]/30 shadow-[0_4px_12px_rgba(255,138,117,0.1)] flex items-center justify-center -translate-x-1/2 z-10 transition-all duration-300 group-hover:scale-110 group-hover:border-[#FF8A75] group-hover:shadow-[0_4px_20px_rgba(255,138,117,0.25)]">
+                    <span className="text-base md:text-2xl">🥱</span>
+                  </div>
+                  
+                  <div className="w-full md:w-[45%] flex flex-col pl-12 md:pl-0 md:items-start md:text-left">
+                    <div className="w-full p-5 sm:p-8 rounded-[2rem] bg-white/60 backdrop-blur-md border border-[#FF8A75]/10 hover:border-[#FF8A75]/30 hover:bg-white/90 transition-all duration-300 shadow-[0_4px_20px_-4px_rgba(255,138,117,0.02)] hover:shadow-[0_12px_32px_rgba(255,138,117,0.08)]">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-[#FF8A75] mb-3 bg-[#FF8A75]/10 px-3 py-1 rounded-full inline-block self-start">Step 02</span>
+                      <h3 className="text-xl sm:text-2xl font-bold font-aktiv text-[#2a2019] mb-3">The Missing Results</h3>
+                      <p className="text-sm sm:text-base font-jakarta text-[#2a2019]/70 leading-relaxed">
+                        But every morning, the same story: fine lines, puffiness, a jawline that isn't as sharp as it used to be, and skin that just looks… tired.
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Step 3 */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 15 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-20px" }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  className="flex flex-col md:flex-row items-start md:justify-between relative group"
+                >
+                  <div className="w-full md:w-[45%] flex flex-col pl-12 md:pl-0 md:items-end md:text-right">
+                    <div className="w-full p-5 sm:p-8 rounded-[2rem] bg-white/60 backdrop-blur-md border border-[#e76f51]/10 hover:border-[#e76f51]/30 hover:bg-white/90 transition-all duration-300 shadow-[0_4px_20px_-4px_rgba(231,111,81,0.02)] hover:shadow-[0_12px_32px_rgba(231,111,81,0.08)]">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-[#e76f51] mb-3 bg-[#e76f51]/10 px-3 py-1 rounded-full inline-block self-start md:self-end">Step 03</span>
+                      <h3 className="text-xl sm:text-2xl font-bold font-aktiv text-[#e76f51] mb-3">The Skincare Trap</h3>
+                      <p className="text-sm sm:text-base font-jakarta text-[#2a2019]/70 leading-relaxed">
+                        Here's what nobody in the skincare industry wants you to know: <strong className="font-bold text-[#e76f51]">You can't cream your way to a lifted face.</strong> No serum addresses that. No facial addresses that.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Circle Indicator */}
+                  <div className="absolute left-[20px] md:left-1/2 top-5 md:top-8 w-10 h-10 md:w-16 md:h-16 rounded-full bg-white border border-[#e76f51]/30 shadow-[0_4px_12px_rgba(231,111,81,0.1)] flex items-center justify-center -translate-x-1/2 z-10 transition-all duration-300 group-hover:scale-110 group-hover:border-[#e76f51] group-hover:shadow-[0_4px_20px_rgba(231,111,81,0.25)]">
+                    <span className="text-base md:text-2xl">🚫</span>
+                  </div>
+                  
+                  <div className="hidden md:block w-[45%]" />
+                </motion.div>
+
+                {/* Step 4 */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 15 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-20px" }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  className="flex flex-col md:flex-row items-start md:justify-between relative group"
+                >
+                  <div className="hidden md:block w-[45%]" />
+                  
+                  {/* Circle Indicator */}
+                  <div className="absolute left-[20px] md:left-1/2 top-5 md:top-8 w-10 h-10 md:w-16 md:h-16 rounded-full bg-white border border-[#FF8A75]/30 shadow-[0_4px_12px_rgba(255,138,117,0.1)] flex items-center justify-center -translate-x-1/2 z-10 transition-all duration-300 group-hover:scale-110 group-hover:border-[#FF8A75] group-hover:shadow-[0_4px_20px_rgba(255,138,117,0.25)]">
+                    <span className="text-base md:text-2xl">💪</span>
+                  </div>
+                  
+                  <div className="w-full md:w-[45%] flex flex-col pl-12 md:pl-0 md:items-start md:text-left">
+                    <div className="w-full p-5 sm:p-8 rounded-[2rem] bg-white/60 backdrop-blur-md border border-[#FF8A75]/10 hover:border-[#FF8A75]/30 hover:bg-white/90 transition-all duration-300 shadow-[0_4px_20px_-4px_rgba(255,138,117,0.02)] hover:shadow-[0_12px_32px_rgba(255,138,117,0.08)]">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-[#FF8A75] mb-3 bg-[#FF8A75]/10 px-3 py-1 rounded-full inline-block self-start">Step 04</span>
+                      <h3 className="text-xl sm:text-2xl font-bold font-aktiv text-[#2a2019] mb-3">The 57-Muscle Anatomy</h3>
+                      <p className="text-sm sm:text-base font-jakarta text-[#2a2019]/70 leading-relaxed">
+                        Your face has 57 muscles. Those muscles hold your skin up. When they weaken — which happens naturally with age, stress, and screen time — your skin loses its structure and starts to sag.
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Step 5 */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 15 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-20px" }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  className="flex flex-col md:flex-row items-start md:justify-between relative group"
+                >
+                  <div className="w-full md:w-[45%] flex flex-col pl-12 md:pl-0 md:items-end md:text-right">
+                    <div className="w-full p-5 sm:p-8 rounded-[2rem] bg-white/60 backdrop-blur-md border border-[#006B57]/10 hover:border-[#006B57]/30 hover:bg-white/90 transition-all duration-300 shadow-[0_4px_20px_-4px_rgba(0,107,87,0.02)] hover:shadow-[0_12px_32px_rgba(0,107,87,0.08)]">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-[#006B57] mb-3 bg-[#006B57]/10 px-3 py-1 rounded-full inline-block self-start md:self-end">Step 05</span>
+                      <h3 className="text-xl sm:text-2xl font-bold font-aktiv text-[#006B57] mb-3">The 10-Minute Formula</h3>
+                      <p className="text-sm sm:text-base font-jakarta text-[#2a2019]/70 leading-relaxed">
+                        What you need is 10 minutes a day and the right technique. That's exactly what this webinar will give you. And you certainly don't need surgery for that.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Circle Indicator */}
+                  <div className="absolute left-[20px] md:left-1/2 top-5 md:top-8 w-10 h-10 md:w-16 md:h-16 rounded-full bg-white border border-[#006B57]/30 shadow-[0_4px_12px_rgba(0,107,87,0.1)] flex items-center justify-center -translate-x-1/2 z-10 transition-all duration-300 group-hover:scale-110 group-hover:border-[#006B57] group-hover:shadow-[0_4px_20px_rgba(0,107,87,0.25)]">
+                    <span className="text-base md:text-2xl">⏱️</span>
+                  </div>
+                  
+                  <div className="hidden md:block w-[45%]" />
+                </motion.div>
               </div>
-              <p>
-                Your face has 57 muscles. Those muscles hold your skin up. When they weaken — which happens naturally with age, stress, and screen time — your skin loses its structure and starts to sag.
-              </p>
-              <p className="font-semibold text-[#1a1a1a]">
-                No serum addresses that. No facial addresses that. And you certainly don't need surgery for that.
-              </p>
-              <p className="text-xl font-aktiv font-bold text-[#2a2019] mt-8">
-                What you need is 10 minutes a day and the right technique.<br />That's exactly what this webinar will give you.
-              </p>
+
             </div>
           </div>
         </section>
 
-        {/* ── 6. DYNAMIC TESTIMONIALS (VIDEO MARQUEE & VERIFIED PROOFS) ── */}
-        <Testimonials />
-        <VerifiedProofs />
+
 
         {/* ── 7. IS THIS FOR ME? ── */}
-        <section className="pt-24 sm:pt-32 pb-10 sm:pb-12">
+        <section className="pt-12 sm:pt-20 pb-8 sm:pb-12">
           <div className="max-w-5xl mx-auto px-6">
-            <div className="grid md:grid-cols-2 gap-12 sm:gap-20">
+            <div className="grid md:grid-cols-2 gap-8 md:gap-20">
               <div>
                 <h2 className="text-3xl sm:text-4xl font-aktiv font-bold text-[#2a2019] mb-8">This Webinar Is For You If...</h2>
                 <ul className="space-y-4">
@@ -333,13 +452,10 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
                     </li>
                   ))}
                 </ul>
-                <div className="mt-12 p-8 bg-[#FFFAF7] rounded-3xl border border-[#FF8A75]/20 text-center">
+                <div className="mt-8 p-8 bg-[#FFFAF7] rounded-3xl border border-[#FF8A75]/20 text-center">
                   <h3 className="font-aktiv font-bold text-xl text-[#2a2019] mb-4">If You're Still Reading...</h3>
                   <Link
-                    href={targetLink}
-                    onClick={handleJoinClick}
-                    target={whatsappLink ? "_blank" : undefined}
-                    rel="noopener noreferrer"
+                    href="/webinar/register"
                     className="inline-flex w-full items-center justify-center px-6 py-4 text-sm font-black uppercase tracking-widest text-white bg-[#e76f51] hover:bg-[#d4603f] rounded-full transition-all shadow-md"
                   >
                     Reserve Your Spot
@@ -354,7 +470,7 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
         {/* ── 9. HOW IT WORKS ── */}
         <section className="pt-10 sm:pt-12 pb-10 sm:pb-12 relative">
           <div className="max-w-4xl mx-auto px-6">
-            <div className="text-center mb-16">
+            <div className="text-center mb-10 sm:mb-16">
               <span className="text-[11px] font-black uppercase tracking-[0.3em] text-[#FF8A75] mb-4 block">How It Works</span>
               <h2 className="text-3xl sm:text-5xl font-aktiv font-bold text-[#2a2019] tracking-tight mb-4">
                 Takes 30 Seconds to Register.<br />Results Last a Lifetime.
@@ -385,9 +501,9 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
         <WhyUs />
 
         {/* ── 11. FAQ ── */}
-        <section className="bg-transparent py-24 sm:py-32 border-t border-[#FF8A75]/10">
+        <section className="bg-transparent pt-6 sm:pt-8 pb-16 sm:pb-24 border-t border-[#FF8A75]/10">
           <div className="max-w-3xl mx-auto px-6">
-            <div className="text-center mb-16">
+            <div className="text-center mb-10 sm:mb-16">
               <h2 className="text-3xl sm:text-4xl font-aktiv font-bold text-[#2a2019] tracking-tight">Frequently Asked Questions</h2>
             </div>
             <div className="space-y-6">
@@ -408,22 +524,19 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
         </section>
 
         {/* ── 12. FINAL CTA ── */}
-        <section className="py-24 sm:py-32">
+        <section className="py-16 sm:py-24">
           <div className="max-w-4xl mx-auto px-6 text-center">
-            <h2 className="text-4xl sm:text-6xl font-aktiv font-bold text-[#2a2019] tracking-tight mb-8">
+            <h2 className="text-4xl sm:text-6xl font-aktiv font-bold text-[#2a2019] tracking-tight mb-6 sm:mb-8">
               One Hour This Weekend Could Change the Way You See Your Face — Forever.
             </h2>
-            <p className="text-lg font-jakarta text-[#2a2019]/60 leading-relaxed max-w-2xl mx-auto mb-12">
+            <p className="text-lg font-jakarta text-[#2a2019]/60 leading-relaxed max-w-2xl mx-auto mb-8 sm:mb-12">
               Harsimrat has helped 2,000+ women stop fighting their reflection and start training it. The webinar is free. The practice is real. Don't let another weekend pass.
             </p>
             <Link
-              href={targetLink}
-              onClick={handleJoinClick}
-              target={whatsappLink ? "_blank" : undefined}
-              rel="noopener noreferrer"
+              href="/webinar/register"
               className="inline-flex items-center justify-center px-10 py-6 text-base sm:text-lg font-black uppercase tracking-widest text-white bg-[#1a1a1a] hover:bg-[#FF8A75] rounded-full transition-all shadow-2xl hover:shadow-[#FF8A75]/40 hover:-translate-y-2 w-full sm:w-auto"
             >
-              🌸 Join The WhatsApp Group →
+              🌸 Register For Free Now →
             </Link>
             <div className="mt-12 flex flex-wrap justify-center gap-6 text-[11px] font-black uppercase tracking-widest text-[#2a2019]/40">
               <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-[#FF8A75]" /> 2,000+ Clients</span>

@@ -5,9 +5,9 @@ import { ThumbnailsCarousel } from '@/components/ui/signature';
 
 export function VerifiedProofs() {
   return (
-    <section className="py-8 md:py12- bg-transparent overflow-hidden relative">
+    <section className="py-6 md:py-10 bg-transparent overflow-hidden relative">
       <div className="max-w-[1400px] mx-auto px-6 md:px-12 relative z-10">
-        <div className="flex flex-col items-center text-center mb-20 space-y-6">
+        <div className="flex flex-col items-center text-center mb-8 sm:mb-12 space-y-6">
           <div className="inline-flex flex-col items-center gap-3">
             <motion.div 
               initial={{ opacity: 0, y: 10 }}

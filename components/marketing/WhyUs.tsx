@@ -6,8 +6,8 @@ import { Check, X, Minus } from 'lucide-react';
 import Link from 'next/link';
 
 const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } },
+  hidden: { opacity: 0, y: 15 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 1, 0.5, 1] } },
 };
 
 type CellValue = true | false | 'rarely';
@@ -35,7 +35,7 @@ export function WhyUs() {
   const isInView = useInView(ref, { once: true, amount: 0.1 });
 
   return (
-    <section ref={ref} className="relative pt-10 md:pt-12 pb-24 md:pb-36 overflow-hidden bg-transparent">
+    <section ref={ref} className="relative pt-10 md:pt-12 pb-12 md:pb-20 overflow-hidden bg-transparent">
       <div className="max-w-5xl mx-auto px-6 md:px-12">
         <motion.div initial="hidden" animate={isInView ? "visible" : "hidden"} variants={fadeUp} className="text-center mb-16 space-y-5">
           <div className="inline-flex flex-col items-center gap-3">
