@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { WebinarPageClient } from './WebinarPageClient';
 import { getWebinarWhatsAppLink } from '@/lib/actions/webinar';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Free Live Webinar — Face Wellness with Harsimrat | Faceyoguez',
   description: 'Join Harsimrat — India\'s #1 Face Wellness Coach — for a free live session every weekend. Discover the facial muscle techniques that 2,000+ women use to visibly lift, tone, and glow. No creams. No needles. No surgery.',

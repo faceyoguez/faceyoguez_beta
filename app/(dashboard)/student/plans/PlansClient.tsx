@@ -948,7 +948,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                                     setAppliedCoupon(null);
                                                 }
                                             }}
-                                            className={`w-full bg-white border rounded-2xl py-4 pl-12 pr-4 text-[10px] font-black tracking-widest focus:outline-none focus:ring-2 transition-all ${couponStatus?.type === 'error'
+                                            className={`w-full bg-white border rounded-2xl py-4 pl-12 pr-4 text-base font-black tracking-widest focus:outline-none focus:ring-2 transition-all ${couponStatus?.type === 'error'
                                                 ? 'border-rose-300 focus:ring-rose-200'
                                                 : couponStatus?.type === 'success'
                                                     ? 'border-emerald-300 focus:ring-emerald-200'

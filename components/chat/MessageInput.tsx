@@ -96,7 +96,7 @@ export function MessageInput({ onSendText, onSendFile, dark = false }: MessageIn
                 placeholder="Share your reflections..."
                 rows={1}
                 className={cn(
-                  "flex-1 resize-none border-none bg-transparent py-2.5 px-3 text-[14px] outline-none min-h-[44px] max-h-[200px] custom-scrollbar selection:bg-[#FF8A75]/20",
+                  "flex-1 resize-none border-none bg-transparent py-2.5 px-3 text-base outline-none min-h-[44px] max-h-[200px] custom-scrollbar selection:bg-[#FF8A75]/20",
                   dark ? "text-white placeholder-white/20" : "text-foreground placeholder-foreground/30"
                 )}
             />

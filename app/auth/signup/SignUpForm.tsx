@@ -231,7 +231,7 @@ export default function SignUpForm() {
             <select
               value={countryCode}
               onChange={(e) => setCountryCode(e.target.value)}
-              className="bg-transparent text-sm sm:text-base font-jakarta font-medium text-foreground outline-none py-3.5 sm:py-4 pl-4 pr-2 border-r border-outline-variant/50 focus:bg-white/50 cursor-pointer"
+              className="bg-transparent text-base font-jakarta font-medium text-foreground outline-none py-3.5 sm:py-4 pl-4 pr-2 border-r border-outline-variant/50 focus:bg-white/50 cursor-pointer"
             >
               {COUNTRY_CODES.map((c) => (
                 <option key={c.code} value={c.code}>{c.label}</option>
@@ -242,7 +242,7 @@ export default function SignUpForm() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="98765 43210"
-              className="flex-1 bg-transparent text-sm sm:text-base font-jakarta text-foreground placeholder:text-warm-gray/30 outline-none px-4 py-3.5 sm:py-4"
+              className="flex-1 bg-transparent text-base font-jakarta text-foreground placeholder:text-warm-gray/30 outline-none px-4 py-3.5 sm:py-4"
             />
           </div>
           {errors.phone && (

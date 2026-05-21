@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { ThankYouClient } from './ThankYouClient';
 import { getWebinarWhatsAppLink } from '@/lib/actions/webinar';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Thank You for Registering | Faceyoguez',
   description: 'Thank you for registering for the Free Live Face Wellness Webinar. You are being redirected to the WhatsApp community group.',

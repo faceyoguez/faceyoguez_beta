@@ -124,7 +124,7 @@ export default function WebinarRegisterPage() {
                   onChange={handleChange}
                   placeholder="e.g. Harsimrat Kaur"
                   disabled={isSubmitting}
-                  className={`w-full bg-white/70 backdrop-blur-md border rounded-xl px-4.5 py-3 text-xs sm:text-sm text-[#1a1a1a] placeholder:text-[#2a2019]/30 outline-none transition-all focus:ring-4 shadow-sm ${
+                  className={`w-full bg-white/70 backdrop-blur-md border rounded-xl px-4.5 py-3 text-base text-[#1a1a1a] placeholder:text-[#2a2019]/30 outline-none transition-all focus:ring-4 shadow-sm ${
                     errors.name
                       ? 'border-red-400 focus:border-red-400 focus:ring-red-400/5'
                       : 'border-[#2a2019]/10 focus:border-[#FF8A75] focus:ring-[#FF8A75]/5'
@@ -149,7 +149,7 @@ export default function WebinarRegisterPage() {
                   onChange={handleChange}
                   placeholder="e.g. harsimrat@example.com"
                   disabled={isSubmitting}
-                  className={`w-full bg-white/70 backdrop-blur-md border rounded-xl px-4.5 py-3 text-xs sm:text-sm text-[#1a1a1a] placeholder:text-[#2a2019]/30 outline-none transition-all focus:ring-4 shadow-sm ${
+                  className={`w-full bg-white/70 backdrop-blur-md border rounded-xl px-4.5 py-3 text-base text-[#1a1a1a] placeholder:text-[#2a2019]/30 outline-none transition-all focus:ring-4 shadow-sm ${
                     errors.email
                       ? 'border-red-400 focus:border-red-400 focus:ring-red-400/5'
                       : 'border-[#2a2019]/10 focus:border-[#FF8A75] focus:ring-[#FF8A75]/5'
@@ -174,7 +174,7 @@ export default function WebinarRegisterPage() {
                   onChange={handleChange}
                   placeholder="e.g. +91 98765 43210"
                   disabled={isSubmitting}
-                  className={`w-full bg-white/70 backdrop-blur-md border rounded-xl px-4.5 py-3 text-xs sm:text-sm text-[#1a1a1a] placeholder:text-[#2a2019]/30 outline-none transition-all focus:ring-4 shadow-sm ${
+                  className={`w-full bg-white/70 backdrop-blur-md border rounded-xl px-4.5 py-3 text-base text-[#1a1a1a] placeholder:text-[#2a2019]/30 outline-none transition-all focus:ring-4 shadow-sm ${
                     errors.phone
                       ? 'border-red-400 focus:border-red-400 focus:ring-red-400/5'
                       : 'border-[#2a2019]/10 focus:border-[#FF8A75] focus:ring-[#FF8A75]/5'

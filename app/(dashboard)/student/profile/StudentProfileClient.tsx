@@ -278,7 +278,7 @@ export default function StudentProfileClient({
                       placeholder="+91..."
                       value={newPhone}
                       onChange={(e) => setNewPhone(e.target.value)}
-                      className="w-full bg-slate-50 border border-outline-variant/50 rounded-2xl px-4 py-3 text-sm font-medium outline-none focus:border-[#E76F51] transition-colors"
+                      className="w-full bg-slate-50 border border-outline-variant/50 rounded-2xl px-4 py-3 text-base font-medium outline-none focus:border-[#E76F51] transition-colors"
                     />
                     <div className="flex items-center gap-2 mt-2">
                       <button 
@@ -320,7 +320,7 @@ export default function StudentProfileClient({
                         placeholder="SMS Code" 
                         value={phoneOtp}
                         onChange={(e) => setPhoneOtp(e.target.value)}
-                        className="flex-1 bg-slate-50 border border-outline-variant/50 rounded-full px-4 sm:px-5 py-3.5 text-sm font-bold tracking-[0.1em] sm:tracking-[0.2em] text-center outline-none focus:border-[#E76F51] transition-colors"
+                        className="flex-1 bg-slate-50 border border-outline-variant/50 rounded-full px-4 sm:px-5 py-3.5 text-base font-bold tracking-[0.1em] sm:tracking-[0.2em] text-center outline-none focus:border-[#E76F51] transition-colors"
                       />
                       <button 
                         onClick={handleVerifyPhoneOtp}

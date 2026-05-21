@@ -391,7 +391,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewMessage(e.target.value)}
                             onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleSendMessage()}
                             placeholder="Type a message..."
-                            className="w-full h-12 pl-5 pr-12 rounded-xl bg-white border border-outline-variant/10 text-[13px] text-foreground font-medium placeholder:text-foreground/20 focus:ring-2 focus:ring-primary/10 focus:outline-none transition-all shadow-sm group-hover:border-primary/20"
+                            className="w-full h-12 pl-5 pr-12 rounded-xl bg-white border border-outline-variant/10 text-base text-foreground font-medium placeholder:text-foreground/20 focus:ring-2 focus:ring-primary/10 focus:outline-none transition-all shadow-sm group-hover:border-primary/20"
                         />
                         <button onClick={handleSendMessage} className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 w-9 rounded-xl bg-foreground text-background flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
                             <Send className="w-3.5 h-3.5" />

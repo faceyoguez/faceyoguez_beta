@@ -25,7 +25,7 @@ const AuthInput = ({ label, error, isPassword, className, ...props }: AuthInputP
           {...props}
           type={isTypePassword ? (showPassword ? 'text' : 'password') : props.type}
           className={cn(
-            "w-full bg-white/60 sm:bg-white/50 backdrop-blur-sm sm:backdrop-blur-md border border-outline-variant rounded-2xl px-5 py-3.5 sm:py-4 text-sm sm:text-base text-foreground placeholder:text-warm-gray/30 outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/5 shadow-sm",
+            "w-full bg-white/60 sm:bg-white/50 backdrop-blur-sm sm:backdrop-blur-md border border-outline-variant rounded-2xl px-5 py-3.5 sm:py-4 text-base text-foreground placeholder:text-warm-gray/30 outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/5 shadow-sm",
             error && "border-red-400 focus:border-red-400 focus:ring-red-400/5",
             className
           )}

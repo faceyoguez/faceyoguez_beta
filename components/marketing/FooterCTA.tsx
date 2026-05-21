@@ -142,7 +142,7 @@ export function FooterCTA() {
                   type="email" 
                   placeholder="Your Email" 
                   required
-                  className="w-full bg-white/50 border border-black/5 rounded-xl px-4 py-2.5 text-sm font-jakarta focus:outline-none focus:border-pink-300 transition-colors"
+                  className="w-full bg-white/50 border border-black/5 rounded-xl px-4 py-2.5 text-base font-jakarta focus:outline-none focus:border-pink-300 transition-colors"
                 />
                 <button 
                   type="submit"
