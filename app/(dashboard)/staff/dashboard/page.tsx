@@ -59,7 +59,7 @@ export default async function StaffDashboardPage() {
   ];
 
   return (
-    <div className="h-[100dvh] bg-[#FFFAF7] text-[#1a1a1a] font-jakarta overflow-hidden flex flex-col">
+    <div className="h-full min-h-[100dvh] lg:min-h-0 bg-[#FFFAF7] text-[#1a1a1a] font-jakarta overflow-y-auto custom-scrollbar flex flex-col">
       {/* Aura backgrounds */}
       <div className="fixed inset-0 z-0 pointer-events-none" aria-hidden="true">
         <div className="absolute top-[-10%] right-[-10%] w-[60vw] h-[60vh] bg-[#FF8A75]/8 rounded-full blur-[160px]" />

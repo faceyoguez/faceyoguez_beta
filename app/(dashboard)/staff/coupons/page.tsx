@@ -211,8 +211,9 @@ export default function CouponManagement() {
                             <p className="text-sm text-[#6B7280]">Get started by creating your first promotional code.</p>
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left">
+                        <div className="overflow-x-hidden">
+                            {/* Desktop Table View */}
+                            <table className="hidden lg:table w-full text-left">
                                 <thead className="bg-[#FFFAF7] border-b border-[#FF8A75]/10">
                                     <tr>
                                         <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-[#6B7280]">Code</th>
@@ -287,6 +288,61 @@ export default function CouponManagement() {
                                     ))}
                                 </tbody>
                             </table>
+                            {/* Mobile Card View */}
+                            <div className="lg:hidden flex flex-col divide-y divide-[#FF8A75]/10">
+                                {filteredCoupons.map((coupon) => (
+                                    <div key={coupon.id} className="p-4 space-y-3 hover:bg-[#FFFAF7]/30 transition-colors">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-mono font-bold text-sm bg-[#FF8A75]/5 px-3 py-1 rounded-lg text-[#FF8A75]">
+                                                    {coupon.code}
+                                                </span>
+                                                <button 
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(coupon.code);
+                                                        toast.success('Code copied!');
+                                                    }}
+                                                    className="text-[#6B7280] hover:text-[#FF8A75]"
+                                                >
+                                                    <Copy className="w-3 h-3" />
+                                                </button>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <button 
+                                                    onClick={() => toggleCouponStatus(coupon.id, coupon.is_active)}
+                                                    className={`flex items-center justify-center w-8 h-8 rounded-full transition-all ${coupon.is_active ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}
+                                                >
+                                                    {coupon.is_active ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                                                </button>
+                                                <button 
+                                                    onClick={() => deleteCoupon(coupon.id)}
+                                                    className="w-8 h-8 flex items-center justify-center text-[#6B7280] hover:text-rose-500 hover:bg-rose-50 rounded-full transition-colors"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-between text-xs">
+                                            <span className="font-black uppercase tracking-widest px-2 py-1 rounded-full bg-purple-50 text-purple-500">
+                                                {coupon.course_type.replace('_', ' ')}
+                                            </span>
+                                            <span className="font-bold text-[#1a1a1a]">
+                                                {coupon.discount_percentage}% OFF
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-between text-xs text-[#6B7280]">
+                                            <div className="flex items-center gap-1 font-bold text-[#374151]">
+                                                <Tag className="w-3 h-3" /> {coupon.used_count} / {coupon.max_uses || '∞'} uses
+                                            </div>
+                                            {coupon.expires_at && (
+                                                <div className="flex items-center gap-1 font-medium">
+                                                    <Calendar className="w-3 h-3" /> Exp: {format(new Date(coupon.expires_at), 'MMM d, yy')}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>

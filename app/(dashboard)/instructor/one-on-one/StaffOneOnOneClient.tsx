@@ -325,17 +325,17 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground selection:bg-primary/20 overflow-hidden font-jakarta">
+    <div className="flex flex-col h-screen bg-background text-foreground selection:bg-primary/20 overflow-hidden lg:overflow-hidden font-jakarta">
 
       {/* Background decoration */}
       <div className="fixed top-0 right-0 w-[50vw] h-[50vh] bg-primary/2 rounded-full blur-[120px] -z-10" />
 
       {/* Header: Student-style airy title & metrics */}
-      <header className="shrink-0 p-6 lg:p-10 flex items-center justify-between relative z-50">
-        <div className="flex items-center gap-12">
+      <header className="shrink-0 p-4 lg:p-10 flex items-center justify-between relative z-50">
+        <div className="flex items-center gap-4 lg:gap-12">
           <div className="space-y-1">
-            <h1 className="text-4xl font-aktiv font-bold tracking-tight text-foreground">Student Register</h1>
-            <p className="text-[10px] font-aktiv font-bold uppercase tracking-[0.3em] text-foreground/30">Operations Control</p>
+            <h1 className="text-xl lg:text-4xl font-aktiv font-bold tracking-tight text-foreground">Student Register</h1>
+            <p className="text-[8px] lg:text-[10px] font-aktiv font-bold uppercase tracking-[0.3em] text-foreground/30">Operations Control</p>
           </div>
 
           {/* Quick Metrics (Student Hub Style) */}
@@ -387,27 +387,27 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 lg:gap-4">
           <div className="relative group">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/20 group-focus-within:text-primary transition-colors" />
+            <Search className="absolute left-4 lg:left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/20 group-focus-within:text-primary transition-colors" />
             <input
               type="text"
-              placeholder="Search students..."
-              className="h-12 w-64 pl-12 pr-6 rounded-xl bg-white/50 backdrop-blur-xl border border-outline-variant/10 focus:ring-2 focus:ring-primary/10 text-[12px] font-jakarta font-medium placeholder:text-foreground/20 transition-all shadow-sm"
+              placeholder="Search..."
+              className="h-10 lg:h-12 w-40 lg:w-64 pl-10 lg:pl-12 pr-4 lg:pr-6 rounded-xl bg-white/50 backdrop-blur-xl border border-outline-variant/10 focus:ring-2 focus:ring-primary/10 text-[12px] font-jakarta font-medium placeholder:text-foreground/20 transition-all shadow-sm"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <button className="h-12 w-12 rounded-xl bg-white/50 backdrop-blur-xl border border-outline-variant/10 flex items-center justify-center text-foreground/40 hover:text-primary hover:border-primary/20 transition-all shadow-sm">
+          <button className="hidden lg:flex h-12 w-12 rounded-xl bg-white/50 backdrop-blur-xl border border-outline-variant/10 items-center justify-center text-foreground/40 hover:text-primary hover:border-primary/20 transition-all shadow-sm">
             <Filter className="w-5 h-5" />
           </button>
         </div>
       </header>
 
-      <main className="flex-1 flex overflow-hidden p-6 lg:p-10 gap-4 xl:gap-8 min-w-0">
+      <main className="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden p-4 lg:p-10 gap-4 xl:gap-8 min-w-0">
 
         {/* LEFT: Registry List (Student Rail Style) */}
-        <div className="w-72 xl:w-80 flex flex-col gap-6 shrink-0 h-full min-w-0">
+        <div className="hidden lg:flex w-72 xl:w-80 flex-col gap-6 shrink-0 h-full min-w-0">
           {/* New row for filters outside directory card */}
           <div className="flex gap-1 bg-white/40 backdrop-blur-xl p-1 rounded-2xl border border-outline-variant/10 shadow-sm">
             {[
@@ -527,15 +527,73 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
           </div>
         </div>
 
+        {/* MOBILE: Horizontal Student Scroller */}
+        <div className="flex lg:hidden flex-col gap-3 shrink-0">
+          <div className="flex gap-1 bg-white/40 backdrop-blur-xl p-1 rounded-2xl border border-outline-variant/10 shadow-sm">
+            {[
+              { id: 'all', label: 'All', count: students.length },
+              { id: 'trial', label: 'Unsub', count: students.filter((s: StudentInfo) => s.isTrial).length },
+              { id: 'paid', label: 'Paid', count: students.filter((s: StudentInfo) => !s.isTrial).length }
+            ].map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setFilterTrial(f.id as any)}
+                className={cn(
+                  "flex-1 h-9 rounded-xl text-[8px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-1",
+                  filterTrial === f.id
+                    ? "bg-white text-primary shadow-sm border border-outline-variant/10"
+                    : "text-foreground/30 hover:text-primary transition-colors"
+                )}
+              >
+                <span>{f.label}</span>
+                <span className="text-[7px] font-jakarta opacity-40 px-1 py-0.5 bg-foreground/5 rounded-md">{f.count}</span>
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+            {paginatedStudents.map((student) => {
+              const isSelected = selectedStudent?.id === student.id;
+              return (
+                <button
+                  key={student.id}
+                  onClick={() => setSelectedStudent(student)}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2 rounded-xl transition-all shrink-0 border whitespace-nowrap",
+                    isSelected
+                      ? "bg-white border-primary/30 shadow-sm"
+                      : "bg-white/40 border-transparent hover:bg-white/80"
+                  )}
+                >
+                  <div className="relative shrink-0">
+                    {student.avatar_url ? (
+                      <img src={student.avatar_url} alt="" className="w-7 h-7 rounded-lg object-cover" />
+                    ) : (
+                      <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold", "bg-primary/5 text-primary")}>
+                        {student.full_name[0]}
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-left min-w-0">
+                    <p className={cn("text-[10px] font-bold truncate", isSelected ? "text-foreground" : "text-foreground/60")}>{student.full_name}</p>
+                    <p className="text-[7px] font-bold uppercase tracking-widest text-foreground/30">
+                      {student.isTrial ? 'Unsub' : 'Paid'}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* CENTER: Active Unfolding (Journey & Focus) */}
-        <div className="flex-1 flex flex-col gap-8 overflow-hidden min-w-0">
-          <div className="h-full flex flex-col bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm overflow-hidden overflow-y-auto custom-scrollbar">
+        <div className="flex-1 flex flex-col gap-4 lg:gap-8 lg:overflow-hidden min-w-0">
+          <div className="flex flex-col bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm lg:overflow-hidden lg:overflow-y-auto lg:h-full custom-scrollbar">
             {selectedStudent ? (
               <div className="flex flex-col min-h-full">
                 {/* Profile Header (Student Focus Area Style) */}
-                <div className="p-10 border-b border-outline-variant/5 flex items-center justify-between shrink-0 bg-white/20">
-                  <div className="flex items-center gap-8">
-                    <div className="h-20 w-20 rounded-2xl overflow-hidden border border-outline-variant/10 shadow-sm relative group">
+                <div className="p-4 lg:p-10 border-b border-outline-variant/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0 bg-white/20">
+                  <div className="flex items-center gap-4 lg:gap-8">
+                    <div className="h-14 w-14 lg:h-20 lg:w-20 rounded-2xl overflow-hidden border border-outline-variant/10 shadow-sm relative group shrink-0">
                       {selectedStudent.avatar_url ? (
                         <img src={selectedStudent.avatar_url} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                       ) : (
@@ -544,9 +602,9 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                         </div>
                       )}
                     </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3">
-                        <h2 className="text-3xl font-bold text-foreground tracking-tight">
+                    <div className="space-y-2 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 lg:gap-3">
+                        <h2 className="text-xl lg:text-3xl font-bold text-foreground tracking-tight truncate">
                           {selectedStudent.full_name}
                         </h2>
                         {selectedStudent.isTrial && (
@@ -555,7 +613,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                           </span>
                         )}
                         <button
-                          onClick={() => setShowAssignModal(true)}
+                          onClick={() => setShowAssignModal(true)} 
                           className="h-8 px-4 rounded-lg bg-primary/5 border border-primary/10 text-[9px] font-aktiv font-bold uppercase tracking-widest hover:bg-primary hover:text-white hover:scale-[1.02] transition-all flex items-center gap-2 shadow-sm"
                         >
                           <UserPlus className="w-3.5 h-3.5" />
@@ -585,7 +643,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                 </div>
 
                 {/* Journey & Transformation Focus */}
-                <div className="p-10 space-y-12">
+                <div className="p-4 lg:p-10 space-y-8 lg:space-y-12">
 
                   {/* Image Comparison / Visual Log */}
                   <div className="grid grid-cols-1 gap-10">
@@ -640,7 +698,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
 
                     <div className="space-y-6">
                       <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Daily Log</h3>
-                      <div className="bg-white/40 backdrop-blur-md rounded-[2.5rem] p-8 border border-outline-variant/5 min-h-[300px] flex flex-col">
+                      <div className="bg-white/40 backdrop-blur-md rounded-2xl lg:rounded-[2.5rem] p-4 lg:p-8 border border-outline-variant/5 min-h-[200px] lg:min-h-[300px] flex flex-col">
                         {activeLog ? (
                           <div className="flex-1 flex flex-col">
                             <div className="flex items-center justify-between mb-6">
@@ -667,7 +725,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                     </div>
                   </div>
 
-                    <div className="bg-white/40 backdrop-blur-md p-8 rounded-[2.5rem] border border-outline-variant/10 shadow-lg flex flex-col -mt-6">
+                    <div className="bg-white/40 backdrop-blur-md p-4 lg:p-8 rounded-2xl lg:rounded-[2.5rem] border border-outline-variant/10 shadow-lg flex flex-col -mt-4 lg:-mt-6">
                       <div className="flex items-center justify-between mb-8 shrink-0">
                         <div className="flex items-center gap-4">
                           <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Shared Documents</h3>
@@ -741,7 +799,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
         </div>
 
         {/* RIGHT: Communion & Artifacts (Instructor Pattern) */}
-        <div className="w-72 xl:w-96 flex flex-col gap-8 shrink-0 h-full min-w-0">
+        <div className="w-full lg:w-72 xl:w-96 flex flex-col gap-4 lg:gap-8 shrink-0 lg:h-full min-w-0">
 
           {/* Interaction Box (ChatWindow) */}
           <div className="flex-1 bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col overflow-hidden">

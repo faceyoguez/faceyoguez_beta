@@ -20,7 +20,7 @@ export default async function StaffLMSPage() {
   if (!profile || !ALLOWED_ROLES.includes(profile.role)) redirect('/auth/login');
 
   return (
-    <div className="min-h-screen bg-background p-6 lg:p-12 space-y-12 font-sans overflow-hidden animate-in fade-in duration-1000">
+    <div className="min-h-screen bg-background p-6 lg:p-12 space-y-12 font-sans animate-in fade-in duration-1000">
       
       {/* Header Section */}
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">

@@ -18,7 +18,7 @@ export function InstructorChatClient({ currentUser }: Props) {
   };
 
   return (
-    <div className="flex h-[calc(100vh-2rem)] bg-background/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 overflow-hidden shadow-sm animate-in fade-in duration-700">
+    <div className="flex h-[calc(100dvh-2rem)] bg-background/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 overflow-hidden shadow-sm animate-in fade-in duration-700">
       <ChatSidebar
         currentUser={currentUser}
         type="direct"

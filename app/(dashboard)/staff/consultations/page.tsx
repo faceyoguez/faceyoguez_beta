@@ -156,9 +156,9 @@ export default function StaffConsultationsPage() {
   const tabCount = consultations.length;
 
   return (
-    <div className="h-full flex overflow-hidden">
+    <div className="h-full flex flex-col lg:flex-row overflow-hidden relative">
       {/* Sidebar list */}
-      <div className="w-80 flex-shrink-0 border-r border-slate-100 flex flex-col">
+      <div className={`lg:w-80 flex-shrink-0 lg:border-r border-slate-100 flex flex-col ${selected ? 'hidden lg:flex' : 'flex w-full flex-1'}`}>
         <div className="p-5 border-b border-slate-100">
           <h1 className="text-lg font-bold text-slate-900">Consultation Queue</h1>
           <div className="flex gap-1 mt-3">
@@ -205,14 +205,20 @@ export default function StaffConsultationsPage() {
 
       {/* Main panel */}
       {!selected ? (
-        <div className="flex-1 flex items-center justify-center text-slate-400">
+        <div className="hidden lg:flex flex-1 items-center justify-center text-slate-400">
           <div className="text-center">
             <MessageCircle className="w-10 h-10 mx-auto mb-3 opacity-30" />
             <p className="text-sm">Select a consultation to view</p>
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col">
+        <div className={`flex-1 flex flex-col ${!selected ? 'hidden lg:flex' : 'flex'}`}>
+          {/* Mobile Back Button */}
+          <div className="lg:hidden p-3 border-b border-slate-100 flex items-center bg-slate-50">
+            <button onClick={() => setSelected(null)} className="flex items-center gap-1 text-slate-600 font-bold text-sm hover:text-slate-900 transition-colors">
+              <ChevronLeft className="w-5 h-5" /> Back to Queue
+            </button>
+          </div>
           {/* Consultation header */}
           <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-white">
             <div className="flex items-center gap-3">

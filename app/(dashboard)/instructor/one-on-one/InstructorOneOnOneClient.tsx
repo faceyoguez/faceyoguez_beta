@@ -152,67 +152,111 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
   const day1Log   = journeyLogs.find((l: JourneyLog) => l.day_number === 1);
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-[#FFFAF7] text-[#1a1a1a] selection:bg-[#FF8A75]/10 overflow-hidden font-jakarta relative">
+    <div className="flex flex-col h-full lg:h-[100dvh] bg-[#FFFAF7] text-[#1a1a1a] selection:bg-[#FF8A75]/10 overflow-hidden font-jakarta relative">
       <div className="fixed inset-0 z-0 pointer-events-none">
          <div className="absolute top-[-10%] right-[-10%] w-[60vw] h-[60vh] bg-[radial-gradient(circle_at_center,rgba(255,138,117,0.08)_0%,transparent_60%)] rounded-full blur-[100px] animate-pulse" style={{ animationDuration: '8s' }} />
          <div className="absolute bottom-[-10%] left-[-10%] w-[50vw] h-[50vh] bg-[radial-gradient(circle_at_center,rgba(255,107,78,0.05)_0%,transparent_60%)] rounded-full blur-[100px] animate-pulse" style={{ animationDuration: '12s', animationDelay: '2s' }} />
       </div>
 
       <div className="relative z-10 flex flex-col h-full overflow-hidden">
-         {/* HEADER */}
-         <header className="shrink-0 h-16 px-6 lg:px-10 flex items-center justify-between border-b border-[#FF8A75]/5 bg-white/40 backdrop-blur-3xl">
-            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-4 lg:gap-12">
-               <button 
-                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                  className="lg:hidden p-2 hover:bg-black/5 rounded-xl transition-colors"
-               >
-                  <Menu className="w-6 h-6" />
-               </button>
-               <div className="flex items-center gap-4 lg:gap-6">
-                  <div className="h-8 lg:h-10 w-[3px] bg-[#FF8A75] rounded-full shadow-[0_0_12px_#FF8A75]/50" />
+         {/* HEADER (Desktop Only) */}
+         <header className="hidden lg:flex shrink-0 h-16 px-10 items-center justify-between border-b border-[#FF8A75]/5 bg-white/40 backdrop-blur-3xl">
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-12">
+               <div className="flex items-center gap-6">
+                  <div className="h-10 w-[3px] bg-[#FF8A75] rounded-full shadow-[0_0_12px_#FF8A75]/50" />
                   <div>
                      <div className="flex items-center gap-2">
-                       <h1 className="text-lg lg:text-xl font-aktiv font-bold text-slate-900 tracking-tight leading-none">Instructor Portal</h1>
+                       <h1 className="text-xl font-aktiv font-bold text-slate-900 tracking-tight leading-none">Instructor Portal</h1>
                        <span className="px-2 py-0.5 bg-[#FF8A75]/10 border border-[#FF8A75]/20 rounded-full text-[7px] font-black uppercase tracking-widest text-[#FF8A75]">Lead</span>
                      </div>
-                     <p className="hidden sm:block text-[7px] lg:text-[8px] font-black uppercase tracking-[0.4em] text-slate-400 mt-1 opacity-80 text-nowrap">Centralized Management Hub</p>
+                     <p className="text-[8px] font-black uppercase tracking-[0.4em] text-slate-400 mt-1 opacity-80 text-nowrap">Centralized Management Hub</p>
                   </div>
                </div>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-4 lg:gap-6 flex-1 justify-end">
-               <div className="relative group hidden sm:block w-48 lg:w-72">
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-6 flex-1 justify-end">
+               <div className="relative group w-72">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-[#FF8A75] transition-colors" />
                   <input
                      type="text"
                      placeholder="Student Search..."
-                     className="h-9 lg:h-10 w-full pl-10 pr-4 rounded-xl bg-white/60 backdrop-blur-xl border border-[#FF8A75]/10 text-[10px] font-bold text-slate-700 placeholder:text-slate-300 focus:bg-white focus:ring-4 focus:ring-[#FF8A75]/5 outline-none transition-all shadow-sm"
+                     className="h-10 w-full pl-10 pr-4 rounded-xl bg-white/60 backdrop-blur-xl border border-[#FF8A75]/10 text-[10px] font-bold text-slate-700 placeholder:text-slate-300 focus:bg-white focus:ring-4 focus:ring-[#FF8A75]/5 outline-none transition-all shadow-sm"
                      value={searchQuery}
                      onChange={(e) => setSearchQuery(e.target.value)}
                   />
                </div>
                 <button 
                    onClick={() => setShowScheduleModal(true)}
-                   className="h-9 lg:h-10 px-4 rounded-xl bg-slate-900 text-white flex items-center gap-2 hover:bg-[#FF8A75] hover:shadow-lg hover:shadow-[#FF8A75]/20 transition-all group whitespace-nowrap"
+                   className="h-10 px-4 rounded-xl bg-slate-900 text-white flex items-center gap-2 hover:bg-[#FF8A75] hover:shadow-lg hover:shadow-[#FF8A75]/20 transition-all group whitespace-nowrap"
                 >
                    <Calendar className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-                   <span className="text-[8px] font-black uppercase tracking-[0.2em] leading-none hidden lg:block">Schedule</span>
+                   <span className="text-[8px] font-black uppercase tracking-[0.2em] leading-none">Schedule</span>
                 </button>
             </motion.div>
          </header>
 
-         {/* SIDEBAR */}
-          <nav className={cn(
-            "fixed inset-y-0 left-0 z-[60] w-72 bg-white/95 backdrop-blur-2xl border-r border-[#FF8A75]/5 transform transition-transform duration-500 lg:static lg:w-full lg:h-16 lg:bg-white/10 lg:backdrop-blur-md lg:border-b lg:border-white/40 lg:translate-x-0 flex flex-col lg:flex-row items-stretch lg:items-center px-6 lg:px-10",
-            isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-         )}>
-            <div className="flex lg:hidden items-center justify-between py-8 px-2 border-b border-[#FF8A75]/10 mb-4">
-               <span className="text-xl font-aktiv font-bold tracking-tight">Student Portal</span>
-               <button onClick={() => setIsSidebarOpen(false)}><X className="w-6 h-6 text-slate-400" /></button>
+         {/* MOBILE HEADER & NAV */}
+         <div className="flex lg:hidden flex-col border-b border-[#FF8A75]/10 bg-white/80 backdrop-blur-md pt-4 pb-2 px-4 shrink-0">
+            <div className="flex items-center justify-between mb-3">
+               <div>
+                  <h1 className="text-lg font-aktiv font-bold text-slate-900 tracking-tight leading-none">Instructor Portal</h1>
+                  <p className="text-[7px] font-black uppercase tracking-[0.4em] text-slate-400 mt-1">Lead Hub</p>
+               </div>
+                <button 
+                   onClick={() => setShowScheduleModal(true)}
+                   className="h-8 px-3 rounded-lg bg-slate-900 text-white flex items-center gap-1.5"
+                >
+                   <Calendar className="w-3 h-3" />
+                   <span className="text-[8px] font-black uppercase tracking-widest">Schedule</span>
+                </button>
             </div>
-            
-            <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="hidden lg:block text-[8px] font-black uppercase tracking-[0.4em] text-slate-400 shrink-0 mr-6">Students</motion.span>
-            <div className="flex-1 flex flex-col lg:flex-row items-stretch lg:items-center gap-3 overflow-y-auto lg:overflow-x-auto no-scrollbar py-2" ref={compassScrollRef}>
+            {/* Horizontal scrolling students list */}
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 pt-1" ref={compassScrollRef}>
+               {filteredStudents.map((student: StudentInfo) => {
+                  const isSelected = selectedStudent?.id === student.id;
+                  const currentDay = student.startDate && isMounted ? Math.max(1, Math.floor((Date.now() - new Date(student.startDate).getTime()) / 86400000) + 1) : 1;
+                  return (
+                     <button
+                        key={student.id}
+                        onClick={() => setSelectedStudent(student)}
+                        className={cn(
+                           "flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all shrink-0 border whitespace-nowrap relative overflow-hidden",
+                           isSelected 
+                              ? "bg-white border-[#FF8A75] shadow-sm shadow-[#FF8A75]/10" 
+                              : "bg-white/40 border-transparent hover:bg-white/80"
+                        )}
+                     >
+                         <div className={cn(
+                           "h-7 w-7 rounded-lg overflow-hidden flex items-center justify-center shrink-0 border border-white transition-all",
+                           isSelected ? "bg-[#FF8A75]/10" : "bg-slate-100"
+                         )}>
+                           {student.avatar_url ? (
+                              <img src={student.avatar_url} className="h-full w-full object-cover" />
+                           ) : (
+                              <span className={cn("text-xs font-aktiv font-bold", isSelected ? "text-[#FF8A75]" : "text-slate-400")}>{student.full_name[0]}</span>
+                           )}
+                        </div>
+                         <div className="text-left flex-1 min-w-0 pr-1">
+                            <p className={cn("text-[10px] font-bold tracking-tight capitalize truncate", isSelected ? "text-slate-900" : "text-slate-600")}>
+                               {student.full_name}
+                            </p>
+                            <p className={cn(
+                              "text-[7px] font-black uppercase tracking-widest mt-0.5",
+                              isSelected ? "text-[#FF8A75]" : "text-slate-400"
+                            )}>
+                               Day {currentDay}
+                            </p>
+                        </div>
+                     </button>
+                  );
+               })}
+            </div>
+         </div>
+
+         {/* DESKTOP NAV (SIDEBAR/TOPBAR) */}
+          <nav className="hidden lg:flex w-full h-16 bg-white/10 backdrop-blur-md border-b border-white/40 flex-row items-center px-10">
+            <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-[8px] font-black uppercase tracking-[0.4em] text-slate-400 shrink-0 mr-6">Students</motion.span>
+            <div className="flex-1 flex flex-row items-center gap-3 overflow-x-auto no-scrollbar py-2">
                {filteredStudents.map((student: StudentInfo, idx: number) => {
                   const isSelected = selectedStudent?.id === student.id;
                   const currentDay = student.startDate && isMounted ? Math.max(1, Math.floor((Date.now() - new Date(student.startDate).getTime()) / 86400000) + 1) : 1;
@@ -224,15 +268,15 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                         key={student.id}
                         onClick={() => setSelectedStudent(student)}
                         className={cn(
-                           "flex items-center gap-2 lg:gap-3 px-3 py-2 rounded-xl transition-all shrink-0 border whitespace-nowrap group relative overflow-hidden",
+                           "flex items-center gap-3 px-3 py-2 rounded-xl transition-all shrink-0 border whitespace-nowrap group relative overflow-hidden",
                            isSelected 
-                              ? "bg-white border-[#FF8A75] shadow-lg shadow-[#FF8A75]/5 lg:w-56" 
-                              : "bg-white/40 border-transparent hover:bg-white/80 hover:border-[#FF8A75]/10 lg:w-48"
+                              ? "bg-white border-[#FF8A75] shadow-lg shadow-[#FF8A75]/5 w-56" 
+                              : "bg-white/40 border-transparent hover:bg-white/80 hover:border-[#FF8A75]/10 w-48"
                         )}
                      >
-                         {isSelected && <motion.div layoutId="activeStudentHighlight" className="absolute left-0 top-0 bottom-0 w-0.5 bg-[#FF8A75]" />}
+                         {isSelected && <motion.div layoutId="activeStudentHighlightDesktop" className="absolute left-0 top-0 bottom-0 w-0.5 bg-[#FF8A75]" />}
                          <div className={cn(
-                           "h-8 w-8 lg:h-9 lg:w-9 rounded-lg overflow-hidden shadow-inner flex items-center justify-center shrink-0 border border-white transition-all",
+                           "h-9 w-9 rounded-lg overflow-hidden shadow-inner flex items-center justify-center shrink-0 border border-white transition-all",
                            isSelected ? "bg-[#FF8A75]/10" : "bg-slate-100"
                          )}>
                            {student.avatar_url ? (
@@ -242,11 +286,11 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                            )}
                         </div>
                          <div className="text-left flex-1 min-w-0">
-                            <p className={cn("text-[10px] lg:text-[11px] font-bold tracking-tight capitalize truncate", isSelected ? "text-slate-900" : "text-slate-600 group-hover:text-slate-800")}>
+                            <p className={cn("text-[11px] font-bold tracking-tight capitalize truncate", isSelected ? "text-slate-900" : "text-slate-600 group-hover:text-slate-800")}>
                                {student.full_name}
                             </p>
                             <p className={cn(
-                              "text-[7px] lg:text-[8px] font-black uppercase tracking-widest mt-0.5",
+                              "text-[8px] font-black uppercase tracking-widest mt-0.5",
                               isSelected ? "text-[#FF8A75]" : "text-slate-400"
                             )}>
                                Day {currentDay} Progress
@@ -258,14 +302,14 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
             </div>
          </nav>
 
-         <main className="flex-1 flex flex-col lg:flex-row overflow-hidden isolate relative">
+         <main className="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden isolate relative">
             {/* MAIN JOURNEY AREA */}
             <motion.div 
                initial={{ opacity: 0, y: 20 }}
                animate={{ opacity: 1, y: 0 }}
                transition={{ delay: 0.1 }}
                 className={cn(
-                   "flex-1 flex flex-col overflow-y-auto custom-scrollbar p-6 lg:p-8 gap-6 transition-all relative z-10",
+                   "flex-none lg:flex-1 flex flex-col lg:overflow-y-auto custom-scrollbar p-4 lg:p-8 gap-6 transition-all relative z-10",
                    "lg:max-w-[65%]"
                 )}
              >
@@ -411,7 +455,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                initial={{ opacity: 0, x: 20 }}
                animate={{ opacity: 1, x: 0 }}
                transition={{ delay: 0.2 }}
-               className="hidden lg:flex lg:flex-[0.35] flex-col overflow-hidden p-6 lg:p-8 shrink-0 gap-6 bg-white/30 backdrop-blur-3xl border-l border-[#FF8A75]/10 relative z-20"
+               className="flex flex-col h-[600px] lg:h-auto lg:flex-[0.35] lg:overflow-hidden p-4 lg:p-8 shrink-0 gap-6 bg-white/30 backdrop-blur-3xl lg:border-l border-t lg:border-t-0 border-[#FF8A75]/10 relative z-20"
             >
                {/* Sync Portal */}
                <div className="flex-1 bg-black border border-white/5 rounded-2xl lg:rounded-3xl p-5 lg:p-6 flex flex-col relative shadow-2xl shadow-black/40 h-full min-h-[500px]">
@@ -462,83 +506,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
          </main>
       </div>
 
-      {/* MOBILE FAB FOR CHAT */}
-      <button 
-         onClick={() => setIsMobileChatOpen(true)}
-         className="lg:hidden fixed bottom-6 right-6 h-16 w-16 rounded-[2rem] bg-black text-[#FF8A75] flex items-center justify-center shadow-2xl z-40 border border-white/10 hover:scale-105 transition-transform"
-      >
-         <MessageSquare className="w-6 h-6" />
-         {selectedStudent?.conversationId && (
-            <span className="absolute -top-1 -right-1 flex h-4 w-4">
-               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-               <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 border-2 border-black"></span>
-            </span>
-         )}
-      </button>
 
-      {/* MOBILE CHAT OVERLAY */}
-      <AnimatePresence>
-         {isMobileChatOpen && (
-            <>
-               <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90] lg:hidden"
-                  onClick={() => setIsMobileChatOpen(false)}
-               />
-               <motion.div 
-                  initial={{ y: "100%" }}
-                  animate={{ y: 0 }}
-                  exit={{ y: "100%" }}
-                  transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                  className="fixed inset-x-0 bottom-0 top-[10%] z-[100] bg-black flex flex-col lg:hidden rounded-t-[2rem] border-t border-white/10 shadow-2xl overflow-hidden"
-               >
-                  <div className="flex items-center justify-between p-6 border-b border-white/10 shrink-0">
-                     <div className="space-y-1">
-                        <h3 className="text-xl font-aktiv font-bold text-white tracking-tight flex items-center gap-3">
-                           Portal <span className="flex h-2 w-2 relative rounded-full bg-emerald-500"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span></span>
-                        </h3>
-                        <p className="text-[8px] font-black uppercase tracking-[0.3em] text-[#FF8A75] opacity-80">Direct Encrypted Channel</p>
-                     </div>
-                     <button onClick={() => setIsMobileChatOpen(false)} className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 hover:scale-110 active:scale-95 transition-all shadow-lg border border-white/10">
-                        <X className="w-5 h-5" />
-                     </button>
-                  </div>
-               
-               <div className="flex-1 overflow-hidden relative">
-                  {selectedStudent && selectedStudent.conversationId ? (
-                     <ChatWindow
-                        conversationId={selectedStudent.conversationId}
-                        currentUser={currentUser}
-                        conversationType="direct"
-                        title={selectedStudent.full_name}
-                        otherParticipant={{ id: selectedStudent.id, full_name: selectedStudent.full_name, avatar_url: selectedStudent.avatar_url, email: selectedStudent.email } as Profile}
-                        className="h-full bg-transparent"
-                        hideHeader={true}
-                        isMultiParty={true}
-                        dark={true}
-                     />
-                  ) : (
-                     <div className="h-full flex flex-col items-center justify-center p-6 text-center">
-                        <div className="h-16 w-16 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center text-[#FF8A75] mb-6 relative group overflow-hidden">
-                           <Zap className="w-6 h-6 relative z-10" />
-                        </div>
-                        <h4 className="text-sm font-bold text-white mb-2">Portal Dormant</h4>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-6 max-w-[200px] leading-relaxed">Awaken the connection to begin direct synchronization.</p>
-                        <button
-                           onClick={handleStartChat}
-                           className="px-8 py-4 rounded-2xl bg-[#FF8A75] text-[#1a1a1a] text-[9px] font-black uppercase tracking-widest"
-                        >
-                           Initialize Connection
-                        </button>
-                     </div>
-                  )}
-               </div>
-            </motion.div>
-            </>
-         )}
-      </AnimatePresence>
 
       <AnimatePresence>
         {showScheduleModal && (

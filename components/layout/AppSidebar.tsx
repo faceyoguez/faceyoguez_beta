@@ -189,7 +189,10 @@ export function AppSidebar({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              onClick={() => setMobileMenuOpen(false)}
+              onPointerDown={(e) => {
+                e.preventDefault();
+                setMobileMenuOpen(false);
+              }}
               className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-[80] lg:hidden"
             />
           )}

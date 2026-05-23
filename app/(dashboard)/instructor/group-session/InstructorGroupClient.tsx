@@ -180,11 +180,31 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
     };
 
     return (
-        <div className="flex-1 overflow-hidden p-4 h-[calc(100vh-64px)] relative z-0 font-jakarta">
+        <div className="flex-1 overflow-y-auto lg:overflow-hidden p-4 h-full min-h-[calc(100dvh-64px)] relative z-0 font-jakarta custom-scrollbar">
+            {/* Mobile Top Bar */}
+            <div className="flex lg:hidden flex-col gap-3 mb-4">
+                <div className="flex items-center justify-between bg-white/80 backdrop-blur-xl border border-white/60 p-4 rounded-2xl shadow-sm">
+                    <div>
+                        <div className="flex items-center gap-2 mb-1">
+                            <Award className="h-4 w-4 text-pink-500" />
+                            <span className="text-[10px] font-aktiv font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded-full border border-green-100">Live Batch</span>
+                        </div>
+                        <h4 className="text-sm font-aktiv font-bold text-gray-900">{activeBatch ? activeBatch.name : 'No Active Batch'}</h4>
+                    </div>
+                    <button
+                        onClick={() => setIsCreateBatchModalOpen(true)}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white bg-pink-600 shadow-md hover:bg-pink-700 transition-all"
+                    >
+                        <Plus className="h-4 w-4" />
+                        <span className="text-xs font-aktiv font-bold">New Batch</span>
+                    </button>
+                </div>
+            </div>
+
             <div className="grid grid-cols-12 gap-4 h-full max-w-[1800px] mx-auto">
 
-                {/* Left Sidebar Management */}
-                <div className="col-span-12 lg:col-span-2 flex flex-col gap-4 h-full">
+                {/* Left Sidebar Management (Desktop Only) */}
+                <div className="hidden lg:flex lg:col-span-2 flex-col gap-4 h-full">
                     <nav className="rounded-xl border border-white/60 bg-white/65 p-3 shadow-sm backdrop-blur-xl flex flex-col gap-1 h-full font-jakarta">
                         <p className="text-[10px] uppercase tracking-wider text-gray-500 font-aktiv font-bold px-3 py-2 mb-1 opacity-70">Management</p>
 
@@ -236,7 +256,7 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                 </div>
 
                 {/* Center Content */}
-                <div className={`col-span-12 lg:col-span-7 flex flex-col gap-4 h-full overflow-hidden transition-all ${isCreateBatchModalOpen || showScheduleModal ? 'opacity-50 blur-[2px] pointer-events-none' : ''}`}>
+                <div className={`col-span-12 lg:col-span-7 flex flex-col gap-4 lg:h-full lg:overflow-hidden transition-all ${isCreateBatchModalOpen || showScheduleModal ? 'opacity-50 blur-[2px] pointer-events-none' : ''}`}>
 
                     {/* Active Session Hero */}
                     <div className="relative w-full rounded-xl overflow-hidden shadow-lg group h-48 shrink-0 border border-white/20">
@@ -374,7 +394,7 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                         </div>
                     </div>
 
-                    <div className="flex-1 rounded-xl border border-white/60 bg-white/65 shadow-sm backdrop-blur-xl flex flex-col overflow-hidden">
+                    <div className="flex-1 min-h-[300px] lg:min-h-0 rounded-xl border border-white/60 bg-white/65 shadow-sm backdrop-blur-xl flex flex-col overflow-hidden">
                         <div className="flex items-center justify-between p-3 border-b border-pink-100/50">
                             <h3 className="font-aktiv font-bold text-sm text-gray-900 flex items-center gap-2">
                                 <PlayCircle className="h-4 w-4 text-pink-500" />
@@ -413,7 +433,7 @@ export function InstructorGroupClient({ currentUser, initialBatches }: Props) {
                 </div>
 
                 {/* Right Sidebar Chat */}
-                <div className={`col-span-12 lg:col-span-3 h-full overflow-hidden transition-all ${isCreateBatchModalOpen || showScheduleModal ? 'opacity-50 blur-[2px] pointer-events-none' : ''}`}>
+                <div className={`col-span-12 lg:col-span-3 h-[500px] lg:h-full overflow-hidden transition-all ${isCreateBatchModalOpen || showScheduleModal ? 'opacity-50 blur-[2px] pointer-events-none' : ''}`}>
                     <div className="rounded-xl border border-white/60 bg-white/65 shadow-sm backdrop-blur-xl h-full flex flex-col">
                         <div className="p-3 border-b border-pink-100/50 flex justify-between items-center">
                             <div>

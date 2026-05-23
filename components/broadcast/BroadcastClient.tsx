@@ -105,17 +105,17 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
     };
 
     return (
-        <div className="h-screen bg-background flex flex-col overflow-hidden font-sans selection:bg-primary/20 selection:text-primary">
+        <div className="min-h-screen lg:h-screen bg-background flex flex-col lg:overflow-hidden font-sans selection:bg-primary/20 selection:text-primary">
 
             {/* 1. COMPACT HEADER */}
-            <header className="flex items-center justify-between px-8 py-4 border-b border-primary/5 bg-white/40 backdrop-blur-3xl shrink-0 z-20">
-                <div className="flex items-center gap-6">
-                    <div className="h-12 w-12 rounded-[1.25rem] bg-foreground text-background flex items-center justify-center shadow-sm">
-                        <Radio className="h-6 w-6" />
+            <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 lg:px-8 py-4 border-b border-primary/5 bg-white/40 backdrop-blur-3xl shrink-0 z-20 gap-3">
+                <div className="flex items-center gap-3 lg:gap-6">
+                    <div className="h-10 w-10 lg:h-12 lg:w-12 rounded-[1.25rem] bg-foreground text-background flex items-center justify-center shadow-sm shrink-0">
+                        <Radio className="h-5 w-5 lg:h-6 lg:w-6" />
                     </div>
                     <div>
-                        <div className="flex items-center gap-3">
-                            <h1 className="text-2xl font-bold text-foreground tracking-tight">
+                        <div className="flex flex-wrap items-center gap-2 lg:gap-3">
+                            <h1 className="text-lg lg:text-2xl font-bold text-foreground tracking-tight">
                                 {title}
                             </h1>
                             <span className="px-3 py-0.5 rounded-full bg-primary/10 text-primary text-[9px] font-black uppercase tracking-widest border border-primary/20">
@@ -128,7 +128,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="hidden sm:flex items-center gap-4">
                     <div className="flex items-center gap-3 px-4 py-2 bg-foreground/5 rounded-2xl border border-foreground/5">
                         <div className="h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
                         <span className="text-[10px] font-bold text-foreground/60 uppercase tracking-widest">
@@ -142,10 +142,10 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
             </header>
 
             {/* 2. MAIN CONTENT AREA (TRI-PANEL) */}
-            <main className="flex-1 flex overflow-hidden p-6 gap-6 relative z-10">
+            <main className="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden p-4 lg:p-6 gap-4 lg:gap-6 relative z-10">
 
                 {/* PANEL 1: TARGETING & ASSETS (Left - Narrow) */}
-                <div className="w-[300px] flex flex-col gap-6 shrink-0 overflow-y-auto pr-2 custom-scrollbar">
+                <div className="w-full lg:w-[300px] flex flex-col gap-4 lg:gap-6 shrink-0 lg:overflow-y-auto pr-0 lg:pr-2 custom-scrollbar">
 
                     {/* Audience Section */}
                     <div className="p-6 rounded-3xl bg-white/60 border border-primary/5 shadow-sm space-y-6">
@@ -233,19 +233,19 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                 </div>
 
                 {/* PANEL 2: COMPOSER (Center - Wide) */}
-                <div className="flex-1 flex flex-col gap-6">
-                    <div className="flex-1 rounded-[2.5rem] bg-white border border-primary/5 overflow-hidden flex flex-col relative group">
+                <div className="flex-1 flex flex-col gap-4 lg:gap-6 min-w-0">
+                    <div className="flex-1 min-h-[400px] lg:min-h-0 rounded-2xl lg:rounded-[2.5rem] bg-white border border-primary/5 overflow-hidden flex flex-col relative group">
 
                         {/* Interactive Background Gradient */}
                         <div className="absolute inset-0 bg-gradient-to-tr from-primary/[0.02] to-transparent pointer-events-none" />
 
-                        <div className="px-10 py-8 border-b border-primary/5 flex items-center justify-between bg-white relative z-10 shrink-0">
-                            <div className="flex items-center gap-4">
-                                <div className="h-14 w-14 rounded-2xl bg-primary text-background flex items-center justify-center">
-                                    <Zap className="h-7 w-7" />
+                        <div className="px-4 lg:px-10 py-4 lg:py-8 border-b border-primary/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white relative z-10 shrink-0">
+                            <div className="flex items-center gap-3 lg:gap-4">
+                                <div className="h-10 w-10 lg:h-14 lg:w-14 rounded-xl lg:rounded-2xl bg-primary text-background flex items-center justify-center shrink-0">
+                                    <Zap className="h-5 w-5 lg:h-7 lg:w-7" />
                                 </div>
                                 <div>
-                                    <h2 className="text-2xl font-bold text-foreground">Compose Message</h2>
+                                    <h2 className="text-lg lg:text-2xl font-bold text-foreground">Compose Message</h2>
                                     <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-primary">Channeling to {targetAudience.replace('_', ' ')}</p>
                                 </div>
                             </div>
@@ -255,14 +255,14 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                             </div>
                         </div>
 
-                        <div className="flex-1 p-10 flex flex-col gap-8 relative z-10 overflow-hidden">
+                        <div className="flex-1 p-4 lg:p-10 flex flex-col gap-4 lg:gap-8 relative z-10 overflow-hidden">
                             <div className="shrink-0">
                                 <input
                                     type="text"
                                     value={broadcastTitle}
                                     onChange={(e) => setBroadcastTitle(e.target.value)}
                                     placeholder="Enter Broadcast Title..."
-                                    className="w-full text-4xl font-bold text-foreground placeholder:text-foreground/5 bg-transparent outline-none tracking-tight border-b-2 border-transparent focus:border-primary/10 pb-4 transition-all"
+                                    className="w-full text-xl lg:text-4xl font-bold text-foreground placeholder:text-foreground/5 bg-transparent outline-none tracking-tight border-b-2 border-transparent focus:border-primary/10 pb-2 lg:pb-4 transition-all"
                                 />
                             </div>
 
@@ -271,7 +271,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                                     value={content}
                                     onChange={(e) => setContent(e.target.value)}
                                     placeholder="Type your message here..."
-                                    className="w-full h-full resize-none text-xl font-medium text-foreground/70 placeholder:text-foreground/5 bg-transparent outline-none leading-relaxed custom-scrollbar"
+                                    className="w-full h-full resize-none text-base lg:text-xl font-medium text-foreground/70 placeholder:text-foreground/5 bg-transparent outline-none leading-relaxed custom-scrollbar min-h-[120px]"
                                 />
                             </div>
 
@@ -295,8 +295,8 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                             )}
                         </div>
 
-                        <div className="px-10 py-10 bg-foreground shrink-0 flex items-center justify-between group/footer">
-                            <div className="flex items-center gap-4">
+                        <div className="px-4 lg:px-10 py-6 lg:py-10 bg-foreground shrink-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group/footer">
+                            <div className="flex items-center gap-4 flex-wrap">
                                 <label className="flex items-center gap-3 cursor-pointer group">
                                     <div className="relative">
                                         <input 
@@ -321,12 +321,12 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                                 </label>
                                 <div className="h-4 w-[1px] bg-background/10 mx-2" />
                                 <Sparkles className="h-5 w-5 text-background/20" />
-                                <p className="text-[10px] font-medium text-background/30 tracking-widest uppercase">Broadcast will be archived in student notifications.</p>
+                                <p className="hidden lg:block text-[10px] font-medium text-background/30 tracking-widest uppercase">Broadcast will be archived in student notifications.</p>
                             </div>
                             <button
                                 onClick={handleSendBroadcast}
                                 disabled={sending || !broadcastTitle.trim() || !content.trim()}
-                                className="h-16 px-12 rounded-full bg-primary text-background flex items-center gap-4 transition-all hover:brightness-110 active:scale-95 disabled:opacity-20 relative overflow-hidden"
+                                className="h-12 lg:h-16 px-8 lg:px-12 rounded-full bg-primary text-background flex items-center gap-3 lg:gap-4 transition-all hover:brightness-110 active:scale-95 disabled:opacity-20 relative overflow-hidden w-full sm:w-auto justify-center"
                             >
                                 <span className="relative z-10 text-[11px] font-black uppercase tracking-[0.3em]">
                                     {sending ? 'Sending...' : 'Send Broadcast'}
@@ -338,8 +338,8 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                 </div>
 
                 {/* PANEL 3: HISTORY (Right - Narrow) */}
-                <div className="w-[340px] flex flex-col gap-6 shrink-0 overflow-hidden">
-                    <div className="flex-1 rounded-3xl bg-white/60 border border-primary/5 shadow-sm flex flex-col overflow-hidden relative">
+                <div className="w-full lg:w-[340px] flex flex-col gap-6 shrink-0 lg:overflow-hidden">
+                    <div className="flex-1 min-h-[300px] lg:min-h-0 rounded-3xl bg-white/60 border border-primary/5 shadow-sm flex flex-col overflow-hidden relative">
                         <div className="p-6 border-b border-primary/5 shrink-0 flex items-center justify-between">
                             <div>
                                 <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/30">Past Broadcasts</h3>
