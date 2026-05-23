@@ -43,7 +43,8 @@ function PortraitVideoPlayer() {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false); // Default: unmuted
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false); // Browser blocked unmuted autoplay
 
   // Use IntersectionObserver to only load/play when visible
   useEffect(() => {
@@ -54,18 +55,32 @@ function PortraitVideoPlayer() {
           setIsVisible(entry.isIntersecting);
         });
       },
-      { threshold: 0.1 }
+      { threshold: 0.3 }
     );
     observer.observe(containerRef.current);
     return () => observer.disconnect();
   }, []);
 
-  // Handle play/pause based on visibility
+  // Handle play/pause + attempt unmuted autoplay based on visibility
   useEffect(() => {
     if (!videoRef.current) return;
     if (isVisible) {
-      videoRef.current.play().catch(() => {
-        // Autoplay might fail in some configurations, ignore
+      // First try to play unmuted
+      videoRef.current.muted = false;
+      videoRef.current.play().then(() => {
+        // Unmuted autoplay succeeded — browser allowed it
+        setIsMuted(false);
+        setAutoplayBlocked(false);
+      }).catch(() => {
+        // Browser blocked unmuted autoplay — fallback to muted
+        if (videoRef.current) {
+          videoRef.current.muted = true;
+          setIsMuted(true);
+          setAutoplayBlocked(true);
+          videoRef.current.play().catch(() => {
+            // Even muted autoplay failed — just leave it
+          });
+        }
       });
     } else {
       videoRef.current.pause();
@@ -74,8 +89,10 @@ function PortraitVideoPlayer() {
 
   const toggleMute = () => {
     if (!videoRef.current) return;
-    videoRef.current.muted = !videoRef.current.muted;
-    setIsMuted(videoRef.current.muted);
+    const newMuted = !videoRef.current.muted;
+    videoRef.current.muted = newMuted;
+    setIsMuted(newMuted);
+    setAutoplayBlocked(false); // User interacted — dismiss the blocked hint
   };
 
   const videoUrl = 'https://lrg7idh9n6monaej.public.blob.vercel-storage.com/faceyoguez%20r1%20v3.mp4';
@@ -109,12 +126,18 @@ function PortraitVideoPlayer() {
       {/* Gradient overlay for premium look — sits above video, below controls */}
       <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/50 to-transparent z-20 pointer-events-none" />
 
-      {/* Unmute/Mute Hint Overlay — bottom right */}
+      {/* Mute/Unmute control — bottom right */}
       <div className="absolute bottom-5 right-5 z-30 flex items-center gap-2 px-3 py-2 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white text-xs font-jakarta font-bold transition-all hover:bg-black/80">
-        {isMuted ? (
+        {autoplayBlocked ? (
+          // Browser blocked unmuted autoplay — show prominent tap-for-sound hint
+          <>
+            <VolumeX className="w-3.5 h-3.5 text-[#FF8A75] animate-pulse" />
+            <span className="text-[#FF8A75]">Tap for Sound</span>
+          </>
+        ) : isMuted ? (
           <>
             <VolumeX className="w-3.5 h-3.5 text-[#FF8A75]" />
-            <span>Tap to unmute</span>
+            <span>Unmute</span>
           </>
         ) : (
           <>
@@ -126,6 +149,7 @@ function PortraitVideoPlayer() {
     </div>
   );
 }
+
 
 export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
