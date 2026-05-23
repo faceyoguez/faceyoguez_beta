@@ -100,6 +100,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
   const [isMounted, setIsMounted] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -406,20 +407,20 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
 
       <main className="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden p-4 lg:p-10 gap-4 xl:gap-8 min-w-0">
 
-        {/* LEFT: Registry List (Student Rail Style) */}
-        <div className="hidden lg:flex w-72 xl:w-80 flex-col gap-6 shrink-0 h-full min-w-0">
-          {/* New row for filters outside directory card */}
-          <div className="flex gap-1 bg-white/40 backdrop-blur-xl p-1 rounded-2xl border border-outline-variant/10 shadow-sm">
+        {/* LEFT: Registry List (Unified Mobile & Desktop) */}
+        <div className="flex w-full lg:w-72 xl:w-80 flex-col gap-4 lg:gap-6 shrink-0 lg:h-full min-w-0 h-[45vh] lg:h-auto">
+          {/* Filters */}
+          <div className="flex gap-1 bg-white/40 backdrop-blur-xl p-1 rounded-2xl border border-outline-variant/10 shadow-sm shrink-0">
             {[
               { id: 'all', label: 'All', count: students.length },
-              { id: 'trial', label: 'Unsubscribed', count: students.filter((s: StudentInfo) => s.isTrial).length },
+              { id: 'trial', label: 'Unsub', count: students.filter((s: StudentInfo) => s.isTrial).length },
               { id: 'paid', label: 'Paid', count: students.filter((s: StudentInfo) => !s.isTrial).length }
             ].map((f) => (
               <button
                 key={f.id}
                 onClick={() => setFilterTrial(f.id as any)}
                 className={cn(
-                  "flex-1 h-10 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-1.5",
+                  "flex-1 h-9 lg:h-10 rounded-xl text-[8px] lg:text-[9px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-1.5",
                   filterTrial === f.id
                     ? "bg-white text-primary shadow-sm border border-outline-variant/10"
                     : "text-foreground/30 hover:text-primary transition-colors"
@@ -432,11 +433,11 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
           </div>
 
           <div className="flex-1 bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col min-h-0 overflow-hidden">
-            <div className="p-8 border-b border-outline-variant/5">
+            <div className="p-4 lg:p-8 border-b border-outline-variant/5 shrink-0">
               <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Student List</h3>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-3 lg:p-4 space-y-2 custom-scrollbar">
               {paginatedStudents.map((student) => {
                 const elapsedDays = student.startDate ? Math.floor((Date.now() - new Date(student.startDate).getTime()) / 86400000) + 1 : 1;
                 const isEnded = elapsedDays > 30;
@@ -502,7 +503,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
 
             {/* Student List Pagination */}
             {sortedAndFiltered.length > STUDENTS_PER_PAGE && (
-              <div className="p-4 border-t border-outline-variant/5 bg-white/20 backdrop-blur-sm flex items-center justify-between shrink-0">
+              <div className="p-3 lg:p-4 border-t border-outline-variant/5 bg-white/20 backdrop-blur-sm flex items-center justify-between shrink-0">
                 <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20">
                   Page {studentListPage} of {Math.ceil(sortedAndFiltered.length / STUDENTS_PER_PAGE)}
                 </span>
@@ -510,78 +511,20 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                   <button 
                     onClick={() => setStudentListPage(p => Math.max(1, p - 1))}
                     disabled={studentListPage === 1}
-                    className="h-8 w-8 rounded-lg border border-outline-variant/10 flex items-center justify-center disabled:opacity-20 hover:bg-white transition-colors"
+                    className="h-7 w-7 lg:h-8 lg:w-8 rounded-lg border border-outline-variant/10 flex items-center justify-center disabled:opacity-20 hover:bg-white transition-colors"
                   >
                     <ChevronLeft className="w-3 h-3" />
                   </button>
                   <button 
                     onClick={() => setStudentListPage(p => Math.min(Math.ceil(sortedAndFiltered.length / STUDENTS_PER_PAGE), p + 1))}
                     disabled={studentListPage === Math.ceil(sortedAndFiltered.length / STUDENTS_PER_PAGE)}
-                    className="h-8 w-8 rounded-lg border border-outline-variant/10 flex items-center justify-center disabled:opacity-20 hover:bg-white transition-colors"
+                    className="h-7 w-7 lg:h-8 lg:w-8 rounded-lg border border-outline-variant/10 flex items-center justify-center disabled:opacity-20 hover:bg-white transition-colors"
                   >
                     <ChevronRight className="w-3 h-3" />
                   </button>
                 </div>
               </div>
             )}
-          </div>
-        </div>
-
-        {/* MOBILE: Horizontal Student Scroller */}
-        <div className="flex lg:hidden flex-col gap-3 shrink-0">
-          <div className="flex gap-1 bg-white/40 backdrop-blur-xl p-1 rounded-2xl border border-outline-variant/10 shadow-sm">
-            {[
-              { id: 'all', label: 'All', count: students.length },
-              { id: 'trial', label: 'Unsub', count: students.filter((s: StudentInfo) => s.isTrial).length },
-              { id: 'paid', label: 'Paid', count: students.filter((s: StudentInfo) => !s.isTrial).length }
-            ].map((f) => (
-              <button
-                key={f.id}
-                onClick={() => setFilterTrial(f.id as any)}
-                className={cn(
-                  "flex-1 h-9 rounded-xl text-[8px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-1",
-                  filterTrial === f.id
-                    ? "bg-white text-primary shadow-sm border border-outline-variant/10"
-                    : "text-foreground/30 hover:text-primary transition-colors"
-                )}
-              >
-                <span>{f.label}</span>
-                <span className="text-[7px] font-jakarta opacity-40 px-1 py-0.5 bg-foreground/5 rounded-md">{f.count}</span>
-              </button>
-            ))}
-          </div>
-          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-            {paginatedStudents.map((student) => {
-              const isSelected = selectedStudent?.id === student.id;
-              return (
-                <button
-                  key={student.id}
-                  onClick={() => setSelectedStudent(student)}
-                  className={cn(
-                    "flex items-center gap-2 px-3 py-2 rounded-xl transition-all shrink-0 border whitespace-nowrap",
-                    isSelected
-                      ? "bg-white border-primary/30 shadow-sm"
-                      : "bg-white/40 border-transparent hover:bg-white/80"
-                  )}
-                >
-                  <div className="relative shrink-0">
-                    {student.avatar_url ? (
-                      <img src={student.avatar_url} alt="" className="w-7 h-7 rounded-lg object-cover" />
-                    ) : (
-                      <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold", "bg-primary/5 text-primary")}>
-                        {student.full_name[0]}
-                      </div>
-                    )}
-                  </div>
-                  <div className="text-left min-w-0">
-                    <p className={cn("text-[10px] font-bold truncate", isSelected ? "text-foreground" : "text-foreground/60")}>{student.full_name}</p>
-                    <p className="text-[7px] font-bold uppercase tracking-widest text-foreground/30">
-                      {student.isTrial ? 'Unsub' : 'Paid'}
-                    </p>
-                  </div>
-                </button>
-              );
-            })}
           </div>
         </div>
 
@@ -638,7 +581,35 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                     </div>
 
                   <div className="flex items-center gap-3">
-                    {/* Communion button removed as chat is now persistent on right */}
+                    {selectedStudent?.phone && (
+                      <button
+                        onClick={async (e) => {
+                          const msg = `Hi ${selectedStudent.full_name.split(' ')[0]}! This is the Faceyoguez team. We are reaching out regarding your session...`;
+                          const loadingToast = toast.loading('Sending WhatsApp...');
+                          try {
+                            if (!selectedStudent.phone) throw new Error('No phone number');
+                            const result = await sendWhatsAppMessage(selectedStudent.phone, msg);
+                            if (result.success) {
+                              toast.success('Message sent via Official API', { id: loadingToast });
+                            } else {
+                              toast.dismiss(loadingToast);
+                              const cleanPhone = selectedStudent.phone?.replace(/[^0-9]/g, '');
+                              window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+                            }
+                          } catch (err) {
+                            toast.dismiss(loadingToast);
+                            const cleanPhone = selectedStudent.phone?.replace(/[^0-9]/g, '');
+                            window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+                          }
+                        }}
+                        className="h-10 w-10 lg:h-12 lg:w-12 rounded-full bg-[#25D366]/10 text-[#25D366] flex items-center justify-center transition-all hover:scale-110 active:scale-95 shadow-sm"
+                        title="Message on WhatsApp"
+                      >
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 lg:w-6 lg:h-6">
+                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
+                        </svg>
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -798,97 +769,66 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
           </div>
         </div>
 
-        {/* RIGHT: Communion & Artifacts (Instructor Pattern) */}
-        <div className="w-full lg:w-72 xl:w-96 flex flex-col gap-4 lg:gap-8 shrink-0 lg:h-full min-w-0">
 
-          {/* Interaction Box (ChatWindow) */}
-          <div className="flex-1 bg-white/50 backdrop-blur-xl rounded-3xl border border-outline-variant/10 shadow-sm flex flex-col overflow-hidden">
-            <div className="p-8 border-b border-outline-variant/5 flex items-center justify-between shrink-0 bg-white/20">
-              <div className="flex items-center gap-4">
-                <div className="space-y-1">
-                  <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Chat Window</h3>
-                  <p className="text-sm font-aktiv font-bold text-foreground">Direct Message</p>
-                </div>
+      </main>
+
+      {/* Floating Chat Button */}
+      <button
+        onClick={() => setIsChatOpen(!isChatOpen)}
+        className="fixed bottom-6 right-6 lg:bottom-10 lg:right-10 w-14 h-14 bg-foreground text-background rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-[60]"
+      >
+        {isChatOpen ? <X className="w-6 h-6" /> : <MessageSquare className="w-6 h-6" />}
+        {selectedStudent?.conversationId && !isChatOpen && (
+          <div className="absolute top-0 right-0 w-3.5 h-3.5 bg-brand-emerald rounded-full border-2 border-white animate-pulse" />
+        )}
+      </button>
+
+      {/* Floating Chat Panel */}
+      {isChatOpen && (
+        <div className="fixed bottom-24 right-6 lg:bottom-28 lg:right-10 w-[90vw] sm:w-[400px] h-[70vh] sm:h-[700px] max-h-[85vh] bg-white rounded-3xl shadow-2xl border border-outline-variant/10 z-[60] overflow-hidden flex flex-col animate-in slide-in-from-bottom-5 fade-in duration-300">
+          <div className="flex items-center justify-between p-4 border-b border-outline-variant/5 bg-foreground/5 shrink-0">
+            <h3 className="text-sm font-bold tracking-tight">
+              Chat with {selectedStudent?.full_name || 'Student'}
+            </h3>
+            <button 
+              onClick={() => setIsChatOpen(false)}
+              className="p-1.5 hover:bg-white rounded-full transition-colors text-foreground/50 hover:text-foreground"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="flex-1 min-h-0 bg-white/50 relative">
+            {selectedStudent?.conversationId ? (
+              <ChatWindow
+                key={selectedStudent.conversationId}
+                conversationId={selectedStudent.conversationId!}
+                currentUser={currentUser}
+                conversationType="direct"
+                title={selectedStudent.full_name}
+                otherParticipant={{ id: selectedStudent.id, full_name: selectedStudent.full_name, avatar_url: selectedStudent.avatar_url, email: selectedStudent.email } as Profile}
+                className="h-full"
+                hideHeader={true}
+                isMultiParty={true}
+              />
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center p-8 text-center opacity-40">
+                <MessageSquare className="w-10 h-10 mb-4" />
+                <p className="text-[10px] font-aktiv font-bold uppercase tracking-widest">No active chat</p>
                 {selectedStudent && (
-                  <div className="flex items-center gap-3 ml-2">
-                    {selectedStudent.phone && (
-                      <button
-                        onClick={async (e) => {
-                          const msg = `Hi ${selectedStudent.full_name.split(' ')[0]}! This is the Faceyoguez team. We are reaching out regarding your session...`;
-                          const loadingToast = toast.loading('Sending WhatsApp...');
-                          try {
-                            if (!selectedStudent.phone) throw new Error('No phone number');
-                            const result = await sendWhatsAppMessage(selectedStudent.phone, msg);
-                            if (result.success) {
-                              toast.success('Message sent via Official API', { id: loadingToast });
-                            } else {
-                              toast.dismiss(loadingToast);
-                              const cleanPhone = selectedStudent.phone?.replace(/[^0-9]/g, '');
-                              window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
-                            }
-                          } catch (err) {
-                            toast.dismiss(loadingToast);
-                            const cleanPhone = selectedStudent.phone?.replace(/[^0-9]/g, '');
-                            window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
-                          }
-                        }}
-                        className="h-8 w-8 rounded-full bg-[#25D366]/10 text-[#25D366] flex items-center justify-center transition-all hover:scale-110 active:scale-95"
-                        title="Message on WhatsApp"
-                      >
-                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
-                        </svg>
-                      </button>
-                    )}
-                    <a
-                      href={`https://mail.google.com/mail/?view=cm&fs=1&to=${selectedStudent.email}&su=${encodeURIComponent('Face Yoga Update')}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="h-8 w-8 rounded-full bg-red-50 text-red-500 flex items-center justify-center transition-all hover:scale-110 active:scale-95"
-                      title="Send Gmail"
-                    >
-                      <Mail className="w-4 h-4" />
-                    </a>
-                  </div>
+                  <button
+                    onClick={() => handleStartChatWithStudent(selectedStudent.id)}
+                    disabled={isStartingChat}
+                    className="mt-6 h-10 px-6 rounded-xl bg-foreground text-background text-[9px] font-aktiv font-bold uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2"
+                  >
+                    {isStartingChat ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3 text-primary" />}
+                    Start Chat
+                  </button>
                 )}
               </div>
-              <div className={cn("h-2.5 w-2.5 rounded-full border-2 border-white", selectedStudent ? "bg-brand-emerald animate-pulse" : "bg-foreground/10")} />
-            </div>
-
-            <div className="flex-1 min-h-0 bg-white/10">
-              {selectedStudent?.conversationId ? (
-                <ChatWindow
-                  key={selectedStudent.conversationId}
-                  conversationId={selectedStudent.conversationId!}
-                  currentUser={currentUser}
-                  conversationType="direct"
-                  title={selectedStudent.full_name}
-                  otherParticipant={{ id: selectedStudent.id, full_name: selectedStudent.full_name, avatar_url: selectedStudent.avatar_url, email: selectedStudent.email } as Profile}
-                  className="h-full"
-                  hideHeader={true}
-                  isMultiParty={true}
-                />
-              ) : (
-                <div className="h-full flex flex-col items-center justify-center p-12 text-center opacity-20">
-                  <MessageSquare className="w-10 h-10 mb-4" />
-                  <p className="text-[10px] font-aktiv font-bold uppercase tracking-widest">Start chat below</p>
-                  {selectedStudent && (
-                    <button
-                      onClick={() => handleStartChatWithStudent(selectedStudent.id)}
-                      disabled={isStartingChat}
-                      className="mt-6 h-10 px-6 rounded-xl bg-foreground text-background text-[9px] font-aktiv font-bold uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-2"
-                    >
-                      {isStartingChat ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3 text-primary" />}
-                      Start Message
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
+            )}
           </div>
-
         </div>
-      </main>
+      )}
 
       {/* MODAL: Guide Alignment (Student-style overlay) */}
       {showAssignModal && (

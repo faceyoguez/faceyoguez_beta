@@ -3,6 +3,7 @@ import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/se
 import { getLiveGrowthMetrics } from '@/lib/actions/subscription';
 import { checkExpiringSubscriptions } from '@/lib/actions/batches';
 import { Users, Crown, Radio, ShieldCheck } from 'lucide-react';
+import { StaffStudentTable } from './StaffStudentTable';
 
 const STAFF_ROLES = ['admin', 'staff', 'client_management'];
 
@@ -156,6 +157,9 @@ export default async function StaffDashboardPage() {
               ))}
             </div>
           </div>
+
+          {/* Student Table Section */}
+          <StaffStudentTable />
         </div>
       </div>
     </div>

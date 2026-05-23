@@ -50,7 +50,9 @@ export async function getAdminStudentData() {
     const userSubs = subscriptions.filter((s: any) => s.student_id === profile.id);
     const activeSub = userSubs.find((s: any) => s.status === 'active' && s.end_date && s.end_date >= today);
     const pendingSub = userSubs.find((s: any) => s.status === 'pending');
-    
+    // Also look for any sub with an end_date regardless of status (covers new/recent enrolments)
+    const subWithEndDate = userSubs.find((s: any) => s.end_date != null);
+
     // Logic for "Renewed": More than 1 paid (non-trial) subscription
     const paidSubs = userSubs.filter((s: any) => !s.is_trial);
     const isRenewed = paidSubs.length > 1;
@@ -60,15 +62,30 @@ export async function getAdminStudentData() {
     const couponUsed = latestSub?.metadata?.couponCode || null;
     const totalPaid = paidSubs.reduce((acc: number, s: any) => acc + (s.amount || 0), 0);
 
+    // Resolve end date: prefer active > pending > any sub with end_date > latest sub
+    const resolvedEndDate =
+      activeSub?.end_date ||
+      pendingSub?.end_date ||
+      subWithEndDate?.end_date ||
+      latestSub?.end_date ||
+      null;
+
+    // Resolve plan: same priority
+    const resolvedPlan =
+      activeSub?.plan_type ||
+      pendingSub?.plan_type ||
+      latestSub?.plan_type ||
+      'unsubscribed';
+
     return {
       id: profile.id,
       name: profile.full_name,
       email: profile.email,
       phone: profile.phone,
       joinDate: profile.created_at,
-      subscriptionEnd: activeSub?.end_date || latestSub?.end_date || null,
-      plan: activeSub?.plan_type || latestSub?.plan_type || 'unsubscribed',
-      planVariant: activeSub?.plan_variant || latestSub?.plan_variant || null,
+      subscriptionEnd: resolvedEndDate,
+      plan: resolvedPlan,
+      planVariant: activeSub?.plan_variant || pendingSub?.plan_variant || latestSub?.plan_variant || null,
       amountPaid: totalPaid,
       couponCode: couponUsed,
       isRenewed,
