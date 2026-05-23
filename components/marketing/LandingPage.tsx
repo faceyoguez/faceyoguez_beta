@@ -46,11 +46,11 @@ export function LandingPage() {
               {/* S5: Real Results — transformation gallery */}
               <Gallery />
 
-              {/* S9: Testimonials — social proof */}
-              <Testimonials />
-
               {/* Verified Proofs — interactive transformation carousel */}
               <VerifiedProofs />
+
+              {/* S9: Testimonials — social proof */}
+              <Testimonials />
 
               {/* S6: About Harsimrat */}
               <Instructor />

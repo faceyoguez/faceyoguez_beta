@@ -71,6 +71,7 @@ const nextConfig: NextConfig = {
             "font-src 'self' https://fonts.gstatic.com data:",
             "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://checkout.razorpay.com https://api.razorpay.com https://lumberjack.razorpay.com https://region1.google-analytics.com https://www.facebook.com https://*.facebook.com https://*.clarity.ms https://c.bing.com",
             "frame-src https://checkout.razorpay.com https://api.razorpay.com https://*.zoom.us https://www.youtube.com",
+            "media-src 'self' https://*.public.blob.vercel-storage.com blob: data:",
             "object-src 'none'",
             "base-uri 'self'",
             "form-action 'self'",

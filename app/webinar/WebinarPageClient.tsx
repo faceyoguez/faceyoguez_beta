@@ -1,23 +1,20 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { motion, AnimatePresence, Variants } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import {
   CalendarDays,
   Video,
   Users,
   CheckCircle2,
-  PlayCircle,
-  ChevronRight,
   Star,
-  Quote,
   ArrowRight,
-  ShieldCheck,
-  Check,
   X,
-  Minus
+  VolumeX,
+  Volume2,
+  Play,
 } from 'lucide-react';
 import { WhyUs } from '@/components/marketing/WhyUs';
 import { LuxuryBackground } from '@/components/marketing/LuxuryBackground';
@@ -41,6 +38,94 @@ const staggerContainer: Variants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
 };
+
+function PortraitVideoPlayer() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+
+  // Use IntersectionObserver to only load/play when visible
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          setIsVisible(entry.isIntersecting);
+        });
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  // Handle play/pause based on visibility
+  useEffect(() => {
+    if (!videoRef.current) return;
+    if (isVisible) {
+      videoRef.current.play().catch(() => {
+        // Autoplay might fail in some configurations, ignore
+      });
+    } else {
+      videoRef.current.pause();
+    }
+  }, [isVisible]);
+
+  const toggleMute = () => {
+    if (!videoRef.current) return;
+    videoRef.current.muted = !videoRef.current.muted;
+    setIsMuted(videoRef.current.muted);
+  };
+
+  const videoUrl = 'https://lrg7idh9n6monaej.public.blob.vercel-storage.com/faceyoguez%20r1%20v3.mp4';
+
+  return (
+    <div
+      ref={containerRef}
+      onClick={toggleMute}
+      className="relative w-full max-w-[340px] sm:max-w-[380px] aspect-[9/16] mx-auto rounded-[2rem] overflow-hidden bg-black shadow-2xl border border-[#FF8A75]/20 group select-none ring-1 ring-black/5 cursor-pointer"
+    >
+      {/* Fallback loading state — shown until video loads */}
+      <div className="absolute inset-0 bg-slate-950 flex flex-col items-center justify-center z-0 text-white/40">
+        <Play className="w-12 h-12 mb-3 animate-pulse text-[#FF8A75]" />
+        <span className="text-xs font-jakarta tracking-wide text-white/60">Loading video...</span>
+      </div>
+
+      {/* HTML5 Video Player — only loaded when visible */}
+      {isVisible && (
+        <video
+          ref={videoRef}
+          className="absolute inset-0 w-full h-full z-10 object-cover"
+          src={videoUrl}
+          autoPlay
+          muted={isMuted}
+          loop
+          playsInline
+          preload="auto"
+        />
+      )}
+
+      {/* Gradient overlay for premium look — sits above video, below controls */}
+      <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/50 to-transparent z-20 pointer-events-none" />
+
+      {/* Unmute/Mute Hint Overlay — bottom right */}
+      <div className="absolute bottom-5 right-5 z-30 flex items-center gap-2 px-3 py-2 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white text-xs font-jakarta font-bold transition-all hover:bg-black/80">
+        {isMuted ? (
+          <>
+            <VolumeX className="w-3.5 h-3.5 text-[#FF8A75]" />
+            <span>Tap to unmute</span>
+          </>
+        ) : (
+          <>
+            <Volume2 className="w-3.5 h-3.5 text-[#FF8A75]" />
+            <span>Mute</span>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
@@ -166,47 +251,12 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
             </p>
           </div>
 
-          <div className="relative aspect-video rounded-[2rem] overflow-hidden bg-slate-900 shadow-2xl group cursor-pointer max-w-4xl mx-auto" onClick={() => setIsVideoOpen(true)}>
-            <Image
-              src="/assets/instructor_img.jpg"
-              alt="Harsimrat Video Thumbnail"
-              fill
-              className="object-cover opacity-80 group-hover:scale-105 group-hover:opacity-60 transition-all duration-700"
-            />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center group-hover:scale-110 group-hover:bg-[#FF8A75] transition-all duration-300">
-                <PlayCircle className="w-10 h-10 text-white" />
-              </div>
-            </div>
-          </div>
+          <PortraitVideoPlayer />
         </section>
 
-        {/* Video Modal */}
-        <AnimatePresence>
-          {isVideoOpen && (
-            <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 sm:p-10"
-              onClick={() => setIsVideoOpen(false)}
-            >
-              <div className="w-full max-w-5xl aspect-video bg-black rounded-2xl overflow-hidden relative shadow-2xl border border-white/10" onClick={e => e.stopPropagation()}>
-                <button onClick={() => setIsVideoOpen(false)} className="absolute top-4 right-4 z-10 w-10 h-10 bg-black/50 hover:bg-[#FF8A75] rounded-full flex items-center justify-center text-white transition-colors">
-                  <X className="w-5 h-5" />
-                </button>
-                {/* Embedded YouTube/Vimeo Video Placeholder */}
-                <div className="w-full h-full flex flex-col items-center justify-center text-white/50 font-jakarta bg-slate-900">
-                  <Video className="w-16 h-16 mb-4 opacity-50" />
-                  <p>Landscape Intro Video Embed Goes Here</p>
-                  <p className="text-sm mt-2">(60–90 seconds recommended)</p>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* ── 6. DYNAMIC TESTIMONIALS (VIDEO MARQUEE & VERIFIED PROOFS) ── */}
-        <Testimonials />
+        {/* ── 6. DYNAMIC TESTIMONIALS (VERIFIED PROOFS & VIDEO MARQUEE) ── */}
         <VerifiedProofs />
+        <Testimonials />
 
         {/* ── 4. WHAT THIS SESSION COVERS ── */}
         <section className="bg-transparent pt-8 sm:pt-12 pb-16 sm:pb-24 border-y border-[#FF8A75]/10">
@@ -458,7 +508,7 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
                     href="/webinar/register"
                     className="inline-flex w-full items-center justify-center px-6 py-4 text-sm font-black uppercase tracking-widest text-white bg-[#e76f51] hover:bg-[#d4603f] rounded-full transition-all shadow-md"
                   >
-                    Reserve Your Spot
+                    Reserve Your Free Spot
                   </Link>
                 </div>
               </div>

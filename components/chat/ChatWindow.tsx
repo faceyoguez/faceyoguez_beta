@@ -111,6 +111,7 @@ export function ChatWindow({
                           src={otherParticipant.avatar_url}
                           alt={otherParticipant.full_name || 'User'}
                           fill
+                          sizes="48px"
                           className="rounded-[0.8rem] object-cover"
                         />
                     </div>

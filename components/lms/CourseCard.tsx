@@ -69,6 +69,7 @@ export function CourseCard({
                   src={thumbnail} 
                   alt={title}
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   className={cn(
                     "object-cover transition-transform duration-1000 group-hover:scale-110",
                     !isUnlocked && "opacity-60 grayscale-[30%]"
