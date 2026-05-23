@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   Users, MessageCircle, Video, CheckCircle2, Clock, Send, Paperclip,
-  Loader2, Copy, ExternalLink, Phone, ChevronRight, Bell, Mail
+  Loader2, Copy, ExternalLink, Phone, ChevronRight, ChevronLeft, Bell, Mail
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
