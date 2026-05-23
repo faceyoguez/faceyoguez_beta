@@ -93,7 +93,12 @@ function PortraitVideoPlayer() {
   // Listen for the first document-wide user interaction (click, tap, keypress)
   // to automatically unmute the video if it is currently playing muted due to browser policy.
   useEffect(() => {
-    const handleInteraction = () => {
+    const handleInteraction = (e: Event) => {
+      // If the interaction happened inside the video player container, let toggleMute handle it.
+      if (containerRef.current && e.target && containerRef.current.contains(e.target as Node)) {
+        return;
+      }
+
       const video = videoRef.current;
       if (video && isVisible && !isMuted && isAutoplayMuted) {
         video.muted = false;
@@ -142,7 +147,7 @@ function PortraitVideoPlayer() {
   return (
     <div
       ref={containerRef}
-      onClick={() => toggleMute()}
+      onClick={(e) => toggleMute(e)}
       className="relative w-full max-w-[340px] sm:max-w-[380px] aspect-[9/16] mx-auto rounded-[2rem] overflow-hidden bg-black shadow-2xl border border-[#FF8A75]/20 group select-none ring-1 ring-black/5 cursor-pointer"
     >
       {/* Fallback loading state — shown until video loads */}
