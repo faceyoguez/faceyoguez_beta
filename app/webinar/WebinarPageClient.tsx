@@ -43,10 +43,10 @@ function PortraitVideoPlayer() {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const [isMuted, setIsMuted] = useState(false); // Default: unmuted
-  const [autoplayBlocked, setAutoplayBlocked] = useState(false); // Browser blocked unmuted autoplay
+  const [isMuted, setIsMuted] = useState(false); // User's preference (default: unmuted)
+  const [isAutoplayMuted, setIsAutoplayMuted] = useState(false); // Browser blocked unmuted autoplay, playing muted temporarily
 
-  // Use IntersectionObserver to only load/play when visible
+  // Use IntersectionObserver to detect when video is in view
   useEffect(() => {
     if (!containerRef.current) return;
     const observer = new IntersectionObserver(
@@ -61,38 +61,80 @@ function PortraitVideoPlayer() {
     return () => observer.disconnect();
   }, []);
 
-  // Handle play/pause + attempt unmuted autoplay based on visibility
+  // Handle play/pause + attempt autoplay based on visibility
   useEffect(() => {
-    if (!videoRef.current) return;
-    if (isVisible) {
-      // First try to play unmuted
-      videoRef.current.muted = false;
-      videoRef.current.play().then(() => {
-        // Unmuted autoplay succeeded — browser allowed it
-        setIsMuted(false);
-        setAutoplayBlocked(false);
-      }).catch(() => {
-        // Browser blocked unmuted autoplay — fallback to muted
-        if (videoRef.current) {
-          videoRef.current.muted = true;
-          setIsMuted(true);
-          setAutoplayBlocked(true);
-          videoRef.current.play().catch(() => {
-            // Even muted autoplay failed — just leave it
-          });
-        }
-      });
-    } else {
-      videoRef.current.pause();
-    }
-  }, [isVisible]);
+    const video = videoRef.current;
+    if (!video) return;
 
-  const toggleMute = () => {
-    if (!videoRef.current) return;
-    const newMuted = !videoRef.current.muted;
-    videoRef.current.muted = newMuted;
-    setIsMuted(newMuted);
-    setAutoplayBlocked(false); // User interacted — dismiss the blocked hint
+    if (isVisible) {
+      // Apply the user's muted preference
+      video.muted = isMuted;
+      
+      video.play()
+        .then(() => {
+          // Playback succeeded unmuted (or muted if isMuted is true)
+          setIsAutoplayMuted(false);
+        })
+        .catch((err) => {
+          console.log("Autoplay unmuted blocked:", err);
+          // If browser blocked unmuted autoplay, fall back to muted so it plays automatically,
+          // but keep isMuted as false (user preference is still unmuted) and track isAutoplayMuted
+          if (!isMuted) {
+            video.muted = true;
+            setIsAutoplayMuted(true);
+            video.play().catch(e => console.log("Muted autoplay fallback failed:", e));
+          }
+        });
+    } else {
+      video.pause();
+    }
+  }, [isVisible, isMuted]);
+
+  // Listen for the first document-wide user interaction (click, tap, keypress)
+  // to automatically unmute the video if it is currently playing muted due to browser policy.
+  useEffect(() => {
+    const handleInteraction = () => {
+      const video = videoRef.current;
+      if (video && isVisible && !isMuted && isAutoplayMuted) {
+        video.muted = false;
+        video.play()
+          .then(() => {
+            setIsAutoplayMuted(false);
+          })
+          .catch(err => console.log("Failed to play on interaction:", err));
+      }
+    };
+
+    if (isVisible && !isMuted && isAutoplayMuted) {
+      window.addEventListener('click', handleInteraction, { passive: true });
+      window.addEventListener('touchstart', handleInteraction, { passive: true });
+      window.addEventListener('keydown', handleInteraction, { passive: true });
+    }
+
+    return () => {
+      window.removeEventListener('click', handleInteraction);
+      window.removeEventListener('touchstart', handleInteraction);
+      window.removeEventListener('keydown', handleInteraction);
+    };
+  }, [isVisible, isMuted, isAutoplayMuted]);
+
+  const toggleMute = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (isAutoplayMuted) {
+      // It was muted by browser autoplay policy. User clicked/tapped to hear it.
+      video.muted = false;
+      video.play().catch(err => console.log("Failed to play on click:", err));
+      setIsMuted(false);
+      setIsAutoplayMuted(false);
+    } else {
+      // Normal toggle
+      const newMuted = !isMuted;
+      video.muted = newMuted;
+      setIsMuted(newMuted);
+    }
   };
 
   const videoUrl = 'https://lrg7idh9n6monaej.public.blob.vercel-storage.com/faceyoguez%20r1%20v3.mp4';
@@ -100,7 +142,7 @@ function PortraitVideoPlayer() {
   return (
     <div
       ref={containerRef}
-      onClick={toggleMute}
+      onClick={() => toggleMute()}
       className="relative w-full max-w-[340px] sm:max-w-[380px] aspect-[9/16] mx-auto rounded-[2rem] overflow-hidden bg-black shadow-2xl border border-[#FF8A75]/20 group select-none ring-1 ring-black/5 cursor-pointer"
     >
       {/* Fallback loading state — shown until video loads */}
@@ -109,35 +151,30 @@ function PortraitVideoPlayer() {
         <span className="text-xs font-jakarta tracking-wide text-white/60">Loading video...</span>
       </div>
 
-      {/* HTML5 Video Player — only loaded when visible */}
-      {isVisible && (
-        <video
-          ref={videoRef}
-          className="absolute inset-0 w-full h-full z-10 object-cover"
-          src={videoUrl}
-          autoPlay
-          muted={isMuted}
-          loop
-          playsInline
-          preload="auto"
-        />
-      )}
+      {/* HTML5 Video Player — always in DOM for instant play/preload */}
+      <video
+        ref={videoRef}
+        className="absolute inset-0 w-full h-full z-10 object-cover animate-fade-in"
+        src={videoUrl}
+        loop
+        playsInline
+        preload="auto"
+      />
 
       {/* Gradient overlay for premium look — sits above video, below controls */}
       <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/50 to-transparent z-20 pointer-events-none" />
 
       {/* Mute/Unmute control — bottom right */}
       <div className="absolute bottom-5 right-5 z-30 flex items-center gap-2 px-3 py-2 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white text-xs font-jakarta font-bold transition-all hover:bg-black/80">
-        {autoplayBlocked ? (
-          // Browser blocked unmuted autoplay — show prominent tap-for-sound hint
-          <>
-            <VolumeX className="w-3.5 h-3.5 text-[#FF8A75] animate-pulse" />
-            <span className="text-[#FF8A75]">Tap for Sound</span>
-          </>
-        ) : isMuted ? (
+        {isMuted ? (
           <>
             <VolumeX className="w-3.5 h-3.5 text-[#FF8A75]" />
             <span>Unmute</span>
+          </>
+        ) : isAutoplayMuted ? (
+          <>
+            <VolumeX className="w-3.5 h-3.5 text-[#FF8A75] animate-pulse" />
+            <span className="text-[#FF8A75]">Tap for Sound</span>
           </>
         ) : (
           <>
