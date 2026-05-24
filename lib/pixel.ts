@@ -63,6 +63,7 @@ export const pixel = {
     fire('Lead', {
       content_name: 'Signup Form',
       source: params?.source ?? 'web',
+      ...(params?.email ? { email: params.email } : {}),
     });
   },
 

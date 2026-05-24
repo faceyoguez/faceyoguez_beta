@@ -80,8 +80,6 @@ export default function SignUpForm() {
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
     setErrors({});
-    // Pixel: signal lead intent when user submits the form
-    pixel.lead({ source: 'signup_form' });
     
     // Zod validation
     const result = formSchema.safeParse({ fullName, email, phone, password });
@@ -135,23 +133,19 @@ export default function SignUpForm() {
     }
 
     // Try triggering the welcome email.
-    // If Supabase has "Confirm Email" disabled, the user is auto-logged in here
-    // and the API will send the welcome email immediately.
-    // If "Confirm Email" is enabled, this will fail (401) because there's no session yet,
-    // and the email will be sent by the callback route after verification instead.
     fetch('/api/auth/welcome', { method: 'POST' }).catch(() => {});
 
-    // Use the already determined callbackUrl
+    // Pixel: signal lead intent and complete registration ONLY on successful account creation
+    pixel.lead({ source: 'signup_form', email });
+    pixel.completeRegistration({ method: 'email' });
 
     // If authData.session is present, it means "Confirm Email" is disabled in Supabase.
-    // The user is automatically logged in, so we can route them directly to their dashboard.
     if (authData.session) {
       toast.success('Account created successfully!', {
         description: 'Welcome to your sanctuary.',
         duration: 5000,
       });
       setLoading(false);
-      // Let the session cookie be set and redirect to callback/dashboard
       router.push(callbackUrl);
       return;
     }

@@ -332,7 +332,10 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
           No filters. No treatments. <br /> <span className="italic text-[#e76f51]">Just Your Face.</span>
         </h2>
         <button
-          onClick={() => window.location.href = '/auth/signup'}
+          onClick={() => {
+            pixel.initiateCheckout({ value: TIERS[1].disc, planId: 'one_on_one', planLabel: 'Personal Classes — Footer CTA' });
+            window.location.href = '/auth/signup';
+          }}
           className="text-[10px] font-black uppercase tracking-[0.5em] text-[#2c2525] border-b border-[#e76f51] pb-2 hover:opacity-60 transition-opacity"
         >
           Start Your Journey

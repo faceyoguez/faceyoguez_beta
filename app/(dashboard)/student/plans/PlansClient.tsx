@@ -216,6 +216,12 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                 });
                 const freeData = await freeRes.json();
                 if (freeRes.ok && freeData.success) {
+                    // Track free plan activation as a Purchase event (value = 0)
+                    pixel.purchase({
+                        value: 0,
+                        planId: selectedPlanId,
+                        planLabel: currentPlan.title,
+                    });
                     toast.success('Plan activated! Welcome to Faceyoguez 🎉');
                     router.push(`/student/purchase-success?plan=${selectedPlanId}&variant=${selectedTierId}`);
                 } else {
