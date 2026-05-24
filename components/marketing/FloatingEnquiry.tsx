@@ -3,12 +3,16 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, MessageCircle, Mail, X, Plus, ClipboardList } from 'lucide-react';
+import { ConsultationButton } from './ConsultationButton';
 
 export function FloatingEnquiry() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <div className="fixed bottom-8 right-8 z-[100] flex flex-col items-end gap-3">
+      {/* Permanent Consultation Enquiry Button */}
+      <ConsultationButton />
+
       {/* Contact Options */}
       <AnimatePresence>
         {isOpen && (
@@ -18,24 +22,6 @@ export function FloatingEnquiry() {
             exit={{ opacity: 0, y: 20, scale: 0.8 }}
             className="flex flex-col gap-3"
           >
-            {/* Consultation Enquiry */}
-            <a
-              href="https://form.jotform.com/261413254231041"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex items-center gap-3 bg-white border border-[#2c2525]/5 rounded-2xl px-5 py-3 shadow-xl hover:bg-[#2c2525] transition-all duration-500"
-            >
-              <div className="text-right">
-                <p className="text-[7px] font-black uppercase tracking-[0.3em] text-[#2c2525]/30 group-hover:text-white/40 leading-none">Consultation</p>
-                <p className="text-[10px] font-black uppercase tracking-[0.1em] text-[#2c2525] group-hover:text-white leading-tight">
-                  Enquiry Form
-                </p>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-[#e76f51]/10 flex items-center justify-center text-[#e76f51] group-hover:bg-white/10 group-hover:text-white transition-colors">
-                <ClipboardList className="w-5 h-5" />
-              </div>
-            </a>
-
             {/* WhatsApp */}
             <a
               href="https://wa.me/917837310255"
@@ -113,10 +99,10 @@ export function FloatingEnquiry() {
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="absolute right-20 top-1/2 -translate-y-1/2 pointer-events-none"
+          className="absolute right-20 top-auto bottom-2 pointer-events-none"
         >
           <div className="bg-[#2c2525] text-white text-[9px] font-jakarta font-black uppercase tracking-[0.3em] px-4 py-2 rounded-full whitespace-nowrap shadow-xl">
-            Enquiry
+            Contact Us
           </div>
         </motion.div>
       )}

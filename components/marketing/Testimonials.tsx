@@ -115,15 +115,15 @@ export function Testimonials() {
 
         <div className={`overflow-visible py-3 flex items-center relative z-50 ${isMobile ? 'h-[420px]' : 'h-[580px]'}`}>
           {isLoading ? (
-            <div className="w-full flex justify-center py-20">
+            <div className="w-full flex justify-center py-10">
               <div className="w-8 h-8 border-2 border-[#e76f51] border-t-transparent rounded-full animate-spin"></div>
             </div>
           ) : errorMsg ? (
-            <div className="w-full flex justify-center py-20 text-red-500 font-jakarta">
+            <div className="w-full flex justify-center py-10 text-red-500 font-jakarta">
               Error loading videos: {errorMsg}
             </div>
           ) : videos.length === 0 ? (
-            <div className="w-full flex justify-center py-20 text-[#2a2019]/50 font-jakarta">
+            <div className="w-full flex justify-center py-10 text-[#2a2019]/50 font-jakarta">
               No videos found in the playlist.
             </div>
           ) : (
@@ -213,6 +213,28 @@ export function Testimonials() {
           )}
         </div>
       </div>
+
+      {/* 1-1 Consultation CTA Button */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.8, delay: 0.2 }}
+        className="flex justify-center mt-8 md:mt-12 relative z-20"
+      >
+        <a
+          href="/auth/signup?redirectTo=/student/plans"
+          className="group relative inline-flex items-center justify-center px-6 md:px-8 py-4 text-sm md:text-base font-bold text-white bg-[#2a2019] hover:bg-[#e76f51] rounded-full transition-all duration-500 overflow-hidden shadow-2xl"
+        >
+          <span className="relative z-10 flex items-center gap-2">
+            Book your 1-1 Consultation today
+            <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </span>
+          <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-in-out" />
+        </a>
+      </motion.div>
     </section>
   );
 }

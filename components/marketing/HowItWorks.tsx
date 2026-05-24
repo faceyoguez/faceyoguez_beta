@@ -46,7 +46,7 @@ export function HowItWorks() {
   const isInView = useInView(ref, { once: true, amount: 0.1 });
 
   return (
-    <section ref={ref} className="relative py-24 md:py-36 overflow-hidden bg-transparent">
+    <section ref={ref} className="relative py-12 md:py-8 overflow-hidden bg-transparent">
       {/* Soft glow */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 w-[800px] h-[800px] bg-[#e76f51]/4 rounded-full blur-[140px] -translate-x-1/2 -translate-y-1/2" />

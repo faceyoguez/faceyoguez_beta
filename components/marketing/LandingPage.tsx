@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Loader } from './Loader';
 import { SmoothScroll } from './SmoothScroll';
 import { Hero } from './Hero';
@@ -25,14 +25,26 @@ import { FloatingEnquiry } from './FloatingEnquiry';
 
 export function LandingPage() {
   const [loaderDone, setLoaderDone] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
+
+  useEffect(() => {
+    const hasLoaded = sessionStorage.getItem('faceyoguez_has_loaded');
+    if (hasLoaded) {
+      setLoaderDone(true);
+    }
+    setIsInitializing(false);
+  }, []);
 
   const handleLoaderComplete = useCallback(() => {
     setLoaderDone(true);
+    sessionStorage.setItem('faceyoguez_has_loaded', 'true');
   }, []);
+
+  if (isInitializing) return null;
 
   return (
     <>
-      <Loader onComplete={handleLoaderComplete} />
+      {!loaderDone && <Loader onComplete={handleLoaderComplete} />}
 
       <SmoothScroll>
         <LuxuryBackground />
@@ -52,14 +64,14 @@ export function LandingPage() {
               {/* S9: Testimonials — social proof */}
               <Testimonials />
 
+              {/* S7: Plans / Offerings */}
+              <Plans />
+
               {/* S6: About Harsimrat */}
               <Instructor />
 
               {/* S10: Why Faceyoguez — comparison table */}
               <WhyUs />
-
-              {/* S7: Plans / Offerings */}
-              <Plans />
 
               {/* S11: FAQ */}
               <FAQ />

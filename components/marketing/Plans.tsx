@@ -11,33 +11,59 @@ const PLANS_PREVIEW: any[] = [
   {
     id: 'one_on_one',
     title: '1-on-1 Personal Coaching',
-    subtitle: 'Deep Transformation',
+    titleSmall: 'Personalised plan',
+    subtitle: '',
     desc: 'The fastest way to see results. A programme built entirely around your face, your skin type, and your goals.',
+    highlight: 'EXCLUSIVE PLAN FOR VERY FEW',
+    worksBestWith: 'Sagging, premature ageing, Double chin, Dullness, Wrinkles & Fine lines + many more',
     icon: User,
-    features: ['Custom Face Analysis', 'Daily Direct Guidance', 'Progress Check-ins'],
+    features: [
+      'Products recommendation as per your skintype',
+      'identify root cause of problem & provide solution',
+      'personalised plan as per your concern',
+      '3 type of Progress tracker for best Results',
+      'Limited openings every month'
+    ],
     accent: '#e76f51',
     cta: 'Apply for 1-on-1'
   },
   {
     id: 'lms',
-    title: 'Self-Paced Video Course',
-    subtitle: 'Lifetime Access',
+    title: 'Transformation plan',
+    titleSmall: 'recorded plan with lifetime access',
+    subtitle: '',
     desc: 'Master the techniques at your own pace. Perfect for busy schedules and those who want to learn on their own time.',
     icon: BookOpen,
-    features: ['Step-by-Step Modules', 'Lifetime Access', 'Bonus Morning Rituals'],
+    features: [
+      'Step-by-Step Modules',
+      'Lifetime Access',
+      'Do it anytime, anywhere as per your convenience',
+      'Best for beginners',
+      'Photos progress tracker'
+    ],
+    worksBestWith: 'Improve in glow, dullness, Dark circles, eyebrow lifting & sculpted face + many more',
     accent: '#e76f51',
-    cta: 'Get Instant Access'
+    cta: 'TRY YOUR FIRST FREE SESSION'
   },
   {
     id: 'group_session',
-    title: '21-Day Group Batch',
-    subtitle: 'Community Energy',
+    title: 'Transformation plan',
+    titleSmall: 'Daily Live sessions + Recordings also available',
+    subtitle: '',
     desc: 'Our most popular programme. Join a batch of like-minded women and build a habit that lasts a lifetime.',
     icon: Users,
-    features: ['Live Daily Practice', 'Shared Progress', 'Community Support', 'Expert Guidance', 'Progress Tracking'],
+    features: [
+      'Live Daily Practice',
+      'Shared Progress',
+      'Community Support',
+      'Expert Guidance',
+      'Progress Tracking',
+      '1 or 3 months option'
+    ],
+    worksBestWith: 'Dark circles, Double chin, Smile lines, Fine lines, Sagging, Dullness + many more',
     accent: '#e76f51',
     popular: true,
-    cta: 'Learn More & Join Batch'
+    cta: 'book your slot today ( only for limited people )'
   }
 ];
 
@@ -69,7 +95,7 @@ export function Plans() {
   return (
     <section
       id="plans-overview"
-      className="px-6 md:px-12 py-24 md:py-36 relative overflow-hidden bg-transparent"
+      className="px-6 md:px-12 py-12 md:py-8 relative overflow-hidden bg-transparent"
     >
       {/* Subtle Glows */}
       <div className="absolute top-1/4 right-0 w-[400px] h-[400px] bg-[#e76f51]/4 rounded-full blur-[100px] pointer-events-none" />
@@ -135,39 +161,54 @@ export function Plans() {
                   window.location.href = 'https://www.faceyoguez.com/plans/live-group';
                   return;
                 }
+                if (plan.id === 'one_on_one') {
+                  window.location.href = 'https://www.faceyoguez.com/plans/personal-classes';
+                  return;
+                }
+                if (plan.id === 'lms') {
+                  window.location.href = 'https://www.faceyoguez.com/plans/personal-classes';
+                  return;
+                }
                 
                 window.location.href = '/auth/signup';
               }}
-              className={`group p-8 md:p-10 rounded-[2.5rem] transition-all duration-500 relative cursor-pointer flex flex-col border ${plan.popular
+              className={`group p-6 md:p-8 rounded-[2rem] transition-all duration-500 relative cursor-pointer flex flex-col border ${plan.popular
                   ? 'bg-white border-[#e76f51]/20 shadow-[0_32px_80px_rgba(231,111,81,0.08)]'
                   : 'bg-white/70 border-[#e76f51]/5 hover:border-[#e76f51]/20 hover:bg-white hover:shadow-[0_20px_50px_rgba(231,111,81,0.05)]'
                 }`}
             >
-              {plan.popular && (
-                <div className="absolute top-6 right-6">
-                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#e76f51] text-[9px] font-black uppercase tracking-widest text-white">
-                    <Sparkles className="w-3 h-3" />
-                    Most Popular
+
+
+              <div className="space-y-6 flex-1">
+                <div className="space-y-3">
+                  {plan.subtitle && (
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#e76f51]/60">
+                      {plan.subtitle}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-500 group-hover:rotate-[8deg] ${plan.popular ? 'bg-[#e76f51]/10 text-[#e76f51]' : 'bg-[#e76f51]/5 text-[#e76f51]/40 group-hover:bg-[#e76f51]/10 group-hover:text-[#e76f51]'
+                        }`}
+                    >
+                      <plan.icon strokeWidth={1.5} className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-xl md:text-2xl font-aktiv font-bold text-[#2a2019] leading-tight flex flex-col gap-1 mt-1">
+                      <span>{plan.title}</span>
+                      {plan.titleSmall && (
+                        <span className="text-xs md:text-sm font-jakarta font-normal text-slate-500/80 leading-snug">
+                          {plan.titleSmall}
+                        </span>
+                      )}
+                    </h3>
                   </div>
                 </div>
-              )}
 
-              <div className="space-y-8 flex-1">
-                <div
-                  className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-transform duration-500 group-hover:rotate-[8deg] ${plan.popular ? 'bg-[#e76f51]/10 text-[#e76f51]' : 'bg-[#e76f51]/5 text-[#e76f51]/40 group-hover:bg-[#e76f51]/10 group-hover:text-[#e76f51]'
-                    }`}
-                >
-                  <plan.icon strokeWidth={1.5} className="w-7 h-7" />
-                </div>
-
-                <div className="space-y-2">
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#e76f51]/60">
-                    {plan.subtitle}
-                  </p>
-                  <h3 className="text-xl md:text-2xl font-aktiv font-bold text-[#2a2019]">
-                    {plan.title}
-                  </h3>
-                </div>
+                {plan.highlight && (
+                  <div className="inline-block px-3 py-1 bg-[#e76f51]/10 border border-[#e76f51]/20 rounded-full text-[9px] font-black uppercase tracking-widest text-[#e76f51]">
+                    {plan.highlight}
+                  </div>
+                )}
 
                 <p className="text-sm md:text-base text-slate-500 font-jakarta leading-relaxed">
                   {plan.desc}
@@ -181,10 +222,18 @@ export function Plans() {
                     </div>
                   ))}
                 </div>
+
+                {plan.worksBestWith && (
+                  <div className="pt-2">
+                    <p className="text-[11px] text-slate-500 font-jakarta leading-relaxed">
+                      <span className="font-bold text-[#e76f51]">Works best with:</span> {plan.worksBestWith}
+                    </p>
+                  </div>
+                )}
               </div>
 
-              <div className="mt-12">
-                <div className={`flex items-center justify-between px-6 py-4 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${plan.popular ? 'bg-[#2a2019] text-white' : 'bg-slate-100 text-[#2a2019] group-hover:bg-[#e76f51] group-hover:text-white'
+              <div className="mt-8">
+                <div className={`flex items-center justify-between px-5 py-3.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${plan.popular ? 'bg-[#2a2019] text-white' : 'bg-slate-100 text-[#2a2019] group-hover:bg-[#e76f51] group-hover:text-white'
                   }`}>
                   <span>{plan.cta}</span>
                   <ArrowRight className="w-4 h-4" />

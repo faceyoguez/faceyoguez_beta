@@ -76,7 +76,7 @@ export function Services() {
   return (
     <section
       ref={sectionRef}
-      className="px-6 md:px-12 py-24 md:py-32"
+      className="px-6 md:px-12 py-12 md:py-8"
       style={{ backgroundColor: 'rgb(252, 244, 235)' }}
     >
       <div className="max-w-6xl mx-auto">

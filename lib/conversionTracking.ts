@@ -1,5 +1,5 @@
 export const trackConversionEvent = async (params: {
-  event_type: 'pricing_view' | 'buy_click' | 'payment_screen' | 'payment_complete' | 'payment_failed' | 'payment_retry' | 'contact_form_fill' | 'whatsapp_click';
+  event_type: 'pricing_view' | 'buy_click' | 'payment_screen' | 'payment_complete' | 'payment_failed' | 'payment_retry' | 'contact_form_fill' | 'whatsapp_click' | 'newsletter_subscribe';
   page_path?: string;
   plan_type?: string;
   amount?: number;

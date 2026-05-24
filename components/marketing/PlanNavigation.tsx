@@ -37,7 +37,7 @@ export function PlanNavigation({ title }: PlanNavigationProps) {
                <ArrowLeft className="w-4 h-4 relative z-10 transition-colors group-hover:text-white" />
             </div>
             <span style={{ fontFamily: 'var(--font-cormorant)' }} className="italic lowercase tracking-wider text-sm opacity-60 group-hover:opacity-100 transition-opacity">
-              Exit <span className="font-bold uppercase tracking-[0.2em] text-[9px] not-italic ml-1">Ritual</span>
+              go back to <span className="font-bold uppercase tracking-[0.2em] text-[9px] not-italic ml-1">website</span>
             </span>
           </Link>
         </div>

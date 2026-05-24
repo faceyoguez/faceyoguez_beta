@@ -675,7 +675,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                             >
                                 <div className="flex justify-between items-center gap-2">
                                     <div className="min-w-0">
-                                        <h5 className="font-aktiv font-bold text-xs tracking-tight text-[#1a1a1a] truncate">{tier.label}</h5>
+                                        <h5 className="font-jakarta font-normal text-xs tracking-tight text-[#1a1a1a] truncate">{tier.label}</h5>
                                         {tier.badge && (
                                             <span className="text-[7px] font-black text-[#FF8A75] uppercase tracking-widest">{tier.badge}</span>
                                         )}
@@ -804,7 +804,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                      `}
                                 >
                                     <div className="flex-1">
-                                        <h5 className="font-bold text-[11px] tracking-tight text-[#1a1a1a]">{tier.label}</h5>
+                                        <h5 className="font-jakarta font-normal text-[11px] tracking-tight text-[#1a1a1a]">{tier.label}</h5>
                                         {tier.badge && <span className="text-[7px] font-black text-[#FF8A75] uppercase tracking-widest">{tier.badge}</span>}
                                     </div>
                                     <div className="text-right">
@@ -836,7 +836,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                     <div className="flex items-center justify-between mb-1">
                         <div>
                             <span className="text-[7px] font-black text-[#FF8A75] uppercase tracking-widest">Selected Tier</span>
-                            <p className="text-[10px] font-bold text-[#1a1a1a]">{currentTier.label}</p>
+                            <p className="font-jakarta text-[10px] font-normal text-[#1a1a1a]">{currentTier.label}</p>
                         </div>
                         <div className="text-right">
                             <span className="text-[7px] font-black text-[#6B7280] uppercase tracking-widest">Total</span>
@@ -878,7 +878,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                             <div className="p-5 rounded-3xl bg-white border border-[#FF8A75]/10 flex justify-between items-center">
                                 <div>
                                     <p className="text-[10px] font-black uppercase text-[#6B7280] tracking-widest">{currentPlan.title}</p>
-                                    <p className="text-sm font-bold text-[#1a1a1a]">{currentTier.label}</p>
+                                    <p className="font-jakarta text-sm font-normal text-[#1a1a1a]">{currentTier.label}</p>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-lg font-aktiv font-bold text-[#FF8A75]">₹{currentTier.discountedPrice}</p>

@@ -89,7 +89,7 @@ export function FAQ() {
   const isInView = useInView(ref, { once: true, amount: 0.1 });
 
   return (
-    <section ref={ref} className="relative py-24 md:py-36 overflow-hidden bg-transparent">
+    <section ref={ref} className="relative py-12 md:py-8 overflow-hidden bg-transparent">
       <div className="max-w-3xl mx-auto px-6 md:px-12">
         <motion.div
           initial="hidden"

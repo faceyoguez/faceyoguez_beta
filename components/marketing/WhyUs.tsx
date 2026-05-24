@@ -35,7 +35,7 @@ export function WhyUs() {
   const isInView = useInView(ref, { once: true, amount: 0.1 });
 
   return (
-    <section ref={ref} className="relative pt-10 md:pt-12 pb-12 md:pb-20 overflow-hidden bg-transparent">
+    <section ref={ref} className="relative pt-10 md:pt-12 pb-12 md:pb-10 overflow-hidden bg-transparent">
       <div className="max-w-5xl mx-auto px-6 md:px-12">
         <motion.div initial="hidden" animate={isInView ? "visible" : "hidden"} variants={fadeUp} className="text-center mb-16 space-y-5">
           <div className="inline-flex flex-col items-center gap-3">

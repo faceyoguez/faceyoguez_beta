@@ -37,7 +37,7 @@ export function FooterCTA() {
   return (
     <footer ref={footerRef} className="bg-transparent">
       {/* Contact section */}
-      <div className="px-6 md:px-12 py-24 md:py-32">
+      <div className="px-6 md:px-12 py-12 md:py-8">
         <div ref={contentRef} className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-20 md:gap-32 lg:gap-48 items-start">
             {/* Left - Logo and tagline */}
@@ -122,20 +122,25 @@ export function FooterCTA() {
               </div>
             )}
             
-            <div className="space-y-6">
-              <h4
-                className="text-[11px] font-aktiv font-bold tracking-[0.35em] uppercase mb-6"
-                style={{ color: 'rgb(153, 143, 132)' }}
-              >
-                Inquiries
-              </h4>
+            <div className="space-y-4">
+              <div>
+                <h4
+                  className="text-[11px] font-aktiv font-bold tracking-[0.35em] uppercase mb-2"
+                  style={{ color: 'rgb(153, 143, 132)' }}
+                >
+                  Newsletter
+                </h4>
+                <p className="text-sm font-jakarta text-slate-500">
+                  Subscribe to our news letter for Regular Tips, Free plans & Offers
+                </p>
+              </div>
               <form 
-                className="space-y-4"
+                className="space-y-4 pt-2"
                 onSubmit={(e) => {
                   e.preventDefault();
                   const emailInput = (e.currentTarget.elements[0] as HTMLInputElement).value;
-                  trackConversionEvent({ event_type: 'contact_form_fill' });
-                  window.location.href = `mailto:info@faceyoguez.com?subject=Inquiry from ${emailInput}`;
+                  trackConversionEvent({ event_type: 'newsletter_subscribe' });
+                  window.location.href = `mailto:info@faceyoguez.com?subject=Newsletter Subscription for ${emailInput}`;
                 }}
               >
                 <input 
@@ -148,7 +153,7 @@ export function FooterCTA() {
                   type="submit"
                   className="w-full bg-[#2c2525] text-white text-[11px] font-black font-aktiv uppercase tracking-widest py-3 rounded-xl hover:bg-pink-500 transition-all duration-300"
                 >
-                  Send Message
+                  Subscribe
                 </button>
               </form>
             </div>

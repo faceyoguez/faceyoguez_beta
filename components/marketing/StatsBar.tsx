@@ -20,7 +20,7 @@ export function StatsBar() {
   const isInView = useInView(ref, { once: true, amount: 0.3 });
 
   return (
-    <section ref={ref} className="relative py-14 md:py-20 overflow-hidden bg-[#1a1a1a]">
+    <section ref={ref} className="relative py-14 md:py-10 overflow-hidden bg-[#1a1a1a]">
       {/* Subtle pattern overlay */}
       <div
         className="absolute inset-0 opacity-[0.04] pointer-events-none"

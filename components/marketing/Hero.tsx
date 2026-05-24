@@ -65,7 +65,7 @@ export function Hero({ visible }: HeroProps) {
       </motion.nav>
 
       {/* Hero Content */}
-      <div className={`flex-1 flex ${isMobile ? 'flex-col-reverse pt-28 pb-12 px-6' : 'lg:flex-row items-center px-[6vw] pt-20 flex-col'}`}>
+      <div className={`flex-1 flex ${isMobile ? 'flex-col-reverse pt-28 pb-12 px-6' : 'lg:flex-row items-center px-[6vw] pt-10 flex-col'}`}>
 
         {/* Headline Column */}
         <div className={`relative z-10 ${isMobile ? 'text-center mb-10' : 'flex-1 lg:text-left text-left'}`}>

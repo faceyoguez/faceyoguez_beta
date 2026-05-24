@@ -122,7 +122,7 @@ export function Gallery({ showHeaders = true }: { showHeaders?: boolean } = {}) 
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden py-12 md:py-16 bg-transparent"
+      className="relative overflow-hidden py-12 md:py-8 bg-transparent"
     >
       {showHeaders && (
         <div className="max-w-4xl mx-auto px-6 md:px-12 mb-16 md:mb-24 text-center space-y-8">

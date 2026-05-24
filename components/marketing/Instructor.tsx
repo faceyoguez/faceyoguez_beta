@@ -36,7 +36,7 @@ export function Instructor() {
   return (
     <section
       ref={ref}
-      className="relative py-24 md:py-40 overflow-hidden bg-transparent"
+      className="relative py-12 md:py-8 overflow-hidden bg-transparent"
     >
       {/* Decorative Blur Orbs */}
       <div className="absolute top-1/2 left-0 w-[600px] h-[600px] bg-[#FF8A75]/5 rounded-full blur-[120px] -translate-y-1/2 -translate-x-1/2 pointer-events-none" />
@@ -108,13 +108,9 @@ export function Instructor() {
 
               {/* Call to Action */}
               <motion.div variants={fadeUp} className="pt-6 flex flex-col sm:flex-row items-center gap-8">
-                <Link href="/auth/signup" className="w-full sm:w-auto px-10 py-5 bg-[#1a1a1a] text-white rounded-full text-[11px] font-black uppercase tracking-[0.3em] hover:bg-[#e76f51] transition-all shadow-xl hover:scale-105 active:scale-95 flex items-center justify-center">
-                  Join a Class
+                <Link href="/auth/signup?redirectTo=%2Fstudent%2Fplans%3Fplan%3Dgroup_session" className="w-full sm:w-auto px-10 py-5 bg-[#1a1a1a] text-white rounded-full text-[11px] font-black uppercase tracking-[0.3em] hover:bg-[#e76f51] transition-all shadow-xl hover:scale-105 active:scale-95 flex items-center justify-center text-center">
+                  Book your class today
                 </Link>
-                <div className="flex items-center gap-4 text-[#2a2019]/40">
-                  <Sparkles className="w-5 h-5" />
-                  <span className="text-[10px] font-black uppercase tracking-widest italic">See for yourself.</span>
-                </div>
               </motion.div>
             </motion.div>
           </div>
