@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowRight, Facebook, Instagram } from 'lucide-react';
+import { ArrowRight, Facebook, Instagram, Loader2, Mail, CheckCircle2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import AuthLayout from '@/components/auth/AuthLayout';
@@ -60,6 +61,9 @@ export default function SignUpForm() {
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showOTP, setShowOTP] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [verifyingOTP, setVerifyingOTP] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -151,20 +155,46 @@ export default function SignUpForm() {
     }
 
     // Otherwise, Email Verification is required.
-    toast.success('Account created!', {
-      description: 'Please check your email and click the verification link to activate your sanctuary access.',
-      duration: 10000,
+    // Instead of redirecting to login, we show the OTP modal.
+    setLoading(false);
+    setShowOTP(true);
+  }
+
+  async function handleVerifyOTP(e: React.FormEvent) {
+    e.preventDefault();
+    if (otp.length !== 6) {
+      toast.error('Invalid OTP', { description: 'Please enter the 6-digit code sent to your email.' });
+      return;
+    }
+
+    setVerifyingOTP(true);
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token: otp,
+      type: 'signup',
     });
 
-    setErrors({ form: 'Success! A verification link has been sent to your email. Please verify before signing in.' });
-    setLoading(false);
+    if (error) {
+      toast.error('Verification Failed', { description: error.message });
+      setVerifyingOTP(false);
+      return;
+    }
 
-    // Redirect to login with a message and the next path
-    const loginUrl = nextParam && nextParam.startsWith('/')
-      ? `/auth/login?message=verify-email&redirectTo=${encodeURIComponent(nextParam)}`
-      : '/auth/login?message=verify-email';
-    router.push(loginUrl);
-
+    if (data.session) {
+      toast.success('Account verified!', {
+        description: 'Welcome to your sanctuary.',
+        duration: 5000,
+      });
+      
+      const nextParam = searchParams.get('redirectTo') || searchParams.get('next');
+      const callbackUrl = nextParam && nextParam.startsWith('/')
+        ? `/auth/callback?next=${encodeURIComponent(nextParam)}`
+        : '/auth/callback';
+        
+      router.push(callbackUrl);
+    } else {
+      setVerifyingOTP(false);
+    }
   }
 
   const handleOAuthSignup = async (provider: string) => {
@@ -289,6 +319,62 @@ export default function SignUpForm() {
           <span className="font-aktiv font-bold text-primary underline underline-offset-4 decoration-primary/20 hover:decoration-primary">Sign In</span>
         </Link>
       </div>
+
+      {/* OTP Verification Modal */}
+      <AnimatePresence>
+        {showOTP && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-sm bg-white rounded-3xl p-8 shadow-2xl overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-primary/50 to-primary" />
+              
+              <div className="flex justify-center mb-6">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Mail className="w-8 h-8 text-primary" />
+                </div>
+              </div>
+              
+              <div className="text-center mb-8">
+                <h3 className="text-2xl font-aktiv font-bold text-slate-900 mb-2">Verify Your Email</h3>
+                <p className="text-sm font-jakarta text-slate-500">
+                  We've sent a 6-digit code to <strong className="text-slate-800">{email}</strong>. Please enter it below.
+                </p>
+              </div>
+
+              <form onSubmit={handleVerifyOTP} className="space-y-6">
+                <div>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                    placeholder="000000"
+                    className="w-full text-center text-3xl font-bold tracking-[0.5em] font-mono py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all"
+                  />
+                </div>
+                
+                <AuthButton
+                  type="submit"
+                  loading={verifyingOTP}
+                  icon={!verifyingOTP ? <CheckCircle2 className="w-5 h-5" /> : null}
+                >
+                  Verify & Continue
+                </AuthButton>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </AuthLayout>
   );
 }
