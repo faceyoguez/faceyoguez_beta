@@ -150,7 +150,9 @@ export default function SignUpForm() {
         duration: 5000,
       });
       setLoading(false);
-      router.push(callbackUrl);
+      const userRole = authData.user?.user_metadata?.role || 'student';
+      const redirectDest = nextParam && nextParam.startsWith('/') ? nextParam : getRoleRedirectPath(userRole);
+      router.push(redirectDest);
       return;
     }
 
@@ -186,12 +188,11 @@ export default function SignUpForm() {
         duration: 5000,
       });
       
+      const userRole = data.user?.user_metadata?.role || 'student';
       const nextParam = searchParams.get('redirectTo') || searchParams.get('next');
-      const callbackUrl = nextParam && nextParam.startsWith('/')
-        ? `/auth/callback?next=${encodeURIComponent(nextParam)}`
-        : '/auth/callback';
+      const redirectDest = nextParam && nextParam.startsWith('/') ? nextParam : getRoleRedirectPath(userRole);
         
-      router.push(callbackUrl);
+      router.push(redirectDest);
     } else {
       setVerifyingOTP(false);
     }
