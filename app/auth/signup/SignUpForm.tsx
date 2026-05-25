@@ -71,8 +71,8 @@ export default function SignUpForm() {
   // Redirect if already logged in
   useEffect(() => {
     async function checkSession() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
         const nextParam = searchParams.get('redirectTo') || searchParams.get('next') || '/student/dashboard';
         router.push(nextParam);
       }
