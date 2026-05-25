@@ -35,11 +35,11 @@ const AuthLayout = ({ children, title, subtitle, isSignup = false }: AuthLayoutP
 
       <div className="relative z-10 w-full max-w-[460px] flex flex-col items-center">
         {/* Symmetrical Centered Logo */}
-        <Link href="/" className="flex flex-col items-center gap-3 group mb-8">
-          <div className="h-14 w-14 flex items-center justify-center rounded-2xl bg-white/60 text-primary transition-all group-hover:scale-110 group-hover:bg-primary group-hover:text-white shadow-xl shadow-primary/10 border border-white/50 backdrop-blur-md">
-            <Flower2 className="h-7 w-7" strokeWidth={1.5} />
+        <Link href="/" className="flex flex-col items-center gap-2 group mb-4">
+          <div className="h-12 w-12 flex items-center justify-center rounded-2xl bg-white/60 text-primary transition-all group-hover:scale-110 group-hover:bg-primary group-hover:text-white shadow-xl shadow-primary/10 border border-white/50 backdrop-blur-md">
+            <Flower2 className="h-6 w-6" strokeWidth={1.5} />
           </div>
-          <span className="text-2xl font-sooner tracking-tight text-foreground transition-all group-hover:opacity-80">Faceyoguez</span>
+          <span className="text-xl font-sooner tracking-tight text-foreground transition-all group-hover:opacity-80">Faceyoguez</span>
         </Link>
 
         {/* Premium Symmetrical Form Container */}
@@ -48,29 +48,29 @@ const AuthLayout = ({ children, title, subtitle, isSignup = false }: AuthLayoutP
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className={cn(
-            "w-full bg-white/60 p-8 sm:p-10 rounded-[3rem] backdrop-blur-2xl border border-white/60 shadow-[0_20px_60px_rgba(231,111,81,0.08)]",
-            isSignup ? "space-y-6" : "space-y-8"
+            "w-full bg-white/60 rounded-[3rem] backdrop-blur-2xl border border-white/60 shadow-[0_20px_60px_rgba(231,111,81,0.08)]",
+            isSignup ? "p-6 sm:p-7 space-y-4" : "p-8 sm:p-10 space-y-8"
           )}
         >
-          <div className="space-y-3 text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] bg-primary/5 text-primary border border-primary/10 mx-auto mb-2">
+          <div className={cn("space-y-2 text-center", isSignup && "space-y-1")}>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] bg-primary/5 text-primary border border-primary/10 mx-auto mb-1">
               <Sparkles className="w-3 h-3" />
               Face Yoga Sanctuary
             </div>
             <h1 className={cn(
               "font-aktiv font-bold tracking-tight text-foreground leading-tight mx-auto",
-              isSignup ? "text-2xl sm:text-3xl" : "text-3xl sm:text-4xl"
+              isSignup ? "text-xl sm:text-2xl" : "text-3xl sm:text-4xl"
             )} style={{ letterSpacing: '-0.03em' }}>
               {title}
             </h1>
-            <p className="text-warm-gray font-medium leading-relaxed text-sm sm:text-base mx-auto max-w-[300px]">
+            <p className={cn("text-warm-gray font-medium leading-relaxed mx-auto max-w-[300px]", isSignup ? "text-xs" : "text-sm sm:text-base")}>
               {subtitle}
             </p>
           </div>
 
-          <div className="w-12 h-1 bg-primary/20 rounded-full mx-auto my-6" />
+          <div className="w-10 h-0.5 bg-primary/20 rounded-full mx-auto" />
 
-          <div className={cn(isSignup ? "space-y-4" : "space-y-6")}>
+          <div className={cn(isSignup ? "space-y-3" : "space-y-6")}>
             {children}
           </div>
         </motion.div>

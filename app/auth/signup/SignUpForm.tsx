@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowRight, Facebook, Instagram, Loader2, Mail, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Facebook, Instagram, Mail, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -164,8 +164,8 @@ export default function SignUpForm() {
 
   async function handleVerifyOTP(e: React.FormEvent) {
     e.preventDefault();
-    if (otp.length !== 6) {
-      toast.error('Invalid OTP', { description: 'Please enter the 6-digit code sent to your email.' });
+    if (otp.length !== 8) {
+      toast.error('Invalid OTP', { description: 'Please enter the 8-digit code sent to your email.' });
       return;
     }
 
@@ -227,7 +227,7 @@ export default function SignUpForm() {
       subtitle="Create your sanctuary and start practicing face yoga today."
       isSignup={true}
     >
-      <form onSubmit={handleSignUp} className="space-y-4">
+      <form onSubmit={handleSignUp} className="space-y-3">
         <AuthInput
           label="Full Name"
           type="text"
@@ -256,7 +256,7 @@ export default function SignUpForm() {
             <select
               value={countryCode}
               onChange={(e) => setCountryCode(e.target.value)}
-              className="bg-transparent text-base font-jakarta font-medium text-foreground outline-none py-3.5 sm:py-4 pl-4 pr-2 border-r border-outline-variant/50 focus:bg-white/50 cursor-pointer"
+              className="bg-transparent text-sm font-jakarta font-medium text-foreground outline-none py-3 pl-4 pr-2 border-r border-outline-variant/50 focus:bg-white/50 cursor-pointer"
             >
               {COUNTRY_CODES.map((c) => (
                 <option key={c.code} value={c.code}>{c.label}</option>
@@ -267,7 +267,7 @@ export default function SignUpForm() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="98765 43210"
-              className="flex-1 bg-transparent text-base font-jakarta text-foreground placeholder:text-warm-gray/30 outline-none px-4 py-3.5 sm:py-4"
+              className="flex-1 bg-transparent text-sm font-jakarta text-foreground placeholder:text-warm-gray/30 outline-none px-4 py-3"
             />
           </div>
           {errors.phone && (
