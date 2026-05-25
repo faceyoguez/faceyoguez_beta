@@ -136,9 +136,6 @@ export default function SignUpForm() {
       return;
     }
 
-    // Try triggering the welcome email.
-    fetch('/api/auth/welcome', { method: 'POST' }).catch(() => {});
-
     // Pixel: signal lead intent and complete registration ONLY on successful account creation
     pixel.lead({ source: 'signup_form', email });
     pixel.completeRegistration({ method: 'email' });
@@ -183,6 +180,9 @@ export default function SignUpForm() {
     }
 
     if (data.session) {
+      // Fire the welcome email now that the user is actually authenticated
+      fetch('/api/auth/welcome', { method: 'POST' }).catch(() => {});
+
       toast.success('Account verified!', {
         description: 'Welcome to your sanctuary.',
         duration: 5000,

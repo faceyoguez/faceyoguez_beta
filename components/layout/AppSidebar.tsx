@@ -132,8 +132,14 @@ export function AppSidebar({
     try {
       const supabase = createClient();
       await supabase.auth.signOut();
+      
+      // Clear server-side cookies
+      await fetch('/auth/logout', { method: 'POST' }).catch(() => {});
+      
       toast.success('Logged out', { description: 'You have successfully logged out.' });
-      router.push('/auth/login');
+      
+      // Hard redirect to completely wipe Next.js client-side cache
+      window.location.href = '/auth/login';
     } catch {
       toast.error('Logout failed', { description: 'An error occurred while logging out.' });
     }
