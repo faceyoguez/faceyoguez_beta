@@ -231,6 +231,7 @@ export default function VideoCoursesPage() {
 
                <button 
                   onClick={() => {
+                    pixel.planCtaClicked({ planId: 'lms', planLabel: 'Video Courses', buttonLabel: 'Unlock Lifetime Access' });
                     pixel.initiateCheckout({ value: 1499, planId: 'lms', planLabel: 'Video Courses — L1+L2' });
                     const redirectPath = '/student/plans?plan=lms';
                     window.location.href = `/auth/signup?redirectTo=${encodeURIComponent(redirectPath)}`;

@@ -186,6 +186,7 @@ export default function LiveGroupPage() {
                      {/* Tier 1 — 1 Month */}
                      <div className="p-6 bg-[#fcf8f7] border border-[#2c2525]/5 rounded-2xl relative group hover:border-[#e76f51]/30 transition-all cursor-pointer"
                        onClick={() => {
+                         pixel.planCtaClicked({ planId: 'group_session', planLabel: 'Live Group', buttonLabel: '1 Month Plan' });
                          pixel.initiateCheckout({ value: 1499, planId: 'group_session', planLabel: '1 Month Plan — Early Bird' });
                          const redirectPath = encodeURIComponent('/student/plans?plan=group_session&tierIdx=0');
                          window.location.href = `/auth/signup?redirectTo=${redirectPath}`;
@@ -207,6 +208,7 @@ export default function LiveGroupPage() {
                      {/* Tier 2 — 3 Months */}
                      <div className="p-6 bg-[#e76f51]/5 border-2 border-[#e76f51]/20 rounded-2xl relative shadow-sm hover:shadow-md transition-all cursor-pointer"
                        onClick={() => {
+                         pixel.planCtaClicked({ planId: 'group_session', planLabel: 'Live Group', buttonLabel: '3 Months Plan' });
                          pixel.initiateCheckout({ value: 3499, planId: 'group_session', planLabel: '3 Months Plan — Best Value' });
                          const redirectPath = encodeURIComponent('/student/plans?plan=group_session&tierIdx=1');
                          window.location.href = `/auth/signup?redirectTo=${redirectPath}`;
@@ -229,6 +231,7 @@ export default function LiveGroupPage() {
 
                   <button 
                     onClick={() => {
+                      pixel.planCtaClicked({ planId: 'group_session', planLabel: 'Live Group', buttonLabel: 'Join Transformation' });
                       pixel.initiateCheckout({ value: 1499, planId: 'group_session', planLabel: 'Live Group — 21 Days' });
                       const redirectPath = encodeURIComponent('/student/plans?plan=group_session&tierIdx=0');
                       window.location.href = `/auth/signup?redirectTo=${redirectPath}`;

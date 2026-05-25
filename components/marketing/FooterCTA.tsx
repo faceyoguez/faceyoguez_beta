@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Flower2 } from 'lucide-react';
 import { trackConversionEvent } from '@/lib/conversionTracking';
+import { pixel } from '@/lib/pixel';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -69,6 +70,7 @@ export function FooterCTA() {
                   href="https://www.instagram.com/faceyoguez/"
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => pixel.socialLinkClicked({ platform: 'instagram' })}
                   className="w-10 h-10 flex items-center justify-center rounded-full border transition-colors duration-300 hover:bg-[rgb(44,37,37)] hover:text-[rgb(252,244,235)]"
                   style={{ borderColor: 'rgba(44, 37, 37, 0.2)', color: 'rgb(44, 37, 37)' }}
                   aria-label="Instagram"
@@ -83,6 +85,7 @@ export function FooterCTA() {
                   href="https://www.facebook.com/faceyoguez/"
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => pixel.socialLinkClicked({ platform: 'facebook' })}
                   className="w-10 h-10 flex items-center justify-center rounded-full border transition-colors duration-300 hover:bg-[rgb(44,37,37)] hover:text-[rgb(252,244,235)]"
                   style={{ borderColor: 'rgba(44, 37, 37, 0.2)', color: 'rgb(44, 37, 37)' }}
                   aria-label="Facebook"
@@ -139,6 +142,7 @@ export function FooterCTA() {
                 onSubmit={(e) => {
                   e.preventDefault();
                   const emailInput = (e.currentTarget.elements[0] as HTMLInputElement).value;
+                  pixel.newsletterSubscribed();
                   trackConversionEvent({ event_type: 'newsletter_subscribe' });
                   window.location.href = `mailto:info@faceyoguez.com?subject=Newsletter Subscription for ${emailInput}`;
                 }}

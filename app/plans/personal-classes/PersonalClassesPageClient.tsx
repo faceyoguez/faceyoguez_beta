@@ -74,6 +74,7 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
   };
 
   const handlePlanPurchase = async (tierIdx: number) => {
+    pixel.planCtaClicked({ planId: 'one_on_one', planLabel: '1-on-1 Personal Coaching', buttonLabel: TIERS[tierIdx].label });
     const redirectPath = encodeURIComponent(`/student/plans?plan=one_on_one&tierIdx=${tierIdx}`);
     window.location.href = `/auth/signup?redirectTo=${redirectPath}`;
   };
@@ -313,6 +314,7 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
                 {/* Main subscribe button */}
                 <button
                   onClick={() => {
+                    pixel.planCtaClicked({ planId: 'one_on_one', planLabel: TIERS[1].label, buttonLabel: 'Subscribe Now' });
                     pixel.initiateCheckout({ value: TIERS[1].disc, planId: 'one_on_one', planLabel: TIERS[1].label });
                     handlePlanPurchase(1);
                   }}

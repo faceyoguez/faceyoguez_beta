@@ -400,6 +400,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                 setLoading(false);
 
                 // Track failed payment for analytics
+                pixel.paymentFailed({ planId: selectedPlanId, reason: errorMsg, value: totalAmount });
                 import('@/lib/conversionTracking').then(({ trackConversionEvent }) => {
                     trackConversionEvent({
                         event_type: 'payment_failed',

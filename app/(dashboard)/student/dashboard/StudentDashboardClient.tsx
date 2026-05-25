@@ -29,6 +29,7 @@ import { toast } from 'sonner';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
+import { pixel } from '@/lib/pixel';
 
 const ImageComparison = dynamic(() => import('@/components/ui/image-comparison-slider').then(mod => mod.ImageComparison), {
   ssr: false,
@@ -133,6 +134,11 @@ export function StudentDashboardClient({
   } else if (needsPhoneVerification) {
     verificationMessage = 'Please verify your phone number to secure your account.';
   }
+
+  // ─── Pixel: Dashboard Reached ───
+  React.useEffect(() => {
+    pixel.dashboardReached({ role: 'student' });
+  }, []);
 
   // ─── Real-Time Subscription & Expiry Logic ───
   React.useEffect(() => {

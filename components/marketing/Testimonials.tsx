@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion, useInView, Variants, useAnimationFrame } from 'framer-motion';
+import { pixel } from '@/lib/pixel';
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 30 },
@@ -77,6 +78,8 @@ export function Testimonials() {
     } else {
       setIsMuted(false);
       setActiveVideoIndex(index);
+      const vid = videos[index % videos.length];
+      pixel.testimonialVideoPlayed({ videoId: vid.id, videoIndex: index % videos.length });
 
       // Attempt to unmute after a short delay for the iframe to mount
       setTimeout(() => {
@@ -224,6 +227,7 @@ export function Testimonials() {
       >
         <a
           href="/auth/signup?redirectTo=/student/plans"
+          onClick={() => pixel.initiateCheckout({ value: 999, planId: 'consultation', planLabel: '1-on-1 Consultation' })}
           className="group relative inline-flex items-center justify-center px-6 md:px-8 py-4 text-sm md:text-base font-bold text-white bg-[#2a2019] hover:bg-[#e76f51] rounded-full transition-all duration-500 overflow-hidden shadow-2xl"
         >
           <span className="relative z-10 flex items-center gap-2">

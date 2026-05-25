@@ -6,6 +6,7 @@ import { motion, useInView } from 'framer-motion';
 import { User, Users, BookOpen, ArrowRight, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { trackConversionEvent } from '@/lib/conversionTracking';
+import { pixel } from '@/lib/pixel';
 
 const PLANS_PREVIEW: any[] = [
   {
@@ -132,8 +133,7 @@ export function Plans() {
                 <div className="hidden sm:block w-px h-4 bg-[#e76f51]/20" />
                 <button 
                   onClick={() => {
-                    const redirectPath = '/student/plans?plan=one_on_one';
-                    // We don't have userId here easily, but we can redirect to a route that handles it or just use the signup/login flow
+                    pixel.initiateCheckout({ value: 999, planId: 'consultation', planLabel: 'Book a Consultation' });
                     window.location.href = `/auth/signup`;
                   }}
                   className="flex items-center justify-center gap-2 text-[11px] sm:text-[11px] font-black text-[#e76f51] uppercase tracking-[0.2em] hover:text-[#d4603f] transition-colors"
@@ -157,6 +157,7 @@ export function Plans() {
               key={plan.id}
               variants={itemVariants}
               onClick={() => {
+                pixel.planCardClicked({ planId: plan.id, planTitle: plan.title });
                 if (plan.id === 'group_session') {
                   window.location.href = 'https://www.faceyoguez.com/plans/live-group';
                   return;

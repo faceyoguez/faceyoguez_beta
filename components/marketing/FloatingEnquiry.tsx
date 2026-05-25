@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, MessageCircle, Mail, X, Plus, ClipboardList } from 'lucide-react';
 import { ConsultationButton } from './ConsultationButton';
+import { pixel } from '@/lib/pixel';
 
 export function FloatingEnquiry() {
   const [isOpen, setIsOpen] = useState(false);
@@ -27,6 +28,7 @@ export function FloatingEnquiry() {
               href="https://wa.me/917837310255"
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => pixel.whatsAppChatClicked()}
               className="group flex items-center gap-3 bg-white border border-[#2c2525]/5 rounded-2xl px-5 py-3 shadow-xl hover:bg-[#2c2525] transition-all duration-500"
             >
               <div className="text-right">
@@ -48,6 +50,7 @@ export function FloatingEnquiry() {
               href="https://mail.google.com/mail/?view=cm&fs=1&to=info@faceyoguez.com"
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => pixel.emailEnquiryClicked()}
               className="group flex items-center gap-3 bg-white border border-[#2c2525]/5 rounded-2xl px-5 py-3 shadow-xl hover:bg-[#2c2525] transition-all duration-500"
             >
               <div className="text-right">
@@ -64,7 +67,10 @@ export function FloatingEnquiry() {
 
       {/* Primary Toggle Button */}
       <motion.button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          if (!isOpen) pixel.contactButtonClicked();
+          setIsOpen(!isOpen);
+        }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-2xl transition-all duration-700 ${isOpen ? 'bg-white text-[#2c2525] rotate-90 border border-[#2c2525]/5' : 'bg-[#2c2525] text-white'

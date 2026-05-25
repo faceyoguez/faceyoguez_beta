@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, Variants } from 'framer-motion';
+import { pixel } from '@/lib/pixel';
 
 const HERO_IMAGE = '/assets/instructor_img.jpg';
 
@@ -54,10 +55,10 @@ export function Hero({ visible }: HeroProps) {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-8">
-            <Link href="/auth/login" className="hidden sm:flex text-xs sm:text-sm font-black uppercase tracking-widest text-[#2a2019]/60 hover:text-[#e76f51] transition-colors leading-none items-center">
+            <Link href="/auth/login" onClick={() => pixel.heroCtaClicked({ buttonLabel: 'Login' })} className="hidden sm:flex text-xs sm:text-sm font-black uppercase tracking-widest text-[#2a2019]/60 hover:text-[#e76f51] transition-colors leading-none items-center">
               Login
             </Link>
-            <Link href="/auth/signup" className="inline-flex items-center justify-center px-4 py-2.5 sm:px-6 sm:py-3 bg-[#1a1a1a] text-white rounded-full text-[9px] sm:text-[11px] font-black uppercase tracking-[0.2em] hover:bg-[#e76f51] transition-all shadow-md active:scale-95 leading-none">
+            <Link href="/auth/signup" onClick={() => pixel.heroCtaClicked({ buttonLabel: 'Get Started' })} className="inline-flex items-center justify-center px-4 py-2.5 sm:px-6 sm:py-3 bg-[#1a1a1a] text-white rounded-full text-[9px] sm:text-[11px] font-black uppercase tracking-[0.2em] hover:bg-[#e76f51] transition-all shadow-md active:scale-95 leading-none">
               Get Started
             </Link>
           </div>
@@ -100,6 +101,7 @@ export function Hero({ visible }: HeroProps) {
           <motion.div variants={itemVariants} className={`flex flex-col sm:flex-row gap-4 mb-4 ${isMobile ? 'items-center' : ''}`}>
             <Link
               href="/auth/signup"
+              onClick={() => pixel.heroCtaClicked({ buttonLabel: 'Book Your Class' })}
               className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#e76f51] text-white rounded-full text-[11px] font-black uppercase tracking-[0.25em] hover:bg-[#d4603f] transition-all shadow-[0_12px_32px_rgba(231,111,81,0.35)] hover:scale-105 active:scale-95"
             >
               🌸 Book Your Class →

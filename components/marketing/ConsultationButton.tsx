@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { ClipboardList } from 'lucide-react';
+import { pixel } from '@/lib/pixel';
 
 export function ConsultationButton() {
   return (
@@ -9,6 +10,7 @@ export function ConsultationButton() {
       href="https://form.jotform.com/261413254231041"
       target="_blank"
       rel="noopener noreferrer"
+      onClick={() => pixel.consultationEnquiryClicked()}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ scale: 1.05 }}

@@ -184,6 +184,114 @@ export const pixel = {
   loginSuccess() {
     fireCustom('LoginSuccess');
   },
+
+  /**
+   * LandingPageViewed — fires on homepage load.
+   */
+  landingPageViewed() {
+    fireCustom('LandingPageViewed', { page: 'homepage' });
+  },
+
+  /**
+   * HeroCtaClicked — fires when any CTA button in the Hero section is clicked.
+   */
+  heroCtaClicked(params: { buttonLabel: string }) {
+    fireCustom('HeroCtaClicked', { button_label: params.buttonLabel });
+  },
+
+  /**
+   * ScrollSection — fires when a major section scrolls into view.
+   * sectionName = 'philosophy' | 'gallery' | 'testimonials' | 'plans' | 'instructor' | 'faq' | 'footer'
+   */
+  scrollSection(sectionName: string) {
+    fireCustom('ScrollSection', { section: sectionName });
+  },
+
+  /**
+   * TestimonialVideoPlayed — fires when a user clicks play on a testimonial video.
+   */
+  testimonialVideoPlayed(params: { videoId: string; videoIndex: number }) {
+    fireCustom('TestimonialVideoPlayed', { video_id: params.videoId, video_index: params.videoIndex });
+  },
+
+  /**
+   * PlanCardClicked — fires when a plan card in the Offerings section is clicked.
+   */
+  planCardClicked(params: { planId: string; planTitle: string }) {
+    fireCustom('PlanCardClicked', { plan_id: params.planId, plan_title: params.planTitle });
+  },
+
+  /**
+   * ConsultationEnquiryClicked — fires when the orange Consultation Enquiry Form button is clicked.
+   */
+  consultationEnquiryClicked() {
+    fireCustom('ConsultationEnquiryClicked', { source: 'floating_button' });
+  },
+
+  /**
+   * WhatsAppChatClicked — fires when the WhatsApp Quick Chat link is clicked.
+   */
+  whatsAppChatClicked() {
+    fireCustom('WhatsAppChatClicked', { source: 'floating_enquiry' });
+  },
+
+  /**
+   * EmailEnquiryClicked — fires when the Email Send Enquiry link is clicked.
+   */
+  emailEnquiryClicked() {
+    fireCustom('EmailEnquiryClicked', { source: 'floating_enquiry' });
+  },
+
+  /**
+   * ContactButtonClicked — fires when the main Contact Us toggle button is opened.
+   */
+  contactButtonClicked() {
+    fireCustom('ContactButtonClicked', { source: 'floating_button' });
+  },
+
+  /**
+   * NewsletterSubscribed — fires when the newsletter form in the footer is submitted.
+   */
+  newsletterSubscribed() {
+    fireCustom('NewsletterSubscribed', { source: 'footer' });
+  },
+
+  /**
+   * SocialLinkClicked — fires when the user clicks Instagram or Facebook footer icon.
+   */
+  socialLinkClicked(params: { platform: 'instagram' | 'facebook' | 'youtube' }) {
+    fireCustom('SocialLinkClicked', { platform: params.platform });
+  },
+
+  /**
+   * PaymentFailed — fires when Razorpay payment attempt fails.
+   */
+  paymentFailed(params: { planId: string; planLabel?: string; value?: number; reason?: string }) {
+    fireCustom('PaymentFailed', {
+      plan_id: params.planId,
+      plan_label: params.planLabel ?? params.planId,
+      amount_inr: params.value,
+      failure_reason: params.reason,
+    });
+  },
+
+  /**
+   * DashboardReached — fires when a verified user lands on the dashboard for the first time.
+   */
+  dashboardReached(params: { role: string }) {
+    fireCustom('DashboardReached', { user_role: params.role });
+  },
+
+  /**
+   * PlanCtaClicked — fires when a CTA button on any plan detail page is clicked.
+   */
+  planCtaClicked(params: { planId: string; planLabel: string; buttonLabel: string }) {
+    fireCustom('PlanCtaClicked', {
+      plan_id: params.planId,
+      plan_label: params.planLabel,
+      button_label: params.buttonLabel,
+    });
+  },
 };
 
 // ── Named re-exports for `import * as pixel` pattern ─────────────────────────
@@ -200,3 +308,17 @@ export const thankYouViewed = pixel.thankYouViewed.bind(pixel);
 export const consultationBooked = pixel.consultationBooked.bind(pixel);
 export const planPageView = pixel.planPageView.bind(pixel);
 export const loginSuccess = pixel.loginSuccess.bind(pixel);
+export const landingPageViewed = pixel.landingPageViewed.bind(pixel);
+export const heroCtaClicked = pixel.heroCtaClicked.bind(pixel);
+export const scrollSection = pixel.scrollSection.bind(pixel);
+export const testimonialVideoPlayed = pixel.testimonialVideoPlayed.bind(pixel);
+export const planCardClicked = pixel.planCardClicked.bind(pixel);
+export const consultationEnquiryClicked = pixel.consultationEnquiryClicked.bind(pixel);
+export const whatsAppChatClicked = pixel.whatsAppChatClicked.bind(pixel);
+export const emailEnquiryClicked = pixel.emailEnquiryClicked.bind(pixel);
+export const contactButtonClicked = pixel.contactButtonClicked.bind(pixel);
+export const newsletterSubscribed = pixel.newsletterSubscribed.bind(pixel);
+export const socialLinkClicked = pixel.socialLinkClicked.bind(pixel);
+export const paymentFailed = pixel.paymentFailed.bind(pixel);
+export const dashboardReached = pixel.dashboardReached.bind(pixel);
+export const planCtaClicked = pixel.planCtaClicked.bind(pixel);
