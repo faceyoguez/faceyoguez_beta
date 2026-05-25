@@ -21,6 +21,7 @@ import { LuxuryBackground } from '@/components/marketing/LuxuryBackground';
 import { Gallery } from '@/components/marketing/Gallery';
 import { Testimonials } from '@/components/marketing/Testimonials';
 import { VerifiedProofs } from '@/components/marketing/VerifiedProofs';
+import * as pixel from '@/lib/pixel';
 
 
 
@@ -197,11 +198,30 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const targetLink = whatsappLink || '#';
 
+  // ── Pixel: ViewContent when user lands on the webinar page ──────────
+  useEffect(() => {
+    pixel.viewContent({
+      content_name: 'Webinar Landing Page',
+      content_ids: ['webinar_free'],
+      content_type: 'product',
+      currency: 'INR',
+    });
+  }, []);
+
   const handleJoinClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!whatsappLink) {
       e.preventDefault();
       alert('WhatsApp link is currently unavailable. Please try again later.');
     }
+  };
+
+  // ── Pixel: InitiateCheckout when any webinar CTA is clicked ─────────
+  const handleWebinarCTAClick = () => {
+    pixel.initiateCheckout({
+      value: 0,
+      planId: 'webinar_free',
+      planLabel: 'Free Webinar Registration',
+    });
   };
 
   return (
@@ -216,6 +236,7 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
           </div>
           <Link
             href="/webinar/register"
+            onClick={handleWebinarCTAClick}
             className="inline-flex items-center justify-center px-4 py-2.5 sm:px-6 sm:py-3 bg-[#1a1a1a] text-white rounded-full text-[9px] sm:text-[11px] font-black uppercase tracking-[0.2em] hover:bg-[#FF8A75] transition-all shadow-md active:scale-95 leading-none"
           >
             Join Free Weekend Batch
@@ -274,6 +295,7 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
             <motion.div variants={fadeUp} className="pt-8 flex flex-col items-center gap-4">
               <Link
                 href="/webinar/register"
+                onClick={handleWebinarCTAClick}
                 className="group relative inline-flex items-center justify-center px-8 sm:px-10 py-5 sm:py-6 text-sm sm:text-base font-black uppercase tracking-[0.15em] text-white bg-[#e76f51] hover:bg-[#d4603f] rounded-full overflow-hidden transition-all shadow-[0_20px_40px_-15px_rgba(231,111,81,0.5)] hover:-translate-y-1 w-full sm:w-auto"
               >
                 <span className="relative z-10 flex items-center gap-3">
@@ -364,6 +386,7 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
               <div className="mt-8">
                 <Link
                   href="/webinar/register"
+                  onClick={handleWebinarCTAClick}
                   className="inline-flex items-center justify-center px-8 py-4 text-sm font-black uppercase tracking-widest text-white bg-[#FF8A75] hover:bg-[#d4603f] rounded-full transition-all shadow-lg"
                 >
                   Reserve My Spot For Free
@@ -572,6 +595,7 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
                   <h3 className="font-aktiv font-bold text-xl text-[#2a2019] mb-4">If You're Still Reading...</h3>
                   <Link
                     href="/webinar/register"
+                    onClick={handleWebinarCTAClick}
                     className="inline-flex w-full items-center justify-center px-6 py-4 text-sm font-black uppercase tracking-widest text-white bg-[#e76f51] hover:bg-[#d4603f] rounded-full transition-all shadow-md"
                   >
                     Reserve Your Free Spot
@@ -650,6 +674,7 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
             </p>
             <Link
               href="/webinar/register"
+              onClick={handleWebinarCTAClick}
               className="inline-flex items-center justify-center px-10 py-6 text-base sm:text-lg font-black uppercase tracking-widest text-white bg-[#1a1a1a] hover:bg-[#FF8A75] rounded-full transition-all shadow-2xl hover:shadow-[#FF8A75]/40 hover:-translate-y-2 w-full sm:w-auto"
             >
               🌸 Register For Free Now →

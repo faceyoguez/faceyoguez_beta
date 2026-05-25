@@ -40,16 +40,19 @@ export const pixel = {
    * Maps to Meta's "View Content" standard event.
    */
   viewContent(params: {
-    contentName: string;
+    contentName?: string;
+    content_name?: string;
     contentIds?: string[];
+    content_ids?: string[];
     contentType?: string;
+    content_type?: string;
     value?: number;
     currency?: string;
   }) {
     fire('ViewContent', {
-      content_name: params.contentName,
-      content_ids: params.contentIds ?? [],
-      content_type: params.contentType ?? 'product',
+      content_name: params.content_name ?? params.contentName,
+      content_ids: params.content_ids ?? params.contentIds ?? [],
+      content_type: params.content_type ?? params.contentType ?? 'product',
       value: params.value,
       currency: params.currency ?? 'INR',
     });
@@ -182,3 +185,18 @@ export const pixel = {
     fireCustom('LoginSuccess');
   },
 };
+
+// ── Named re-exports for `import * as pixel` pattern ─────────────────────────
+export const pageView = pixel.pageView.bind(pixel);
+export const viewContent = pixel.viewContent.bind(pixel);
+export const lead = pixel.lead.bind(pixel);
+export const completeRegistration = pixel.completeRegistration.bind(pixel);
+export const initiateCheckout = pixel.initiateCheckout.bind(pixel);
+export const addToCart = pixel.addToCart.bind(pixel);
+export const purchase = pixel.purchase.bind(pixel);
+export const search = pixel.search.bind(pixel);
+export const custom = pixel.custom.bind(pixel);
+export const thankYouViewed = pixel.thankYouViewed.bind(pixel);
+export const consultationBooked = pixel.consultationBooked.bind(pixel);
+export const planPageView = pixel.planPageView.bind(pixel);
+export const loginSuccess = pixel.loginSuccess.bind(pixel);

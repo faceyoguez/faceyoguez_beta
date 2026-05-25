@@ -5,6 +5,7 @@ import { Sparkles, ArrowRight, ShieldCheck, Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { LuxuryBackground } from '@/components/marketing/LuxuryBackground';
+import * as pixel from '@/lib/pixel';
 
 interface ThankYouClientProps {
   whatsappLink: string;
@@ -21,6 +22,13 @@ export function ThankYouClient({ whatsappLink }: ThankYouClientProps) {
     link.rel = 'stylesheet';
     document.head.appendChild(link);
 
+    // ── Pixel: WebinarRegistered — user completed the full registration funnel ───
+    pixel.custom('WebinarRegistered', {
+      content_name: 'Free Webinar',
+      source: 'webinar_thank_you',
+      funnel_stage: 'registration_complete',
+    });
+
     // ── Countdown Timer & Redirect ─────────────────────────────────────
     const timer = setInterval(() => {
       setCountdown((prev) => {
@@ -35,6 +43,14 @@ export function ThankYouClient({ whatsappLink }: ThankYouClientProps) {
 
     return () => clearInterval(timer);
   }, [targetLink]);
+
+  // ── Pixel: WhatsApp Join Clicked (manual button) ────────────────────
+  const handleWhatsAppJoin = () => {
+    pixel.custom('WhatsAppJoinClicked', {
+      source: 'webinar_thank_you',
+      content_name: 'Free Webinar WhatsApp Group',
+    });
+  };
 
   return (
     <div className="min-h-screen bg-transparent text-[#1a1a1a] font-jakarta overflow-x-hidden relative selection:bg-[#FF8A75]/20 selection:text-[#FF8A75] flex flex-col justify-between">
@@ -107,6 +123,7 @@ export function ThankYouClient({ whatsappLink }: ThankYouClientProps) {
             {/* Manual Action Button */}
             <a
               href={targetLink}
+              onClick={handleWhatsAppJoin}
               className="group inline-flex items-center justify-center gap-1.5 px-5 py-3 text-xs sm:text-sm font-black uppercase tracking-[0.15em] text-white bg-[#e76f51] hover:bg-[#d4603f] rounded-full transition-all shadow-md active:scale-95 w-full"
             >
               Join WhatsApp Group Manually

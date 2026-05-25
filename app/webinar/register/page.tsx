@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { User, Mail, Phone, ArrowRight, ShieldCheck, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { LuxuryBackground } from '@/components/marketing/LuxuryBackground';
+import * as pixel from '@/lib/pixel';
 
 export default function WebinarRegisterPage() {
   const router = useRouter();
@@ -13,6 +14,16 @@ export default function WebinarRegisterPage() {
   const [errors, setErrors] = useState<{ name?: string; email?: string; phone?: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // ── Pixel: ViewContent when user lands on the registration page ───
+  useEffect(() => {
+    pixel.viewContent({
+      content_name: 'Webinar Registration Page',
+      content_ids: ['webinar_register'],
+      content_type: 'product',
+      currency: 'INR',
+    });
+  }, []);
 
   const validate = () => {
     const tempErrors: typeof errors = {};
@@ -60,6 +71,10 @@ export default function WebinarRegisterPage() {
       if (!response.ok) {
         throw new Error(data.error || 'Failed to submit registration');
       }
+
+      // ── Pixel: Lead + CompleteRegistration on successful webinar signup ───
+      pixel.lead({ source: 'webinar_register', email: formData.email });
+      pixel.completeRegistration({ method: 'webinar_form' });
 
       // Success: Redirect to thank you page
       router.push('/webinar/thank-you');
