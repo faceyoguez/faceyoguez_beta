@@ -348,7 +348,7 @@ export default function SignUpForm() {
               <div className="text-center mb-8">
                 <h3 className="text-2xl font-aktiv font-bold text-slate-900 mb-2">Verify Your Email</h3>
                 <p className="text-sm font-jakarta text-slate-500">
-                  We've sent a 6-digit code to <strong className="text-slate-800">{email}</strong>. Please enter it below.
+                  We've sent an 8-digit code to <strong className="text-slate-800">{email}</strong>. Please enter it below.
                 </p>
               </div>
 
@@ -356,11 +356,11 @@ export default function SignUpForm() {
                 <div>
                   <input
                     type="text"
-                    maxLength={6}
+                    maxLength={8}
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                    placeholder="000000"
-                    className="w-full text-center text-3xl font-bold tracking-[0.5em] font-mono py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all"
+                    placeholder="00000000"
+                    className="w-full text-center text-2xl font-bold tracking-[0.35em] font-mono py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all"
                   />
                 </div>
                 
