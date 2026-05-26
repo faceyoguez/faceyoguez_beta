@@ -22,8 +22,8 @@ export function ThankYouClient({ whatsappLink }: ThankYouClientProps) {
     link.rel = 'stylesheet';
     document.head.appendChild(link);
 
-    // ── Pixel: WebinarRegistered — user completed the full registration funnel ───
-    pixel.custom('WebinarRegistered', {
+    // ── Pixel: WebinarLead — user completed the full registration funnel ───
+    pixel.custom('WebinarLead', {
       content_name: 'Free Webinar',
       source: 'webinar_thank_you',
       funnel_stage: 'registration_complete',
