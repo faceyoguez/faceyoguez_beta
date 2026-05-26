@@ -25,8 +25,18 @@ import {
 export const dynamic = 'force-dynamic';
 export const maxDuration = 30; // Allow up to 30s for heavy analytics
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const range = searchParams.get('range') || '30d';
+
+    let days = 30;
+    if (range === 'today') days = 1;
+    else if (range === '7d') days = 7;
+    else if (range === '30d') days = 30;
+    else if (range === '90d') days = 90;
+    else if (range === 'all') days = 3650;
+
     const supabase = await createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -67,15 +77,15 @@ export async function GET() {
       disputes,
     ] = await Promise.all([
       getRevenueSummary(),
-      getPaymentCounts(),
-      getDailyRevenue(30),
+      getPaymentCounts(days),
+      getDailyRevenue(days > 30 ? 30 : days),
       getWeeklyRevenue(12),
       getMonthlyRevenue(12),
-      getPaymentMethodBreakdown(),
-      getPlanRevenue(),
+      getPaymentMethodBreakdown(days),
+      getPlanRevenue(days),
       getSubscriptionMetrics(),
-      getRecentTransactions(50),
-      getFailedPayments(),
+      getRecentTransactions(50, days),
+      getFailedPayments(days),
       getRefundSummary(),
       getSettlementSummary(),
       getTimeAnalytics(),

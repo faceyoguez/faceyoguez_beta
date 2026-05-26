@@ -113,7 +113,7 @@ export default function RazorpayAnalyticsClient() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/razorpay-analytics');
+      const response = await fetch(`/api/admin/razorpay-analytics?range=${dateRange}`);
       if (!response.ok) throw new Error('Failed to fetch analytics data');
       const json = await response.json();
       setData(json);
@@ -166,7 +166,7 @@ export default function RazorpayAnalyticsClient() {
     fetchData();
     const interval = setInterval(fetchData, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [dateRange]);
 
   const scrollToSection = (id: string) => {
     setActiveTab(id);
@@ -233,6 +233,18 @@ export default function RazorpayAnalyticsClient() {
       toast.error('Error sending reminder');
     }
   };
+
+  const currentRev = useMemo(() => {
+    if (!data?.summary) return { revenue: 0, growth: 0, label: 'Rev 30D' };
+    switch (dateRange) {
+      case 'today': return { ...data.summary.today, label: 'Rev Today' };
+      case '7d': return { ...data.summary.thisWeek, label: 'Rev 7D' };
+      case '30d': return { ...data.summary.thisMonth, label: 'Rev 30D' };
+      case 'all': return { ...data.summary.allTime, growth: 0, label: 'Rev All Time' };
+      case '90d': return { ...data.summary.thisMonth, label: 'Rev 90D' }; // Fallback
+      default: return { ...data.summary.thisMonth, label: 'Rev 30D' };
+    }
+  }, [data, dateRange]);
 
   if (loading && !data) {
     return (
@@ -399,8 +411,8 @@ export default function RazorpayAnalyticsClient() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <MetricCard label="Rev Today" value={formatINR(data?.summary?.today?.revenue || 0)} trend={data?.summary?.today?.growth >= 0 ? 'up' : 'down'} trendValue={Math.abs(Math.round(data?.summary?.today?.growth || 0))} icon={<DollarSign className="size-4" />} loading={loading} />
-            <MetricCard label="Rev Month" value={formatINR(data?.summary?.thisMonth?.revenue || 0)} trend={data?.summary?.thisMonth?.growth >= 0 ? 'up' : 'down'} trendValue={Math.abs(Math.round(data?.summary?.monthOverMonthGrowth || 0))} icon={<TrendingUp className="size-4" />} loading={loading} />
-            <MetricCard label="Success" value={`${data?.summary?.successRate || 0}%`} trend={data?.summary?.successRate >= 85 ? 'up' : 'down'} trendValue={data?.summary?.successRate || 0} icon={<CheckCircle className="size-4" />} loading={loading} />
+            <MetricCard label={currentRev.label} value={formatINR(currentRev.revenue || 0)} trend={currentRev.growth >= 0 ? 'up' : 'down'} trendValue={Math.abs(Math.round(currentRev.growth || 0))} icon={<TrendingUp className="size-4" />} loading={loading} />
+            <MetricCard label="Success" value={`${data?.paymentCounts?.successRate || 0}%`} trend={data?.paymentCounts?.successRate >= 85 ? 'up' : 'down'} trendValue={data?.paymentCounts?.successRate || 0} icon={<CheckCircle className="size-4" />} loading={loading} />
             <MetricCard label="AOV" value={formatINR(data?.summary?.averageTransactionValue || 0)} icon={<Percent className="size-4" />} loading={loading} />
           </div>
 

@@ -164,8 +164,9 @@ export default function VideoCoursesPage() {
             </motion.div>
 
             {/* WHAT WE WORK ON COMPACT LIST */}
-            <motion.div variants={itemVariants} className="bg-white rounded-[2rem] p-10 border-2 border-dashed border-[#e76f51]/10">
-               <h2 className="text-[11px] font-black uppercase tracking-[0.4em] text-[#2c2525] mb-8 text-center">🎯 Targeted Mastery Areas</h2>
+            <motion.div variants={itemVariants} className="bg-[#e76f51]/5 rounded-[2rem] p-10 border border-[#e76f51]/30 shadow-lg relative overflow-hidden">
+               <div className="absolute top-0 right-0 w-32 h-32 bg-[#e76f51]/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+               <h2 className="text-[11px] font-black uppercase tracking-[0.4em] text-[#2c2525] mb-8 text-center relative z-10">🎯 Target these concerns</h2>
                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {workOn.map((item, idx) => (
                     <div key={idx} className="flex items-center gap-2 text-[8px] font-bold uppercase tracking-widest text-[#2c2525]/50 group">
@@ -192,7 +193,7 @@ export default function VideoCoursesPage() {
                   <div className="p-6 bg-[#fcf8f7] border border-[#2c2525]/5 rounded-2xl space-y-4">
                      <div className="flex justify-between items-start">
                         <div className="space-y-1">
-                           <h4 className="text-[10px] font-black text-[#2c2525] uppercase tracking-widest">Level 1 Only</h4>
+                           <h4 className="text-[14px] font-semibold text-[#2c2525] uppercase tracking-widest">Level 1 Only</h4>
                            <span className="text-[8px] font-bold text-[#e76f51] uppercase tracking-widest">16 Sessions</span>
                         </div>
                         <span className="px-2 py-0.5 bg-[#e76f51] text-white text-[7px] font-black uppercase rounded-full tracking-widest">Foundation</span>
@@ -206,10 +207,10 @@ export default function VideoCoursesPage() {
                   <div className="p-6 bg-[#e76f51]/5 border-2 border-[#e76f51]/20 rounded-2xl space-y-4 shadow-lg">
                      <div className="flex justify-between items-start">
                         <div className="space-y-1">
-                           <h4 className="text-[10px] font-black text-[#2c2525] uppercase tracking-widest">Level 1 + Level 2</h4>
+                           <h4 className="text-[14px] font-semibold text-[#2c2525] uppercase tracking-widest">Level 1 + Level 2</h4>
                            <span className="text-[8px] font-bold text-[#e76f51] uppercase tracking-widest">32 Sessions</span>
                         </div>
-                        <span className="px-2 py-0.5 bg-white text-[#e76f51] text-[7px] font-black uppercase rounded-full tracking-widest border border-[#e76f51]/20 shadow-sm">62.5% OFF</span>
+                        <span className="px-3 py-1 bg-[#e76f51] text-white text-[9px] font-black uppercase rounded-full tracking-widest shadow-md animate-pulse">62.5% OFF</span>
                      </div>
                      <div className="flex items-end gap-3">
                         <span className="text-3xl font-black text-[#e76f51]">₹1,499</span>
@@ -236,7 +237,7 @@ export default function VideoCoursesPage() {
                     const redirectPath = '/student/plans?plan=lms';
                     window.location.href = `/auth/signup?redirectTo=${encodeURIComponent(redirectPath)}`;
                   }}
-                  className="w-full py-5 bg-[#2c2525] text-white rounded-xl text-[10px] font-black uppercase tracking-[0.4em] hover:bg-[#e76f51] transition-all duration-500 shadow-xl"
+                  className="w-full py-5 bg-[#2c2525] text-white rounded-xl text-[14px] font-semibold uppercase tracking-widest hover:bg-[#e76f51] transition-all duration-500 shadow-xl"
                >
                  Unlock Lifetime Access
                </button>

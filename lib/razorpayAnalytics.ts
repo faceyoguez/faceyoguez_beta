@@ -164,14 +164,20 @@ export async function getRevenueSummary() {
 // ═══════════════════════════════════════════════════════════════
 // 2. PAYMENT COUNTS
 // ═══════════════════════════════════════════════════════════════
-export async function getPaymentCounts() {
+export async function getPaymentCounts(days?: number) {
   const allPayments = await getMasterPaymentData();
+  let payments = allPayments;
+  
+  if (days) {
+    const cutoff = Math.floor(subDays(new Date(), days).getTime() / 1000);
+    payments = allPayments.filter((p: any) => p.created_at >= cutoff);
+  }
 
-  const attempted = allPayments.length;
-  const successful = allPayments.filter((p: any) => p.status === 'captured').length;
-  const failed = allPayments.filter((p: any) => p.status === 'failed').length;
-  const refunded = allPayments.filter((p: any) => p.status === 'refunded').length;
-  const pending = allPayments.filter((p: any) => ['created', 'authorized'].includes(p.status)).length;
+  const attempted = payments.length;
+  const successful = payments.filter((p: any) => p.status === 'captured').length;
+  const failed = payments.filter((p: any) => p.status === 'failed').length;
+  const refunded = payments.filter((p: any) => p.status === 'refunded').length;
+  const pending = payments.filter((p: any) => ['created', 'authorized'].includes(p.status)).length;
 
   return {
     attempted,
@@ -300,10 +306,10 @@ export async function getMonthlyRevenue(months: number = 12) {
 // ═══════════════════════════════════════════════════════════════
 // 6. PAYMENT METHOD BREAKDOWN
 // ═══════════════════════════════════════════════════════════════
-export async function getPaymentMethodBreakdown() {
+export async function getPaymentMethodBreakdown(days: number = 30) {
   const allPayments = await getMasterPaymentData();
-  const thirtyDaysAgo = Math.floor(subDays(new Date(), 30).getTime() / 1000);
-  const payments = allPayments.filter((p: any) => p.created_at >= thirtyDaysAgo);
+  const cutoff = Math.floor(subDays(new Date(), days).getTime() / 1000);
+  const payments = allPayments.filter((p: any) => p.created_at >= cutoff);
 
   const methods: Record<string, any> = {};
   const banks: Record<string, number> = {};
@@ -356,12 +362,12 @@ export async function getPaymentMethodBreakdown() {
 // ═══════════════════════════════════════════════════════════════
 // 7. PLAN / PRODUCT ANALYTICS
 // ═══════════════════════════════════════════════════════════════
-export async function getPlanRevenue() {
+export async function getPlanRevenue(days: number = 30) {
   const allPayments = await getMasterPaymentData();
   const supabase = await createServerSupabaseClient();
   const { data: subscriptions } = await supabase.from('subscriptions').select('*');
 
-  const thirtyDaysAgo = Math.floor(subDays(new Date(), 30).getTime() / 1000);
+  const cutoff = Math.floor(subDays(new Date(), days).getTime() / 1000);
 
   const subMap = new Map();
   subscriptions?.forEach((s: any) => {
@@ -389,7 +395,7 @@ export async function getPlanRevenue() {
       if (p.status === 'captured') {
         result[planType].count++;
         result[planType].revenue += Number(p.amount) / 100;
-        if (p.created_at >= thirtyDaysAgo) {
+        if (p.created_at >= cutoff) {
           result[planType].thisMonthCount++;
           result[planType].thisMonthRevenue += Number(p.amount) / 100;
         }
@@ -485,9 +491,16 @@ export async function getSubscriptionMetrics() {
 // ═══════════════════════════════════════════════════════════════
 // 9. RECENT TRANSACTIONS
 // ═══════════════════════════════════════════════════════════════
-export async function getRecentTransactions(count: number = 50) {
+export async function getRecentTransactions(count: number = 50, days?: number) {
   const allPayments = await getMasterPaymentData();
-  const payments = allPayments.slice(0, count);
+  let payments = allPayments;
+  
+  if (days) {
+    const cutoff = Math.floor(subDays(new Date(), days).getTime() / 1000);
+    payments = allPayments.filter((p: any) => p.created_at >= cutoff);
+  }
+  
+  payments = payments.slice(0, count);
   const supabase = await createServerSupabaseClient();
 
   const emails = Array.from(new Set(payments.map((p: any) => p.email).filter(Boolean)));
@@ -519,13 +532,13 @@ export async function getRecentTransactions(count: number = 50) {
 // ═══════════════════════════════════════════════════════════════
 // 10. FAILED PAYMENT ANALYTICS
 // ═══════════════════════════════════════════════════════════════
-export async function getFailedPayments() {
+export async function getFailedPayments(days: number = 30) {
   const allPayments = await getMasterPaymentData();
   const supabase = await createServerSupabaseClient();
 
-  const thirtyDaysAgo = Math.floor(subDays(new Date(), 30).getTime() / 1000);
+  const cutoff = Math.floor(subDays(new Date(), days).getTime() / 1000);
   const allFailed = allPayments.filter((p: any) => p.status === 'failed');
-  const monthFailed = allFailed.filter((p: any) => p.created_at >= thirtyDaysAgo);
+  const monthFailed = allFailed.filter((p: any) => p.created_at >= cutoff);
 
   // Emails of failed payment holders
   const emails = Array.from(new Set(allFailed.map((p: any) => p.email).filter(Boolean)));

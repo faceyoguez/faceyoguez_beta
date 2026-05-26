@@ -68,8 +68,8 @@ export default function LiveGroupPage() {
 
                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-[#2c2525]/5 relative z-10">
                   <div className="space-y-1">
-                     <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#e76f51]/60">📅 Starts</span>
-                     <p className="text-xs font-bold text-[#2c2525]">Next Batch Soon</p>
+                     <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#e76f51]/60">📅 When</span>
+                     <p className="text-xs font-bold text-[#2c2525]">Monday to Thursday</p>
                   </div>
                   <div className="space-y-1">
                      <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#e76f51]/60">⏰ Time</span>
@@ -177,9 +177,9 @@ export default function LiveGroupPage() {
                
                <div className="space-y-6 pt-4">
                   <div className="text-center">
-                     <Star className="w-8 h-8 text-[#e76f51] mx-auto mb-2" strokeWidth={1.5} />
-                     <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#e76f51]">Limited Time Offer</span>
-                     <h3 className="text-lg font-bold text-[#2c2525] mt-2">21-Day Program</h3>
+                     <Star className="w-8 h-8 text-[#e76f51] mx-auto mb-3" strokeWidth={1.5} />
+                     <span className="inline-block px-3 py-1 bg-[#e76f51]/10 border border-[#e76f51]/20 rounded-full text-[10px] font-black uppercase tracking-[0.3em] text-[#e76f51] mb-2 animate-pulse">Limited Time Offer</span>
+                     <h3 className="text-lg font-bold text-[#2c2525] mt-2">Live sessions program</h3>
                   </div>
 
                <div className="space-y-4">
@@ -195,7 +195,7 @@ export default function LiveGroupPage() {
                         <div className="flex justify-between items-start mb-3">
                            <div>
                               <span className="text-[8px] font-black uppercase tracking-widest text-[#e76f51] mb-1 block">Early Bird</span>
-                              <h3 className="text-sm font-bold text-[#2c2525]">1 Month Plan</h3>
+                              <h3 className="text-[14px] font-semibold text-[#2c2525]">1 Month Plan</h3>
                               <p className="text-[9px] text-[#2c2525]/40 font-medium mt-1">Live Sessions + Recordings (12-day access)</p>
                            </div>
                            <div className="text-right">
@@ -218,7 +218,7 @@ export default function LiveGroupPage() {
                         <div className="flex justify-between items-start mb-3">
                            <div>
                               <span className="text-[8px] font-black uppercase tracking-widest text-[#e76f51] mb-1 block">Best Value</span>
-                              <h3 className="text-sm font-bold text-[#2c2525]">3 Months Plan</h3>
+                              <h3 className="text-[14px] font-semibold text-[#2c2525]">3 Months Plan</h3>
                               <p className="text-[9px] text-[#e76f51]/60 font-medium mt-1">Live Sessions + Recordings (lifetime access)</p>
                            </div>
                            <div className="text-right">
@@ -236,7 +236,7 @@ export default function LiveGroupPage() {
                       const redirectPath = encodeURIComponent('/student/plans?plan=group_session&tierIdx=0');
                       window.location.href = `/auth/signup?redirectTo=${redirectPath}`;
                     }}
-                    className="w-full py-5 bg-[#2c2525] text-white rounded-xl text-[10px] font-black uppercase tracking-[0.4em] hover:bg-[#e76f51] transition-all duration-500 shadow-lg shadow-[#e76f51]/10"
+                    className="w-full py-5 bg-[#2c2525] text-white rounded-xl text-[14px] font-semibold uppercase tracking-widest hover:bg-[#e76f51] transition-all duration-500 shadow-lg shadow-[#e76f51]/10"
                   >
                     Join Transformation
                   </button>

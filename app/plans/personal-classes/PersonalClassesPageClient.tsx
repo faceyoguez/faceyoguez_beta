@@ -237,7 +237,7 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
                     >
                       <div className="flex justify-between items-start mb-2">
                         <div className="space-y-0.5">
-                          <h4 className="text-[10px] font-black text-[#2c2525] uppercase tracking-tighter">{tier.label}</h4>
+                          <h4 className="text-[14px] font-semibold text-[#2c2525] uppercase tracking-tighter">{tier.label}</h4>
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-sm font-black text-[#2c2525]">{formatINR(displayPrice)}</span>
                             {hasCredit && (
@@ -319,9 +319,9 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
                     handlePlanPurchase(1);
                   }}
                   id="subscribe-now-btn"
-                  className="w-full py-5 bg-[#2c2525] text-[#FAF9F6] rounded-xl text-[10px] font-black uppercase tracking-[0.4em] hover:bg-[#e76f51] transition-all duration-500 shadow-lg shadow-[#2c2525]/10 flex items-center justify-center gap-2"
+                  className="w-full py-5 bg-[#2c2525] text-[#FAF9F6] rounded-xl text-[14px] font-semibold uppercase tracking-widest hover:bg-[#e76f51] transition-all duration-500 shadow-lg shadow-[#2c2525]/10 flex items-center justify-center gap-2"
                 >
-                  Subscribe Now
+                  book your 1-1 slot now
                 </button>
               </div>
             </motion.div>
