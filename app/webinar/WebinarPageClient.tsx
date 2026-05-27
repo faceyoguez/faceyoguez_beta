@@ -343,8 +343,8 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
         </section>
 
         {/* ── 6. DYNAMIC TESTIMONIALS (VERIFIED PROOFS & VIDEO MARQUEE) ── */}
-        <VerifiedProofs />
-        <Testimonials />
+        <VerifiedProofs hideCTA={true} />
+        <Testimonials hideCTA={true} />
 
         {/* ── 4. WHAT THIS SESSION COVERS ── */}
         <section className="bg-transparent pt-8 sm:pt-12 pb-16 sm:pb-24 border-y border-[#FF8A75]/10">
