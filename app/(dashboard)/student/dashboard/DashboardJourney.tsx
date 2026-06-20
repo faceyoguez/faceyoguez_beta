@@ -30,8 +30,17 @@ export function DashboardJourney({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Calculate current day based on batch start date or subscription start
+  const effectiveAnchorDate = React.useMemo(() => {
+    if (activeBatch?.start_date && subscriptionStartDate) {
+      const batchStart = new Date(activeBatch.start_date);
+      const subStart = new Date(subscriptionStartDate);
+      return subStart > batchStart ? subscriptionStartDate : activeBatch.start_date;
+    }
+    return activeBatch?.start_date || subscriptionStartDate || null;
+  }, [activeBatch?.start_date, subscriptionStartDate]);
+
   const currentDay = React.useMemo(() => {
-    const anchorDateStr = activeBatch?.start_date || subscriptionStartDate;
+    const anchorDateStr = effectiveAnchorDate;
     if (!anchorDateStr) return 1;
 
     const startDate = new Date(anchorDateStr);
@@ -39,7 +48,7 @@ export function DashboardJourney({
     const diffTime = now.getTime() - startDate.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
     return Math.min(JOURNEY_MAX_DAY, Math.max(1, diffDays));
-  }, [subscriptionStartDate, activeBatch?.start_date]);
+  }, [effectiveAnchorDate]);
 
   // Initialize active step to today's day
   useEffect(() => {

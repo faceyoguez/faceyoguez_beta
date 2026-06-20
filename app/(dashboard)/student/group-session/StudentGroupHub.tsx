@@ -75,8 +75,17 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
     const activeLog = journeyLogs.find((l: JourneyLog) => l.day_number === activeStepDay);
     const day1Log = journeyLogs.find((l: JourneyLog) => l.day_number === 1);
 
+    const effectiveAnchorDate = React.useMemo(() => {
+        if (activeBatch?.start_date && subscriptionStartDate) {
+            const batchStart = new Date(activeBatch.start_date);
+            const subStart = new Date(subscriptionStartDate);
+            return subStart > batchStart ? subscriptionStartDate : activeBatch.start_date;
+        }
+        return activeBatch?.start_date || subscriptionStartDate || null;
+    }, [activeBatch?.start_date, subscriptionStartDate]);
+
     const currentDay = React.useMemo(() => {
-        const anchorDateStr = activeBatch?.start_date || subscriptionStartDate;
+        const anchorDateStr = effectiveAnchorDate;
         if (!anchorDateStr) return 1;
 
         const startDate = new Date(anchorDateStr);
@@ -84,7 +93,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
         const diffTime = now.getTime() - startDate.getTime();
         const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
         return Math.min(JOURNEY_MAX_DAY, Math.max(1, diffDays));
-    }, [subscriptionStartDate, activeBatch?.start_date]);
+    }, [effectiveAnchorDate]);
 
     const currentMonth = Math.ceil(currentDay / 30);
     const currentDayInMonth = ((currentDay - 1) % 30) + 1;
@@ -595,7 +604,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                     {(() => {
                                         const milestones = [7, 14, 21, 25];
                                         const nextMilestone = milestones.find(m => m >= currentDay) || 25;
-                                        const anchorDateStr = activeBatch?.start_date || subscriptionStartDate;
+                                        const anchorDateStr = effectiveAnchorDate;
                                         let milestoneDateStr = '';
 
                                         if (anchorDateStr) {
@@ -636,7 +645,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
 
                                         if (!isMilestoneDay && nextMilestone) {
                                             const daysRemaining = nextMilestone - currentDay;
-                                            const anchorDateStr = activeBatch?.start_date || subscriptionStartDate;
+                                            const anchorDateStr = effectiveAnchorDate;
                                             let milestoneDateStr = '';
 
                                             if (anchorDateStr) {
