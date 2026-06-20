@@ -634,7 +634,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                     </div>
                                     <span className="text-[7px] font-black text-[#FF8A75] uppercase tracking-[0.25em]">Not Sure Yet?</span>
                                 </div>
-                                <h4 className="text-[15px] font-aktiv font-bold text-slate-900 leading-none">Book a Free Consultation</h4>
+                                <h4 className="text-[15px] font-aktiv font-bold text-slate-900 leading-none">Book Your Consultation</h4>
                                 <p className="text-[10px] font-medium text-slate-500 leading-tight">
                                     One-on-one call with an expert for just <span className="text-slate-900 font-bold">₹999</span>.
                                 </p>
@@ -645,7 +645,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                             </div>
                             <button
                                 onClick={() => { window.location.href = '/student/consultation'; }}
-                                className="shrink-0 h-11 px-6 bg-slate-900 hover:bg-[#FF8A75] text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-xl shadow-slate-900/20 active:scale-95"
+                                className="shrink-0 h-11 px-6 bg-slate-900 hover:bg-[#FF8A75] text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-xl shadow-slate-900/20 active:scale-95 cursor-pointer"
                             >
                                 Book Consultation — ₹999
                             </button>
@@ -834,7 +834,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                         </div>
                         <button
                             onClick={() => { window.location.href = '/student/consultation'; }}
-                            className="shrink-0 h-8 px-3 bg-white border border-[#FF8A75]/30 hover:bg-[#FF8A75] hover:text-white text-slate-900 rounded-lg font-black text-[8px] uppercase tracking-widest transition-all"
+                            className="shrink-0 h-8 px-3 bg-white border border-[#FF8A75]/30 hover:bg-[#FF8A75] hover:text-white text-slate-900 rounded-lg font-black text-[8px] uppercase tracking-widest transition-all cursor-pointer"
                         >
                             ₹999
                         </button>

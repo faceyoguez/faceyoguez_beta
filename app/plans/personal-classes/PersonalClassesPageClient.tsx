@@ -297,7 +297,7 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
                     className={`w-full py-3.5 rounded-xl text-[10px] font-black uppercase tracking-[0.3em] transition-all duration-500 flex items-center justify-center gap-2 ${
                       hasActiveConsultation
                         ? 'bg-emerald-50 text-emerald-600 border border-emerald-200 cursor-default'
-                        : 'bg-[#e76f51]/10 text-[#e76f51] border border-[#e76f51]/20 hover:bg-[#e76f51] hover:text-white'
+                        : 'bg-[#e76f51]/10 text-[#e76f51] border border-[#e76f51]/20 hover:bg-[#e76f51] hover:text-white cursor-pointer'
                     }`}
                   >
                     {hasActiveConsultation ? (
