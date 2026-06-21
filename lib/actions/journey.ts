@@ -93,6 +93,20 @@ export async function saveDailyCheckIn(
         return { success: false, error: 'Unauthorized to save this journey log.' };
     }
 
+    // Validate photo format and size
+    const validatePhoto = (base64: string, mime: string) => {
+        if (!mime.startsWith('image/')) {
+            return 'Only image files are allowed.';
+        }
+        // Approximate decoded byte size from base64 length
+        const approxSize = base64.length * 0.75;
+        const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+        if (approxSize > MAX_SIZE) {
+            return 'Image size must be less than 10MB.';
+        }
+        return null;
+    };
+
     // Resolve photo sources — new multi-angle params take priority
     const frontB64  = photos?.front?.base64  ?? photoBase64  ?? null;
     const frontMime = photos?.front?.mimeType ?? photoMimeType ?? 'image/jpeg';
@@ -100,6 +114,19 @@ export async function saveDailyCheckIn(
     const leftMime  = photos?.left?.mimeType ?? 'image/jpeg';
     const rightB64  = photos?.right?.base64  ?? null;
     const rightMime = photos?.right?.mimeType ?? 'image/jpeg';
+
+    if (frontB64) {
+        const error = validatePhoto(frontB64, frontMime);
+        if (error) return { success: false, error: `Front photo: ${error}` };
+    }
+    if (leftB64) {
+        const error = validatePhoto(leftB64, leftMime);
+        if (error) return { success: false, error: `Left photo: ${error}` };
+    }
+    if (rightB64) {
+        const error = validatePhoto(rightB64, rightMime);
+        if (error) return { success: false, error: `Right photo: ${error}` };
+    }
 
     // Upload all provided angles in parallel
     const [frontUrl, leftUrl, rightUrl] = await Promise.all([

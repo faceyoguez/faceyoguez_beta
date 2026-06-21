@@ -7,12 +7,14 @@ import { CheckCircle2, Mail, Phone, ArrowRight, ShieldCheck } from 'lucide-react
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
+import { Profile } from '@/types/database';
+
 export default function StudentProfileClient({
   user,
   profile,
 }: {
   user: User;
-  profile: any;
+  profile: Profile & { phone_confirmed_at?: string | null; email_confirmed_at?: string | null };
 }) {
   const [loadingEmail, setLoadingEmail] = useState(false);
   const [loadingPhone, setLoadingPhone] = useState(false);

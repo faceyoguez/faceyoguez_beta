@@ -8,7 +8,7 @@ export const runtime = 'nodejs';
 // Track active connections per user to prevent connection flooding
 const activeConnections = new Map<string, number>();
 const MAX_CONNECTIONS_PER_USER = 3;
-const CONNECTION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+const CONNECTION_TIMEOUT_MS = 4 * 60 * 1000; // 4 minutes
 
 /**
  * SSE endpoint for real-time chat updates.
