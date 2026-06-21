@@ -58,7 +58,7 @@ export default async function DashboardLayout({
   const hasExpiredTrial = (subscriptions as any[])?.some((s: any) => s.is_trial && (s.status === 'expired' || (s.end_date && new Date(s.end_date) < new Date()))) || false;
   const showTrialPrompt = hasExpiredTrial && activeSubscriptions.length === 0;
 
-  const isVerified = !!user.email_confirmed_at && !!user.phone_confirmed_at;
+  const isVerified = !!user.email_confirmed_at;
 
   return (
     <AppSidebar

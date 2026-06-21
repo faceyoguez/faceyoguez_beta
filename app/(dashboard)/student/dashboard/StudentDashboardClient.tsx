@@ -120,19 +120,15 @@ export function StudentDashboardClient({
   const quote = QUOTES[journeyDay % QUOTES.length];
 
   const needsEmailVerification = !emailVerified;
-  const needsPhoneVerification = !phoneVerified;
+  const needsPhoneVerification = false;
   const showBanner = showVerificationBanner && (needsEmailVerification || needsPhoneVerification);
 
   const isPlanEnding = daysLeft > 0 && daysLeft <= 5;
   const displayPlanBanner = showPlanBanner && isPlanEnding;
 
   let verificationMessage = '';
-  if (needsEmailVerification && needsPhoneVerification) {
-    verificationMessage = 'Please verify your email address and phone number to secure your account.';
-  } else if (needsEmailVerification) {
+  if (needsEmailVerification) {
     verificationMessage = 'Please verify your email address to secure your account.';
-  } else if (needsPhoneVerification) {
-    verificationMessage = 'Please verify your phone number to secure your account.';
   }
 
   // ─── Pixel: Dashboard Reached ───

@@ -162,7 +162,7 @@ export default function StudentProfileClient({
             <h2 className="font-aktiv text-xl sm:text-2xl text-zen-taupe">Verification Hub</h2>
             <div className="flex items-center gap-2 px-3 py-1.5 bg-zen-peach/5 rounded-full border border-zen-peach/10 w-fit max-w-full">
               <ShieldCheck className="w-4 h-4 text-[#E76F51] shrink-0" />
-              <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-[#E76F51] truncate">Security Level: {(user.email_confirmed_at || profile?.email_confirmed_at) && (user.phone || profile?.phone) && (user.phone_confirmed_at || profile?.phone_confirmed_at) ? 'High' : 'Action Required'}</span>
+              <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-[#E76F51] truncate">Security Level: {(user.email_confirmed_at || profile?.email_confirmed_at) ? 'High' : 'Action Required'}</span>
             </div>
           </div>
           
@@ -263,10 +263,8 @@ export default function StudentProfileClient({
                   )}>
                     <Phone className="w-6 h-6" />
                   </div>
-                  {(user.phone_confirmed_at || profile?.phone_confirmed_at) ? (
+                  {(user.phone_confirmed_at || profile?.phone_confirmed_at) && (
                     <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">Verified</span>
-                  ) : (
-                    <span className="text-[10px] font-black uppercase tracking-widest text-red-500 bg-red-50 px-3 py-1 rounded-full">Unverified</span>
                   )}
                 </div>
                 <h3 className="font-aktiv text-xl mb-1 text-zen-taupe">Mobile Number <span className="text-red-500">*</span></h3>
