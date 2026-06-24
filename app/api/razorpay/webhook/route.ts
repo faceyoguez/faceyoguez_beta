@@ -164,7 +164,17 @@ async function handlePaymentCaptured(payment: any) {
   const isGroupSession = planType === 'group_session';
   const startDate = new Date();
   const endDate = new Date();
-  endDate.setMonth(endDate.getMonth() + durationMonths);
+  if (isGroupSession) {
+    if (durationMonths === 1) {
+      endDate.setDate(endDate.getDate() + 40);
+    } else if (durationMonths === 3) {
+      endDate.setDate(endDate.getDate() + 110);
+    } else {
+      endDate.setMonth(endDate.getMonth() + durationMonths);
+    }
+  } else {
+    endDate.setMonth(endDate.getMonth() + durationMonths);
+  }
 
   const { data: subscription, error } = await admin
     .from('subscriptions')

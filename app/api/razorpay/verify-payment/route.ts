@@ -215,7 +215,17 @@ export async function POST(request: NextRequest) {
     const isGroupSession = planType === 'group_session';
     const startDate = new Date();
     const endDate = new Date();
-    endDate.setMonth(endDate.getMonth() + (durationMonths || 1));
+    if (isGroupSession) {
+      if (durationMonths === 1) {
+        endDate.setDate(endDate.getDate() + 40);
+      } else if (durationMonths === 3) {
+        endDate.setDate(endDate.getDate() + 110);
+      } else {
+        endDate.setMonth(endDate.getMonth() + (durationMonths || 1));
+      }
+    } else {
+      endDate.setMonth(endDate.getMonth() + (durationMonths || 1));
+    }
 
     const metadata: Record<string, unknown> = {
       planVariant,

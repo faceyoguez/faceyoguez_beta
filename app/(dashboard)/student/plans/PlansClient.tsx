@@ -231,18 +231,9 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                 return;
             }
 
-            // ── Step 1: Consume partial coupon on server (if applied) ────
-            // Only runs for non-100% coupons that go through Razorpay.
-            if (appliedCoupon) {
-                const couponRes = await consumeCouponAction(appliedCoupon.code, selectedPlanId);
-                if (!couponRes.success) {
-                    toast.error(couponRes.error || 'Failed to apply coupon. Please try again.');
-                    setLoading(false);
-                    return;
-                }
-            }
-
-            // ── Step 2: Load Razorpay SDK ────────────────────────────────
+            // ── Step 1: Load Razorpay SDK ─────────────────────────────
+            // NOTE: Coupon is consumed AFTER payment success (inside handler)
+            // to avoid marking it used if the payment fails or user cancels.
             const sdkLoaded = await loadRazorpayScript();
             if (!sdkLoaded) {
                 toast.error('Payment service unavailable. Please check your internet connection and try again.');
@@ -317,7 +308,20 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                     razorpay_signature: string;
                 }) => {
                     try {
-                        // ── Step 5: Verify payment server-side ────────────
+                        // ── Step 5a: Consume coupon NOW (payment is confirmed by Razorpay) ──
+                        // We consume the coupon only after Razorpay calls our handler,
+                        // meaning the payment capture succeeded. This prevents marking a
+                        // coupon as used when the user's payment fails or they cancel.
+                        if (appliedCoupon) {
+                            const couponRes = await consumeCouponAction(appliedCoupon.code, selectedPlanId);
+                            if (!couponRes.success) {
+                                // Non-fatal: payment went through but coupon increment failed.
+                                // Log it but don't block the user — subscription was created.
+                                console.warn('[Checkout] Coupon consume failed post-payment:', couponRes.error);
+                            }
+                        }
+
+                        // ── Step 5b: Verify payment server-side ───────────
                         const verifyRes = await fetch('/api/razorpay/verify-payment', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -380,7 +384,9 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                             paymentId: response.razorpay_payment_id,
                         });
 
-                        router.refresh(); // Force re-fetch of server data for current & next pages
+                        // NOTE: Do NOT call router.refresh() here — it causes a race condition
+                        // with router.push() that triggers the error boundary (error.tsx).
+                        // Server-side cache revalidation is already handled in verify-payment API.
                         router.push(`/student/purchase-success?${params.toString()}`);
 
                     } catch (verifyErr) {

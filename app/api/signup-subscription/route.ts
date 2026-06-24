@@ -50,7 +50,11 @@ export async function POST(request: NextRequest) {
     // 2. Calculate subscription dates
     const startDate = new Date();
     const endDate = new Date();
-    endDate.setMonth(endDate.getMonth() + 1); // 1 month subscription
+    if (planType === 'group_session') {
+      endDate.setDate(endDate.getDate() + 40);
+    } else {
+      endDate.setMonth(endDate.getMonth() + 1); // 1 month subscription
+    }
 
     // 3. Set pricing based on plan
     const pricing: Record<string, number> = {

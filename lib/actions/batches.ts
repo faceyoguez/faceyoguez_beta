@@ -111,7 +111,17 @@ export async function createAndPopulateBatch(input: CreateBatchInput) {
                 if (subData.status === 'pending' || !subData.start_date) {
                     const start = new Date(input.startDate);
                     const end = new Date(start);
-                    end.setMonth(start.getMonth() + (subData.duration_months || 1));
+                    if (subData.plan_type === 'group_session') {
+                        if (subData.duration_months === 1) {
+                            end.setDate(start.getDate() + 40);
+                        } else if (subData.duration_months === 3) {
+                            end.setDate(start.getDate() + 110);
+                        } else {
+                            end.setMonth(start.getMonth() + (subData.duration_months || 1));
+                        }
+                    } else {
+                        end.setMonth(start.getMonth() + (subData.duration_months || 1));
+                    }
                     updatedEndDate = end.toISOString().split('T')[0];
 
                     await admin
@@ -344,11 +354,15 @@ export async function enrollInWaitingQueue(studentId: string, subscriptionId: st
         .eq('id', subscriptionId)
         .single();
 
-    // 2. Check if there's an active batch with available slots
+    // 2. Check if there's a truly active batch with available slots.
+    // Filter by end_date >= today to avoid enrolling into already-expired batches
+    // whose status may still be 'active' in the DB but have passed their end date.
+    const today = new Date().toISOString().split('T')[0];
     const { data: activeBatches } = await admin
         .from('batches')
-        .select('id, max_students, current_students, name, instructor_id')
+        .select('id, max_students, current_students, name, instructor_id, end_date')
         .eq('status', 'active')
+        .gte('end_date', today)
         .order('created_at', { ascending: false })
         .limit(1);
 

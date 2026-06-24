@@ -372,7 +372,17 @@ export async function scheduleGroupSession(batchId: string, startTime: string, t
         if (sub.status === 'pending' || !sub.start_date) {
           const start = new Date(startTime);
           const end = new Date(start);
-          end.setMonth(start.getMonth() + (sub.duration_months || 1));
+          if (sub.plan_type === 'group_session') {
+            if (sub.duration_months === 1) {
+              end.setDate(start.getDate() + 40);
+            } else if (sub.duration_months === 3) {
+              end.setDate(start.getDate() + 110);
+            } else {
+              end.setMonth(start.getMonth() + (sub.duration_months || 1));
+            }
+          } else {
+            end.setMonth(start.getMonth() + (sub.duration_months || 1));
+          }
           effectiveEndDate = end.toISOString().split('T')[0];
 
           await admin

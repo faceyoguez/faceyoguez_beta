@@ -64,11 +64,20 @@ export async function POST(request: NextRequest) {
 
     // ── Create subscription ─────────────────────────────────────────────
     const startDate = new Date().toISOString().split('T')[0];
-    const endDate = new Date(Date.now() + durationMonths * 30 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .split('T')[0];
-
+    let endDateTime = Date.now();
     const isGroupSession = planType === 'group_session';
+    if (isGroupSession) {
+      if (durationMonths === 1) {
+        endDateTime += 40 * 24 * 60 * 60 * 1000;
+      } else if (durationMonths === 3) {
+        endDateTime += 110 * 24 * 60 * 60 * 1000;
+      } else {
+        endDateTime += durationMonths * 30 * 24 * 60 * 60 * 1000;
+      }
+    } else {
+      endDateTime += durationMonths * 30 * 24 * 60 * 60 * 1000;
+    }
+    const endDate = new Date(endDateTime).toISOString().split('T')[0];
     const paymentId = `FREE_${couponCode}_${Date.now()}`;
     
     const { data: subscription, error: subError } = await admin.from('subscriptions').insert({

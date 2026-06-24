@@ -88,7 +88,17 @@ export async function createSubscription(
         if (durationMonths === 999) {
             endDate.setFullYear(endDate.getFullYear() + 50); // Effectively lifetime
         } else {
-            endDate.setMonth(endDate.getMonth() + durationMonths);
+            if (planType === 'group_session') {
+                if (durationMonths === 1) {
+                    endDate.setDate(endDate.getDate() + 40);
+                } else if (durationMonths === 3) {
+                    endDate.setDate(endDate.getDate() + 110);
+                } else {
+                    endDate.setMonth(endDate.getMonth() + durationMonths);
+                }
+            } else {
+                endDate.setMonth(endDate.getMonth() + durationMonths);
+            }
         }
     }
 
