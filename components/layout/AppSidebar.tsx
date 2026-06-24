@@ -46,11 +46,14 @@ const SidebarContext = createContext<SidebarContextValue>({
 
 export const useSidebar = () => useContext(SidebarContext);
 
+// Toggle this flag to show/hide the Personal 1-on-1 Classes in the student sidebar
+const HIDE_ONE_ON_ONE = true;
+
 // ── Nav config per role ────────────────────────────────────────────────
 const navConfig = {
   student: [
     { label: 'Dashboard', icon: LayoutDashboard, path: '/student/dashboard' },
-    { label: 'Personal 1-on-1 Classes', icon: User, path: '/student/one-on-one' },
+    ...(HIDE_ONE_ON_ONE ? [] : [{ label: 'Personal 1-on-1 Classes', icon: User, path: '/student/one-on-one' }]),
     { label: 'Live Group Sessions', icon: Users, path: '/student/group-session' },
     { label: 'Courses', icon: BookOpen, path: '/student/lms' },
     { label: 'Plans & Pricing', icon: CreditCard, path: '/student/plans' },

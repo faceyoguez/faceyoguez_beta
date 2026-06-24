@@ -55,8 +55,15 @@ interface Props {
 export default function PlansClient({ currentSubscription, userId, currentUser, hasActiveSubscription = false }: Props) {
     const searchParams = useSearchParams();
     const router = useRouter();
-    const [selectedPlanId, setSelectedPlanId] = useState<string>(PLANS_DATA[0].id);
-    const [selectedTierId, setSelectedTierId] = useState<string>(PLANS_DATA[0].tiers[0].id);
+
+    // Toggle this flag to show/hide the Personal 1-on-1 Classes in the plans page
+    const HIDE_ONE_ON_ONE = true;
+    const visiblePlans = HIDE_ONE_ON_ONE
+        ? PLANS_DATA.filter((p: any) => p.id !== 'one_on_one')
+        : PLANS_DATA;
+
+    const [selectedPlanId, setSelectedPlanId] = useState<string>(visiblePlans[0].id);
+    const [selectedTierId, setSelectedTierId] = useState<string>(visiblePlans[0].tiers[0].id);
     const [loading, setLoading] = useState(false);
     const [mobileTab, setMobileTab] = useState<'data' | 'pricing'>('data');
     const [isInitialParamLoad, setIsInitialParamLoad] = useState(true);
@@ -526,7 +533,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                     </div>
 
                     <div data-lenis-prevent className="space-y-3">
-                        {PLANS_DATA.map((plan) => (
+                        {visiblePlans.map((plan) => (
                             <button
                                 key={plan.id}
                                 onClick={() => setSelectedPlanId(plan.id)}
@@ -740,7 +747,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                 <header>
                     <h1 className="text-2xl font-aktiv font-bold text-slate-900 tracking-tight">Choose Your Plan</h1>
                     <div className="flex gap-2 mt-4 overflow-x-auto pb-1 scrollbar-hide">
-                        {PLANS_DATA.map((plan) => (
+                        {visiblePlans.map((plan) => (
                             <button
                                 key={plan.id}
                                 onClick={() => setSelectedPlanId(plan.id)}
