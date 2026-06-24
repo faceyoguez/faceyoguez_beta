@@ -17,8 +17,8 @@ const PRICING: Record<string, Record<string, number>> = {
         '3_months_lifetime': 4348,
     },
     lms: {
-        'level_1': 999,
-        'level_1_2': 1499,
+        'level_1': 750,
+        'level_1_2': 1125,
     },
 };
 
