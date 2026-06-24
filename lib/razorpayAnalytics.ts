@@ -434,44 +434,51 @@ export async function getPlanRevenue(days: number = 30) {
 export async function getSubscriptionMetrics() {
   const supabase = await createServerSupabaseClient();
   const now = new Date();
-  const thirtyDaysAgo = subDays(now, 30);
-  const sevenDaysFromNow = subDays(now, -7);
+  const thirtyDaysAgo = subDays(now, 30).toISOString();
+  const sevenDaysFromNow = subDays(now, -7).toISOString();
+  const nowIso = now.toISOString();
 
-  const [
-    { count: totalActive },
-    { data: newSubs },
-    { data: expiredSubs },
-    { data: cancelledSubs },
-    { data: expiringSoon },
-    { data: allSubs }
-  ] = await Promise.all([
-    supabase.from('subscriptions').select('*', { count: 'exact', head: true }).eq('status', 'active'),
-    supabase.from('subscriptions').select('*').gte('created_at', thirtyDaysAgo.toISOString()),
-    supabase.from('subscriptions').select('*').eq('status', 'expired').gte('updated_at', thirtyDaysAgo.toISOString()),
-    supabase.from('subscriptions').select('*').eq('status', 'cancelled').gte('updated_at', thirtyDaysAgo.toISOString()),
-    supabase.from('subscriptions').select('*, profiles:student_id(full_name, email)').eq('status', 'active').lte('end_date', sevenDaysFromNow.toISOString()).gte('end_date', now.toISOString()),
-    supabase.from('subscriptions').select('*')
+  // Single query — fetch all subscriptions with only needed columns.
+  // All filtering & aggregation happens in memory, eliminating 4 extra round-trips.
+  const [{ data: allSubs }, { data: expiringSoon }] = await Promise.all([
+    supabase
+      .from('subscriptions')
+      .select('id, status, amount, duration_months, plan_type, created_at, updated_at, end_date, student_id'),
+    supabase
+      .from('subscriptions')
+      .select('amount, end_date, plan_type, profiles:student_id(full_name, email)')
+      .eq('status', 'active')
+      .lte('end_date', sevenDaysFromNow)
+      .gte('end_date', nowIso),
   ]);
 
-  const activeSubs = allSubs?.filter((s: any) => s.status === 'active') || [];
+  const subs = allSubs || [];
+
+  // Compute all sub-sets in memory (zero extra DB queries)
+  const activeSubs    = subs.filter((s: any) => s.status === 'active');
+  const newSubs       = subs.filter((s: any) => s.created_at >= thirtyDaysAgo);
+  const expiredSubs   = subs.filter((s: any) => s.status === 'expired' && s.updated_at >= thirtyDaysAgo);
+  const cancelledSubs = subs.filter((s: any) => s.status === 'cancelled' && s.updated_at >= thirtyDaysAgo);
+
+  const totalActive = activeSubs.length;
   const mrr = activeSubs.reduce((sum: number, s: any) => sum + (Number(s.amount) || 0) / (s.duration_months || 1), 0);
   const arr = mrr * 12;
 
-  const churned = (cancelledSubs?.length || 0) + (expiredSubs?.length || 0);
+  const churned = cancelledSubs.length + expiredSubs.length;
   const renewed = activeSubs.filter((s: any) => s.created_at !== s.updated_at).length;
-  const churnRate = allSubs && allSubs.length > 0 ? (churned / allSubs.length) * 100 : 0;
+  const churnRate = subs.length > 0 ? (churned / subs.length) * 100 : 0;
   const renewalRate = (renewed + churned) > 0 ? (renewed / (renewed + churned)) * 100 : 100;
 
-  const totalDuration = allSubs?.reduce((sum: number, s: any) => sum + (s.duration_months || 0), 0) || 0;
-  const averageLifetimeMonths = allSubs && allSubs.length > 0 ? totalDuration / allSubs.length : 0;
+  const totalDuration = subs.reduce((sum: number, s: any) => sum + (s.duration_months || 0), 0);
+  const averageLifetimeMonths = subs.length > 0 ? totalDuration / subs.length : 0;
 
   const revenueAtRisk = expiringSoon?.reduce((sum: number, s: any) => sum + (Number(s.amount) || 0), 0) || 0;
 
   return {
-    totalActive: totalActive || 0,
-    newThisMonth: newSubs?.length || 0,
-    expiredThisMonth: expiredSubs?.length || 0,
-    cancelledThisMonth: cancelledSubs?.length || 0,
+    totalActive,
+    newThisMonth: newSubs.length,
+    expiredThisMonth: expiredSubs.length,
+    cancelledThisMonth: cancelledSubs.length,
     renewalRate: Math.round(renewalRate),
     churnRate: Math.round(churnRate * 10) / 10,
     mrr: Math.round(mrr),
@@ -479,8 +486,8 @@ export async function getSubscriptionMetrics() {
     averageLifetimeMonths: Math.round(averageLifetimeMonths * 10) / 10,
     revenueAtRisk,
     expiringStudents: expiringSoon?.map((s: any) => ({
-      name: s.profiles?.full_name || 'Unknown',
-      email: s.profiles?.email || '',
+      name: (s.profiles as any)?.full_name || 'Unknown',
+      email: (s.profiles as any)?.email || '',
       plan: s.plan_type,
       expiry: formatIST(new Date(s.end_date), 'dd MMM yyyy'),
       amount: Number(s.amount)
