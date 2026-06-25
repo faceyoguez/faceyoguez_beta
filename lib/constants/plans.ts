@@ -53,8 +53,8 @@ export const PLANS_DATA = [
         note: 'Best for self-learners',
         hasTrial: false,
         tiers: [
-            { id: 'level_1', label: 'Level 1', originalPrice: 999, discountedPrice: 750, note: '25% OFF' },
-            { id: 'level_1_2', label: 'Level 1 + 2', originalPrice: 1499, discountedPrice: 1125, badge: 'MASTER PACK', note: '25% OFF' }
+            { id: 'level_1', label: 'Level 1', originalPrice: 1999, discountedPrice: 999, note: '50% OFF' },
+            { id: 'level_1_2', label: 'Level 1 + 2', originalPrice: 3999, discountedPrice: 1499, badge: 'MASTER PACK', note: '62% OFF' }
         ],
         features: [
             'Lifetime Content Access',

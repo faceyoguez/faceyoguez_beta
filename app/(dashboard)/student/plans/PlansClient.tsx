@@ -138,15 +138,17 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
 
     const bumps = {
         group_session: [
+            { id: 'bump_lms_level_1', title: 'Recorded Plan (Level 1)', desc: 'Get lifetime access to Level 1 recorded course sessions.', originalPrice: 999, discountedPrice: 750, icon: BookOpen },
             { id: 'bump_recorded', title: 'Recorded Plan (Level 1+2)', desc: 'Get 32 lifetime recorded sessions to practise between live sessions.', originalPrice: 1499, discountedPrice: 1100, icon: BookOpen },
             // HIDE_ONE_ON_ONE: hidden temporarily — restore by removing the condition below
             ...(!HIDE_ONE_ON_ONE ? [{ id: 'bump_1_1', title: '1-1 Personal Plan', desc: 'Get a fully customised face yoga plan built around your face.', originalPrice: 5499, discountedPrice: 4399, icon: Star }] : []),
         ],
         lms: [
-            selectedTierId === 'level_1' ? { id: 'bump_upgrade_l12', title: 'Complete Plan (Level 1 + Level 2)', desc: 'Level 2 is where the real transformation happens.', originalPrice: 1499, discountedPrice: 1125, icon: Sparkles } : null
+            selectedTierId === 'level_1' ? { id: 'bump_upgrade_l12', title: 'Complete Plan (Level 1 + Level 2)', desc: 'Level 2 is where the real transformation happens.', originalPrice: 1499, discountedPrice: 1100, icon: Sparkles } : null
         ].filter(Boolean) as any[],
         one_on_one: [
-            { id: 'bump_recorded_1_1', title: 'Recorded Plan (Level 1+2)', desc: 'Extra practice and deeper technique on days between consultations.', originalPrice: 3999, discountedPrice: 2999, icon: BookOpen }
+            { id: 'bump_lms_level_1_1on1', title: 'Recorded Plan (Level 1)', desc: 'Get lifetime access to Level 1 recorded course sessions.', originalPrice: 999, discountedPrice: 750, icon: BookOpen },
+            { id: 'bump_recorded_1_1', title: 'Recorded Plan (Level 1+2)', desc: 'Extra practice and deeper technique on days between consultations.', originalPrice: 1499, discountedPrice: 1100, icon: BookOpen }
         ]
     };
 

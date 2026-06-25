@@ -17,7 +17,7 @@ export default async function StudentLmsPage() {
     getServerProfile(user.id),
     admin
       .from('subscriptions')
-      .select('plan_variant, status, created_at, end_date')
+      .select('plan_variant, status, created_at, end_date, metadata')
       .eq('student_id', user.id)
       .eq('status', 'active')
       .or(`end_date.is.null,end_date.gte.${today}`)
@@ -29,7 +29,12 @@ export default async function StudentLmsPage() {
 
   const isAdmin = ['admin', 'instructor', 'staff', 'client_management'].includes(profile?.role || '');
   const hasActiveSub = (subscriptions && subscriptions.length > 0) || isAdmin;
-  const hasLevel2 = (subscriptions as any[])?.some(s => s.plan_variant?.includes('Level 2')) || isAdmin;
+  const hasLevel2 = (subscriptions as any[])?.some(s => 
+    s.plan_variant?.includes('Level 2') ||
+    s.metadata?.bumps?.includes('bump_recorded') ||
+    s.metadata?.bumps?.includes('bump_recorded_1_1') ||
+    s.metadata?.bumps?.includes('bump_upgrade_l12')
+  ) || isAdmin;
 
   // 2. Fetch courses + progress in parallel
   const [{ data: courses }, { data: progress }] = await Promise.all([

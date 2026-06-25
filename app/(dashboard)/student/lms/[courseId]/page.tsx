@@ -51,12 +51,17 @@ export default async function CourseViewerPage({ params }: PageProps) {
 
   const { data: activeSubscriptions } = await admin
     .from('subscriptions')
-    .select('plan_variant, is_trial')
+    .select('plan_variant, is_trial, metadata')
     .eq('student_id', user.id)
     .eq('status', 'active');
 
   const hasActiveSub = (activeSubscriptions && activeSubscriptions.length > 0) || isAdmin;
-  const hasLevel2 = activeSubscriptions?.some((s: any) => s.plan_variant?.includes('Level 2')) || isAdmin;
+  const hasLevel2 = activeSubscriptions?.some((s: any) => 
+    s.plan_variant?.includes('Level 2') ||
+    s.metadata?.bumps?.includes('bump_recorded') ||
+    s.metadata?.bumps?.includes('bump_recorded_1_1') ||
+    s.metadata?.bumps?.includes('bump_upgrade_l12')
+  ) || isAdmin;
 
   const isLevelAllowed = isAdmin || (course.level === 1 
     ? true 
