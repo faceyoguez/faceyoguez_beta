@@ -57,7 +57,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
     const router = useRouter();
 
     // Toggle this flag to show/hide the Personal 1-on-1 Classes in the plans page
-    const HIDE_ONE_ON_ONE = true;
+    const HIDE_ONE_ON_ONE = false;
     const visiblePlans = HIDE_ONE_ON_ONE
         ? PLANS_DATA.filter((p: any) => p.id !== 'one_on_one')
         : PLANS_DATA;
@@ -140,8 +140,6 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
         group_session: [
             { id: 'bump_lms_level_1', title: 'Recorded Plan (Level 1)', desc: 'Get lifetime access to Level 1 recorded course sessions.', originalPrice: 999, discountedPrice: 750, icon: BookOpen },
             { id: 'bump_recorded', title: 'Recorded Plan (Level 1+2)', desc: 'Get 32 lifetime recorded sessions to practise between live sessions.', originalPrice: 1499, discountedPrice: 1100, icon: BookOpen },
-            // HIDE_ONE_ON_ONE: hidden temporarily — restore by removing the condition below
-            ...(!HIDE_ONE_ON_ONE ? [{ id: 'bump_1_1', title: '1-1 Personal Plan', desc: 'Get a fully customised face yoga plan built around your face.', originalPrice: 5499, discountedPrice: 4399, icon: Star }] : []),
         ],
         lms: [
             selectedTierId === 'level_1' ? { id: 'bump_upgrade_l12', title: 'Complete Plan (Level 1 + Level 2)', desc: 'Level 2 is where the real transformation happens.', originalPrice: 1499, discountedPrice: 1100, icon: Sparkles } : null

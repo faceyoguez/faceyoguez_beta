@@ -47,7 +47,7 @@ const SidebarContext = createContext<SidebarContextValue>({
 export const useSidebar = () => useContext(SidebarContext);
 
 // Toggle this flag to show/hide the Personal 1-on-1 Classes in the student sidebar
-const HIDE_ONE_ON_ONE = true;
+const HIDE_ONE_ON_ONE = false;
 
 // ── Nav config per role ────────────────────────────────────────────────
 const navConfig = {
