@@ -10,11 +10,13 @@ export default async function StudentDashboardPage() {
   const user = await getServerUser();
   if (!user) redirect('/auth/login');
 
-  // ─── Phase 1: Basic Profile, Enrollments, & Subscriptions ───
-  const [profile, enrollments, subscriptions] = await Promise.all([
+  // ─── Phase 1: All independent queries run in parallel ───
+  // journeyLogs only needs user.id so it runs here, not in Phase 2.
+  const [profile, enrollments, subscriptions, journeyLogs] = await Promise.all([
     getServerProfile(user.id),
     getStudentEnrollments(user.id),
-    getStudentSubscriptions(user.id)
+    getStudentSubscriptions(user.id),
+    getStudentJourneyLogs(user.id),
   ]);
 
   if (!profile || profile.role !== 'student') redirect('/auth/login');
@@ -30,10 +32,8 @@ export default async function StudentDashboardPage() {
 
   const admin = createAdminClient();
 
-  // ─── Phase 2: Journey logs & secure/authorized meetings ───
-  const [journeyLogs, todaysMeetings] = await Promise.all([
-    getStudentJourneyLogs(user.id),
-    Promise.all([
+  // ─── Phase 2: Meetings only (depends on Phase 1 batchIds/activePlanTypes) ───
+  const todaysMeetings = await Promise.all([
       // Query 1: Individual or assigned meetings (assigned directly to this student)
       admin
         .from('meetings')
@@ -51,13 +51,12 @@ export default async function StudentDashboardPage() {
             .order('start_time', { ascending: true })
             .then((res: { data: any[] | null }) => res.data || [])
         : Promise.resolve([])
-    ]).then(([oneOnOne, group]) => {
-      const all = [...oneOnOne, ...group];
-      // Deduplicate by meeting ID
-      const unique = all.filter((m, i) => all.findIndex(x => x.id === m.id) === i);
-      return unique.sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
-    })
-  ]);
+  ]).then(([oneOnOne, group]) => {
+    const all = [...oneOnOne, ...group];
+    // Deduplicate by meeting ID
+    const unique = all.filter((m, i) => all.findIndex(x => x.id === m.id) === i);
+    return unique.sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+  });
 
   // ─── Compute derived state ───
   const joinedDate = subscriptions.length > 0 && subscriptions[0].start_date
