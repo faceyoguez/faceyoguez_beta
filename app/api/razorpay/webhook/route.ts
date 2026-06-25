@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { createAdminClient } from '@/lib/supabase/server';
 import { enrollInWaitingQueue } from '@/lib/actions/batches';
+import { sendInvoiceEmail } from '@/lib/email/sender';
 
 // ── Webhook signature verification ─────────────────────────────────────────
 function verifyWebhookSignature(body: string, signature: string, secret: string): boolean {
@@ -137,6 +138,7 @@ async function handlePaymentCaptured(payment: any) {
   const durationMonths: number = parseInt(notes.durationMonths || '1', 10) || 1;
   const bumps: string[] = notes.bumps ? notes.bumps.split(',').filter(Boolean) : [];
   const couponCode: string | undefined = notes.couponCode || undefined;
+  const couponDiscount: number = parseInt(notes.couponDiscount || '0', 10) || 0;
   const amountINR: number = payment.amount / 100; // convert paise to INR
 
   if (!userId || !planType || !planVariant) {
@@ -235,6 +237,37 @@ async function handlePaymentCaptured(payment: any) {
     });
   } catch (e) {
     console.error('[Webhook/captured] Notification insert failed:', e);
+  }
+
+  // Send invoice email fallback
+  try {
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('full_name, email')
+      .eq('id', userId)
+      .single();
+
+    const userEmail = profile?.email;
+    if (userEmail) {
+      const rawName = profile?.full_name || 'there';
+      const firstName = rawName.split(' ')[0];
+      const formattedName = firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase();
+
+      await sendInvoiceEmail(userEmail, {
+        firstName: formattedName,
+        planType,
+        planVariant,
+        amount: amountINR,
+        paymentId,
+        orderId,
+        purchasedAt: new Date(),
+        couponCode: couponCode || null,
+        couponDiscount,
+        durationMonths,
+      });
+    }
+  } catch (e) {
+    console.error('[Webhook/captured] Invoice email fallback failed:', e);
   }
 }
 
