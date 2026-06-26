@@ -230,10 +230,12 @@ export default function StudentManagement() {
 
                        {/* Product Info */}
                        <td className="px-4 py-2.5">
-                          <div className="flex items-center gap-2">
-                             <span className="text-[9px] font-black uppercase tracking-[0.1em] text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">
-                                {student.plan.replace('_', ' ')}
-                             </span>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                             {student.plan.split(' + ').map((p, i) => (
+                               <span key={i} className="text-[9px] font-black uppercase tracking-[0.1em] text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-100">
+                                 {p.replace(/_/g, ' ')}
+                               </span>
+                             ))}
                              {student.planVariant && <span className="text-[8px] font-bold text-slate-300">{student.planVariant}</span>}
                           </div>
                        </td>

@@ -169,10 +169,14 @@ export function StaffStudentTable() {
                         </span>
                       </td>
                       <td className="px-5 py-3">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-50 border border-slate-100 text-[9px] font-black uppercase tracking-wider text-slate-500">
-                          <Tag className="w-2.5 h-2.5 text-[#FF8A75]" />
-                          {student.plan.replace(/_/g, ' ')}
-                        </span>
+                        <div className="flex flex-wrap items-center gap-1">
+                          {student.plan.split(' + ').map((p, i) => (
+                            <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-50 border border-slate-100 text-[9px] font-black uppercase tracking-wider text-slate-500">
+                              <Tag className="w-2.5 h-2.5 text-[#FF8A75]" />
+                              {p.replace(/_/g, ' ')}
+                            </span>
+                          ))}
+                        </div>
                       </td>
                       <td className="px-5 py-3">
                         <span className={cn(
@@ -282,11 +286,13 @@ export function StaffStudentTable() {
 
                     <div className="flex flex-col gap-0.5 col-span-2">
                       <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">Plan Name</span>
-                      <div className="flex items-center mt-0.5">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 border border-slate-100 text-[9px] font-black uppercase tracking-wider text-slate-600">
-                          <Tag className="w-2.5 h-2.5 text-[#FF8A75]" />
-                          {student.plan.replace(/_/g, ' ')}
-                        </span>
+                      <div className="flex flex-wrap items-center gap-1 mt-0.5">
+                        {student.plan.split(' + ').map((p, i) => (
+                          <span key={i} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 border border-slate-100 text-[9px] font-black uppercase tracking-wider text-slate-600">
+                            <Tag className="w-2.5 h-2.5 text-[#FF8A75]" />
+                            {p.replace(/_/g, ' ')}
+                          </span>
+                        ))}
                       </div>
                     </div>
 
