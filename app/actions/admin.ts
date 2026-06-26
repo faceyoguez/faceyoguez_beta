@@ -45,10 +45,24 @@ export async function getAdminStudentData() {
   const today = new Date().toISOString().split('T')[0];
   const queueSet = new Set(queueEntries.map((q: any) => q.student_id));
 
+  // Plan priority order: lms > group_session > one_on_one > others
+  // This ensures that if a user has multiple active plans, the most comprehensive one wins.
+  const PLAN_PRIORITY: Record<string, number> = {
+    lms: 4,
+    group_session: 3,
+    one_on_one: 2,
+  };
+  const getPlanPriority = (planType: string) => PLAN_PRIORITY[planType] ?? 1;
+
   // 2. Transform and enrich data
   const students = profiles.map((profile: any) => {
     const userSubs = subscriptions.filter((s: any) => s.student_id === profile.id);
-    const activeSub = userSubs.find((s: any) => s.status === 'active' && s.end_date && s.end_date >= today);
+
+    // All currently active subscriptions (not expired)
+    const activeSubs = userSubs.filter((s: any) => s.status === 'active' && s.end_date && s.end_date >= today);
+    // Pick the highest-priority active subscription
+    const activeSub = activeSubs.sort((a: any, b: any) => getPlanPriority(b.plan_type) - getPlanPriority(a.plan_type))[0] || null;
+
     const pendingSub = userSubs.find((s: any) => s.status === 'pending');
     // Also look for any sub with an end_date regardless of status (covers new/recent enrolments)
     const subWithEndDate = userSubs.find((s: any) => s.end_date != null);
@@ -70,7 +84,7 @@ export async function getAdminStudentData() {
       latestSub?.end_date ||
       null;
 
-    // Resolve plan: same priority
+    // Resolve plan using priority: active (highest-priority) > pending > latest
     const resolvedPlan =
       activeSub?.plan_type ||
       pendingSub?.plan_type ||

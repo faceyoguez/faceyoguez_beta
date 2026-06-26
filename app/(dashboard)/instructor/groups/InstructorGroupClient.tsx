@@ -420,7 +420,8 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
    const activeStudents = useMemo(() => selectedBatch?.batch_enrollments?.map((e: any) => ({
       ...e.student,
       subscription: e.subscription,
-      enrolled_at: e.created_at
+      // Note: batch_enrollments has no created_at column — use the student's profile created_at
+      // as a proxy for when they joined, available via e.student.created_at (spread above as student.created_at)
    })) || [], [selectedBatch]);
 
    const normalizedWaitingQueue = useMemo(() => (waitingQueue || []).map((q: any) => ({
@@ -485,14 +486,20 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
 
    // Transformation Derived Data
    const day1Log = journeyLogs.find((l: any) => l.day_number === 1);
-   const currentDayNumber = selectedStudent
-      ? Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(selectedBatch?.start_date || Date.now()).getTime()) / 86400000) + 1))
+   // Priority: subscription.start_date > student.created_at (profile join date) > null
+   // We deliberately do NOT fall back to selectedBatch?.start_date because that is the batch program
+   // start date (e.g. 2026-03-01) which would show inflated day counts for recently joined students.
+   const studentStartDate = selectedStudent
+      ? (selectedStudent.subscription?.start_date || selectedStudent.created_at || null)
+      : null;
+   const currentDayNumber = studentStartDate
+      ? Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(studentStartDate).getTime()) / 86400000) + 1))
       : 1;
    const activeLog = journeyLogs.find((l: any) => l.day_number === currentDayNumber);
 
    // Days since student joined
-   const daysSinceJoined = selectedStudent
-      ? Math.max(0, Math.floor((Date.now() - new Date(selectedBatch?.start_date || Date.now()).getTime()) / 86400000))
+   const daysSinceJoined = studentStartDate
+      ? Math.max(0, Math.floor((Date.now() - new Date(studentStartDate).getTime()) / 86400000))
       : 0;
 
    // Angle-aware image picker (falls back to placeholder)

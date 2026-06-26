@@ -46,6 +46,7 @@ export default function StudentManagement() {
   const [activeTab, setActiveTab] = useState<'active' | 'queue'>('active');
   const [currentPage, setCurrentPage] = useState(1);
   const [monthFilter, setMonthFilter] = useState('all');
+  const [planFilter, setPlanFilter] = useState('all');
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -77,9 +78,11 @@ export default function StudentManagement() {
       const matchesMonth = monthFilter === 'all' || 
         format(parseISO(s.joinDate), 'MMM') === monthFilter;
 
-      return matchesTab && matchesSearch && matchesMonth;
+      const matchesPlan = planFilter === 'all' || s.plan === planFilter;
+
+      return matchesTab && matchesSearch && matchesMonth && matchesPlan;
     });
-  }, [students, activeTab, searchTerm, monthFilter]);
+  }, [students, activeTab, searchTerm, monthFilter, planFilter]);
 
   // ── Pagination ──
   const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
@@ -137,6 +140,17 @@ export default function StudentManagement() {
           />
         </div>
         <div className="md:col-span-4 flex gap-2">
+           <select 
+             value={planFilter}
+             onChange={(e) => { setPlanFilter(e.target.value); setCurrentPage(1); }}
+             className="flex-1 bg-white border border-slate-200 rounded-3xl px-4 text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-[#FF8A75]/30 shadow-sm appearance-none cursor-pointer"
+           >
+             <option value="all">All Plans</option>
+             <option value="lms">LMS</option>
+             <option value="group_session">Group</option>
+             <option value="one_on_one">1-on-1</option>
+             <option value="unsubscribed">Unsubscribed</option>
+           </select>
            <select 
              value={monthFilter}
              onChange={(e) => { setMonthFilter(e.target.value); setCurrentPage(1); }}

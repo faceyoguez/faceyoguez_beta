@@ -1,0 +1,22 @@
+const { createClient } = require('@supabase/supabase-js');
+require('dotenv').config({ path: '.env.local' });
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+async function main() {
+  const { data: profiles, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('email', 'manisha.mk210@gmail.com');
+
+  if (error) {
+    console.error(error);
+  } else {
+    console.log('Complete Profile:', profiles[0]);
+  }
+}
+
+main();

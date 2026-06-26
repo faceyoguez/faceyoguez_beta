@@ -59,8 +59,32 @@ export default async function StudentDashboardPage() {
   });
 
   // ─── Compute derived state ───
-  const joinedDate = subscriptions.length > 0 && subscriptions[0].start_date
-    ? new Date(subscriptions[0].start_date)
+  // Determine the journey start date from the ACTIVE plan the student is currently on.
+  // We intentionally avoid using the oldest subscription (which could be a trial from months ago).
+  // Priority: most recent active paid subscription > most recent active subscription > oldest.
+  const activePaidSubs = subscriptions.filter(
+    (s: any) => !s.is_trial && s.status === 'active' && (s.end_date === null || s.end_date >= todayDateStr)
+  );
+  const activeAnySubs = subscriptions.filter(
+    (s: any) => s.status === 'active' && (s.end_date === null || s.end_date >= todayDateStr)
+  );
+
+  // Pick the subscription whose start_date to use for the journey counter.
+  // Use the earliest start_date among the student's current active paid subs (so the journey
+  // counter resets if they renew, but covers the full active period if they purchased multiple).
+  const journeySourceSub =
+    activePaidSubs.length > 0
+      ? activePaidSubs.reduce((earliest: any, s: any) =>
+          !earliest || new Date(s.start_date) < new Date(earliest.start_date) ? s : earliest,
+        null)
+      : activeAnySubs.length > 0
+      ? activeAnySubs[0]
+      : subscriptions.length > 0
+      ? subscriptions[subscriptions.length - 1]  // oldest as last resort
+      : null;
+
+  const joinedDate = journeySourceSub?.start_date
+    ? new Date(journeySourceSub.start_date)
     : null;
 
   const lastRenewed = subscriptions.length > 0

@@ -550,9 +550,11 @@ export async function fetchActiveOneOnOneStudents(instructorId: string) {
   const isStaffRole = ['admin', 'staff', 'client_management'].includes(currentProfile?.role || '');
   const seesAll = isMaster || isStaffRole;
 
-  // 1. Get active one_on_one subscriptions
-  // Important: Sort by is_trial ASC so that paid (false) comes before trial (true).
-  // This ensures that when we deduplicate students, the paid subscription info is kept.
+  // 1. Get active one_on_one subscriptions that haven't expired yet.
+  // We explicitly exclude any subscription whose end_date is in the past — these are
+  // stale records that were never marked 'expired', and would cause inflated day counts.
+  const todayForQuery = new Date().toISOString().split('T')[0];
+
   let query = admin
     .from('subscriptions')
     .select(`
@@ -572,6 +574,7 @@ export async function fetchActiveOneOnOneStudents(instructorId: string) {
     `)
     .eq('plan_type', 'one_on_one')
     .eq('status', 'active')
+    .or(`end_date.is.null,end_date.gte.${todayForQuery}`)  // lifetime OR not yet expired
     .order('is_trial', { ascending: true }); // Paid first, then Trial
 
   // Regular instructors only see students assigned to them
