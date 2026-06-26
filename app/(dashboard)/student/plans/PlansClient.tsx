@@ -57,7 +57,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
     const router = useRouter();
 
     // Toggle this flag to show/hide the Personal 1-on-1 Classes in the plans page
-    const HIDE_ONE_ON_ONE = true;
+    const HIDE_ONE_ON_ONE = false;
     const visiblePlans = HIDE_ONE_ON_ONE
         ? PLANS_DATA.filter((p: any) => p.id !== 'one_on_one')
         : PLANS_DATA;
