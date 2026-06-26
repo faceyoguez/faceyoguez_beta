@@ -78,7 +78,7 @@ export default function StudentManagement() {
       const matchesMonth = monthFilter === 'all' || 
         format(parseISO(s.joinDate), 'MMM') === monthFilter;
 
-      const matchesPlan = planFilter === 'all' || s.plan === planFilter;
+      const matchesPlan = planFilter === 'all' || s.plan.split(' + ').includes(planFilter);
 
       return matchesTab && matchesSearch && matchesMonth && matchesPlan;
     });

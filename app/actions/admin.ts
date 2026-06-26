@@ -76,20 +76,33 @@ export async function getAdminStudentData() {
     const couponUsed = latestSub?.metadata?.couponCode || null;
     const totalPaid = paidSubs.reduce((acc: number, s: any) => acc + (s.amount || 0), 0);
 
-    // Resolve end date: prefer active > pending > any sub with end_date > latest sub
+    // Resolve end date: latest end date among active subs, or fallback
+    const activeEndDates = activeSubs.map((s: any) => s.end_date).filter(Boolean).sort();
     const resolvedEndDate =
-      activeSub?.end_date ||
+      (activeEndDates.length > 0 ? activeEndDates[activeEndDates.length - 1] : null) ||
       pendingSub?.end_date ||
       subWithEndDate?.end_date ||
       latestSub?.end_date ||
       null;
 
-    // Resolve plan using priority: active (highest-priority) > pending > latest
-    const resolvedPlan =
-      activeSub?.plan_type ||
-      pendingSub?.plan_type ||
-      latestSub?.plan_type ||
-      'unsubscribed';
+    // Resolve plan: join all active or pending plans
+    const activePlanTypes = activeSubs.map((s: any) => s.plan_type);
+    const pendingPlanTypes = pendingSub ? [pendingSub.plan_type] : [];
+    const resolvedPlansList = activePlanTypes.length > 0 
+      ? activePlanTypes 
+      : (pendingPlanTypes.length > 0 ? pendingPlanTypes : (latestSub ? [latestSub.plan_type] : ['unsubscribed']));
+    const uniquePlans = Array.from(new Set(resolvedPlansList));
+    const resolvedPlan = uniquePlans.join(' + ');
+
+    // Resolve plan variant: join variants matching the resolved plans
+    const resolvedVariantsList = activeSubs.map((s: any) => s.plan_variant).filter(Boolean);
+    if (resolvedVariantsList.length === 0 && pendingSub?.plan_variant) {
+      resolvedVariantsList.push(pendingSub.plan_variant);
+    }
+    if (resolvedVariantsList.length === 0 && latestSub?.plan_variant) {
+      resolvedVariantsList.push(latestSub.plan_variant);
+    }
+    const resolvedPlanVariant = Array.from(new Set(resolvedVariantsList)).join(' + ') || null;
 
     return {
       id: profile.id,
@@ -99,7 +112,7 @@ export async function getAdminStudentData() {
       joinDate: profile.created_at,
       subscriptionEnd: resolvedEndDate,
       plan: resolvedPlan,
-      planVariant: activeSub?.plan_variant || pendingSub?.plan_variant || latestSub?.plan_variant || null,
+      planVariant: resolvedPlanVariant,
       amountPaid: totalPaid,
       couponCode: couponUsed,
       isRenewed,
