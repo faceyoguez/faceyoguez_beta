@@ -193,7 +193,9 @@ export function StaffStudentTable() {
                       <td className="px-5 py-3">
                         <div className="flex items-center justify-center gap-2">
                           <a
-                            href={`mailto:${student.email}`}
+                            href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(student.email)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             title={`Email ${student.name}`}
                             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 hover:bg-blue-100 transition-all text-[9px] font-black uppercase tracking-wider"
                           >
@@ -228,7 +230,9 @@ export function StaffStudentTable() {
                   {/* Student Actions — top of card */}
                   <div className="flex items-center gap-2 pb-3 border-b border-slate-50">
                     <a
-                      href={`mailto:${student.email}`}
+                      href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(student.email)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       title={`Email ${student.name}`}
                       className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 active:bg-blue-100 transition-all text-[9px] font-black uppercase tracking-wider"
                     >
