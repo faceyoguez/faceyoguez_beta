@@ -354,15 +354,11 @@ export async function enrollInWaitingQueue(studentId: string, subscriptionId: st
         .eq('id', subscriptionId)
         .single();
 
-    // 2. Check if there's a truly active batch with available slots.
-    // Filter by end_date >= today to avoid enrolling into already-expired batches
-    // whose status may still be 'active' in the DB but have passed their end date.
-    const today = new Date().toISOString().split('T')[0];
+    // 2. Fetch the active batch.
     const { data: activeBatches } = await admin
         .from('batches')
         .select('id, max_students, current_students, name, instructor_id, end_date')
         .eq('status', 'active')
-        .gte('end_date', today)
         .order('created_at', { ascending: false })
         .limit(1);
 
@@ -429,20 +425,68 @@ export async function grantFullAccess(studentId: string, subscriptionId: string,
     // Fetch batch end date
     const { data: batch } = await admin.from('batches').select('end_date').eq('id', batchId).single();
 
+    // Fetch subscription details to set start/end date
+    const { data: subData } = await admin
+        .from('subscriptions')
+        .select('*')
+        .eq('id', subscriptionId)
+        .single();
+
+    let effectiveEndDate = batch?.end_date;
+
+    if (subData) {
+        const start = new Date();
+        const end = new Date(start);
+        const duration = subData.duration_months || 1;
+
+        if (subData.plan_type === 'group_session') {
+            if (duration === 1) {
+                end.setDate(start.getDate() + 40);
+            } else if (duration === 3) {
+                end.setDate(start.getDate() + 110);
+            } else {
+                end.setMonth(start.getMonth() + duration);
+            }
+        } else {
+            end.setMonth(start.getMonth() + duration);
+        }
+
+        const calculatedEndDateStr = end.toISOString().split('T')[0];
+        const startDateStr = start.toISOString().split('T')[0];
+
+        // Activate subscription
+        await admin
+            .from('subscriptions')
+            .update({
+                status: 'active',
+                start_date: startDateStr,
+                end_date: calculatedEndDateStr,
+            })
+            .eq('id', subscriptionId);
+
+        effectiveEndDate = calculatedEndDateStr;
+    }
+
     await admin.from('batch_enrollments').insert({
         batch_id: batchId,
         student_id: studentId,
         subscription_id: subscriptionId,
         status: 'active',
         is_trial_access: false, // It's full access for this batch
-        effective_end_date: batch?.end_date,
+        effective_end_date: effectiveEndDate,
         is_extended: false,
     });
 
     try {
-        await admin.rpc('increment_batch_count', { batch_id: batchId });
+        const { data: activeEnrollments } = await admin
+            .from('batch_enrollments')
+            .select('id')
+            .eq('batch_id', batchId)
+            .eq('status', 'active');
+        const activeCount = activeEnrollments?.length || 0;
+        await admin.from('batches').update({ current_students: activeCount }).eq('id', batchId);
     } catch (e) {
-        console.error('Failed to increment batch count atomically:', e);
+        console.error('Failed to update batch count:', e);
     }
 }
 
