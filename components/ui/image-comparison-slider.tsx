@@ -57,7 +57,7 @@ export const ImageComparison = ({ beforeImage, afterImage, altBefore = 'Baseline
                     alt={altBefore}
                     fill
                     sizes="(max-width: 768px) 100vw, 50vw"
-                    className="h-full w-full object-cover grayscale-[0.2] contrast-[1.05]"
+                    className="h-full w-full object-contain grayscale-[0.2] contrast-[1.05]"
                     draggable="false"
                 />
                 {beforeLabel && (
@@ -75,7 +75,7 @@ export const ImageComparison = ({ beforeImage, afterImage, altBefore = 'Baseline
                     alt={altAfter}
                     fill
                     sizes="(max-width: 768px) 100vw, 50vw"
-                    className="block h-full w-full object-cover contrast-[1.1]"
+                    className="block h-full w-full object-contain contrast-[1.1]"
                     draggable="false"
                 />
             </div>

@@ -178,6 +178,9 @@ async function handlePaymentCaptured(payment: any) {
     endDate.setMonth(endDate.getMonth() + durationMonths);
   }
 
+  const hasGroupBump = bumps.includes('bump_group_1m') || bumps.includes('bump_group_3m');
+  const groupBumpDuration = bumps.includes('bump_group_3m') ? 3 : (bumps.includes('bump_group_1m') ? 1 : 0);
+
   const { data: subscription, error } = await admin
     .from('subscriptions')
     .insert({
@@ -191,7 +194,7 @@ async function handlePaymentCaptured(payment: any) {
       amount: amountINR,
       currency: 'INR',
       payment_id: paymentId,
-      batches_remaining: isGroupSession ? durationMonths : 0,
+      batches_remaining: isGroupSession ? durationMonths : (hasGroupBump ? groupBumpDuration : 0),
       batches_used: 0,
       metadata: {
         planVariant,
@@ -213,7 +216,7 @@ async function handlePaymentCaptured(payment: any) {
   console.log(`[Webhook/captured] Subscription created via webhook fallback: ${subscription.id}`);
 
   // Group: enroll in waiting queue
-  if (isGroupSession && subscription) {
+  if ((isGroupSession || hasGroupBump) && subscription) {
     try {
       await enrollInWaitingQueue(userId, subscription.id);
     } catch (e) {

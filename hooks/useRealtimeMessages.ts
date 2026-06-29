@@ -29,7 +29,6 @@ export function useRealtimeMessages({
   const [isChatEnabled, setIsChatEnabled] = useState(true);
   const mountedRef = useRef(true);
   const lastSignatureRef = useRef('');
-  const channelRef = useRef<any>(null); // Type 'RealtimeChannel' is tricky without deep imports, 'any' is safe here since we control it
 
   // ── Fetch messages via API route ──
   const fetchMessages = useCallback(
@@ -128,18 +127,8 @@ export function useRealtimeMessages({
           replyTo
         );
 
-        // Force re-fetch to replace optimistic with real message without blocking UI
-        lastSignatureRef.current = '';
-        fetchMessages();
-
-        // Broadcast to other client that a new message was sent!
-        if (channelRef.current) {
-          channelRef.current.send({
-            type: 'broadcast',
-            event: 'new_message',
-            payload: { timestamp: Date.now() },
-          });
-        }
+        // We no longer trigger a full API fetchMessages here, as the database
+        // INSERT trigger will capture the insertion and match/promote this message.
 
       } catch (error) {
         console.error('Error sending message:', error);
@@ -147,7 +136,7 @@ export function useRealtimeMessages({
         alert('Failed to send message: ' + (error instanceof Error ? error.message : 'Unknown error'));
       }
     },
-    [conversationId, currentUserId, fetchMessages]
+    [conversationId, currentUserId]
   );
 
   // ── Send file ──
@@ -191,26 +180,9 @@ export function useRealtimeMessages({
       .then(setIsChatEnabled)
       .catch(console.error);
 
-    // Subscribe to Supabase Realtime
-    // We use two channels to avoid "cannot add postgres_changes after subscribe" errors:
-    // 1. A shared channel for Broadcast pings (room-consistent)
-    // 2. A unique channel for Postgres Changes (instance-consistent)
-    
-    const broadcastTopic = `room:${conversationId}`;
+    // Subscribe to Supabase Realtime for Postgres Changes (unique channel to avoid listener leaks)
     const changesTopic = `changes:${conversationId}-${Math.random().toString(36).slice(2, 9)}`;
-
-    const broadcastChannel = supabase.channel(broadcastTopic);
     const changesChannel = supabase.channel(changesTopic);
-    
-    channelRef.current = broadcastChannel; // For sending pings
-
-    broadcastChannel
-      .on('broadcast', { event: 'new_message' }, () => {
-        console.log('[CHAT WEBSOCKET] Received Broadcast ping, fetching...');
-        lastSignatureRef.current = '';
-        fetchMessages();
-      })
-      .subscribe();
 
     changesChannel
       .on(
@@ -221,21 +193,37 @@ export function useRealtimeMessages({
           table: 'chat_messages',
           filter: `conversation_id=eq.${conversationId}`,
         },
-        () => {
-          console.log('[CHAT WEBSOCKET] Received Postgres INSERT, fetching...');
-          lastSignatureRef.current = '';
-          fetchMessages();
+        (payload: any) => {
+          console.log('[CHAT WEBSOCKET] Received Postgres INSERT:', payload);
+          const newMessage = payload.new;
+          if (newMessage) {
+            if (newMessage.sender_id === currentUserId) {
+              // Promote the optimistic message (update its temp ID and timestamp with real DB data)
+              setMessages((prev) =>
+                prev.map((msg) =>
+                  msg.id.startsWith('temp-') &&
+                  msg.content === newMessage.content &&
+                  msg.file_url === newMessage.file_url
+                    ? { ...msg, id: newMessage.id, created_at: newMessage.created_at }
+                    : msg
+                )
+              );
+            } else {
+              // Message is from the other user — execute a single fetch to retrieve the message with its sender profile
+              console.log('[CHAT WEBSOCKET] Message from other user, fetching latest...');
+              lastSignatureRef.current = '';
+              fetchMessages();
+            }
+          }
         }
       )
       .subscribe();
 
     return () => {
       mountedRef.current = false;
-      supabase.removeChannel(broadcastChannel);
       supabase.removeChannel(changesChannel);
-      channelRef.current = null;
     };
-  }, [conversationId, fetchMessages, supabase]);
+  }, [conversationId, currentUserId, fetchMessages, supabase]);
 
   return {
     messages,

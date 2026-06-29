@@ -237,6 +237,9 @@ export async function POST(request: NextRequest) {
       consultation_credit_applied: !!consultationIdForCredit,
     };
 
+    const hasGroupBump = bumps?.includes('bump_group_1m') || bumps?.includes('bump_group_3m');
+    const groupBumpDuration = bumps?.includes('bump_group_3m') ? 3 : (bumps?.includes('bump_group_1m') ? 1 : 0);
+
     const { data: subscription, error: insertError } = await admin
       .from('subscriptions')
       .insert({
@@ -250,7 +253,7 @@ export async function POST(request: NextRequest) {
         amount,
         currency: 'INR',
         payment_id: razorpay_payment_id,
-        batches_remaining: isGroupSession ? (durationMonths || 1) : 0,
+        batches_remaining: isGroupSession ? (durationMonths || 1) : (hasGroupBump ? groupBumpDuration : 0),
         batches_used: 0,
         metadata,
       })
@@ -278,7 +281,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Group session queue
-    if (isGroupSession) {
+    if (isGroupSession || hasGroupBump) {
       try {
         await enrollInWaitingQueue(user.id, subscription.id);
       } catch (queueErr) {

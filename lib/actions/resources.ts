@@ -1,6 +1,6 @@
 'use server';
 
-import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { v4 as uuidv4 } from 'uuid';
 import type { StudentResource } from '@/types/database';
@@ -21,15 +21,15 @@ export async function uploadResource(
         return { success: false, error: 'Unauthorized' };
     }
 
-    // Ensure they are an instructor or admin (simplified role check here, or trust RLS)
+    // Ensure they are an instructor, admin, or staff
     const { data: profile } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', user.id)
         .single();
 
-    if (profile?.role !== 'instructor' && profile?.role !== 'admin') {
-        return { success: false, error: 'Only instructors can upload resources' };
+    if (!profile?.role || !['instructor', 'admin', 'staff', 'client_management'].includes(profile.role)) {
+        return { success: false, error: 'Only instructors, staff, or admins can upload resources' };
     }
 
     try {
@@ -86,8 +86,23 @@ export async function uploadResource(
 
 export async function getStudentResources(studentId: string): Promise<StudentResource[]> {
     const supabase = await createServerSupabaseClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
 
-    const { data, error } = await supabase
+    // Authorize caller: student themselves, or instructor/staff/admin
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+    if (!profile) return [];
+
+    const isAuthorized = user.id === studentId || ['instructor', 'admin', 'staff', 'client_management'].includes(profile.role);
+    if (!isAuthorized) return [];
+
+    const admin = createAdminClient();
+    const { data, error } = await admin
         .from('student_resources')
         .select('*')
         .eq('student_id', studentId)

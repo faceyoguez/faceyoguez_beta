@@ -105,22 +105,25 @@ export async function createAndPopulateBatch(input: CreateBatchInput) {
                     .eq('student_id', entry.student_id)
                     .eq('is_trial_access', true);
 
+                const hasGroupBump = subData.metadata?.bumps?.includes('bump_group_1m') || subData.metadata?.bumps?.includes('bump_group_3m');
+                const groupDuration = subData.plan_type === 'group_session'
+                    ? (subData.duration_months || 1)
+                    : subData.metadata?.bumps?.includes('bump_group_3m')
+                        ? 3
+                        : 1;
+
                 let updatedEndDate = subData.end_date;
 
                 // Activate pending subscriptions — set start/end dates based on batch start
-                if (subData.status === 'pending' || !subData.start_date) {
+                if (subData.plan_type === 'group_session' && (subData.status === 'pending' || !subData.start_date)) {
                     const start = new Date(input.startDate);
                     const end = new Date(start);
-                    if (subData.plan_type === 'group_session') {
-                        if (subData.duration_months === 1) {
-                            end.setDate(start.getDate() + 40);
-                        } else if (subData.duration_months === 3) {
-                            end.setDate(start.getDate() + 110);
-                        } else {
-                            end.setMonth(start.getMonth() + (subData.duration_months || 1));
-                        }
+                    if (groupDuration === 1) {
+                        end.setDate(start.getDate() + 40);
+                    } else if (groupDuration === 3) {
+                        end.setDate(start.getDate() + 110);
                     } else {
-                        end.setMonth(start.getMonth() + (subData.duration_months || 1));
+                        end.setMonth(start.getMonth() + groupDuration);
                     }
                     updatedEndDate = end.toISOString().split('T')[0];
 
@@ -132,11 +135,22 @@ export async function createAndPopulateBatch(input: CreateBatchInput) {
                             end_date: updatedEndDate,
                         })
                         .eq('id', subData.id);
+                } else if (subData.plan_type !== 'group_session' && hasGroupBump) {
+                    const start = new Date(input.startDate);
+                    const end = new Date(start);
+                    if (groupDuration === 1) {
+                        end.setDate(start.getDate() + 40);
+                    } else if (groupDuration === 3) {
+                        end.setDate(start.getDate() + 110);
+                    } else {
+                        end.setMonth(start.getMonth() + groupDuration);
+                    }
+                    updatedEndDate = end.toISOString().split('T')[0];
                 }
 
                 // Auto-extend subscription if batch outlasts it
-                const isExtended = updatedEndDate && updatedEndDate < input.endDate;
-                const effectiveEnd = isExtended ? input.endDate : updatedEndDate;
+                const isExtended = subData.plan_type === 'group_session' && updatedEndDate && updatedEndDate < input.endDate;
+                const effectiveEnd = (subData.plan_type !== 'group_session' && hasGroupBump) ? updatedEndDate : (isExtended ? input.endDate : updatedEndDate);
                 if (isExtended) {
                     await admin
                         .from('subscriptions')
@@ -180,14 +194,19 @@ export async function createAndPopulateBatch(input: CreateBatchInput) {
         if (enrolledCount < input.maxStudents) {
             const { data: activeSubs } = await admin
                 .from('subscriptions')
-                .select('id, student_id, end_date, batches_remaining, duration_months')
-                .eq('plan_type', 'group_session')
+                .select('id, student_id, end_date, batches_remaining, duration_months, plan_type, metadata')
                 .eq('status', 'active')
                 .eq('is_trial', false)
                 .gt('batches_remaining', 0);
 
             if (activeSubs) {
-                for (const sub of activeSubs) {
+                const rolloverSubs = activeSubs.filter((sub: any) =>
+                    sub.plan_type === 'group_session' ||
+                    sub.metadata?.bumps?.includes('bump_group_1m') ||
+                    sub.metadata?.bumps?.includes('bump_group_3m')
+                );
+
+                for (const sub of rolloverSubs) {
                     if (enrolledCount >= input.maxStudents) break;
                     if (enrolledStudentIds.has(sub.student_id)) continue;
 
@@ -202,13 +221,36 @@ export async function createAndPopulateBatch(input: CreateBatchInput) {
 
                     if (existing && existing.length > 0) continue;
 
-                    // Auto-extend if batch outlasts subscription
-                    const isExtended = sub.end_date && sub.end_date < input.endDate;
+                    const hasGroupBump = sub.metadata?.bumps?.includes('bump_group_1m') || sub.metadata?.bumps?.includes('bump_group_3m');
+                    const groupDuration = sub.plan_type === 'group_session'
+                        ? (sub.duration_months || 1)
+                        : sub.metadata?.bumps?.includes('bump_group_3m')
+                            ? 3
+                            : 1;
+
+                    // Calculate effective end date for this batch enrollment
+                    let enrollmentEndDate = sub.end_date;
+                    if (sub.plan_type !== 'group_session' && hasGroupBump) {
+                        const start = new Date(input.startDate);
+                        const end = new Date(start);
+                        if (groupDuration === 1) {
+                            end.setDate(start.getDate() + 40);
+                        } else if (groupDuration === 3) {
+                            end.setDate(start.getDate() + 110);
+                        } else {
+                            end.setMonth(start.getMonth() + groupDuration);
+                        }
+                        enrollmentEndDate = end.toISOString().split('T')[0];
+                    }
+
+                    // Auto-extend if batch outlasts subscription (only for regular group_session)
+                    const isExtended = sub.plan_type === 'group_session' && sub.end_date && sub.end_date < input.endDate;
                     if (isExtended) {
                         await admin
                             .from('subscriptions')
                             .update({ end_date: input.endDate })
                             .eq('id', sub.id);
+                        enrollmentEndDate = input.endDate;
                     }
 
                     await admin
@@ -218,7 +260,7 @@ export async function createAndPopulateBatch(input: CreateBatchInput) {
                             student_id: sub.student_id,
                             subscription_id: sub.id,
                             status: 'active',
-                            effective_end_date: isExtended ? input.endDate : sub.end_date,
+                            effective_end_date: enrollmentEndDate,
                             original_sub_end_date: isExtended ? sub.end_date : null,
                             is_extended: !!isExtended,
                             is_trial_access: false,
@@ -439,13 +481,28 @@ export async function grantFullAccess(studentId: string, subscriptionId: string,
         const end = new Date(start);
         const duration = subData.duration_months || 1;
 
+        const hasGroupBump = subData.metadata?.bumps?.includes('bump_group_1m') || subData.metadata?.bumps?.includes('bump_group_3m');
+        const groupDuration = subData.plan_type === 'group_session'
+            ? (subData.duration_months || 1)
+            : subData.metadata?.bumps?.includes('bump_group_3m')
+                ? 3
+                : 1;
+
         if (subData.plan_type === 'group_session') {
-            if (duration === 1) {
+            if (groupDuration === 1) {
                 end.setDate(start.getDate() + 40);
-            } else if (duration === 3) {
+            } else if (groupDuration === 3) {
                 end.setDate(start.getDate() + 110);
             } else {
-                end.setMonth(start.getMonth() + duration);
+                end.setMonth(start.getMonth() + groupDuration);
+            }
+        } else if (hasGroupBump) {
+            if (groupDuration === 1) {
+                end.setDate(start.getDate() + 40);
+            } else if (groupDuration === 3) {
+                end.setDate(start.getDate() + 110);
+            } else {
+                end.setMonth(start.getMonth() + groupDuration);
             }
         } else {
             end.setMonth(start.getMonth() + duration);
@@ -454,17 +511,20 @@ export async function grantFullAccess(studentId: string, subscriptionId: string,
         const calculatedEndDateStr = end.toISOString().split('T')[0];
         const startDateStr = start.toISOString().split('T')[0];
 
-        // Activate subscription
-        await admin
-            .from('subscriptions')
-            .update({
-                status: 'active',
-                start_date: startDateStr,
-                end_date: calculatedEndDateStr,
-            })
-            .eq('id', subscriptionId);
-
-        effectiveEndDate = calculatedEndDateStr;
+        if (subData.plan_type === 'group_session') {
+            // Activate subscription
+            await admin
+                .from('subscriptions')
+                .update({
+                    status: 'active',
+                    start_date: startDateStr,
+                    end_date: calculatedEndDateStr,
+                })
+                .eq('id', subscriptionId);
+            effectiveEndDate = calculatedEndDateStr;
+        } else {
+            effectiveEndDate = calculatedEndDateStr;
+        }
     }
 
     await admin.from('batch_enrollments').insert({

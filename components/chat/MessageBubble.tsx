@@ -102,11 +102,11 @@ export function MessageBubble({ message, isOwn, showSender = false, isMultiParty
           )}
 
           {message.content_type === 'image' && message.file_url && (
-            <div className="relative group overflow-hidden rounded-2xl bg-black/5 mt-1">
+            <div className="relative group overflow-hidden rounded-2xl bg-black/5 mt-1 flex justify-center">
                 <img
                 src={message.file_url}
                 alt={'Shared Image'}
-                className="max-h-[32rem] max-w-full cursor-zoom-in object-cover transition-all duration-700 active:scale-[0.98]"
+                className="max-h-[32rem] max-w-full cursor-zoom-in object-contain w-auto transition-all duration-700 active:scale-[0.98]"
                 onClick={() => window.open(message.file_url!, '_blank')}
                 />
                 <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />

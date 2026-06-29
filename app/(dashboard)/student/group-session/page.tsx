@@ -40,15 +40,18 @@ export default async function StudentGroupPage() {
     let isTrialAccess = (enrollment?.is_trial_access && enrollment?.subscriptions?.is_trial) || false;
 
     // Also check if they have an active subscription (fallback for manual DB changes)
-    const { data: activeSub } = await admin
+    const { data: activeSubs } = await admin
         .from('subscriptions')
-        .select('id, is_trial, start_date')
+        .select('id, plan_type, metadata, is_trial, start_date')
         .eq('student_id', user.id)
-        .eq('plan_type', 'group_session')
         .eq('status', 'active')
-        .or(`end_date.is.null,end_date.gte.${today}`)
-        .limit(1)
-        .maybeSingle();
+        .or(`end_date.is.null,end_date.gte.${today}`);
+
+    const activeSub = activeSubs?.find((s: any) =>
+        s.plan_type === 'group_session' ||
+        s.metadata?.bumps?.includes('bump_group_1m') ||
+        s.metadata?.bumps?.includes('bump_group_3m')
+    ) || null;
 
     // Smart Fallback: If student is active but not enrolled, show them the latest active batch
     if (!activeBatch && activeSub) {

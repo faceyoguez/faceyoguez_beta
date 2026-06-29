@@ -142,12 +142,10 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
             { id: 'bump_recorded', title: 'Recorded Plan (Level 1+2)', desc: 'Get 32 lifetime recorded sessions to practise between live sessions.', originalPrice: 1499, discountedPrice: 1100, icon: BookOpen },
         ],
         lms: [
-            selectedTierId === 'level_1' ? { id: 'bump_upgrade_l12', title: 'Complete Plan (Level 1 + Level 2)', desc: 'Level 2 is where the real transformation happens.', originalPrice: 1499, discountedPrice: 1100, icon: Sparkles } : null
+            selectedTierId === 'level_1' ? { id: 'bump_upgrade_l12', title: 'Complete Plan (Level 1 + Level 2)', desc: 'Level 2 is where the real transformation happens.', originalPrice: 1499, discountedPrice: 1100, icon: Sparkles } : null,
+            { id: 'bump_group_1m', title: 'Daily Live Group Session (1 Month)', desc: 'Join live practice classes every evening to accelerate your results.', originalPrice: 1499, discountedPrice: 1100, icon: Users }
         ].filter(Boolean) as any[],
-        one_on_one: [
-            { id: 'bump_lms_level_1_1on1', title: 'Recorded Plan (Level 1)', desc: 'Get lifetime access to Level 1 recorded course sessions.', originalPrice: 999, discountedPrice: 750, icon: BookOpen },
-            { id: 'bump_recorded_1_1', title: 'Recorded Plan (Level 1+2)', desc: 'Extra practice and deeper technique on days between consultations.', originalPrice: 1499, discountedPrice: 1100, icon: BookOpen }
-        ]
+        one_on_one: []
     };
 
     const currentBumps = bumps[selectedPlanId as keyof typeof bumps] || [];

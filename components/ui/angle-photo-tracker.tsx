@@ -149,7 +149,7 @@ function UploadPanel({ config, pendingBase64, pendingMime, savedUrl, onSelect, a
             <img
               src={previewSrc!}
               alt={config.label}
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+              className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-[1.03]"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
             <div className="absolute bottom-3 left-3">
@@ -246,7 +246,7 @@ function ComparisonPanel({ config, beforeUrl, afterUrl, dayNumber, accentColor, 
             <img
               src={afterUrl}
               alt={config.label}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
           )
         ) : (
