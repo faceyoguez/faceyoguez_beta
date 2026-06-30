@@ -1,6 +1,6 @@
 export type UserRole = 'admin' | 'instructor' | 'staff' | 'client_management' | 'sales_team' | 'marketing_team' | 'student';
 export type ConversationType = 'direct' | 'group';
-export type MessageContentType = 'text' | 'image' | 'pdf' | 'file' | 'system_alert';
+export type MessageContentType = 'text' | 'image' | 'pdf' | 'file' | 'system_alert' | 'voice';
 export type BatchStatus = 'upcoming' | 'active' | 'completed' | 'cancelled';
 export type EnrollmentStatus = 'active' | 'waiting' | 'completed' | 'extended';
 export type QueueStatus = 'waiting' | 'assigned' | 'cancelled';

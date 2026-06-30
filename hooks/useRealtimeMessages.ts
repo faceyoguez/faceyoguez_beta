@@ -97,7 +97,7 @@ export function useRealtimeMessages({
   const sendMessage = useCallback(
     async (
       content: string,
-      contentType: 'text' | 'image' | 'pdf' | 'file' = 'text',
+      contentType: 'text' | 'image' | 'pdf' | 'file' | 'voice' = 'text',
       fileUrl?: string,
       fileName?: string,
       replyTo?: string
@@ -161,6 +161,33 @@ export function useRealtimeMessages({
         .getPublicUrl(uploadData.path);
 
       await sendMessage('', contentType, urlData.publicUrl, file.name);
+    },
+    [conversationId, sendMessage]
+  );
+
+  // ── Send voice note ──
+  const sendVoice = useCallback(
+    async (blob: Blob) => {
+      const supabase = createClient();
+
+      const filePath = `${conversationId}/${Date.now()}.webm`;
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('chat-attachments')
+        .upload(filePath, blob, {
+          contentType: 'audio/webm',
+        });
+
+      if (uploadError) {
+        console.error('Voice upload error:', uploadError);
+        return;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('chat-attachments')
+        .getPublicUrl(uploadData.path);
+
+      await sendMessage('', 'voice', urlData.publicUrl, 'voice-note.webm');
     },
     [conversationId, sendMessage]
   );
@@ -232,6 +259,7 @@ export function useRealtimeMessages({
     isChatEnabled,
     sendMessage,
     sendFile,
+    sendVoice,
     loadMore,
   };
 }

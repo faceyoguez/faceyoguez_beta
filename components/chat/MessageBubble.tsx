@@ -138,6 +138,22 @@ export function MessageBubble({ message, isOwn, showSender = false, isMultiParty
                 </div>
               </a>
             )}
+
+          {message.content_type === 'voice' && message.file_url && (
+            <div className="flex items-center gap-3 py-2 mt-1 min-w-[220px] sm:min-w-[300px]">
+              <audio
+                src={message.file_url}
+                controls
+                controlsList="nodownload"
+                className={cn(
+                  "w-full h-8 outline-none rounded-lg",
+                  isOwn 
+                    ? dark ? "" : "opacity-90 invert filter"
+                    : "opacity-90"
+                )}
+              />
+            </div>
+          )}
         </div>
 
         {/* Timestamp */}

@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 
 const PRICING: Record<string, Record<string, number>> = {
     one_on_one: {
-        '1_month': 5499,
+        '1_month': 4799,
         '3_months': 11000,
         '6_months': 18000,
         '12_months': 30000,

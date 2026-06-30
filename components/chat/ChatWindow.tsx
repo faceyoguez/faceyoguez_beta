@@ -39,6 +39,7 @@ export function ChatWindow({
     isChatEnabled,
     sendMessage,
     sendFile,
+    sendVoice,
     loadMore,
   } = useRealtimeMessages({
     conversationId,
@@ -68,7 +69,7 @@ export function ChatWindow({
     if (scrollTop === 0 && hasMore) loadMore();
   };
 
-  const isStaff = ['admin', 'instructor', 'staff'].includes(currentUser.role);
+  const isStaff = ['admin', 'instructor', 'staff', 'client_management'].includes(currentUser.role);
   const canSend = conversationType === 'direct' ? true : (isChatEnabled || isStaff);
 
   return (
@@ -244,6 +245,7 @@ export function ChatWindow({
         <MessageInput
           onSendText={(text: string) => sendMessage(text)}
           onSendFile={(file: File, type: 'image' | 'pdf' | 'file') => sendFile(file, type)}
+          onSendVoice={isStaff ? sendVoice : undefined}
           dark={dark}
         />
       )}

@@ -11,7 +11,7 @@ export const PLANS_DATA = [
         hasTrial: true,
         trialDays: 1,
         tiers: [
-            { id: '1_month', label: 'Plan 1 — Monthly', originalPrice: 8000, discountedPrice: 5499, badge: 'Basic' },
+            { id: '1_month', label: 'Plan 1 — Monthly', originalPrice: 8000, discountedPrice: 4799, badge: 'Basic' },
             { id: '3_months', label: 'Plan 2 — 3 Months', originalPrice: 24000, discountedPrice: 11000, badge: 'Best Value' },
             { id: '6_months', label: 'Plan 3 — 6 Months', originalPrice: 48000, discountedPrice: 18000, badge: '60% OFF' },
             { id: '12_months', label: 'Plan 4 — 12 Months', originalPrice: 96000, discountedPrice: 30000, badge: '70% OFF' }

@@ -26,6 +26,7 @@ import { AnglePhotoViewer } from '@/components/ui/angle-photo-tracker';
 import { cn } from '@/lib/utils';
 import { JourneyProgress, JOURNEY_MAX_DAY } from '@/components/ui/journey-progress';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 
 interface StudentInfo {
   conversationId: string | null;
@@ -59,6 +60,8 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
+  const [meetingDateTime, setMeetingDateTime] = useState('');
+  const [isScheduling, setIsScheduling] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -141,6 +144,47 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
       setSelectedStudent((prev: StudentInfo | null) => prev ? { ...prev, conversationId } : null);
     } catch (e) {
       console.error("Failed to start chat", e);
+    }
+  };
+
+  const handleScheduleMeeting = async () => {
+    if (!selectedStudent || !meetingDateTime) {
+      toast.error('Please select a date and time');
+      return;
+    }
+
+    setIsScheduling(true);
+    try {
+      const startDateTime = new Date(meetingDateTime).toISOString();
+
+      const res = await fetch('/api/meetings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: `1-on-1 Consultation - ${selectedStudent.full_name}`,
+          startTime: startDateTime,
+          durationMinutes: 45,
+          meetingType: 'one_on_one',
+          studentId: selectedStudent.id,
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to schedule meeting');
+      }
+
+      const updatedList = await getInstructorUpcomingMeetings();
+      setUpcomingMeetings(updatedList || []);
+
+      setShowScheduleModal(false);
+      setMeetingDateTime('');
+      toast.success("Meeting Scheduled Successfully!");
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || 'Failed to schedule meeting');
+    } finally {
+      setIsScheduling(false);
     }
   };
 
@@ -548,18 +592,25 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                            <span className="text-sm font-bold text-slate-900 capitalize">{selectedStudent?.full_name}</span>
                         </div>
                      </div>
-                     
-                     <div className="space-y-2">
-                        <label className="text-[9px] font-black tracking-[0.2em] uppercase text-slate-400 ml-4">Duration</label>
+                                      <div className="space-y-2">
+                        <label className="text-[9px] font-black tracking-[0.2em] uppercase text-slate-400 ml-4">Date & Time</label>
                         <input 
                            type="datetime-local" 
+                           value={meetingDateTime}
+                           onChange={(e) => setMeetingDateTime(e.target.value)}
                            className="h-14 w-full px-5 rounded-2xl bg-white border border-slate-200 text-sm font-bold text-slate-700 focus:border-[#FF8A75]/30 focus:ring-4 focus:ring-[#FF8A75]/10 outline-none transition-all shadow-sm" 
                         />
                      </div>
                   </div>
 
-                  <button className="w-full h-14 rounded-2xl bg-[#1a1a1a] text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-[#FF8A75] hover:shadow-xl hover:shadow-[#FF8A75]/20 group transition-all mt-4 relative overflow-hidden">
-                     <span className="relative z-10 group-hover:scale-105 inline-block transition-transform duration-300">Set Schedule</span>
+                  <button 
+                     onClick={handleScheduleMeeting}
+                     disabled={isScheduling}
+                     className="w-full h-14 rounded-2xl bg-[#1a1a1a] text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-[#FF8A75] hover:shadow-xl hover:shadow-[#FF8A75]/20 group transition-all mt-4 relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                     <span className="relative z-10 group-hover:scale-105 inline-block transition-transform duration-300">
+                        {isScheduling ? 'Scheduling...' : 'Set Schedule'}
+                     </span>
                      <div className="absolute inset-0 bg-[#FF8A75] -translate-x-full group-hover:translate-x-0 transition-transform duration-500 ease-out" />
                   </button>
                </div>

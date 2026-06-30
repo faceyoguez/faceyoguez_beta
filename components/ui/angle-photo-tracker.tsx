@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState, useEffect } from 'react';
-import { Camera, Download, CheckCircle, Loader2, Eye, AlertCircle, ArrowLeftRight, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Camera, Download, CheckCircle, Loader2, Eye, AlertCircle, ArrowLeftRight, Sparkles, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { ImageComparison } from './image-comparison-slider';
@@ -193,9 +193,10 @@ interface ComparisonPanelProps {
   accentColor: string;
   readOnly?: boolean;
   onReplace?: (key: PhotoAngleKey, base64: string, mime: string) => void;
+  onPhotoClick?: (url: string, title: string) => void;
 }
 
-function ComparisonPanel({ config, beforeUrl, afterUrl, dayNumber, accentColor, readOnly, onReplace }: ComparisonPanelProps) {
+function ComparisonPanel({ config, beforeUrl, afterUrl, dayNumber, accentColor, readOnly, onReplace, onPhotoClick }: ComparisonPanelProps) {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -231,23 +232,52 @@ function ComparisonPanel({ config, beforeUrl, afterUrl, dayNumber, accentColor, 
         )}
       </div>
 
-      {/* Slider / Image View */}
       <div className="relative aspect-[4/5] sm:aspect-[21/9] min-h-[220px] sm:min-h-[260px] bg-slate-100">
         {afterUrl ? (
           dayNumber >= 7 ? (
-            <ImageComparison
-              beforeImage={beforeUrl || PLACEHOLDERS[config.key]}
-              afterImage={afterUrl}
-              beforeLabel="Day 1"
-              afterLabel={`Day ${dayNumber}`}
-              disabled={!beforeUrl}
-            />
+            <div className="relative w-full h-full">
+              <ImageComparison
+                beforeImage={beforeUrl || PLACEHOLDERS[config.key]}
+                afterImage={afterUrl}
+                beforeLabel="Day 1"
+                afterLabel={`Day ${dayNumber}`}
+                disabled={!beforeUrl}
+              />
+              {readOnly && (
+                <div className="absolute inset-x-0 top-6 z-40 flex justify-between px-6 pointer-events-none">
+                  <button
+                    type="button"
+                    onClick={() => onPhotoClick?.(beforeUrl || PLACEHOLDERS[config.key], `Before: Day 1 - ${config.label}`)}
+                    className="pointer-events-auto flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/85 text-white text-[9px] font-black uppercase tracking-wider hover:bg-slate-900 hover:scale-105 transition-all shadow-lg backdrop-blur-sm cursor-pointer"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    View Day 1
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onPhotoClick?.(afterUrl, `After: Day ${dayNumber} - ${config.label}`)}
+                    className="pointer-events-auto flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/85 text-white text-[9px] font-black uppercase tracking-wider hover:bg-slate-900 hover:scale-105 transition-all shadow-lg backdrop-blur-sm cursor-pointer"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    View Day {dayNumber}
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
-            <img
-              src={afterUrl}
-              alt={config.label}
-              className="w-full h-full object-contain"
-            />
+            <div className="relative w-full h-full group/photo">
+              <img
+                src={afterUrl}
+                alt={config.label}
+                className={cn("w-full h-full object-contain", readOnly && "cursor-pointer")}
+                onClick={readOnly ? () => onPhotoClick?.(afterUrl, `Day ${dayNumber} - ${config.label}`) : undefined}
+              />
+              {readOnly && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover/photo:bg-black/20 transition-all pointer-events-none">
+                  <Eye className="w-8 h-8 text-white opacity-0 group-hover/photo:opacity-100 transition-opacity" />
+                </div>
+              )}
+            </div>
           )
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center gap-4 bg-slate-50/50">
@@ -554,11 +584,21 @@ export function AnglePhotoTracker({
 export function AnglePhotoViewer({ dayNumber, photos, day1Photos, studentName, accentColor = '#FF8A75', allLogs = [] }: AnglePhotoViewerProps) {
   const [selectedDay, setSelectedDay] = useState(dayNumber);
   const [activeAngle, setActiveAngle] = useState<PhotoAngleKey>('front');
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  const [lightboxTitle, setLightboxTitle] = useState<string>('');
 
   // Update selected day if prop changes (e.g. parent controls state)
   useEffect(() => {
     setSelectedDay(dayNumber);
   }, [dayNumber]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightboxUrl(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const currentPhotos = selectedDay === dayNumber ? photos : (allLogs.find((l: JourneyLog) => l.day_number === selectedDay) || {});
 
@@ -652,10 +692,41 @@ export function AnglePhotoViewer({ dayNumber, photos, day1Photos, studentName, a
               dayNumber={selectedDay}
               accentColor={accentColor}
               readOnly={true}
+              onPhotoClick={(url, title) => {
+                setLightboxUrl(url);
+                setLightboxTitle(title);
+              }}
             />
           ))}
         </div>
       )}
+
+      {/* Lightbox Modal */}
+      <AnimatePresence>
+        {lightboxUrl && (
+          <div className="fixed inset-0 z-[999] flex flex-col items-center justify-center bg-black/95 backdrop-blur-xl p-4 sm:p-8 animate-in fade-in duration-300">
+            <div className="absolute inset-0" onClick={() => setLightboxUrl(null)} />
+            <button
+              onClick={() => setLightboxUrl(null)}
+              className="absolute top-6 right-6 h-12 w-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all cursor-pointer shadow-lg border border-white/10 z-[1000]"
+              title="Close Full View"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="absolute top-6 left-6 text-left z-[1000]">
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">Visual Node Fullscreen</span>
+              <h3 className="text-lg font-bold text-white mt-1 capitalize">{lightboxTitle}</h3>
+            </div>
+            <div className="relative max-w-[90vw] max-h-[85vh] z-50 flex items-center justify-center">
+              <img
+                src={lightboxUrl}
+                alt="Full visual tracker capture"
+                className="max-w-full max-h-[85vh] object-contain rounded-2xl border border-white/10 shadow-2xl animate-in zoom-in-95 duration-300"
+              />
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -1,20 +1,86 @@
 'use client';
 
-import { useState, useRef, type KeyboardEvent } from 'react';
-import { Send, Paperclip, Image as ImageIcon, Plus } from 'lucide-react';
+import { useState, useRef, useEffect, type KeyboardEvent } from 'react';
+import { Send, Paperclip, Image as ImageIcon, Plus, Mic } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface MessageInputProps {
   onSendText: (text: string) => void;
   onSendFile: (file: File, type: 'image' | 'pdf' | 'file') => void;
+  onSendVoice?: (blob: Blob) => void;
   dark?: boolean;
 }
 
-export function MessageInput({ onSendText, onSendFile, dark = false }: MessageInputProps) {
+export function MessageInput({ onSendText, onSendFile, onSendVoice, dark = false }: MessageInputProps) {
   const [text, setText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, []);
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        if (onSendVoice && audioBlob.size > 0) {
+          onSendVoice(audioBlob);
+        }
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      setRecordingDuration(0);
+
+      timerRef.current = setInterval(() => {
+        setRecordingDuration((prev) => {
+          if (prev >= 120) {
+            stopRecording();
+            return prev;
+          }
+          return prev + 1;
+        });
+      }, 1000);
+    } catch (err) {
+      console.error('Failed to start recording:', err);
+      alert('Could not access microphone. Please check permissions.');
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+    setIsRecording(false);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  };
 
   const handleSend = async () => {
     const trimmed = text.trim();
@@ -75,7 +141,7 @@ export function MessageInput({ onSendText, onSendFile, dark = false }: MessageIn
                   "h-8 w-8 flex items-center justify-center rounded-full transition-all duration-300 shrink-0",
                   dark ? "text-white/20 hover:text-[#FF8A75] hover:bg-white/10" : "text-foreground/40 hover:text-primary hover:bg-primary/5"
                 )}
-                disabled={isSending}
+                disabled={isSending || isRecording}
                 title="Attach Reflections"
             >
                 <Plus className="h-4 w-4" />
@@ -88,18 +154,49 @@ export function MessageInput({ onSendText, onSendFile, dark = false }: MessageIn
                 onChange={handleFileChange}
             />
 
-            <textarea
-                ref={textareaRef}
-                value={text}
-                onChange={handleInput}
-                onKeyDown={handleKeyDown}
-                placeholder="Share your reflections..."
-                rows={1}
+            {onSendVoice && !isRecording && (
+              <button
+                type="button"
+                onClick={startRecording}
                 className={cn(
-                  "flex-1 resize-none border-none bg-transparent py-1.5 px-2 text-sm outline-none min-h-[32px] max-h-[150px] custom-scrollbar selection:bg-[#FF8A75]/20 flex items-center",
-                  dark ? "text-white placeholder-white/20" : "text-foreground placeholder-foreground/30"
+                  "h-8 w-8 flex items-center justify-center rounded-full transition-all duration-300 shrink-0",
+                  dark ? "text-white/20 hover:text-[#FF8A75] hover:bg-white/10" : "text-foreground/40 hover:text-primary hover:bg-primary/5"
                 )}
-            />
+                disabled={isSending}
+                title="Record Voice Note"
+              >
+                <Mic className="h-4.5 w-4.5" />
+              </button>
+            )}
+
+            {isRecording ? (
+              <div className="flex-1 flex items-center justify-between px-3 py-1 bg-red-500/10 rounded-full border border-red-500/20 text-red-500 font-bold text-xs animate-pulse">
+                <span className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-red-500 animate-ping" />
+                  Recording Audio... {Math.floor(recordingDuration / 60)}:{(recordingDuration % 60).toString().padStart(2, '0')}
+                </span>
+                <button
+                  type="button"
+                  onClick={stopRecording}
+                  className="h-6 px-3 rounded-full bg-red-500 text-white text-[9px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                >
+                  Stop & Send
+                </button>
+              </div>
+            ) : (
+              <textarea
+                  ref={textareaRef}
+                  value={text}
+                  onChange={handleInput}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Share your reflections..."
+                  rows={1}
+                  className={cn(
+                    "flex-1 resize-none border-none bg-transparent py-1.5 px-2 text-sm outline-none min-h-[32px] max-h-[150px] custom-scrollbar selection:bg-[#FF8A75]/20 flex items-center",
+                    dark ? "text-white placeholder-white/20" : "text-foreground placeholder-foreground/30"
+                  )}
+              />
+            )}
         </div>
 
         <button

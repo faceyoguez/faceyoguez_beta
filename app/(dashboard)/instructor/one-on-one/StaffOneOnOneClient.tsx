@@ -38,7 +38,8 @@ import {
   Target,
   CheckCircle,
   Filter,
-  Mail
+  Mail,
+  Calendar
 } from 'lucide-react';
 import type { Profile, StudentResource, LiveGrowthMetrics } from '@/types/database';
 import { AnglePhotoViewer } from '@/components/ui/angle-photo-tracker';
@@ -91,6 +92,9 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
   const [isAssigning, setIsAssigning] = useState(false);
   const [isDownloadingPhotos, setIsDownloadingPhotos] = useState(false);
   const [isStartingChat, setIsStartingChat] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [meetingDateTime, setMeetingDateTime] = useState('');
+  const [isScheduling, setIsScheduling] = useState(false);
 
   const [globalSearchResults, setGlobalSearchResults] = useState<
     Array<{ id: string; full_name: string; email: string; avatar_url: string | null }>
@@ -240,6 +244,44 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
       setSelectedStudent((prev: StudentInfo | null) => prev ? { ...prev, assignedInstructorId: selectedInstructorId } : prev);
     } catch (e: any) { toast.error(e.message || 'Failed to assign instructor'); }
     setIsAssigning(false);
+  };
+
+  const handleScheduleMeeting = async () => {
+    if (!selectedStudent || !meetingDateTime) {
+      toast.error('Please select a date and time');
+      return;
+    }
+
+    setIsScheduling(true);
+    try {
+      const startDateTime = new Date(meetingDateTime).toISOString();
+
+      const res = await fetch('/api/meetings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: `1-on-1 Consultation - ${selectedStudent.full_name}`,
+          startTime: startDateTime,
+          durationMinutes: 45,
+          meetingType: 'one_on_one',
+          studentId: selectedStudent.id,
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to schedule meeting');
+      }
+
+      setShowScheduleModal(false);
+      setMeetingDateTime('');
+      toast.success("Meeting Scheduled Successfully!");
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || 'Failed to schedule meeting');
+    } finally {
+      setIsScheduling(false);
+    }
   };
 
   const formatFileSize = (bytes: number) => {
@@ -561,6 +603,13 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                         >
                           <UserPlus className="w-3.5 h-3.5" />
                           {selectedStudent.assignedInstructorId ? 'Change Instructor' : 'Assign Instructor'}
+                        </button>
+                        <button
+                          onClick={() => setShowScheduleModal(true)} 
+                          className="h-8 px-4 rounded-lg bg-primary/5 border border-primary/10 text-[9px] font-aktiv font-bold uppercase tracking-widest hover:bg-primary hover:text-white hover:scale-[1.02] transition-all flex items-center gap-2 shadow-sm"
+                        >
+                          <Calendar className="w-3.5 h-3.5" />
+                          Schedule Meeting
                         </button>
                       </div>
                         <div className="flex items-center gap-2 text-[10px] font-aktiv font-bold uppercase tracking-widest text-foreground/30">
@@ -890,6 +939,61 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                   <div className="flex items-center justify-center gap-2">
                     <Sparkles className="w-4 h-4 text-primary" />
                     Confirm Assignment
+                  </div>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showScheduleModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-500">
+          <div className="absolute inset-0 bg-foreground/20 backdrop-blur-md" onClick={() => setShowScheduleModal(false)} />
+          <div className="w-full max-w-xl rounded-[2.5rem] bg-white border border-outline-variant/10 shadow-2xl relative z-10 overflow-hidden p-12 space-y-10 animate-in zoom-in-95 duration-500">
+            <header className="space-y-3 text-center">
+              <h3 className="text-3xl font-aktiv font-bold text-foreground tracking-tight">Schedule Meeting</h3>
+              <p className="text-sm text-foreground/40 font-medium">Create 1-on-1 Consultation for {selectedStudent?.full_name}</p>
+            </header>
+
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[9px] font-black tracking-[0.2em] uppercase text-slate-400 ml-4">Target Student</label>
+                <div className="h-14 px-5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-primary font-aktiv font-bold text-sm">
+                    {selectedStudent?.full_name[0]}
+                  </div>
+                  <span className="text-sm font-bold text-slate-900 capitalize">{selectedStudent?.full_name}</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[9px] font-black tracking-[0.2em] uppercase text-slate-400 ml-4">Date & Time</label>
+                <input 
+                  type="datetime-local" 
+                  value={meetingDateTime}
+                  onChange={(e) => setMeetingDateTime(e.target.value)}
+                  className="h-14 w-full px-5 rounded-2xl bg-white border border-slate-200 text-sm font-bold text-slate-700 focus:border-primary/30 focus:ring-4 focus:ring-primary/10 outline-none transition-all shadow-sm" 
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-4 pt-4">
+              <button
+                onClick={() => setShowScheduleModal(false)}
+                className="flex-1 h-14 rounded-2xl text-[10px] font-aktiv font-bold uppercase tracking-widest text-foreground/40 hover:text-foreground transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleScheduleMeeting}
+                disabled={isScheduling || !meetingDateTime}
+                className="flex-[2] h-14 rounded-2xl bg-foreground text-background text-[10px] font-aktiv font-bold uppercase tracking-widest shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-20 disabled:scale-100"
+              >
+                {isScheduling ? 'Scheduling...' : (
+                  <div className="flex items-center justify-center gap-2">
+                    <Calendar className="w-4 h-4 text-primary" />
+                    Set Schedule
                   </div>
                 )}
               </button>

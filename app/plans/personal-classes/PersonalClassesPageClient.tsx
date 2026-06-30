@@ -18,7 +18,7 @@ const CONSULTATION_PRICE = 999;
 const CONSULTATION_CREDIT = 999;
 
 const TIERS = [
-  { label: 'Plan 1 — Monthly', orig: 8000, disc: 5499, tag: 'Basic', months: 1 },
+  { label: 'Plan 1 — Monthly', orig: 8000, disc: 4799, tag: 'Basic', months: 1 },
   { label: 'Plan 2 — 3 Months', orig: 24000, disc: 11000, tag: 'Best Value', months: 3 },
   { label: 'Plan 3 — 6 Months', orig: 48000, disc: 18000, tag: '60% OFF', months: 6 },
   { label: 'Plan 4 — 12 Months', orig: 96000, disc: 30000, tag: '70% OFF', months: 12 },
