@@ -17,7 +17,7 @@ import {
 import { createAndPopulateBatch, type CreateBatchInput, toggleBatchChat, getInstructorBatches } from '@/lib/actions/batches';
 import { useRouter } from 'next/navigation';
 import type { RecordedSession, StudentResource, Profile } from '@/types/database';
-import { uploadBatchResource, getBatchResources } from '@/lib/actions/resources';
+import { uploadBatchResource, getBatchResources, uploadResource, getStudentResources } from '@/lib/actions/resources';
 import { sendBatchMessage, getBatchMessages, getOrCreateSharedChat } from '@/lib/actions/chat';
 import { getBatchRecordedSessions, scheduleGroupSession, getInstructorUpcomingMeetings, startMeeting } from '@/lib/actions/meetings';
 import { getJourneyLogs, type JourneyLog } from '@/lib/actions/journey';
@@ -226,6 +226,19 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
    }, [selectedStudent, selectedBatch]);
 
    useEffect(() => {
+      const loadResources = async () => {
+         if (chatMode === 'private' && selectedStudent?.id) {
+            const studentRes = await getStudentResources(selectedStudent.id);
+            setResources(studentRes);
+         } else if (selectedBatch?.id) {
+            const batchRes = await getBatchResources(selectedBatch.id);
+            setResources(batchRes);
+         }
+      };
+      loadResources();
+   }, [chatMode, selectedStudent?.id, selectedBatch?.id]);
+
+   useEffect(() => {
       if (chatContainerRef.current) {
          chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
       }
@@ -358,23 +371,50 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
 
    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
-      if (!file || !selectedBatch) return;
+      if (!file) return;
       setIsUploading(true);
       try {
-         const buffer = await file.arrayBuffer();
-         const base64 = Buffer.from(buffer).toString('base64');
-         const res = await uploadBatchResource(selectedBatch.id, file.name, file.type, file.size, base64);
-         if (res.success) {
-            const updated = await getBatchResources(selectedBatch.id);
-            setResources(updated);
-            toast.success('Resource shared successfully!');
-         } else {
-            toast.error(res.error || 'Failed to share resource');
-         }
+         const reader = new FileReader();
+         reader.readAsDataURL(file);
+         reader.onload = async () => {
+            try {
+               const base64 = (reader.result as string).split(',')[1];
+               if (chatMode === 'private' && selectedStudent) {
+                  const res = await uploadResource(selectedStudent.id, file.name, file.type, file.size, base64);
+                  if (res.success) {
+                     const updated = await getStudentResources(selectedStudent.id);
+                     setResources(updated);
+                     toast.success('Resource shared privately!');
+                  } else {
+                     toast.error(res.error || 'Failed to share resource');
+                  }
+               } else {
+                  if (!selectedBatch) return;
+                  const res = await uploadBatchResource(selectedBatch.id, file.name, file.type, file.size, base64);
+                  if (res.success) {
+                     const updated = await getBatchResources(selectedBatch.id);
+                     setResources(updated);
+                     toast.success('Resource shared with batch!');
+                  } else {
+                     toast.error(res.error || 'Failed to share resource');
+                  }
+               }
+            } catch (err) {
+               console.error(err);
+               toast.error('Upload failed. Please try again.');
+            } finally {
+               setIsUploading(false);
+            }
+         };
+         reader.onerror = () => {
+            toast.error('Failed to read file');
+            setIsUploading(false);
+         };
       } catch (err) {
          console.error(err);
          toast.error('Upload failed. Please try again.');
-      } finally { setIsUploading(false); }
+         setIsUploading(false);
+      }
    };
 
    const fetchRecordings = async (batch: any) => {
@@ -593,16 +633,27 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                      </div>
                   </div>
 
-                  <div className="flex items-center gap-4 shrink-0">
-                     <button
-                        onClick={() => setIsScheduleModalOpen(true)}
-                        disabled={!selectedBatch}
-                        className="h-10 px-6 rounded-xl bg-white border border-[#FF8A75]/20 text-[#FF8A75] text-[9px] font-black uppercase tracking-widest flex items-center gap-3 hover:bg-[#FF8A75]/5 disabled:opacity-30 transition-all duration-300"
-                     >
-                        <Video className="w-4 h-4" />
-                        Schedule Session
-                     </button>
-                     <button
+                  <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 shrink-0">
+                     {nextBatchMeeting && (
+                        <div className="text-left sm:text-right flex flex-col items-start sm:items-end min-w-0">
+                           <span className="text-[7px] font-black uppercase tracking-[0.2em] text-[#FF8A75]">Next Live Session</span>
+                           <h4 className="text-[11px] font-bold text-slate-800 truncate max-w-[180px] sm:max-w-[220px]">{nextBatchMeeting.topic}</h4>
+                           <p className="text-[9px] font-medium text-slate-500">
+                              {new Date(nextBatchMeeting.start_time).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })} at{' '}
+                              {new Date(nextBatchMeeting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                           </p>
+                        </div>
+                     )}
+                     <div className="flex items-center gap-4">
+                        <button
+                           onClick={() => setIsScheduleModalOpen(true)}
+                           disabled={!selectedBatch}
+                           className="h-10 px-6 rounded-xl bg-white border border-[#FF8A75]/20 text-[#FF8A75] text-[9px] font-black uppercase tracking-widest flex items-center gap-3 hover:bg-[#FF8A75]/5 disabled:opacity-30 transition-all duration-300"
+                        >
+                           <Video className="w-4 h-4" />
+                           Schedule Session
+                        </button>
+                        <button
                         disabled={!displayStatus.enabled}
                         onClick={async () => {
                            if (!nextBatchMeeting) return;
@@ -636,6 +687,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                      </button>
                   </div>
                </div>
+            </div>
 
                <div className="flex-1 flex flex-col lg:flex-row overflow-y-auto overflow-x-hidden p-4 lg:p-8 pt-4 lg:pt-6 gap-4 lg:gap-6 custom-scrollbar relative pb-24 lg:pb-12">
 
@@ -994,15 +1046,6 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                            <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
                         </div>
                         <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-2">
-                           {recordings.map((rec: RecordedSession) => (
-                              <button key={rec.id} onClick={() => window.open(rec.play_url!, '_blank')} className="w-full flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-[#FF8A75]/30 group transition-all hover:bg-white">
-                                 <div className="flex items-center gap-4">
-                                    <div className="h-8 w-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-[#FF8A75]"><Play className="w-3.5 h-3.5 ml-0.5" /></div>
-                                    <p className="text-[13px] font-bold text-slate-700 tracking-tight">{rec.topic}</p>
-                                 </div>
-                                 <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-[#FF8A75] transition-all" />
-                              </button>
-                           ))}
                            {resources.map((res: StudentResource) => (
                               <button key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="w-full flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-[#FF8A75]/30 group transition-all hover:bg-white">
                                  <div className="flex items-center gap-4">

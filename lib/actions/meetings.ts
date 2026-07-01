@@ -88,9 +88,20 @@ export async function getInstructorUpcomingMeetings(): Promise<MeetingWithDetail
       profile.is_master_instructor === true
   );
 
-  // If not admin/staff/master, restrict to their own meetings
+  // If not admin/staff/master, restrict to their own meetings or meetings of assigned students
   if (!seesAll) {
-    query = query.eq('host_id', user.id);
+    const { data: assignedSubs } = await supabase
+      .from('subscriptions')
+      .select('student_id')
+      .eq('assigned_instructor_id', user.id);
+      
+    const assignedStudentIds = (assignedSubs || []).map((s: any) => s.student_id).filter(Boolean);
+    
+    if (assignedStudentIds.length > 0) {
+      query = query.or(`host_id.eq.${user.id},student_id.in.(${assignedStudentIds.join(',')})`);
+    } else {
+      query = query.eq('host_id', user.id);
+    }
   }
 
   const { data, error } = await query

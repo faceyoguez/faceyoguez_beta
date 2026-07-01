@@ -31,6 +31,7 @@ export default async function StudentLmsPage() {
   const hasActiveSub = (subscriptions && subscriptions.length > 0) || isAdmin;
   const hasLevel2 = (subscriptions as any[])?.some(s => 
     s.plan_variant?.includes('Level 2') ||
+    s.plan_variant?.includes('level_1_2') ||
     s.metadata?.bumps?.includes('bump_recorded') ||
     s.metadata?.bumps?.includes('bump_recorded_1_1') ||
     s.metadata?.bumps?.includes('bump_upgrade_l12')

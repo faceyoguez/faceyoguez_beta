@@ -116,6 +116,8 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
     setIsSavingLog(false);
   };
 
+  const filteredResources = resources.filter(res => !res.file_url?.includes('zoom.us') && !res.content_type?.includes('zoom'));
+
   useEffect(() => {
     setNotesInput(activeLog?.notes || '');
   }, [activeDay, activeLog]);
@@ -380,8 +382,8 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                 <span className="text-xs font-aktiv font-bold text-[#1a1a1a]">Shared Resources</span>
               </div>
               <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-2">
-                {resources.length > 0 ? (
-                  resources.map((res: StudentResource) => (
+                {filteredResources.length > 0 ? (
+                  filteredResources.map((res: StudentResource) => (
                     <div key={res.id} className="flex items-center justify-between p-3 rounded-xl bg-[#fef4f2] border border-slate-50 hover:border-[#e76f51]/15 transition-all">
                       <div className="flex items-center gap-3 truncate">
                         <div className="h-9 w-9 rounded-lg bg-white flex items-center justify-center text-[#e76f51] shadow-sm shrink-0">

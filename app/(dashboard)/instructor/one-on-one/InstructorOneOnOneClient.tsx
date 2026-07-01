@@ -18,7 +18,10 @@ import {
   Image as ImageIcon,
   X,
   Zap,
-  Menu} from 'lucide-react';
+  Menu,
+  Video,
+  ExternalLink
+} from 'lucide-react';
 import type { Profile, StudentResource, MeetingWithDetails } from '@/types/database';
 
 import { getJourneyLogs, type JourneyLog } from '@/lib/actions/journey';
@@ -123,17 +126,28 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.[0] || !selectedStudent) return;
     setIsUploading(true);
+    const file = e.target.files[0];
     try {
-      const file = e.target.files[0];
-      const buffer = await file.arrayBuffer();
-      const base64 = Buffer.from(buffer).toString('base64');
-      const result = await uploadResource(selectedStudent.id, file.name, file.type, file.size, base64);
-      if (result.success && result.data) setResources(prev => [result.data!, ...prev]);
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = async () => {
+        try {
+          const base64 = (reader.result as string).split(',')[1];
+          const result = await uploadResource(selectedStudent.id, file.name, file.type, file.size, base64);
+          if (result.success && result.data) setResources(prev => [result.data!, ...prev]);
+        } catch (err) {
+          console.error("Upload failed", err);
+        } finally {
+          setIsUploading(false);
+          if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+      };
+      reader.onerror = () => {
+        setIsUploading(false);
+      };
     } catch (err) {
       console.error("Upload failed", err);
-    } finally {
       setIsUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -194,6 +208,11 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
 
   const activeLog = journeyLogs.find((l: JourneyLog) => l.day_number === activeStepDay);
   const day1Log   = journeyLogs.find((l: JourneyLog) => l.day_number === 1);
+
+  const studentMeetings = upcomingMeetings.filter((m: MeetingWithDetails) => m.student_id === selectedStudent?.id);
+  const nextMeeting = studentMeetings.length > 0 ? studentMeetings[0] : null;
+
+  const filteredResources = resources.filter(res => !res.file_url?.includes('zoom.us') && !res.content_type?.includes('zoom'));
 
   return (
     <div className="flex flex-col h-full lg:h-[100dvh] bg-[#FFFAF7] text-[#1a1a1a] selection:bg-[#FF8A75]/10 overflow-hidden font-jakarta relative">
@@ -375,6 +394,31 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
 
                <div className="space-y-6 pb-12 lg:pb-0">
 
+                  {/* Next Scheduled Meeting Card */}
+                  {nextMeeting && (
+                     <div 
+                        onClick={() => window.open(nextMeeting.start_url || nextMeeting.join_url, '_blank')}
+                        className="cursor-pointer bg-[#FF8A75]/10 border border-[#FF8A75]/20 rounded-3xl p-5 hover:bg-[#FF8A75]/15 transition-all duration-300 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                     >
+                        <div className="flex items-center gap-3.5">
+                           <div className="h-10 w-10 rounded-xl bg-[#FF8A75] text-white flex items-center justify-center shrink-0">
+                              <Video className="w-5 h-5" />
+                           </div>
+                           <div className="min-w-0">
+                              <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[#FF8A75]">Scheduled Live Session</span>
+                              <h4 className="text-sm font-bold text-slate-800 truncate mt-0.5">{nextMeeting.topic}</h4>
+                              <p className="text-[10px] font-medium text-slate-500 mt-0.5">
+                                 {new Date(nextMeeting.start_time).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })} at{' '}
+                                 {new Date(nextMeeting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                           </div>
+                        </div>
+                        <div className="shrink-0 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-[#FF8A75] bg-white border border-[#FF8A75]/10 px-3.5 py-2 rounded-xl">
+                           Join Call <ExternalLink className="w-3.5 h-3.5" />
+                        </div>
+                     </div>
+                  )}
+
                   {/* 3-Angle Photo Viewer for instructor */}
                   <div className="rounded-3xl bg-white/60 backdrop-blur-xl border border-white/60 shadow-lg shadow-[#FF8A75]/5 p-5 lg:p-6">
                      <div className="flex items-center gap-3 mb-4">
@@ -458,7 +502,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
 
                         <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-2">
                            <AnimatePresence>
-                              {resources.map((res: StudentResource, i: number) => (
+                              {filteredResources.map((res: StudentResource, i: number) => (
                                   <motion.button 
                                      initial={{ opacity: 0, x: 10 }}
                                      animate={{ opacity: 1, x: 0 }}
@@ -480,7 +524,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                                  </motion.button>
                               ))}
                            </AnimatePresence>
-                           {resources.length === 0 && (
+                           {filteredResources.length === 0 && (
                               <div className="h-full flex flex-col items-center justify-center opacity-40 py-8">
                                  <div className="h-16 w-16 bg-slate-100 rounded-full flex items-center justify-center mb-3">
                                     <FolderOpen className="w-6 h-6 text-slate-400" />

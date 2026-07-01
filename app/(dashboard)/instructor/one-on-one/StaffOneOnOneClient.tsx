@@ -39,12 +39,14 @@ import {
   CheckCircle,
   Filter,
   Mail,
-  Calendar
+  Calendar,
+  Video
 } from 'lucide-react';
-import type { Profile, StudentResource, LiveGrowthMetrics } from '@/types/database';
+import type { Profile, StudentResource, LiveGrowthMetrics, MeetingWithDetails } from '@/types/database';
 import { AnglePhotoViewer } from '@/components/ui/angle-photo-tracker';
 import { JourneyProgress, JOURNEY_MAX_DAY } from '@/components/ui/journey-progress';
 import { PlanExpiryPill } from '@/components/ui/plan-expiry-pill';
+import { getInstructorUpcomingMeetings } from '@/lib/actions/meetings';
 import { cn } from '@/lib/utils';
 
 interface StudentInfo {
@@ -83,9 +85,16 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
   const [activeStepDay, setActiveStepDay] = useState<number>(1);
   const [docPage, setDocPage] = useState(1);
 
+  const [upcomingMeetings, setUpcomingMeetings] = useState<MeetingWithDetails[]>([]);
+
   // Derived journey variables
   const activeLog = journeyLogs.find((l: JourneyLog) => l.day_number === activeStepDay);
   const day1Log   = journeyLogs.find((l: JourneyLog) => l.day_number === 1);
+
+  const studentMeetings = upcomingMeetings.filter((m: MeetingWithDetails) => m.student_id === selectedStudent?.id);
+  const nextMeeting = studentMeetings.length > 0 ? studentMeetings[0] : null;
+
+  const filteredResources = resources.filter(res => !res.file_url?.includes('zoom.us') && !res.content_type?.includes('zoom'));
 
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedInstructorId, setSelectedInstructorId] = useState('');
@@ -162,11 +171,12 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
     const loadData = async () => {
       setIsLoadingResources(true); setIsLoadingJourney(true);
       setDocPage(1);
-      const [resData, logsData] = await Promise.all([
+      const [resData, logsData, meetingsData] = await Promise.all([
         getStudentResources(selectedStudent.id),
         getJourneyLogs(selectedStudent.id),
+        getInstructorUpcomingMeetings()
       ]);
-      setResources(resData); setJourneyLogs(logsData);
+      setResources(resData); setJourneyLogs(logsData); setUpcomingMeetings(meetingsData || []);
 
       const actualCurrentDay = selectedStudent.startDate
         ? Math.min(JOURNEY_MAX_DAY, Math.max(1, Math.floor((Date.now() - new Date(selectedStudent.startDate).getTime()) / 86400000) + 1))
@@ -223,15 +233,30 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
     if (file.size > 20 * 1024 * 1024) { toast.error('File size exceeds 20MB limit.'); return; }
     setIsUploading(true);
     try {
-      const buffer = await file.arrayBuffer();
-      const base64Data = Buffer.from(buffer).toString('base64');
-      const result = await uploadResource(selectedStudent.id, file.name, file.type, file.size, base64Data);
-      if (result.success && result.data) {
-        setResources((prev: StudentResource[]) => [result.data!, ...prev]);
-        toast.success('Document shared successfully');
-      } else toast.error(result.error || 'Failed to share');
-    } catch (err) { toast.error('Error sharing document'); }
-    finally { setIsUploading(false); if (fileInputRef.current) fileInputRef.current.value = ''; }
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = async () => {
+        try {
+          const base64Data = (reader.result as string).split(',')[1];
+          const result = await uploadResource(selectedStudent.id, file.name, file.type, file.size, base64Data);
+          if (result.success && result.data) {
+            setResources((prev: StudentResource[]) => [result.data!, ...prev]);
+            toast.success('Document shared successfully');
+          } else toast.error(result.error || 'Failed to share');
+        } catch (err) { 
+          toast.error('Error sharing document'); 
+        } finally {
+          setIsUploading(false);
+          if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+      };
+      reader.onerror = () => {
+        setIsUploading(false);
+      };
+    } catch (err) { 
+      toast.error('Error sharing document'); 
+      setIsUploading(false);
+    }
   };
 
   const handleAssignInstructor = async () => {
@@ -272,6 +297,9 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
       if (!res.ok) {
         throw new Error(data.error || 'Failed to schedule meeting');
       }
+
+      const updatedList = await getInstructorUpcomingMeetings();
+      setUpcomingMeetings(updatedList || []);
 
       setShowScheduleModal(false);
       setMeetingDateTime('');
@@ -627,6 +655,29 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                           <Mail className="w-3.5 h-3.5" /> {selectedStudent.email}
                         </a>
                       </div>
+                      
+                      {/* Next Scheduled Meeting Card under the schedule section */}
+                      {nextMeeting && (
+                        <div 
+                          onClick={() => window.open(nextMeeting.start_url || nextMeeting.join_url, '_blank')}
+                          className="mt-3 cursor-pointer bg-primary/10 border border-primary/20 rounded-2xl p-4 hover:bg-primary/15 transition-all duration-300 shadow-sm flex items-center justify-between gap-3 max-w-md"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="h-8 w-8 rounded-xl bg-primary text-white flex items-center justify-center shrink-0">
+                              <Video className="w-4 h-4" />
+                            </div>
+                            <div className="min-w-0">
+                              <span className="text-[7px] font-black uppercase tracking-[0.2em] text-primary">Scheduled Live Session</span>
+                              <h4 className="text-xs font-bold text-foreground truncate mt-0.5">{nextMeeting.topic}</h4>
+                              <p className="text-[9px] font-medium text-foreground/60 mt-0.5">
+                                {new Date(nextMeeting.start_time).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })} at{' '}
+                                {new Date(nextMeeting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                            </div>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-primary shrink-0" />
+                        </div>
+                      )}
                     </div>
 
                   <div className="flex items-center gap-3">
@@ -664,6 +715,31 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
 
                 {/* Journey & Transformation Focus */}
                 <div className="p-4 lg:p-10 space-y-8 lg:space-y-12">
+
+                  {/* Next Scheduled Meeting Card */}
+                  {nextMeeting && (
+                    <div 
+                      onClick={() => window.open(nextMeeting.start_url || nextMeeting.join_url, '_blank')}
+                      className="cursor-pointer bg-primary/10 border border-primary/20 rounded-3xl p-5 hover:bg-primary/15 transition-all duration-300 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                    >
+                      <div className="flex items-center gap-3.5">
+                        <div className="h-10 w-10 rounded-xl bg-primary text-white flex items-center justify-center shrink-0">
+                          <Video className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-[8px] font-black uppercase tracking-[0.2em] text-primary">Scheduled Live Session</span>
+                          <h4 className="text-sm font-bold text-slate-800 truncate mt-0.5">{nextMeeting.topic}</h4>
+                          <p className="text-[10px] font-medium text-slate-500 mt-0.5">
+                            {new Date(nextMeeting.start_time).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })} at{' '}
+                            {new Date(nextMeeting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="shrink-0 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-primary bg-white border border-primary/10 px-3.5 py-2 rounded-xl">
+                        Join Call <ChevronRight className="w-3.5 h-3.5" />
+                      </div>
+                    </div>
+                  )}
 
                   {/* Image Comparison / Visual Log */}
                   <div className="grid grid-cols-1 gap-10">
@@ -749,7 +825,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                       <div className="flex items-center justify-between mb-8 shrink-0">
                         <div className="flex items-center gap-4">
                           <h3 className="text-[10px] font-aktiv font-bold uppercase tracking-[0.2em] text-foreground/30">Shared Documents</h3>
-                          <span className="px-2 py-0.5 rounded-full bg-primary/5 text-primary text-[8px] font-black uppercase tracking-wider">{resources.length} Total</span>
+                          <span className="px-2 py-0.5 rounded-full bg-primary/5 text-primary text-[8px] font-black uppercase tracking-wider">{filteredResources.length} Total</span>
                         </div>
                         <button
                           disabled={!selectedStudent || isUploading}
@@ -762,7 +838,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                       </div>
 
                       <div className="space-y-2 flex-1">
-                        {resources.slice((docPage - 1) * 5, docPage * 5).map((res) => {
+                        {filteredResources.slice((docPage - 1) * 5, docPage * 5).map((res) => {
                           const style = getFileIcon(res.content_type || '');
                           return (
                             <button key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="w-full flex items-center gap-4 p-3 bg-white border border-outline-variant/5 rounded-2xl hover:border-primary/20 hover:shadow-md transition-all text-left group">
@@ -777,9 +853,9 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                           );
                         })}
                         
-                        {resources.length > 5 && (
+                        {filteredResources.length > 5 && (
                           <div className="mt-6 pt-6 border-t border-outline-variant/5 flex items-center justify-between">
-                            <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20">Page {docPage} of {Math.ceil(resources.length / 5)}</span>
+                            <span className="text-[8px] font-bold uppercase tracking-widest text-foreground/20">Page {docPage} of {Math.ceil(filteredResources.length / 5)}</span>
                             <div className="flex items-center gap-2">
                               <button 
                                 onClick={() => setDocPage(p => Math.max(1, p - 1))}
@@ -789,8 +865,8 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                                 <ChevronLeft className="w-3 h-3" />
                               </button>
                               <button 
-                                onClick={() => setDocPage(p => Math.min(Math.ceil(resources.length / 5), p + 1))}
-                                disabled={docPage === Math.ceil(resources.length / 5)}
+                                onClick={() => setDocPage(p => Math.min(Math.ceil(filteredResources.length / 5), p + 1))}
+                                disabled={docPage === Math.ceil(filteredResources.length / 5)}
                                 className="h-8 w-8 rounded-lg border border-outline-variant/10 flex items-center justify-center disabled:opacity-20 hover:bg-white transition-colors"
                               >
                                 <ChevronRight className="w-3 h-3" />
@@ -799,7 +875,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                           </div>
                         )}
                         
-                        {resources.length === 0 && (
+                        {filteredResources.length === 0 && (
                           <div className="flex-1 flex flex-col items-center justify-center text-center opacity-20 py-10">
                             <File className="w-12 h-12 mb-4" />
                             <p className="text-[10px] font-bold uppercase tracking-widest">No documents shared yet</p>

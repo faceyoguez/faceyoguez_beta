@@ -1,12 +1,26 @@
 'use client';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronLeft, ChevronRight, Sparkles, Eye, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const ImageComparison = ({ beforeImage, afterImage, altBefore = 'Baseline', altAfter = 'Unfolding', beforeLabel, afterLabel, disabled = false }: any) => {
     const [sliderPosition, setSliderPosition] = useState(disabled ? 0 : 50);
     const [isDragging, setIsDragging] = useState(false);
+    const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+    const [lightboxTitle, setLightboxTitle] = useState<string>('');
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setLightboxUrl(null);
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     useEffect(() => {
         if (disabled) {
@@ -128,6 +142,68 @@ export const ImageComparison = ({ beforeImage, afterImage, altBefore = 'Baseline
 
             {/* Overlay Gradient for depth */}
             <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/20 to-transparent pointer-events-none z-20" />
+
+            {/* Zoom Buttons Overlay */}
+            <div className="absolute bottom-6 left-0 right-0 z-30 flex justify-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+              <button
+                type="button"
+                onClick={() => {
+                  setLightboxUrl(beforeImage);
+                  setLightboxTitle(beforeLabel ? `Before: ${beforeLabel}` : 'Day 1');
+                }}
+                className="pointer-events-auto flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/85 text-white text-[9px] font-black uppercase tracking-wider hover:bg-slate-900 hover:scale-105 transition-all shadow-lg backdrop-blur-sm cursor-pointer"
+              >
+                <Eye className="w-3.5 h-3.5" />
+                View Day 1
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setLightboxUrl(afterImage);
+                  setLightboxTitle(afterLabel ? `Now: ${afterLabel}` : 'Unfolding');
+                }}
+                className="pointer-events-auto flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/85 text-white text-[9px] font-black uppercase tracking-wider hover:bg-slate-900 hover:scale-105 transition-all shadow-lg backdrop-blur-sm cursor-pointer"
+              >
+                <Eye className="w-3.5 h-3.5" />
+                View Now
+              </button>
+            </div>
+
+            {/* Lightbox Modal Portal */}
+            {mounted && createPortal(
+                <AnimatePresence>
+                  {lightboxUrl && (
+                    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/40 backdrop-blur-md p-4 animate-in fade-in duration-300">
+                      <div className="absolute inset-0" onClick={() => setLightboxUrl(null)} />
+                      
+                      <div className="relative w-full max-w-lg bg-white rounded-[2rem] border border-slate-200/60 shadow-2xl p-6 flex flex-col z-10 animate-in zoom-in-95 duration-300">
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                          <div className="text-left">
+                            <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[#FF8A75]">Visual Progress Tracker</span>
+                            <h4 className="text-sm font-bold text-slate-800 capitalize mt-0.5">{lightboxTitle}</h4>
+                          </div>
+                          <button
+                            onClick={() => setLightboxUrl(null)}
+                            className="h-8 w-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-all cursor-pointer"
+                            title="Close Full View"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        <div className="relative w-full aspect-[4/5] bg-slate-50 rounded-2xl overflow-hidden flex items-center justify-center border border-slate-100/80">
+                          <img
+                            src={lightboxUrl}
+                            alt="Progress View"
+                            className="max-w-full max-h-full object-contain"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </AnimatePresence>,
+                document.body
+            )}
         </div>
     );
 };

@@ -58,6 +58,7 @@ export default async function CourseViewerPage({ params }: PageProps) {
   const hasActiveSub = (activeSubscriptions && activeSubscriptions.length > 0) || isAdmin;
   const hasLevel2 = activeSubscriptions?.some((s: any) => 
     s.plan_variant?.includes('Level 2') ||
+    s.plan_variant?.includes('level_1_2') ||
     s.metadata?.bumps?.includes('bump_recorded') ||
     s.metadata?.bumps?.includes('bump_recorded_1_1') ||
     s.metadata?.bumps?.includes('bump_upgrade_l12')

@@ -372,6 +372,16 @@ export function CourseViewer({
                 </div>
               </div>
             )}
+
+            {activeModule && !completedIds.has(activeModule.id) && (
+              <button
+                onClick={handleAutoMarkComplete}
+                className="bg-[#FF8A75] text-white hover:bg-slate-900 px-8 py-4 rounded-[2.5rem] flex items-center gap-3 transition-all duration-300 shadow-xl shadow-[#FF8A75]/10 hover:shadow-slate-900/10 cursor-pointer border border-[#FF8A75]/20 shrink-0"
+              >
+                <CheckCircle2 className="w-5 h-5 text-white" />
+                <span className="font-aktiv font-bold text-xs uppercase tracking-wider">Mark as Complete</span>
+              </button>
+            )}
           </div>
         </div>
       </div>

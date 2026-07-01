@@ -180,24 +180,6 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                                 </button>
                             ))}
                         </div>
-
-                        {targetAudience === 'group_session' && batches.length > 0 && (
-                            <div className="pt-4 border-t border-primary/5 animate-in slide-in-from-top-4">
-                                <label className="mb-3 block text-[9px] font-bold uppercase tracking-widest text-primary/40">
-                                    Specific Batch
-                                </label>
-                                <select
-                                    value={targetBatchId}
-                                    onChange={(e) => setTargetBatchId(e.target.value)}
-                                    className="w-full rounded-xl border border-primary/10 bg-white px-4 py-3 text-[11px] font-bold text-foreground outline-none shadow-sm transition-all focus:ring-4 focus:ring-primary/5"
-                                >
-                                    <option value="">All active groups</option>
-                                    {batches.map(b => (
-                                        <option key={b.id} value={b.id}>{b.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
                     </div>
 
                     <div className="p-6 rounded-3xl bg-white/60 border border-primary/5 shadow-sm space-y-6 relative overflow-hidden group">
@@ -297,29 +279,6 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
 
                         <div className="px-4 lg:px-10 py-6 lg:py-10 bg-foreground shrink-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group/footer">
                             <div className="flex items-center gap-4 flex-wrap">
-                                <label className="flex items-center gap-3 cursor-pointer group">
-                                    <div className="relative">
-                                        <input 
-                                            type="checkbox" 
-                                            checked={sendWhatsApp}
-                                            onChange={(e) => setSendWhatsApp(e.target.checked)}
-                                            className="sr-only"
-                                        />
-                                        <div className={cn(
-                                            "w-10 h-6 rounded-full transition-colors",
-                                            sendWhatsApp ? "bg-[#25D366]" : "bg-white/10"
-                                        )} />
-                                        <div className={cn(
-                                            "absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform",
-                                            sendWhatsApp ? "translate-x-4" : ""
-                                        )} />
-                                    </div>
-                                    <span className={cn(
-                                        "text-[9px] font-black uppercase tracking-widest transition-colors",
-                                        sendWhatsApp ? "text-[#25D366]" : "text-background/30"
-                                    )}>WhatsApp Sync</span>
-                                </label>
-                                <div className="h-4 w-[1px] bg-background/10 mx-2" />
                                 <Sparkles className="h-5 w-5 text-background/20" />
                                 <p className="hidden lg:block text-[10px] font-medium text-background/30 tracking-widest uppercase">Broadcast will be archived in student notifications.</p>
                             </div>
