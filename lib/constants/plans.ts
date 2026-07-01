@@ -26,7 +26,7 @@ export const PLANS_DATA = [
     },
     {
         id: 'group_session',
-        title: 'Face Yoga 21-Day Transformation',
+        title: 'Live Face Yoga 21-Day Transformation',
         subtitle: 'The Glow-Up Your Skin Has Been Waiting For',
         icon: Users,
         color: 'teal',
@@ -46,7 +46,7 @@ export const PLANS_DATA = [
     },
     {
         id: 'lms',
-        title: 'Self-Paced Video Courses',
+        title: 'Recorded Video Courses',
         subtitle: 'Learn face yoga at your own pace — lifetime access',
         icon: BookOpen,
         color: 'indigo',
