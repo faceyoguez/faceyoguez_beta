@@ -5,6 +5,7 @@ import { Camera, Download, CheckCircle, Loader2, Eye, AlertCircle, ArrowLeftRigh
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { ImageComparison } from './image-comparison-slider';
+import { createPortal } from 'react-dom';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -586,6 +587,7 @@ export function AnglePhotoViewer({ dayNumber, photos, day1Photos, studentName, a
   const [activeAngle, setActiveAngle] = useState<PhotoAngleKey>('front');
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [lightboxTitle, setLightboxTitle] = useState<string>('');
+  const [mounted, setMounted] = useState(false);
 
   // Update selected day if prop changes (e.g. parent controls state)
   useEffect(() => {
@@ -593,6 +595,7 @@ export function AnglePhotoViewer({ dayNumber, photos, day1Photos, studentName, a
   }, [dayNumber]);
 
   useEffect(() => {
+    setMounted(true);
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setLightboxUrl(null);
     };
@@ -702,37 +705,40 @@ export function AnglePhotoViewer({ dayNumber, photos, day1Photos, studentName, a
       )}
 
       {/* Lightbox Modal */}
-      <AnimatePresence>
-        {lightboxUrl && (
-          <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/40 backdrop-blur-md p-4 animate-in fade-in duration-300">
-            <div className="absolute inset-0" onClick={() => setLightboxUrl(null)} />
-            
-            <div className="relative w-full max-w-lg bg-white rounded-[2rem] border border-slate-200/60 shadow-2xl p-6 flex flex-col z-10 animate-in zoom-in-95 duration-300">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
-                <div className="text-left">
-                  <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[#FF8A75]">Visual Progress Tracker</span>
-                  <h4 className="text-sm font-bold text-slate-800 capitalize mt-0.5">{lightboxTitle}</h4>
+      {mounted && createPortal(
+        <AnimatePresence>
+          {lightboxUrl && (
+            <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/40 backdrop-blur-md p-4 animate-in fade-in duration-300">
+              <div className="absolute inset-0" onClick={() => setLightboxUrl(null)} />
+              
+              <div className="relative w-full max-w-lg bg-white rounded-[2rem] border border-slate-200/60 shadow-2xl p-6 flex flex-col z-10 animate-in zoom-in-95 duration-300">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                  <div className="text-left">
+                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[#FF8A75]">Visual Progress Tracker</span>
+                    <h4 className="text-sm font-bold text-slate-800 capitalize mt-0.5">{lightboxTitle}</h4>
+                  </div>
+                  <button
+                    onClick={() => setLightboxUrl(null)}
+                    className="h-8 w-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-all cursor-pointer"
+                    title="Close Full View"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
-                <button
-                  onClick={() => setLightboxUrl(null)}
-                  className="h-8 w-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-all cursor-pointer"
-                  title="Close Full View"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
 
-              <div className="relative w-full aspect-[4/5] bg-slate-50 rounded-2xl overflow-hidden flex items-center justify-center border border-slate-100/80">
-                <img
-                  src={lightboxUrl}
-                  alt="Progress View"
-                  className="max-w-full max-h-full object-contain"
-                />
+                <div className="relative w-full aspect-[4/5] bg-slate-50 rounded-2xl overflow-hidden flex items-center justify-center border border-slate-100/80">
+                  <img
+                    src={lightboxUrl}
+                    alt="Progress View"
+                    className="max-w-full max-h-full object-contain"
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 }
