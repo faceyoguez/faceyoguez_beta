@@ -32,6 +32,16 @@ export function MessageInput({ onSendText, onSendFile, onSendVoice, dark = false
   }, []);
 
   const startRecording = async () => {
+    if (typeof window !== 'undefined' && !window.isSecureContext) {
+      alert('Microphone access is blocked in non-secure HTTP contexts. Please access the site via localhost or HTTPS.');
+      return;
+    }
+
+    if (!navigator || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert('Your browser does not support microphone access. Please try a different browser or check HTTPS context.');
+      return;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
@@ -65,9 +75,13 @@ export function MessageInput({ onSendText, onSendFile, onSendVoice, dark = false
           return prev + 1;
         });
       }, 1000);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to start recording:', err);
-      alert('Could not access microphone. Please check permissions.');
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        alert('Microphone permission was denied. Please allow microphone access in your browser settings (look for the mic icon in your address bar).');
+      } else {
+        alert(`Could not access microphone: ${err.message || err.name || 'Unknown error'}`);
+      }
     }
   };
 

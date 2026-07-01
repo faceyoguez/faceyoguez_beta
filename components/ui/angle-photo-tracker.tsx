@@ -704,25 +704,31 @@ export function AnglePhotoViewer({ dayNumber, photos, day1Photos, studentName, a
       {/* Lightbox Modal */}
       <AnimatePresence>
         {lightboxUrl && (
-          <div className="fixed inset-0 z-[999] flex flex-col items-center justify-center bg-black/95 backdrop-blur-xl p-4 sm:p-8 animate-in fade-in duration-300">
+          <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/40 backdrop-blur-md p-4 animate-in fade-in duration-300">
             <div className="absolute inset-0" onClick={() => setLightboxUrl(null)} />
-            <button
-              onClick={() => setLightboxUrl(null)}
-              className="absolute top-6 right-6 h-12 w-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all cursor-pointer shadow-lg border border-white/10 z-[1000]"
-              title="Close Full View"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            <div className="absolute top-6 left-6 text-left z-[1000]">
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">Visual Node Fullscreen</span>
-              <h3 className="text-lg font-bold text-white mt-1 capitalize">{lightboxTitle}</h3>
-            </div>
-            <div className="relative max-w-[90vw] max-h-[85vh] z-50 flex items-center justify-center">
-              <img
-                src={lightboxUrl}
-                alt="Full visual tracker capture"
-                className="max-w-full max-h-[85vh] object-contain rounded-2xl border border-white/10 shadow-2xl animate-in zoom-in-95 duration-300"
-              />
+            
+            <div className="relative w-full max-w-lg bg-white rounded-[2rem] border border-slate-200/60 shadow-2xl p-6 flex flex-col z-10 animate-in zoom-in-95 duration-300">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                <div className="text-left">
+                  <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[#FF8A75]">Visual Progress Tracker</span>
+                  <h4 className="text-sm font-bold text-slate-800 capitalize mt-0.5">{lightboxTitle}</h4>
+                </div>
+                <button
+                  onClick={() => setLightboxUrl(null)}
+                  className="h-8 w-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-all cursor-pointer"
+                  title="Close Full View"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="relative w-full aspect-[4/5] bg-slate-50 rounded-2xl overflow-hidden flex items-center justify-center border border-slate-100/80">
+                <img
+                  src={lightboxUrl}
+                  alt="Progress View"
+                  className="max-w-full max-h-full object-contain"
+                />
+              </div>
             </div>
           </div>
         )}
