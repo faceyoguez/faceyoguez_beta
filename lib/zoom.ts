@@ -74,7 +74,7 @@ export async function createZoomMeeting(options: ZoomMeetingOptions): Promise<Zo
     type: 2, // 2 = Scheduled meeting
     start_time: options.startTime,
     duration: options.durationMinutes,
-    timezone: 'UTC',
+    timezone: 'Asia/Calcutta',
     settings: {
       host_video: true,
       participant_video: true,

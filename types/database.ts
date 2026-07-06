@@ -232,11 +232,14 @@ export interface Meeting {
   join_url: string;
   start_url: string;
   meeting_type: MeetingType;
+  /** 'LIVE' = session in progress, 'DONE' = completed by instructor, null = scheduled/upcoming */
+  calendar_event_id: string | null;
   created_at: string;
   updated_at: string;
   created_by: string | null;
   updated_by: string | null;
 }
+
 
 export interface RecordedSession {
   id: string;

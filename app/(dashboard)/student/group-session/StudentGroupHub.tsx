@@ -19,7 +19,7 @@ import { AnglePhotoTracker } from '../../../../components/ui/angle-photo-tracker
 import { PlanExpiryPill } from '../../../../components/ui/plan-expiry-pill';
 import { PollCard } from '../../../../components/ui/poll-card';
 import { useRouter } from 'next/navigation';
-import { cn } from '@/lib/utils';
+import { cn, formatISTDate, formatISTTime, getSessionStatus } from '@/lib/utils';
 
 import type { Profile, MeetingWithDetails, BatchPoll, RecordedSession } from '../../../../types/database';
 
@@ -455,12 +455,31 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                 <div className="space-y-1">
                                     <h2 className="text-xl font-bold text-slate-900 tracking-tight leading-tight">{nextBatchMeeting.topic}</h2>
                                     <div className="space-y-1.5">
-                                        <div className="flex items-center gap-2 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
-                                            <Calendar className="w-3.5 h-3.5" /> {isMounted ? new Date(nextBatchMeeting.start_time).toLocaleDateString() : '---'}
-                                        </div>
-                                        <div className="flex items-center gap-2 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
-                                            <Clock className="w-3.5 h-3.5" /> {isMounted ? new Date(nextBatchMeeting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
-                                        </div>
+                                        {(() => {
+                                            const status = getSessionStatus(nextBatchMeeting.start_time, nextBatchMeeting.duration_minutes || 60, nextBatchMeeting.calendar_event_id);
+                                            const isExpired = status === 'expired';
+                                            const isCompleted = status === 'completed';
+                                            return (
+                                                <>
+                                                {(isExpired || isCompleted) && (
+                                                    <div className={cn(
+                                                        "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest",
+                                                        isExpired ? 'bg-slate-100 text-slate-400' : 'bg-emerald-100 text-emerald-600'
+                                                    )}>
+                                                        {isExpired ? 'Expired' : '✓ Completed'}
+                                                    </div>
+                                                )}
+                                                <div className="flex items-center gap-2 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+                                                    <Calendar className="w-3.5 h-3.5" /> 
+                                                    {isMounted ? formatISTDate(nextBatchMeeting.start_time) : '---'}
+                                                </div>
+                                                <div className="flex items-center gap-2 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+                                                    <Clock className="w-3.5 h-3.5" /> 
+                                                    {isMounted ? `${formatISTTime(nextBatchMeeting.start_time)} IST` : '--:--'}
+                                                </div>
+                                                </>
+                                            );
+                                        })()}
                                     </div>
                                 </div>
                             </div>
@@ -504,7 +523,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                                 </div>
                                                 <div className="min-w-0">
                                                     <p className="text-[11px] font-bold text-slate-700 truncate">{rec.topic}</p>
-                                                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{isMounted ? new Date(rec.start_time).toLocaleDateString() : '---'}</p>
+                                                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{isMounted ? formatISTDate(rec.start_time) : '---'}</p>
                                                 </div>
                                             </button>
                                         ))}

@@ -657,3 +657,32 @@ export async function getLatestMeetingForBatch(batchId: string): Promise<Meeting
   }
   return data as MeetingWithDetails;
 }
+
+export async function completeMeeting(meetingId: string) {
+  const supabase = await createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { error } = await supabase
+    .from('meetings')
+    .update({
+      calendar_event_id: 'DONE',
+      updated_at: new Date().toISOString(),
+      updated_by: user.id
+    })
+    .eq('id', meetingId);
+
+  if (error) {
+    console.error('Failed to complete meeting', error);
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath('/instructor/dashboard');
+  revalidatePath('/instructor/groups');
+  revalidatePath('/student/dashboard');
+  revalidatePath('/student/group-session');
+  revalidatePath('/student/one-on-one');
+
+  return { success: true };
+}
+

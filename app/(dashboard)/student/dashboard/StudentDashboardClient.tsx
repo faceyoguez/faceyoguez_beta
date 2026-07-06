@@ -24,7 +24,7 @@ import { format, addMinutes, isAfter } from 'date-fns';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { cn, formatISTDate, formatISTTime, getSessionStatus } from '@/lib/utils';
 import { toast } from 'sonner';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
@@ -418,10 +418,13 @@ export function StudentDashboardClient({
                 </div>
               ) : (
                 filteredMeetings.map((meeting: any, i: number) => {
-                  const isLive = meeting.calendar_event_id === 'LIVE';
-                  const isGroup = meeting.meeting_type === 'group_session';
                   const startTime = new Date(meeting.start_time).getTime();
                   const durationMs = (meeting.duration_minutes || 45) * 60 * 1000;
+                  const isGroup = meeting.meeting_type === 'group_session';
+                  const status = getSessionStatus(meeting.start_time, meeting.duration_minutes || 45, meeting.calendar_event_id);
+                  const isLive = status === 'live';
+                  const isExpired = status === 'expired';
+                  const isCompleted = status === 'completed';
                   const isEnded = !isLive && (startTime + durationMs < Date.now());
                   const isTimeReady = Date.now() >= startTime - 300000;
                   const canJoin = isGroup ? isLive : (isTimeReady && !isEnded);
@@ -437,7 +440,11 @@ export function StudentDashboardClient({
                         "p-3.5 rounded-2xl border transition-all duration-500 group/card relative overflow-hidden",
                         isLive 
                           ? "bg-[#e76f51] border-[#e76f51] shadow-[0_0_20px_rgba(231,111,81,0.4)]" 
-                          : "bg-[#FFFAF7] border-[#e76f51]/5 hover:bg-white hover:border-[#e76f51]/15 hover:shadow-md"
+                          : isExpired
+                            ? "bg-slate-50 border-slate-100 opacity-60"
+                            : isCompleted
+                              ? "bg-emerald-50 border-emerald-100"
+                              : "bg-[#FFFAF7] border-[#e76f51]/5 hover:bg-white hover:border-[#e76f51]/15 hover:shadow-md"
                       )}
                     >
                       {isLive && (
@@ -466,10 +473,10 @@ export function StudentDashboardClient({
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className={cn("text-sm font-aktiv font-bold truncate", isLive ? "text-white" : "text-[#1a1a1a]")}>{meeting.topic}</h4>
+                          <h4 className={cn("text-sm font-aktiv font-bold truncate", isLive ? "text-white" : isExpired ? 'line-through text-slate-400' : isCompleted ? 'text-slate-500' : "text-[#1a1a1a]")}>{meeting.topic}</h4>
                           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-0.5">
                             <span className={cn("text-[10px] font-bold", isLive ? "text-white/80" : "text-[#e76f51]")}>
-                              {format(new Date(meeting.start_time), 'MMM d • h:mm a')}
+                              {formatISTDate(meeting.start_time)} · {formatISTTime(meeting.start_time)} IST
                             </span>
                             <span className={cn("text-[9px]", isLive ? "text-white/40" : "text-slate-300")}>•</span>
                             <span className={cn("text-[10px] font-medium", isLive ? "text-white/80" : "text-slate-400")}>
@@ -495,7 +502,11 @@ export function StudentDashboardClient({
                             </span>
                           </div>
                         </div>
-                        {isEnded ? (
+                        {isExpired ? (
+                           <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1.5 rounded-lg shrink-0 text-slate-400 bg-slate-100 line-through">Expired</span>
+                         ) : isCompleted ? (
+                           <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1.5 rounded-lg shrink-0 text-emerald-600 bg-emerald-100">✓ Done</span>
+                         ) : isEnded ? (
                           <span className={cn(
                             "text-[10px] font-aktiv font-black uppercase tracking-wider px-2.5 py-1.5 rounded-lg shrink-0",
                             isLive ? "text-white bg-white/20" : "text-slate-400 bg-slate-100"

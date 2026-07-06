@@ -17,9 +17,11 @@ import {
   Award,
   Heart
 } from 'lucide-react';
-import { format, startOfMonth, startOfDay, endOfDay, addMinutes } from 'date-fns';
+import { format, startOfMonth, startOfDay, endOfDay, addMinutes, addDays } from 'date-fns';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { formatIST, formatISTDate, formatISTTime, getSessionStatus } from '@/lib/utils';
+import { completeMeeting } from '@/lib/actions/meetings';
 
 export default async function InstructorDashboardPage() {
   // ─── 1. Auth & Profile ──────────────────────────────────────────
@@ -77,7 +79,10 @@ export default async function InstructorDashboardPage() {
     });
   }
 
-  // ─── 3. Today's Schedule ─────────────────────────────────────────
+  // Fetch upcoming sessions in the next 7 days (not just today)
+  const upcomingStart = new Date().toISOString();
+  const upcomingEnd = addDays(new Date(), 7).toISOString();
+  // Also grab today's sessions for the header greeting
   const todayStart = startOfDay(new Date()).toISOString();
   const todayEnd = endOfDay(new Date()).toISOString();
 
@@ -89,7 +94,18 @@ export default async function InstructorDashboardPage() {
     .lte('start_time', todayEnd)
     .order('start_time', { ascending: true });
 
+  // All upcoming + recently past meetings (last 12h for expired detection)
+  const recentStart = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
+  const { data: upcomingMeetingsRaw } = await admin
+    .from('meetings')
+    .select('*')
+    .eq('host_id', user.id)
+    .gte('start_time', recentStart)
+    .lte('start_time', upcomingEnd)
+    .order('start_time', { ascending: true });
+
   const todaysMeetings = todaysMeetingsRaw || [];
+  const upcomingMeetings = upcomingMeetingsRaw || [];
 
   // ─── 4. Daily vs Monthly Statistics ──────────────────────────────
   const { count: todayOneOnOne } = await admin
@@ -260,53 +276,69 @@ export default async function InstructorDashboardPage() {
               </div>
             ) : (
               todaysMeetings.map((meeting: any) => {
-                const isLive = isMeetingLive(meeting.start_time, meeting.duration_minutes);
-
-                const isUpcoming = isMeetingUpcoming(meeting.start_time);
+                const status = getSessionStatus(meeting.start_time, meeting.duration_minutes || 45, meeting.calendar_event_id);
+                const isLive = status === 'live';
+                const isExpired = status === 'expired';
+                const isCompleted = status === 'completed';
 
                 return (
                   <div key={meeting.id} className={cn(
-                    "group flex items-center gap-4 p-5 rounded-3xl transition-all duration-700 bg-white border",
-                    isLive ? "border-[#FF8A75]/30 shadow-xl shadow-[#FF8A75]/10 ring-2 ring-[#FF8A75]/5" : "border-[#FF8A75]/5 hover:border-[#FF8A75]/20 shadow-sm"
+                    "group flex flex-col gap-3 p-5 rounded-3xl transition-all duration-700 bg-white border",
+                    isLive ? "border-[#FF8A75]/30 shadow-xl shadow-[#FF8A75]/10 ring-2 ring-[#FF8A75]/5" 
+                    : isExpired ? "border-slate-100 opacity-60"
+                    : isCompleted ? "border-emerald-100 bg-emerald-50/30"
+                    : "border-[#FF8A75]/5 hover:border-[#FF8A75]/20 shadow-sm"
                   )}>
-                    <div className="h-12 w-12 rounded-xl bg-[#FF8A75]/5 flex items-center justify-center text-[#FF8A75] shrink-0 border border-[#FF8A75]/10">
-                      <Video className="w-5 h-5" />
-                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-xl bg-[#FF8A75]/5 flex items-center justify-center text-[#FF8A75] shrink-0 border border-[#FF8A75]/10">
+                        <Video className="w-5 h-5" />
+                      </div>
 
-                    <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="text-sm font-bold text-[#1a1a1a] tracking-tight truncate">{meeting.topic}</h4>
-                          {isLive && (
-                             <div className="h-1.5 w-1.5 rounded-full bg-[#FF8A75] animate-pulse" />
-                          )}
-                        </div>
-                        <div className="flex items-center gap-3">
-                           <span className="text-[10px] font-bold text-slate-400">
-                             {format(new Date(meeting.start_time), 'h:mm a')}
-                           </span>
-                           <span className="text-[7px] font-black uppercase tracking-widest text-[#FF8A75]/60 px-2 py-0.5 rounded-md bg-[#FF8A75]/5">
-                             {meeting.meeting_type === 'one_on_one' ? 'Private' : 'Group'}
-                           </span>
-                        </div>
-                    </div>
+                      <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <h4 className={cn("text-sm font-bold tracking-tight truncate", isExpired ? 'line-through text-slate-400' : isCompleted ? 'text-slate-500' : 'text-[#1a1a1a]')}>{meeting.topic}</h4>
+                            {isLive && <div className="h-1.5 w-1.5 rounded-full bg-[#FF8A75] animate-pulse" />}
+                            {isExpired && <span className="text-[7px] font-black uppercase tracking-widest text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">Expired</span>}
+                            {isCompleted && <span className="text-[7px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded-full">✓ Completed</span>}
+                          </div>
+                          <div className="flex items-center gap-3 flex-wrap">
+                             <span className="text-[10px] font-bold text-slate-400">
+                               {formatISTDate(meeting.start_time)} · {formatISTTime(meeting.start_time)} IST
+                             </span>
+                             <span className="text-[7px] font-black uppercase tracking-widest text-[#FF8A75]/60 px-2 py-0.5 rounded-md bg-[#FF8A75]/5">
+                               {meeting.meeting_type === 'one_on_one' ? 'Private' : 'Group'}
+                             </span>
+                          </div>
+                      </div>
 
-                    <div className="shrink-0">
-                      {(isLive || isUpcoming) ? (
-                        <Link 
-                          href={meeting.start_url || meeting.join_url} 
-                          target="_blank" 
-                          className={cn(
-                            "h-10 px-4 rounded-xl text-white text-[8px] font-black uppercase tracking-widest flex items-center justify-center transition-all",
-                            isLive 
-                              ? "bg-[#FF8A75] shadow-[0_0_15px_rgba(255,138,117,0.4)] animate-pulse" 
-                              : "bg-[#1a1a1a] hover:bg-[#FF8A75]"
-                          )}
-                        >
-                          {isLive ? 'Join Live' : 'View'}
-                        </Link>
-                      ) : (
-                        <span className="text-[7px] font-black uppercase text-slate-300">Done</span>
-                      )}
+                      <div className="shrink-0 flex items-center gap-2">
+                        {isCompleted ? (
+                          <span className="text-[9px] font-black uppercase text-emerald-500">Done</span>
+                        ) : isExpired ? (
+                          <span className="text-[7px] font-black uppercase text-slate-300">Expired</span>
+                        ) : (isLive || isMeetingUpcoming(meeting.start_time)) ? (
+                          <Link 
+                            href={meeting.start_url || meeting.join_url} 
+                            target="_blank" 
+                            className={cn(
+                              "h-10 px-4 rounded-xl text-white text-[8px] font-black uppercase tracking-widest flex items-center justify-center transition-all",
+                              isLive 
+                                ? "bg-[#FF8A75] shadow-[0_0_15px_rgba(255,138,117,0.4)] animate-pulse" 
+                                : "bg-[#1a1a1a] hover:bg-[#FF8A75]"
+                            )}
+                          >
+                            {isLive ? 'Join Live' : 'View'}
+                          </Link>
+                        ) : null}
+                        {/* Mark Complete button — only for host, only when LIVE */}
+                        {isLive && meeting.host_id === user.id && (
+                          <form action={async () => { 'use server'; await completeMeeting(meeting.id); }}>
+                            <button type="submit" className="h-10 px-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-[8px] font-black uppercase tracking-widest hover:bg-emerald-100 transition-all">
+                              ✓ Done
+                            </button>
+                          </form>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );

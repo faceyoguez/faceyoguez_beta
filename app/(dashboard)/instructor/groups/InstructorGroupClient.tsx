@@ -19,12 +19,12 @@ import { useRouter } from 'next/navigation';
 import type { RecordedSession, StudentResource, Profile } from '@/types/database';
 import { uploadBatchResource, getBatchResources, uploadResource, getStudentResources } from '@/lib/actions/resources';
 import { sendBatchMessage, getBatchMessages, getOrCreateSharedChat } from '@/lib/actions/chat';
-import { getBatchRecordedSessions, scheduleGroupSession, getInstructorUpcomingMeetings, startMeeting } from '@/lib/actions/meetings';
+import { getBatchRecordedSessions, scheduleGroupSession, getInstructorUpcomingMeetings, startMeeting, completeMeeting } from '@/lib/actions/meetings';
 import { getJourneyLogs, type JourneyLog } from '@/lib/actions/journey';
 import { ImageComparison } from '@/components/ui/image-comparison-slider';
 import { JOURNEY_MAX_DAY } from '@/components/ui/journey-progress';
 import { createClient } from '@/lib/supabase/client';
-import { cn } from '@/lib/utils';
+import { cn, formatIST, formatISTDate, formatISTTime, getSessionStatus, localInputToIST } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChatWindow } from '@/components/chat';
 import { sendDirectStudentEmail } from '@/lib/actions/email';
@@ -440,7 +440,10 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
       }
       startTransition(async () => {
          try {
-            const res = await scheduleGroupSession(selectedBatch.id, scheduleData.startTime, scheduleData.topic, scheduleData.duration);
+            // Convert the local datetime-local value to an IST-offset ISO string
+            // e.g. "2026-07-07T19:30" → "2026-07-07T19:30:00+05:30"
+            const istStartTime = localInputToIST(scheduleData.startTime);
+            const res = await scheduleGroupSession(selectedBatch.id, istStartTime, scheduleData.topic, scheduleData.duration);
             if (res) {
                toast.success("Session scheduled & invites sent!");
                setIsScheduleModalOpen(false);
@@ -634,17 +637,24 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                   </div>
 
                   <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 shrink-0">
-                     {nextBatchMeeting && (
-                        <div className="text-left sm:text-right flex flex-col items-start sm:items-end min-w-0">
-                           <span className="text-[7px] font-black uppercase tracking-[0.2em] text-[#FF8A75]">Next Live Session</span>
-                           <h4 className="text-[11px] font-bold text-slate-800 truncate max-w-[180px] sm:max-w-[220px]">{nextBatchMeeting.topic}</h4>
+                     {nextBatchMeeting && (() => {
+                        const status = getSessionStatus(nextBatchMeeting.start_time, nextBatchMeeting.duration_minutes || 60, nextBatchMeeting.calendar_event_id);
+                        return (
+                        <div className="text-left sm:text-right flex flex-col items-start sm:items-end min-w-0 gap-1">
+                           <div className="flex items-center gap-2">
+                              <span className="text-[7px] font-black uppercase tracking-[0.2em] text-[#FF8A75]">Next Live Session</span>
+                              {status === 'expired' && <span className="text-[7px] font-black uppercase tracking-widest text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">Expired</span>}
+                              {status === 'completed' && <span className="text-[7px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">Completed</span>}
+                              {status === 'live' && <span className="text-[7px] font-black uppercase tracking-widest text-[#FF8A75] bg-[#FF8A75]/10 px-1.5 py-0.5 rounded-full animate-pulse">Live</span>}
+                           </div>
+                           <h4 className={cn("text-[11px] font-bold truncate max-w-[180px] sm:max-w-[220px]", status === 'expired' ? 'line-through text-slate-400' : status === 'completed' ? 'text-slate-500' : 'text-slate-800')}>{nextBatchMeeting.topic}</h4>
                            <p className="text-[9px] font-medium text-slate-500">
-                              {new Date(nextBatchMeeting.start_time).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })} at{' '}
-                              {new Date(nextBatchMeeting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              {formatISTDate(nextBatchMeeting.start_time)} · {formatISTTime(nextBatchMeeting.start_time)} IST
                            </p>
                         </div>
-                     )}
-                     <div className="flex items-center gap-4">
+                        );
+                     })()}
+                     <div className="flex items-center gap-2 flex-wrap">
                         <button
                            onClick={() => setIsScheduleModalOpen(true)}
                            disabled={!selectedBatch}
@@ -685,6 +695,23 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                         {displayStatus.text}
                         {displayStatus.enabled && <ArrowUpRight className="w-4 h-4 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />}
                      </button>
+                     {/* Mark Complete button — visible when session is LIVE or in its active window */}
+                     {nextBatchMeeting && nextBatchMeeting.calendar_event_id === 'LIVE' && (currentUser.is_master_instructor || currentUser.id === nextBatchMeeting.host_id) && (
+                        <button
+                           onClick={async () => {
+                              const res = await completeMeeting(nextBatchMeeting.id);
+                              if (res.success) {
+                                 toast.success('Session marked as completed!');
+                                 router.refresh();
+                              } else {
+                                 toast.error('Failed to mark complete');
+                              }
+                           }}
+                           className="h-10 px-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-emerald-100 transition-all"
+                        >
+                           ✓ Mark Complete
+                        </button>
+                     )}
                   </div>
                </div>
             </div>
