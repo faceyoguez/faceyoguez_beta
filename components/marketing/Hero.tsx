@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, Variants } from 'framer-motion';
@@ -8,21 +7,11 @@ import { pixel } from '@/lib/pixel';
 
 const HERO_IMAGE = '/assets/instructor_img.jpg';
 
-
 interface HeroProps {
   visible: boolean;
 }
 
 export function Hero({ visible }: HeroProps) {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.matchMedia('(max-width: 768px)').matches);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
   if (!visible) return null;
 
   const containerVariants: Variants = {
@@ -55,9 +44,14 @@ export function Hero({ visible }: HeroProps) {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-8">
-            <Link href="/auth/login" onClick={() => pixel.heroCtaClicked({ buttonLabel: 'Login' })} className="hidden sm:flex text-xs sm:text-sm font-black uppercase tracking-widest text-[#2a2019]/60 hover:text-[#e76f51] transition-colors leading-none items-center">
-              Login
-            </Link>
+          {/* Login link - visible on ALL screen sizes in mobile nav */}
+          <Link
+            href="/auth/login"
+            onClick={() => pixel.heroCtaClicked({ buttonLabel: 'Login' })}
+            className="flex text-xs sm:text-sm font-black uppercase tracking-widest text-[#2a2019]/60 hover:text-[#e76f51] transition-colors leading-none items-center"
+          >
+            Login
+          </Link>
             <Link href="/auth/signup" onClick={() => pixel.heroCtaClicked({ buttonLabel: 'Get Started' })} className="inline-flex items-center justify-center px-4 py-2.5 sm:px-6 sm:py-3 bg-[#1a1a1a] text-white rounded-full text-[9px] sm:text-[11px] font-black uppercase tracking-[0.2em] hover:bg-[#e76f51] transition-all shadow-md active:scale-95 leading-none">
               Get Started
             </Link>
@@ -66,15 +60,15 @@ export function Hero({ visible }: HeroProps) {
       </motion.nav>
 
       {/* Hero Content */}
-      <div className={`flex-1 flex ${isMobile ? 'flex-col-reverse pt-28 pb-12 px-6' : 'lg:flex-row items-center px-[6vw] pt-10 flex-col'}`}>
+      <div className="flex-1 flex flex-col-reverse pt-28 pb-12 px-6 lg:flex-row lg:items-center lg:px-[6vw] lg:pt-10">
 
         {/* Headline Column */}
-        <div className={`relative z-10 ${isMobile ? 'text-center mb-10' : 'flex-1 lg:text-left text-left'}`}>
+        <div className="relative z-10 text-center mb-10 flex-1 lg:text-left">
 
           {/* H1 */}
           <motion.h1
             variants={itemVariants}
-            className={`font-aktiv leading-[1.08] text-[#2a2019] font-bold ${isMobile ? 'text-[1.85rem] mb-5' : 'text-[clamp(2rem,3.2vw,3.4rem)] mb-5'}`}
+            className="font-aktiv leading-[1.08] text-[#2a2019] font-bold text-[1.85rem] lg:text-[clamp(2rem,3.2vw,3.4rem)] mb-5"
           >
             Your Face Can Lift,<br />
             Glow &amp; Tone —<br />
@@ -84,7 +78,7 @@ export function Hero({ visible }: HeroProps) {
           {/* Subheadline */}
           <motion.p
             variants={itemVariants}
-            className={`font-jakarta text-[#2a2019]/60 max-w-[490px] leading-relaxed ${isMobile ? 'mx-auto text-sm mb-3' : 'text-base mb-3'}`}
+            className="font-jakarta text-[#2a2019]/60 max-w-[490px] leading-relaxed mx-auto lg:mx-0 text-sm lg:text-base mb-3"
           >
             Join the community of Indian women who've discovered the power of Face Wellness — a 10-minute daily practice that visibly tightens, brightens, and lifts your face. Naturally.
           </motion.p>
@@ -92,13 +86,13 @@ export function Hero({ visible }: HeroProps) {
           {/* Supporting Line */}
           <motion.p
             variants={itemVariants}
-            className={`font-jakarta font-semibold text-[#2a2019]/80 max-w-[490px] leading-relaxed ${isMobile ? 'mx-auto text-xs mb-8' : 'text-sm mb-8'}`}
+            className="font-jakarta font-semibold text-[#2a2019]/80 max-w-[490px] leading-relaxed mx-auto lg:mx-0 text-xs lg:text-sm mb-8"
           >
             Expert-led. Results in 21 days — or we'll work with you until you see them.
           </motion.p>
 
           {/* CTA Buttons */}
-          <motion.div variants={itemVariants} className={`flex flex-col sm:flex-row gap-4 mb-4 ${isMobile ? 'items-center' : ''}`}>
+          <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 mb-4 items-center lg:items-start">
             <Link
               href="/auth/signup"
               onClick={() => pixel.heroCtaClicked({ buttonLabel: 'Book Your Class' })}
@@ -112,18 +106,18 @@ export function Hero({ visible }: HeroProps) {
         {/* Visual Column */}
         <motion.div
           variants={itemVariants}
-          className={`relative flex justify-center items-center ${isMobile ? 'w-full aspect-[4/5] mb-12' : 'flex-[0.9] h-[72vh]'}`}
+          className="relative flex justify-center items-center w-full aspect-[4/5] mb-12 lg:flex-[0.9] lg:h-[72vh] lg:aspect-auto lg:mb-0"
         >
           <div className="relative w-full h-full max-w-[480px]">
-            {/* Organic Blob Border */}
+            {/* Organic Blob Border — morph disabled on mobile to reduce GPU load */}
             <div
-              className="absolute inset-0 z-0 animate-morph border-[1.5px] border-[#2a2019]/20"
+              className="absolute inset-0 z-0 sm:animate-morph border-[1.5px] border-[#2a2019]/20"
               style={{ borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%' }}
             />
 
-            {/* Image Masked */}
+            {/* Image Masked — morph disabled on mobile */}
             <div
-              className="absolute inset-2 z-10 overflow-hidden bg-slate-100 shadow-2xl animate-morph"
+              className="absolute inset-2 z-10 overflow-hidden bg-slate-100 shadow-2xl sm:animate-morph"
               style={{ borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%' }}
             >
               <Image
@@ -137,11 +131,11 @@ export function Hero({ visible }: HeroProps) {
               <div className="absolute inset-0 bg-gradient-to-t from-[#2a2019]/20 to-transparent pointer-events-none" />
             </div>
 
-            {/* Floating Pills */}
+            {/* Floating Pills — hidden on mobile to avoid infinite animation CPU cost */}
             <motion.div
               animate={{ y: [0, -10, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -top-4 -right-4 z-20 px-4 py-2 bg-white/80 backdrop-blur-md rounded-2xl shadow-xl border border-white/50"
+              className="hidden sm:block absolute -top-4 -right-4 z-20 px-4 py-2 bg-white/80 backdrop-blur-md rounded-2xl shadow-xl border border-white/50"
             >
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#FF8A75] animate-pulse" />
@@ -152,7 +146,7 @@ export function Hero({ visible }: HeroProps) {
             <motion.div
               animate={{ y: [0, 10, 0] }}
               transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-              className="absolute bottom-10 -left-6 z-20 px-5 py-3 bg-white/40 backdrop-blur-xl rounded-full shadow-2xl border border-white/20"
+              className="hidden sm:block absolute bottom-10 -left-6 z-20 px-5 py-3 bg-white/40 backdrop-blur-xl rounded-full shadow-2xl border border-white/20"
             >
               <div className="flex flex-col">
                 <span className="text-[9px] font-black text-[#e76f51] uppercase tracking-[0.2em] mb-0.5">Community</span>
