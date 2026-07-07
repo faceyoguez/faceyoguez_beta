@@ -112,20 +112,6 @@ export function LmsClient({
               );
             })}
 
-            {/* Level 2 Lock Indicator */}
-            {courses.length > 0 && !courses.find(c => c.level === 2)?.isFullyCompleted && (
-              <div className="relative rounded-[1.75rem] p-10 flex flex-col items-center justify-center text-center space-y-6 bg-white border border-slate-100 shadow-sm group min-h-[300px]">
-                <div className="w-16 h-16 rounded-2xl bg-[#e76f51]/10 flex items-center justify-center text-[#e76f51] group-hover:scale-110 transition-transform duration-500">
-                  <Sparkles className="w-6 h-6" />
-                </div>
-                <div className="space-y-2">
-                  <h4 className="font-aktiv font-bold text-xl text-slate-900 tracking-tight">The Next Horizon</h4>
-                  <p className="text-[10px] text-[#e76f51] font-black uppercase tracking-[0.2em] leading-relaxed max-w-[200px] mx-auto">
-                    Complete Level 1 Rituals to unlock Advanced Immersion.
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
 
           {(!courses || courses?.length === 0) && (
@@ -166,40 +152,7 @@ export function LmsClient({
                 <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
                   Consitency is the key to natural beauty. Practice your rituals daily to see the best results.
                 </p>
-                <button 
-                  onClick={() => router.push('/student/dashboard')}
-                  className="w-full h-11 bg-white text-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#e76f51] hover:text-white transition-all shadow-lg"
-                >
-                  Track Progress
-                </button>
               </div>
-            </div>
-          </div>
-
-          <div className="bg-white border border-slate-100 rounded-[1.75rem] p-8 space-y-6 shadow-sm">
-            <div className="space-y-1">
-              <p className="text-[10px] font-black text-[#e76f51] uppercase tracking-[0.2em]">Guided Path</p>
-              <h3 className="text-lg font-aktiv font-bold text-slate-900 tracking-tight">Next Milestones</h3>
-            </div>
-            
-            <div className="space-y-4">
-              {[
-                { title: 'Level 1 Completion', status: 'In Progress', icon: Sparkles },
-                { title: 'Personal Consultation', status: 'Locked', icon: Layout },
-                { title: 'Advanced Immersion', status: 'Locked', icon: BookOpen },
-              ].map((m, i) => (
-                <div key={i} className="flex items-center gap-4 group cursor-default">
-                  <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                    m.status === 'In Progress' ? 'bg-[#e76f51]/10 text-[#e76f51]' : 'bg-slate-50 text-slate-300'
-                  }`}>
-                    <m.icon className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold text-slate-900 truncate">{m.title}</p>
-                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mt-0.5">{m.status}</p>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </aside>

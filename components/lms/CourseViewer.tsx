@@ -63,6 +63,31 @@ export function CourseViewer({
     return firstIncomplete?.id || modules[0]?.id;
   });
   
+  const isL1 = courseLevel === 1;
+  const theme = {
+    primary: isL1 ? '#FF8A75' : '#8B5CF6',
+    primaryBg: isL1 ? 'bg-[#FF8A75]' : 'bg-[#8B5CF6]',
+    textPrimary: isL1 ? 'text-[#FF8A75]' : 'text-[#8B5CF6]',
+    borderPrimary: isL1 ? 'border-[#FF8A75]/10' : 'border-[#8B5CF6]/10',
+    borderPrimaryActive: isL1 ? 'border-[#FF8A75]/40' : 'border-[#8B5CF6]/40',
+    bgActive: isL1 ? 'bg-[#FFE5DB]' : 'bg-[#EDE9FE]',
+    textActive: isL1 ? 'text-[#FF8A75]' : 'text-[#8B5CF6]',
+    bgBadge: isL1 ? 'bg-[#FF8A75]/10 text-[#FF8A75]' : 'bg-[#8B5CF6]/10 text-[#8B5CF6]',
+    bgBadgeActive: isL1 ? 'bg-[#FF8A75]/25 text-[#FF8A75]' : 'bg-[#8B5CF6]/25 text-[#8B5CF6]',
+    shadowActive: isL1 ? 'shadow-[#FF8A75]/10' : 'shadow-[#8B5CF6]/10',
+    accentClass: isL1 ? 'accent-[#FF8A75]' : 'accent-[#8B5CF6]',
+    fillActive: isL1 ? 'fill-[#FF8A75]' : 'fill-[#8B5CF6]',
+    hoverBorder: isL1 ? 'hover:border-[#FF8A75]/30' : 'hover:border-[#8B5CF6]/30',
+    hoverShadow: isL1 ? 'hover:shadow-[#FF8A75]/5' : 'hover:shadow-[#8B5CF6]/5',
+    shadowBase: isL1 ? 'shadow-[#FF8A75]/5' : 'shadow-[#8B5CF6]/5',
+    progressShadow: isL1 ? 'shadow-[0_0_20px_rgba(255,138,117,0.5)]' : 'shadow-[0_0_20px_rgba(139,92,246,0.5)]',
+    shadowLg: isL1 ? 'shadow-[#FF8A75]/20' : 'shadow-[#8B5CF6]/20',
+    bgHalfOpacity: isL1 ? 'bg-[#FF8A75]/10' : 'bg-[#8B5CF6]/10',
+    borderHalfOpacity: isL1 ? 'border-[#FF8A75]/20' : 'border-[#8B5CF6]/20',
+    cardShadow: isL1 ? 'shadow-[0_40px_80px_rgba(255,138,117,0.05)]' : 'shadow-[0_40px_80px_rgba(139,92,246,0.05)]',
+    progressGradient: isL1 ? 'from-[#FF8A75] to-[#FF8A75]/70' : 'from-[#8B5CF6] to-[#8B5CF6]/70',
+  };
+
   // Custom Player State
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -70,7 +95,8 @@ export function CourseViewer({
   const [volume, setVolume] = useState(100);
   const [isMuted, setIsMuted] = useState(false);
   
-  const playerRef = useRef<any>(null);
+  const playerRef = useRef<any>(null);       // raw YT.Player constructor result
+  const readyPlayerRef = useRef<any>(null);  // set only after onReady fires – fully usable
   const apiLoaded = useRef(false);
   const progressInterval = useRef<NodeJS.Timeout | null>(null);
 
@@ -87,7 +113,10 @@ export function CourseViewer({
     const onPlayerStateChange = (event: any) => {
       if (event.data === 1) { // PLAYING
         setIsPlaying(true);
-        setDuration(playerRef.current?.getDuration() || 0);
+        const player = event.target || readyPlayerRef.current;
+        if (player && typeof player.getDuration === 'function') {
+          setDuration(player.getDuration() || 0);
+        }
         startProgressTracking();
       } else {
         setIsPlaying(false);
@@ -108,17 +137,22 @@ export function CourseViewer({
       const activeModule = modules.find(m => m.id === activeModuleId);
       if (!activeModule) return;
 
-      if (playerRef.current && typeof playerRef.current.loadVideoById === 'function') {
+      // Reuse existing ready player – just load new video
+      if (readyPlayerRef.current && typeof readyPlayerRef.current.loadVideoById === 'function') {
         try {
-          playerRef.current.loadVideoById(activeModule.youtube_video_id);
+          readyPlayerRef.current.loadVideoById(activeModule.youtube_video_id);
           setCurrentTime(0);
           return;
         } catch (e) {
           console.error('Player reuse failed, re-initializing:', e);
+          readyPlayerRef.current = null;
         }
       }
 
       if (!document.getElementById('lms-player')) return;
+
+      // Clear old ready ref while new player initialises
+      readyPlayerRef.current = null;
 
       playerRef.current = new window.YT.Player('lms-player', {
         height: '100%',
@@ -137,8 +171,12 @@ export function CourseViewer({
         events: {
           onStateChange: onPlayerStateChange,
           onReady: (event: any) => {
-             event.target.setVolume(volume);
-             setDuration(event.target.getDuration());
+            // Store the fully-initialised player instance
+            readyPlayerRef.current = event.target;
+            try {
+              event.target.setVolume(volume);
+              setDuration(event.target.getDuration());
+            } catch (e) {}
           },
           onError: (e: any) => {
             console.error('YT Player Error:', e.data);
@@ -160,8 +198,9 @@ export function CourseViewer({
   const startProgressTracking = () => {
     stopProgressTracking();
     progressInterval.current = setInterval(() => {
-      if (playerRef.current?.getCurrentTime) {
-        setCurrentTime(playerRef.current.getCurrentTime());
+      const p = readyPlayerRef.current;
+      if (p && typeof p.getCurrentTime === 'function') {
+        setCurrentTime(p.getCurrentTime());
       }
     }, 500);
   };
@@ -174,9 +213,17 @@ export function CourseViewer({
   };
 
   const togglePlay = () => {
-    if (!playerRef.current) return;
-    if (isPlaying) playerRef.current.pauseVideo();
-    else playerRef.current.playVideo();
+    const player = readyPlayerRef.current;
+    if (!player) return;
+    try {
+      if (isPlaying) {
+        if (typeof player.pauseVideo === 'function') player.pauseVideo();
+      } else {
+        if (typeof player.playVideo === 'function') player.playVideo();
+      }
+    } catch (e) {
+      console.error('Failed to toggle play:', e);
+    }
   };
 
   const activeModule = useMemo(() =>
@@ -206,7 +253,10 @@ export function CourseViewer({
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const time = parseFloat(e.target.value);
     setCurrentTime(time);
-    playerRef.current?.seekTo(time, true);
+    const player = readyPlayerRef.current;
+    if (player && typeof player.seekTo === 'function') {
+      try { player.seekTo(time, true); } catch (err) { console.error('seekTo failed:', err); }
+    }
     // If user scrubs to within the last 3 seconds, treat as completed
     if (duration > 0 && time >= duration - 3) {
       handleAutoMarkComplete();
@@ -214,14 +264,15 @@ export function CourseViewer({
   };
 
   const toggleMute = () => {
-    if (!playerRef.current) return;
-    if (isMuted) {
-      playerRef.current.unMute();
-      setIsMuted(false);
-    } else {
-      playerRef.current.mute();
-      setIsMuted(true);
-    }
+    const player = readyPlayerRef.current;
+    if (!player) return;
+    try {
+      if (isMuted) {
+        if (typeof player.unMute === 'function') { player.unMute(); setIsMuted(false); }
+      } else {
+        if (typeof player.mute === 'function') { player.mute(); setIsMuted(true); }
+      }
+    } catch (e) { console.error('Mute toggle failed:', e); }
   };
 
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -260,22 +311,22 @@ export function CourseViewer({
       <div className="lg:col-span-8 space-y-8">
         <div 
           id="lms-player-container"
-          className="relative aspect-video rounded-[3rem] overflow-hidden bg-slate-950 shadow-[0_40px_100px_rgba(0,0,0,0.15)] border border-white/20 group zen-glass shadow-[#FF8A75]/5"
+          className={cn("relative aspect-video rounded-[3rem] overflow-hidden bg-slate-950 shadow-[0_40px_100px_rgba(0,0,0,0.15)] border border-white/20 group zen-glass", theme.shadowBase)}
         >
           {/* The Actual Video */}
           <div id="lms-player" className="absolute inset-0 w-full h-full border-0 pointer-events-none scale-[1.01]"></div>
           
           {/* Custom Overlay */}
           <div className="absolute inset-0 z-10 cursor-pointer" onClick={togglePlay}></div>
-
+ 
           {/* Masking Overlays */}
           <div className="absolute top-0 left-0 w-full h-32 z-20 bg-gradient-to-b from-slate-950/40 to-transparent pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-full h-48 z-20 bg-gradient-to-t from-slate-950/60 via-slate-950/20 to-transparent pointer-events-none" />
-
+ 
           {/* Status Badge */}
           <div className="absolute top-6 left-8 z-30 pointer-events-none">
              <div className="bg-white/10 backdrop-blur-xl text-white text-[9px] font-aktiv font-black px-4 py-1.5 rounded-full uppercase tracking-[0.2em] border border-white/10 flex items-center gap-2.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#FF8A75] animate-pulse" />
+                <div className={cn("w-1.5 h-1.5 rounded-full animate-pulse", theme.primaryBg)} />
                 Focus Mode
              </div>
           </div>
@@ -304,11 +355,11 @@ export function CourseViewer({
                    max={duration}
                    value={currentTime}
                    onChange={handleSeek}
-                   className="absolute inset-x-0 w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer focus:outline-none accent-[#FF8A75] group-hover/progress:h-2.5 transition-all"
+                   className={cn("absolute inset-x-0 w-full h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer focus:outline-none group-hover/progress:h-2.5 transition-all", theme.accentClass)}
                 />
                 <div 
-                   className="h-1.5 bg-[#FF8A75] rounded-full pointer-events-none transition-all group-hover/progress:h-2.5 shadow-[0_0_20px_rgba(255,138,117,0.5)]"
-                   style={{ width: `${(currentTime / duration) * 100}%` }}
+                   className={cn("h-1.5 rounded-full pointer-events-none transition-all group-hover/progress:h-2.5", theme.progressShadow)}
+                   style={{ width: `${(currentTime / duration) * 100}%`, backgroundColor: theme.primary }}
                 />
              </div>
 
@@ -316,7 +367,8 @@ export function CourseViewer({
                 <div className="flex items-center gap-8">
                    <button 
                      onClick={togglePlay}
-                     className="w-14 h-14 bg-[#FF8A75] text-white rounded-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl shadow-[#FF8A75]/20 hover:bg-[#FF8A75]/90"
+                     className={cn("w-14 h-14 text-white rounded-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl hover:opacity-95", theme.shadowLg)}
+                     style={{ backgroundColor: theme.primary }}
                    >
                      {isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current translate-x-0.5" />}
                    </button>
@@ -326,11 +378,16 @@ export function CourseViewer({
                    </div>
 
                    <button 
-                     onClick={() => playerRef.current?.seekTo(currentTime - 10, true)}
-                     className="text-white/60 hover:text-white transition-colors p-2"
-                   >
-                     <RotateCcw className="w-6 h-6" />
-                   </button>
+                      onClick={() => {
+                        const p = readyPlayerRef.current;
+                        if (p && typeof p.seekTo === 'function') {
+                          try { p.seekTo(currentTime - 10, true); } catch(e) {}
+                        }
+                      }}
+                      className="text-white/60 hover:text-white transition-colors p-2"
+                    >
+                      <RotateCcw className="w-6 h-6" />
+                    </button>
                 </div>
 
                 <div className="flex items-center gap-8">
@@ -344,10 +401,13 @@ export function CourseViewer({
                         max="100"
                         value={volume}
                         onChange={(e) => {
-                          const v = parseInt(e.target.value);
-                          setVolume(v);
-                          playerRef.current?.setVolume(v);
-                        }}
+                           const v = parseInt(e.target.value);
+                           setVolume(v);
+                           const p = readyPlayerRef.current;
+                           if (p && typeof p.setVolume === 'function') {
+                             try { p.setVolume(v); } catch(err) {}
+                           }
+                         }}
                         className="w-0 group-hover/vol:w-24 overflow-hidden transition-all duration-500 appearance-none bg-white/20 h-1 rounded-full accent-[#FF8A75]"
                       />
                    </div>
@@ -370,45 +430,45 @@ export function CourseViewer({
         <div className="zen-glass p-8 lg:p-12 rounded-[3.5rem] border border-white/80 shadow-[0_40px_80px_rgba(255,138,117,0.05)] relative overflow-hidden bg-white/60 backdrop-blur-3xl">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-10 relative z-10">
             <div className="space-y-6">
-              <div className="flex flex-wrap items-center gap-4">
-                 <span className="bg-[#FF8A75]/10 text-[#FF8A75] text-[10px] font-aktiv font-black px-5 py-2 rounded-full uppercase tracking-[0.2em] border border-[#FF8A75]/10">Curriculum Pillar</span>
-                 <div className="flex items-center gap-3 px-5 py-2 rounded-full bg-slate-900/5 border border-slate-900/5">
-                    <Video className="w-4 h-4 text-slate-400" />
-                    <p className="text-[10px] text-slate-500 font-aktiv font-bold uppercase tracking-[0.2em]">Step { (modules.findIndex(m => m.id === activeModuleId) + 1) } of {modules.length}</p>
+              <div className="flex flex-wrap items-center gap-3">
+                 <span className="bg-[#FF8A75]/10 text-[#FF8A75] text-[8px] font-aktiv font-bold px-3.5 py-1 rounded-full uppercase tracking-[0.15em] border border-[#FF8A75]/10">Curriculum Pillar</span>
+                 <div className="flex items-center gap-2 px-3.5 py-1 rounded-full bg-slate-900/5 border border-slate-900/5">
+                    <Video className="w-3 h-3 text-slate-400" />
+                    <p className="text-[8px] text-slate-500 font-aktiv font-bold uppercase tracking-[0.15em]">Step { (modules.findIndex(m => m.id === activeModuleId) + 1) } of {modules.length}</p>
                  </div>
               </div>
-              <h1 className="text-4xl lg:text-5xl font-aktiv font-bold text-slate-900 tracking-tight leading-tight">
+              <h1 className="text-2xl lg:text-3xl font-aktiv font-bold text-slate-900 tracking-tight leading-tight">
                 {activeModule?.title || 'Loading content...'}
               </h1>
-              <p className="text-[10px] font-aktiv font-black text-[#FF8A75] uppercase tracking-[0.4em] flex items-center gap-3">
-                <Layout className="w-5 h-5" />
+              <p className="text-[8px] font-aktiv font-bold text-[#FF8A75] uppercase tracking-[0.25em] flex items-center gap-2">
+                <Layout className="w-4 h-4" />
                 Expert Guided Ritual
               </p>
             </div>
 
             {activeModule && completedIds.has(activeModule.id) && (
-              <div className="bg-[#FF8A75]/10 text-[#FF8A75] px-8 py-6 rounded-[2.5rem] flex items-center gap-6 border border-[#FF8A75]/20 transition-all duration-500 shadow-xl shadow-[#FF8A75]/5">
-                <div className="w-14 h-14 rounded-2xl bg-[#FF8A75] text-white flex items-center justify-center shadow-lg shadow-[#FF8A75]/20">
-                  <CheckCircle2 className="w-7 h-7" />
+              <div className="bg-[#FF8A75]/10 text-[#FF8A75] px-6 py-4 rounded-[2rem] flex items-center gap-4 border border-[#FF8A75]/20 transition-all duration-500 shadow-xl shadow-[#FF8A75]/5">
+                <div className="w-10 h-10 rounded-xl bg-[#FF8A75] text-white flex items-center justify-center shadow-lg shadow-[#FF8A75]/20">
+                  <CheckCircle2 className="w-5 h-5" />
                 </div>
                 <div>
-                  <span className="font-aktiv font-black text-[10px] uppercase tracking-[0.3em] block leading-none">Lesson Mastery</span>
-                  <span className="text-[12px] font-aktiv font-bold text-[#FF8A75]/80 mt-2 block uppercase tracking-tight">Ritual Complete</span>
+                  <span className="font-aktiv font-bold text-[8px] uppercase tracking-[0.2m] block leading-none">Lesson Mastery</span>
+                  <span className="text-[10px] font-aktiv font-bold text-[#FF8A75]/80 mt-1 block uppercase tracking-tight">Ritual Complete</span>
                 </div>
               </div>
             )}
 
             {activeModule && !completedIds.has(activeModule.id) && (
-              <div className="flex flex-col items-end gap-2 shrink-0">
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest text-right leading-snug max-w-[180px]">
+              <div className="flex flex-col items-end gap-1.5 shrink-0">
+                <p className="text-[8px] font-semibold text-slate-400/80 uppercase tracking-widest text-right leading-snug max-w-[150px]">
                   ngl, wanna skip? no judgment fr 👇
                 </p>
                 <button
                   onClick={handleAutoMarkComplete}
-                  className="bg-[#FF8A75] text-white hover:bg-slate-900 px-8 py-4 rounded-[2.5rem] flex items-center gap-3 transition-all duration-300 shadow-xl shadow-[#FF8A75]/10 hover:shadow-slate-900/10 cursor-pointer border border-[#FF8A75]/20"
+                  className="bg-[#FF8A75] text-white hover:bg-slate-900 px-5 py-2.5 rounded-full flex items-center gap-2 transition-all duration-300 shadow-xl shadow-[#FF8A75]/10 hover:shadow-slate-900/10 cursor-pointer border border-[#FF8A75]/20"
                 >
-                  <CheckCircle2 className="w-5 h-5 text-white" />
-                  <span className="font-aktiv font-bold text-xs uppercase tracking-wider">Mark as Complete</span>
+                  <CheckCircle2 className="w-4 h-4 text-white" />
+                  <span className="font-aktiv font-bold text-[10px] uppercase tracking-wider">Mark as Complete</span>
                 </button>
               </div>
             )}
@@ -420,20 +480,20 @@ export function CourseViewer({
       <div className="lg:col-span-4 h-full">
         <div className="zen-glass rounded-[3rem] overflow-hidden flex flex-col h-full max-h-[calc(100vh-200px)] shadow-[0_40px_80px_rgba(255,138,117,0.05)] border border-white/80 bg-white/60 backdrop-blur-3xl sticky top-12">
           
-          <div className="p-8 lg:p-10 border-b border-slate-900/5 flex items-center justify-between">
-            <div className="space-y-2">
-              <h2 className="font-aktiv font-black text-slate-400 uppercase tracking-[0.3em] text-[10px] flex items-center gap-3">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#FF8A75]" />
+          <div className="p-6 lg:p-7 border-b border-slate-900/5 flex items-center justify-between">
+            <div className="space-y-1.5">
+              <h2 className="font-aktiv font-bold text-slate-400 uppercase tracking-[0.3em] text-[8px] flex items-center gap-2">
+                <div className="w-1 h-1 rounded-full bg-[#FF8A75]" />
                 Path Progress
               </h2>
-              <p className="text-3xl font-aktiv font-bold text-slate-900 leading-none">Rituals</p>
+              <p className="text-xl font-aktiv font-bold text-slate-900 leading-none">Rituals</p>
             </div>
-            <div className="h-14 w-14 rounded-2xl bg-white flex items-center justify-center shadow-xl shadow-[#FF8A75]/5 border border-[#FF8A75]/10">
-                <Award className="w-7 h-7 text-[#FF8A75]" />
+            <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center shadow-xl shadow-[#FF8A75]/5 border border-[#FF8A75]/10">
+                <Award className="w-5 h-5 text-[#FF8A75]" />
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
             {modules.map((m, index) => {
               const isCompleted = completedIds.has(m.id);
               const isActive = activeModuleId === m.id;
@@ -453,48 +513,48 @@ export function CourseViewer({
                   disabled={!isUnlocked}
                   onClick={() => isUnlocked && setActiveModuleId(m.id)}
                   className={cn(
-                    "w-full flex items-center gap-6 p-6 rounded-[2.5rem] transition-all duration-700 text-left relative overflow-hidden border",
+                    "w-full flex items-center gap-4 p-4 rounded-3xl transition-all duration-700 text-left relative overflow-hidden border",
                     isActive 
-                      ? "bg-slate-900 text-white border-slate-900 shadow-2xl shadow-slate-900/20 scale-[1.02]" 
+                      ? "bg-[#FFE5DB] text-slate-900 border-[#FF8A75]/40 shadow-xl shadow-[#FF8A75]/10 scale-[1.02]" 
                       : !isUnlocked 
                         ? "opacity-40 grayscale cursor-not-allowed bg-transparent border-transparent" 
                         : "bg-white/60 border-white hover:border-[#FF8A75]/30 shadow-sm hover:bg-white hover:shadow-xl hover:shadow-[#FF8A75]/5 hover:scale-[1.02]"
                   )}
                 >
                   <div className={cn(
-                    "flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-700 shadow-sm relative",
+                    "flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-700 shadow-sm relative",
                     isActive ? "bg-[#FF8A75] text-white" : isCompleted ? "bg-[#FF8A75]/10 text-[#FF8A75]" : "bg-slate-900/5 text-slate-400 group-hover:bg-[#FF8A75]/10 group-hover:text-[#FF8A75]"
                   )}>
                     {isCompleted ? (
-                      <CheckCircle2 className="w-5 h-5" />
+                      <CheckCircle2 className="w-4 h-4" />
                     ) : !isUnlocked ? (
-                      <Lock className="w-5 h-5 opacity-40" />
+                      <Lock className="w-4 h-4 opacity-40" />
                     ) : (
-                      <Play className={cn("w-5 h-5", isActive ? "fill-white" : "fill-current translate-x-0.5")} />
+                      <Play className={cn("w-4 h-4", isActive ? "fill-white" : "fill-current translate-x-0.5")} />
                     )}
                     
                     {/* Free Preview badge for Level 1, Module 1 */}
                     {courseLevel === 1 && index === 0 && !isCompleted && !isActive && (
-                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-[#FF8A75] rounded-full border border-white animate-pulse" />
+                      <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#FF8A75] rounded-full border border-white animate-pulse" />
                     )}
                   </div>
 
                   <div className="flex-1 min-w-0 pr-2">
                     <p className={cn(
-                      "text-[13px] font-aktiv font-bold truncate leading-tight transition-colors mb-1 tracking-tight",
-                      isActive ? "text-white" : "text-slate-900"
+                      "text-xs font-aktiv font-bold truncate leading-tight transition-colors mb-1 tracking-tight",
+                      isActive ? "text-[#FF8A75]" : "text-slate-900"
                     )}>
                       {m.title}
                     </p>
                     <div className="flex items-center gap-2">
                        <span className={cn(
-                          "text-[9px] font-aktiv font-black uppercase tracking-[0.2em]",
+                          "text-[7px] font-aktiv font-bold uppercase tracking-[0.2em]",
                           isActive ? "text-[#FF8A75]/80" : "text-slate-400"
                        )}>Phase {index + 1}</span>
                        {courseLevel === 1 && index === 0 && (
                          <span className={cn(
-                           "text-[7px] font-aktiv font-black uppercase tracking-widest px-1.5 py-0.5 rounded bg-[#FF8A75]/10 text-[#FF8A75]",
-                           isActive && "bg-white/20 text-white"
+                           "text-[6px] font-aktiv font-bold uppercase tracking-widest px-1 py-0.5 rounded bg-[#FF8A75]/10 text-[#FF8A75]",
+                           isActive && "bg-[#FF8A75]/25 text-[#FF8A75]"
                          )}>Free Preview</span>
                        )}
                     </div>
@@ -502,7 +562,7 @@ export function CourseViewer({
 
                   {isActive && (
                     <div className="absolute -right-4 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none">
-                       <ChevronRight className="w-20 h-20 text-white" />
+                       <ChevronRight className="w-16 h-16 text-[#FF8A75]" />
                     </div>
                   )}
                 </button>
@@ -510,20 +570,20 @@ export function CourseViewer({
             })}
           </div>
 
-          <div className="p-10 bg-white/60 border-t border-slate-900/5 mt-auto shrink-0 relative overflow-hidden">
+          <div className="p-6 bg-white/60 border-t border-slate-900/5 mt-auto shrink-0 relative overflow-hidden">
              {/* Subtle Aura in progress card */}
-             <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-[#FF8A75]/10 rounded-full blur-[40px] pointer-events-none" />
+             <div className="absolute -bottom-10 -right-10 w-28 h-28 bg-[#FF8A75]/10 rounded-full blur-[40px] pointer-events-none" />
 
-             <div className="flex justify-between items-end mb-5 relative z-10">
+             <div className="flex justify-between items-end mb-4 relative z-10">
                 <div className="space-y-1">
-                   <span className="text-[10px] font-aktiv font-black text-slate-400 uppercase tracking-[0.3em] block leading-none">Total Radiance</span>
-                   <span className="text-4xl font-aktiv font-bold text-[#FF8A75] leading-none">{Math.round((completedIds.size / modules.length) * 100)}%</span>
+                   <span className="text-[8px] font-aktiv font-bold text-slate-400 uppercase tracking-[0.3em] block leading-none">Total Radiance</span>
+                   <span className="text-2xl font-aktiv font-bold text-[#FF8A75] leading-none">{Math.round((completedIds.size / modules.length) * 100)}%</span>
                 </div>
-                <div className="text-[10px] font-aktiv font-black text-slate-500 uppercase bg-white/80 px-4 py-2 rounded-xl border border-white shadow-sm tracking-[0.2em] leading-none">
+                <div className="text-[8px] font-aktiv font-bold text-slate-500 uppercase bg-white/80 px-2.5 py-1.5 rounded-lg border border-white shadow-sm tracking-[0.2em] leading-none">
                     {completedIds.size} / {modules.length} Rituals
                 </div>
              </div>
-             <div className="h-2 w-full bg-slate-950/5 rounded-full overflow-hidden shadow-inner border border-white/50">
+             <div className="h-1.5 w-full bg-slate-950/5 rounded-full overflow-hidden shadow-inner border border-white/50">
                 <motion.div 
                   className="h-full bg-gradient-to-r from-[#FF8A75] to-[#FF8A75]/70 rounded-full relative" 
                   initial={{ width: 0 }}
