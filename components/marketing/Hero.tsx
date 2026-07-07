@@ -43,16 +43,29 @@ export function Hero({ visible }: HeroProps) {
             faceyoguez
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-8">
+          <div className="flex items-center gap-2 sm:gap-8" style={{ touchAction: 'manipulation' }}>
           {/* Login link - visible on ALL screen sizes in mobile nav */}
           <Link
             href="/auth/login"
-            onClick={() => pixel.heroCtaClicked({ buttonLabel: 'Login' })}
-            className="flex text-xs sm:text-sm font-black uppercase tracking-widest text-[#2a2019]/60 hover:text-[#e76f51] transition-colors leading-none items-center"
+            prefetch={true}
+            onClick={() => {
+              // Fire analytics track in next tick to prevent blocking transition
+              setTimeout(() => pixel.heroCtaClicked({ buttonLabel: 'Login' }), 0);
+            }}
+            className="flex text-xs sm:text-sm font-black uppercase tracking-widest text-[#2a2019]/60 hover:text-[#e76f51] active:scale-95 transition-all duration-150 leading-none items-center py-2 px-3 rounded-lg"
+            style={{ touchAction: 'manipulation' }}
           >
             Login
           </Link>
-            <Link href="/auth/signup" onClick={() => pixel.heroCtaClicked({ buttonLabel: 'Get Started' })} className="inline-flex items-center justify-center px-4 py-2.5 sm:px-6 sm:py-3 bg-[#1a1a1a] text-white rounded-full text-[9px] sm:text-[11px] font-black uppercase tracking-[0.2em] hover:bg-[#e76f51] transition-all shadow-md active:scale-95 leading-none">
+            <Link 
+              href="/auth/signup" 
+              prefetch={true}
+              onClick={() => {
+                setTimeout(() => pixel.heroCtaClicked({ buttonLabel: 'Get Started' }), 0);
+              }} 
+              className="inline-flex items-center justify-center px-4 py-2.5 sm:px-6 sm:py-3 bg-[#1a1a1a] text-white rounded-full text-[9px] sm:text-[11px] font-black uppercase tracking-[0.2em] hover:bg-[#e76f51] transition-all duration-150 shadow-md active:scale-95 leading-none"
+              style={{ touchAction: 'manipulation' }}
+            >
               Get Started
             </Link>
           </div>
