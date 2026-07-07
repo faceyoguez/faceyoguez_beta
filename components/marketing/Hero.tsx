@@ -149,15 +149,15 @@ export function Hero({ visible }: HeroProps) {
           className="relative flex justify-center items-center w-full aspect-[4/5] mb-12 lg:flex-[0.9] lg:h-[72vh] lg:aspect-auto lg:mb-0"
         >
           <div className="relative w-full h-full max-w-[480px]">
-            {/* Organic Blob Border — morph disabled on mobile to reduce GPU load */}
+            {/* Organic Blob Border */}
             <div
-              className="absolute inset-0 z-0 sm:animate-morph border-[1.5px] border-[#2a2019]/20"
+              className="absolute inset-0 z-0 animate-morph border-[1.5px] border-[#2a2019]/20"
               style={{ borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%' }}
             />
 
-            {/* Image Masked — morph disabled on mobile */}
+            {/* Image Masked */}
             <div
-              className="absolute inset-2 z-10 overflow-hidden bg-slate-100 shadow-2xl sm:animate-morph"
+              className="absolute inset-2 z-10 overflow-hidden bg-slate-100 shadow-2xl animate-morph"
               style={{ borderRadius: '60% 40% 30% 70% / 60% 30% 70% 40%' }}
             >
               <Image
