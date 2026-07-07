@@ -372,48 +372,48 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (!file) return;
+      if (file.size > 20 * 1024 * 1024) { toast.error('File size exceeds 20MB limit.'); return; }
       setIsUploading(true);
       try {
-         const reader = new FileReader();
-         reader.readAsDataURL(file);
-         reader.onload = async () => {
-            try {
-               const base64 = (reader.result as string).split(',')[1];
-               if (chatMode === 'private' && selectedStudent) {
-                  const res = await uploadResource(selectedStudent.id, file.name, file.type, file.size, base64);
-                  if (res.success) {
-                     const updated = await getStudentResources(selectedStudent.id);
-                     setResources(updated);
-                     toast.success('Resource shared privately!');
-                  } else {
-                     toast.error(res.error || 'Failed to share resource');
-                  }
-               } else {
-                  if (!selectedBatch) return;
-                  const res = await uploadBatchResource(selectedBatch.id, file.name, file.type, file.size, base64);
-                  if (res.success) {
-                     const updated = await getBatchResources(selectedBatch.id);
-                     setResources(updated);
-                     toast.success('Resource shared with batch!');
-                  } else {
-                     toast.error(res.error || 'Failed to share resource');
-                  }
+         const formData = new FormData();
+         formData.append('file', file);
+         if (chatMode === 'private' && selectedStudent) {
+            formData.append('studentId', selectedStudent.id);
+            formData.append('type', 'private');
+         } else {
+            if (!selectedBatch) return;
+            formData.append('batchId', selectedBatch.id);
+            formData.append('type', 'batch');
+         }
+
+         const response = await fetch('/api/resources/upload', {
+            method: 'POST',
+            body: formData,
+         });
+
+         const result = await response.json();
+
+         if (response.ok && result.success) {
+            if (chatMode === 'private' && selectedStudent) {
+               const updated = await getStudentResources(selectedStudent.id);
+               setResources(updated);
+               toast.success('Resource shared privately!');
+            } else {
+               if (selectedBatch) {
+                  const updated = await getBatchResources(selectedBatch.id);
+                  setResources(updated);
+                  toast.success('Resource shared with batch!');
                }
-            } catch (err) {
-               console.error(err);
-               toast.error('Upload failed. Please try again.');
-            } finally {
-               setIsUploading(false);
             }
-         };
-         reader.onerror = () => {
-            toast.error('Failed to read file');
-            setIsUploading(false);
-         };
+         } else {
+            toast.error(result.error || 'Failed to share resource');
+         }
       } catch (err) {
          console.error(err);
          toast.error('Upload failed. Please try again.');
+      } finally {
          setIsUploading(false);
+         if (fileInputRef.current) fileInputRef.current.value = '';
       }
    };
 
@@ -1077,7 +1077,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                               <button key={res.id} onClick={() => window.open(res.file_url, '_blank')} className="w-full flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:border-[#FF8A75]/30 group transition-all hover:bg-white">
                                  <div className="flex items-center gap-4">
                                     <div className="h-8 w-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-[#FF8A75]"><FileText className="w-3.5 h-3.5" /></div>
-                                    <p className="text-[13px] font-bold text-slate-700 tracking-tight">{res.file_name}</p>
+                                    <p className="text-[13px] font-bold text-slate-700 tracking-tight">{res.file_name || (res as any).title || 'Shared File'}</p>
                                  </div>
                                  <Download className="w-4 h-4 text-slate-300 group-hover:text-[#FF8A75] transition-all" />
                               </button>

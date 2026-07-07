@@ -127,27 +127,32 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
     if (!e.target.files?.[0] || !selectedStudent) return;
     setIsUploading(true);
     const file = e.target.files[0];
+    if (file.size > 20 * 1024 * 1024) { toast.error('File size exceeds 20MB limit.'); setIsUploading(false); return; }
     try {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = async () => {
-        try {
-          const base64 = (reader.result as string).split(',')[1];
-          const result = await uploadResource(selectedStudent.id, file.name, file.type, file.size, base64);
-          if (result.success && result.data) setResources(prev => [result.data!, ...prev]);
-        } catch (err) {
-          console.error("Upload failed", err);
-        } finally {
-          setIsUploading(false);
-          if (fileInputRef.current) fileInputRef.current.value = '';
-        }
-      };
-      reader.onerror = () => {
-        setIsUploading(false);
-      };
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('studentId', selectedStudent.id);
+      formData.append('type', 'private');
+
+      const response = await fetch('/api/resources/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success && result.data) {
+        setResources(prev => [result.data!, ...prev]);
+        toast.success('Document shared successfully');
+      } else {
+        toast.error(result.error || 'Failed to share');
+      }
     } catch (err) {
       console.error("Upload failed", err);
+      toast.error('Error sharing document');
+    } finally {
       setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
