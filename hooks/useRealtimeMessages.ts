@@ -244,6 +244,28 @@ export function useRealtimeMessages({
           }
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'chat_messages',
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        (payload: any) => {
+          console.log('[CHAT WEBSOCKET] Received Postgres UPDATE:', payload);
+          const updatedMessage = payload.new;
+          if (updatedMessage) {
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === updatedMessage.id
+                  ? { ...msg, content: updatedMessage.content, content_type: updatedMessage.content_type }
+                  : msg
+              )
+            );
+          }
+        }
+      )
       .subscribe();
 
     return () => {

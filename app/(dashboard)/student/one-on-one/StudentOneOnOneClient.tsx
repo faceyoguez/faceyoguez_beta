@@ -25,7 +25,7 @@ import {
   Flame
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { cn, getSessionStatus } from '@/lib/utils';
 import { differenceInDays, startOfDay, format } from 'date-fns';
 import type { Profile, StudentResource, MeetingWithDetails } from '@/types/database';
 
@@ -203,11 +203,32 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                 <div className="bg-white rounded-[1.75rem] border border-slate-100 shadow-sm p-5 sm:p-6 hover:shadow-lg hover:shadow-[#e76f51]/5 transition-shadow duration-500">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
                     <div className="flex-1 min-w-0 space-y-3">
-                      <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#fef4f2] rounded-full border border-[#e76f51]/10">
-                        <div className="h-1.5 w-1.5 rounded-full bg-[#e76f51] animate-pulse shadow-[0_0_6px_#e76f51]" />
-                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#e76f51]">Upcoming Session</span>
-                      </div>
-                      <h3 className="text-xl sm:text-2xl font-aktiv font-bold text-[#1a1a1a] tracking-tight truncate">{nextMeeting.topic}</h3>
+                      {(() => {
+                        const status = getSessionStatus(nextMeeting.start_time, nextMeeting.duration_minutes || 45, nextMeeting.calendar_event_id);
+                        const isExpired = status === 'expired';
+                        const isCompleted = status === 'completed';
+                        const isLive = status === 'live';
+                        
+                        return (
+                          <>
+                            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#fef4f2] rounded-full border border-[#e76f51]/10">
+                              <div className={cn(
+                                "h-1.5 w-1.5 rounded-full shadow-[0_0_6px]", 
+                                isCompleted ? "bg-emerald-500 shadow-emerald-500" : isExpired ? "bg-slate-400 shadow-slate-400" : "bg-[#e76f51] shadow-[#e76f51] animate-pulse"
+                              )} />
+                              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#e76f51]">
+                                {isCompleted ? 'Session Completed' : isExpired ? 'Session Expired' : isLive ? 'Session Live' : 'Upcoming Session'}
+                              </span>
+                            </div>
+                            <h3 className={cn(
+                              "text-xl sm:text-2xl font-aktiv font-bold tracking-tight truncate",
+                              isExpired ? "line-through text-slate-400" : isCompleted ? "text-slate-500" : "text-[#1a1a1a]"
+                            )}>
+                              {nextMeeting.topic}
+                            </h3>
+                          </>
+                        );
+                      })()}
                       <div className="flex items-center gap-6 pt-3 border-t border-slate-50">
                         <div className="flex items-center gap-2">
                           <Calendar className="w-3.5 h-3.5 text-slate-400" />

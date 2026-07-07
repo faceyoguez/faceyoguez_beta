@@ -15,10 +15,14 @@ import {
   feedbackEmailHtml,
   meetingInviteEmailHtml,
   meetingStartedEmailHtml,
-  type InvoiceData,
-  type FeedbackEmailData,
-  type MeetingInviteData,
-  type MeetingStartedData,
+  meetingCancelledEmailHtml,
+} from './templates';
+import type {
+  InvoiceData,
+  FeedbackEmailData,
+  MeetingInviteData,
+  MeetingStartedData,
+  MeetingCancelledData,
 } from './templates';
 import {
   consultationReceiptEmailHtml,
@@ -181,3 +185,21 @@ export async function sendMeetingStartedEmail(to: string, data: MeetingStartedDa
     console.error('[Email] Meeting-started failed:', err);
   }
 }
+
+// ── 10. Meeting Cancelled ─────────────────────────────────────
+export async function sendMeetingCancellationEmail(to: string, data: MeetingCancelledData): Promise<void> {
+  const typeLabel = data.meetingType === 'one_on_one' ? 'Personal Session' : 'Live Group Session';
+  try {
+    await transporter.sendMail({
+      from: FROM,
+      replyTo: EMAIL_CONFIG.replyTo,
+      to,
+      subject: `⚠️ CANCELLATION: ${typeLabel} - ${data.meetingTitle}`,
+      html: meetingCancelledEmailHtml(data),
+    });
+    console.log(`[Email] Meeting cancellation email sent → ${to}`);
+  } catch (err) {
+    console.error('[Email] Meeting cancellation email failed:', err);
+  }
+}
+

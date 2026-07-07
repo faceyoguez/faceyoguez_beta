@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import type { ChatMessageWithSender } from '@/types/database';
 import { format } from 'date-fns';
@@ -50,6 +51,8 @@ interface MessageBubbleProps {
   /** When true, show sender even for your own messages */
   isMultiParty?: boolean;
   dark?: boolean;
+  currentUserRole?: string;
+  onDelete?: () => void;
 }
 
 const ROLE_BADGE: Record<string, { label: string; className: string }> = {
@@ -60,9 +63,29 @@ const ROLE_BADGE: Record<string, { label: string; className: string }> = {
   student: { label: 'Student', className: 'bg-foreground/5 text-foreground/40' },
 };
 
-export function MessageBubble({ message, isOwn, showSender = false, isMultiParty = false, dark = false }: MessageBubbleProps) {
+export function MessageBubble({ message, isOwn, showSender = false, isMultiParty = false, dark = false, currentUserRole = 'student', onDelete }: MessageBubbleProps) {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const isDeleted = message.content?.startsWith('__DELETED__:') || false;
+  const isStaff = ['admin', 'staff', 'instructor', 'client_management'].includes(currentUserRole);
+
+  // If the message is deleted, hide it completely for students
+  if (isDeleted && !isStaff) {
+    return null;
+  }
+
   const shouldShowSender = showSender && (isMultiParty || !isOwn);
   const badge = message.sender?.role ? ROLE_BADGE[message.sender.role] : null;
+
+  // Extract the original message content
+  const originalContent = isDeleted 
+    ? (message.content || '').slice('__DELETED__:'.length) 
+    : (message.content || '');
+
+  const handleDoubleClick = () => {
+    if (isStaff && !isDeleted && onDelete) {
+      setShowDeleteConfirm(prev => !prev);
+    }
+  };
 
   return (
     <div className={cn(
@@ -121,30 +144,44 @@ export function MessageBubble({ message, isOwn, showSender = false, isMultiParty
 
         {/* Bubble */}
         <div
+          onDoubleClick={handleDoubleClick}
           className={cn(
-            "px-6 py-4.5 transition-all duration-500 shadow-sm",
+            "px-6 py-4.5 transition-all duration-500 shadow-sm cursor-pointer select-none",
             isOwn
               ? dark 
                 ? "rounded-[2.5rem] rounded-tr-none bg-[#FF8A75] text-white font-medium shadow-[#FF8A75]/10"
                 : "rounded-[2.5rem] rounded-tr-[0.4rem] bg-foreground text-background font-medium"
               : dark
                 ? "bg-white/5 backdrop-blur-3xl rounded-[2.5rem] rounded-tl-none text-white/90 border border-white/5"
-                : "bg-white/60 backdrop-blur-xl rounded-[2.5rem] rounded-tl-[0.4rem] text-foreground border border-primary/5"
+                : "bg-white/60 backdrop-blur-xl rounded-[2.5rem] rounded-tl-[0.4rem] text-foreground border border-primary/5",
+            isDeleted && (dark ? "bg-white/5 border border-dashed border-white/10 opacity-60 text-white/40" : "bg-slate-50 border border-dashed border-slate-200 opacity-60 text-slate-400")
           )}
         >
+          {isDeleted && (
+            <span className={cn(
+              "text-[9px] font-black uppercase tracking-widest block mb-1.5",
+              dark ? "text-white/40" : "text-slate-400"
+            )}>
+              🗑️ Message Deleted
+            </span>
+          )}
+
           {message.content_type === 'text' && (
-            <p className="whitespace-pre-wrap break-words text-[13.5px] sm:text-sm leading-[1.6] tracking-tight">
-              {renderMessageContent(message.content || '', isOwn, dark)}
+            <p className={cn(
+              "whitespace-pre-wrap break-words text-[13.5px] sm:text-sm leading-[1.6] tracking-tight",
+              isDeleted && "line-through opacity-70"
+            )}>
+              {renderMessageContent(originalContent, isOwn, dark)}
             </p>
           )}
 
           {message.content_type === 'image' && message.file_url && (
-            <div className="relative group overflow-hidden rounded-2xl bg-black/5 mt-1 flex justify-center">
+            <div className={cn("relative group overflow-hidden rounded-2xl bg-black/5 mt-1 flex justify-center", isDeleted && "opacity-30 line-through")}>
                 <img
                 src={message.file_url}
                 alt={'Shared Image'}
                 className="max-h-[32rem] max-w-full cursor-zoom-in object-contain w-auto transition-all duration-700 active:scale-[0.98]"
-                onClick={() => window.open(message.file_url!, '_blank')}
+                onClick={() => !isDeleted && window.open(message.file_url!, '_blank')}
                 />
                 <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
             </div>
@@ -153,14 +190,15 @@ export function MessageBubble({ message, isOwn, showSender = false, isMultiParty
           {(message.content_type === 'pdf' || message.content_type === 'file') &&
             message.file_url && (
               <a
-                href={message.file_url}
+                href={isDeleted ? undefined : message.file_url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={cn(
                   "flex items-center gap-4 py-3 px-4 rounded-[1.2rem] transition-all duration-300 mt-1",
                   isOwn 
                     ? dark ? "bg-black/5 text-black hover:bg-black/10" : "bg-white/10 text-white hover:bg-white/20" 
-                    : dark ? "bg-white/5 text-white hover:bg-white/10" : "bg-foreground/5 text-foreground hover:bg-foreground/10"
+                    : dark ? "bg-white/5 text-white hover:bg-white/10" : "bg-foreground/5 text-foreground hover:bg-foreground/10",
+                  isDeleted && "pointer-events-none opacity-30"
                 )}
               >
                 <div className={cn(
@@ -177,7 +215,7 @@ export function MessageBubble({ message, isOwn, showSender = false, isMultiParty
             )}
 
           {message.content_type === 'voice' && message.file_url && (
-            <div className="flex items-center gap-3 py-2 mt-1 min-w-[220px] sm:min-w-[300px]">
+            <div className={cn("flex items-center gap-3 py-2 mt-1 min-w-[220px] sm:min-w-[300px]", isDeleted && "opacity-30 pointer-events-none")}>
               <audio
                 src={message.file_url}
                 controls
@@ -193,6 +231,27 @@ export function MessageBubble({ message, isOwn, showSender = false, isMultiParty
           )}
         </div>
 
+        {/* Delete Action Button */}
+        {showDeleteConfirm && (
+          <div className="mt-1.5 flex gap-2 items-center">
+            <button 
+              onClick={() => {
+                onDelete?.();
+                setShowDeleteConfirm(false);
+              }}
+              className="text-[9px] font-black uppercase tracking-widest text-red-500 bg-red-50 px-2.5 py-1.5 rounded-lg border border-red-200 hover:bg-red-100 transition-colors"
+            >
+              Confirm Delete
+            </button>
+            <button
+              onClick={() => setShowDeleteConfirm(false)}
+              className="text-[9px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+
         {/* Timestamp */}
         <p className={cn(
           "mt-2 text-[9px] font-black uppercase tracking-[0.2em] transition-opacity duration-300",
@@ -205,3 +264,4 @@ export function MessageBubble({ message, isOwn, showSender = false, isMultiParty
     </div>
   );
 }
+

@@ -3,9 +3,9 @@
 import { unstable_noStore as noStore, revalidatePath } from 'next/cache';
 import { createServerSupabaseClient, createAdminClient } from '../supabase/server';
 import { MeetingWithDetails, Meeting, type RecordedSession } from '../../types/database';
-import { getZoomMeetingRecordings, createZoomMeeting } from '../zoom';
+import { getZoomMeetingRecordings, createZoomMeeting, deleteZoomMeeting } from '../zoom';
 import { sendMeetingInviteEmail } from '../email';
-import { sendBrandedMeetingInviteEmail, sendMeetingStartedEmail } from '../email/sender';
+import { sendBrandedMeetingInviteEmail, sendMeetingStartedEmail, sendMeetingCancellationEmail } from '../email/sender';
 
 export async function getUpcomingMeetingsForStudent(): Promise<MeetingWithDetails[]> {
   noStore();
@@ -24,8 +24,8 @@ export async function getUpcomingMeetingsForStudent(): Promise<MeetingWithDetail
     .eq('status', 'active')
     .maybeSingle();
 
-  // Allow meetings that started within the last 2 hours
-  const windowStart = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+  // Allow meetings that started within the last 24 hours (1 day)
+  const windowStart = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
   let query = supabase
     .from('meetings')
@@ -71,8 +71,8 @@ export async function getInstructorUpcomingMeetings(): Promise<MeetingWithDetail
     .eq('id', user.id)
     .single();
 
-  // Let's allow meetings that started within the last 2 hours
-  const windowStart = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+  // Allow meetings that started within the last 24 hours (1 day)
+  const windowStart = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
   let query = supabase
     .from('meetings')
@@ -313,6 +313,7 @@ export async function saveMeetingToDb(payload: CreateMeetingDBPayload): Promise<
         const meetingTime = dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
         const calendarLink = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(payload.topic)}&details=${encodeURIComponent('Face Yoga 1-on-1 Session')}&location=${encodeURIComponent(payload.join_url)}&dates=${dateObj.toISOString().replace(/-|:|\.\d\d\d/g, '')}/${new Date(dateObj.getTime() + payload.duration_minutes * 60000).toISOString().replace(/-|:|\.\d\d\d/g, '')}`;
 
+        // 1. Send email invite
         sendBrandedMeetingInviteEmail(student.email, {
           studentName: student.full_name || 'Student',
           instructorName: host?.full_name || 'Your Instructor',
@@ -325,6 +326,15 @@ export async function saveMeetingToDb(payload: CreateMeetingDBPayload): Promise<
           calendarLink,
           meetingType: 'one_on_one',
         }).catch(err => console.error('[Email] 1-on-1 invite failed:', err));
+
+        // 2. Create in-app notification
+        admin.from('notifications').insert({
+          user_id: payload.student_id,
+          title: '📅 New 1-on-1 Session Scheduled!',
+          message: `"${payload.topic}" has been scheduled on ${meetingDate} at ${meetingTime} IST. You will be placed in the waiting room when you join.`,
+          type: 'session_scheduled',
+          is_read: false,
+        }).catch((err: any) => console.error('[saveMeetingToDb] 1-on-1 in-app notification failed:', err));
       }
     } catch (emailErr) {
       console.error('[Email] 1-on-1 meeting invite error (non-fatal):', emailErr);
@@ -471,6 +481,77 @@ export async function scheduleGroupSession(batchId: string, startTime: string, t
     start_url: zoomMeeting.start_url,
     meeting_type: 'group_session'
   });
+
+  // ── Notify all currently-enrolled batch students ─────────────────────────────
+  // Non-fatal: if this fails, the session is still created successfully.
+  try {
+    // Fetch all active batch enrollments with student profile info
+    const { data: enrollments } = await admin
+      .from('batch_enrollments')
+      .select('student:profiles!student_id(id, full_name, email)')
+      .eq('batch_id', batchId)
+      .eq('status', 'active');
+
+    // Fetch host profile for the email invite sender name
+    const { data: hostProfile } = await admin
+      .from('profiles')
+      .select('full_name')
+      .eq('id', hostId)
+      .maybeSingle();
+
+    const hostName = (hostProfile as any)?.full_name || 'Your Instructor';
+
+    // Format session date/time for email (IST)
+    const sessionDate = new Date(zoomMeeting.start_time);
+    const meetingDate = sessionDate.toLocaleDateString('en-IN', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+      timeZone: 'Asia/Kolkata',
+    });
+    const meetingTime = sessionDate.toLocaleTimeString('en-IN', {
+      hour: '2-digit', minute: '2-digit', hour12: true,
+      timeZone: 'Asia/Kolkata',
+    });
+
+    if (enrollments && enrollments.length > 0) {
+      // Bulk in-app notifications for all enrolled students
+      const inAppNotifications = enrollments.map((e: any) => ({
+        user_id: e.student.id,
+        title: '📅 New Session Scheduled!',
+        message: `"${topic}" has been scheduled on ${meetingDate} at ${meetingTime} IST. You will be placed in the waiting room when you join.`,
+        type: 'session_scheduled',
+        is_read: false,
+      }));
+
+      await admin.from('notifications').insert(inAppNotifications).catch((err: any) =>
+        console.error('[scheduleGroupSession] In-app notifications failed (non-fatal):', err)
+      );
+
+      // Send branded email invite to each enrolled student
+      await Promise.allSettled(
+        enrollments.map(async (e: any) => {
+          const student = e.student as { id: string; full_name: string; email: string };
+          if (!student?.email) return;
+          return sendBrandedMeetingInviteEmail(student.email, {
+            studentName: student.full_name || 'Student',
+            instructorName: hostName,
+            meetingTitle: topic,
+            meetingDate,
+            meetingTime,
+            zoomLink: zoomMeeting.join_url,
+            zoomId: zoomMeeting.id.toString(),
+            zoomPassword: '',
+            calendarLink: `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(topic)}&dates=${sessionDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z/${new Date(sessionDate.getTime() + zoomMeeting.duration * 60000).toISOString().replace(/[-:]/g, '').split('.')[0]}Z&details=${encodeURIComponent(`Join Zoom: ${zoomMeeting.join_url}`)}`,
+            meetingType: 'group_session',
+          });
+        })
+      );
+
+      console.log(`[scheduleGroupSession] Notified ${enrollments.length} enrolled students for session "${topic}"`);
+    }
+  } catch (notifyErr) {
+    console.error('[scheduleGroupSession] Student notification error (non-fatal):', notifyErr);
+  }
+  // ─────────────────────────────────────────────────────────────────────────────
 
   revalidatePath('/instructor/groups');
   revalidatePath('/staff/groups');
@@ -685,4 +766,123 @@ export async function completeMeeting(meetingId: string) {
 
   return { success: true };
 }
+
+export async function deleteMeeting(meetingId: string) {
+  const supabase = await createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const admin = createAdminClient();
+
+  // Get current user role
+  const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single();
+  const role = profile?.role || '';
+  if (!['admin', 'staff', 'instructor', 'client_management'].includes(role)) {
+    throw new Error('Unauthorized');
+  }
+
+  // Get the meeting info before deleting
+  const { data: meeting, error: fetchErr } = await admin
+    .from('meetings')
+    .select('*')
+    .eq('id', meetingId)
+    .single();
+
+  if (fetchErr || !meeting) {
+    console.error('Meeting not found', fetchErr);
+    return { success: false, error: 'Meeting not found' };
+  }
+
+  // 1. Delete Zoom Meeting if zoom_meeting_id exists
+  if (meeting.zoom_meeting_id) {
+    try {
+      await deleteZoomMeeting(meeting.zoom_meeting_id);
+    } catch (e) {
+      console.error('Failed to delete Zoom meeting from API', e);
+      // Proceed with local deletion anyway to avoid being stuck
+    }
+  }
+
+  // 2. Fetch student details to notify
+  let studentsToNotify: { email: string; full_name: string; id: string }[] = [];
+  if (meeting.meeting_type === 'one_on_one') {
+    if (meeting.student_id) {
+      const { data: student } = await admin
+        .from('profiles')
+        .select('id, email, full_name')
+        .eq('id', meeting.student_id)
+        .single();
+      if (student) {
+        studentsToNotify.push(student);
+      }
+    }
+  } else if (meeting.meeting_type === 'group_session') {
+    if (meeting.batch_id) {
+      // Get all enrolled students in the batch
+      const { data: enrollments } = await admin
+        .from('batch_enrollments')
+        .select('student:profiles!student_id(id, email, full_name)')
+        .eq('batch_id', meeting.batch_id)
+        .eq('status', 'active');
+      
+      if (enrollments) {
+        enrollments.forEach((e: any) => {
+          if (e.student) {
+            studentsToNotify.push(e.student);
+          }
+        });
+      }
+    }
+  }
+
+  // 3. Delete from DB using admin client to bypass RLS policies
+  const { error: deleteErr } = await admin
+    .from('meetings')
+    .delete()
+    .eq('id', meetingId);
+
+  if (deleteErr) {
+    console.error('Failed to delete meeting from DB', deleteErr);
+    return { success: false, error: deleteErr.message };
+  }
+
+  // 4. Send cancellation emails and in-app notifications
+  const timeFormatted = new Date(meeting.start_time).toLocaleDateString('en-IN', {
+    timeZone: 'Asia/Calcutta',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true
+  }) + ' IST';
+
+  for (const student of studentsToNotify) {
+    // Cancellation Email
+    await sendMeetingCancellationEmail(student.email, {
+      studentName: student.full_name,
+      meetingTitle: meeting.topic,
+      meetingTimeStr: timeFormatted,
+      meetingType: meeting.meeting_type
+    });
+
+    // In-App Notification
+    await admin.from('notifications').insert({
+      user_id: student.id,
+      title: 'Session Cancelled',
+      message: `Apologies, your scheduled session "${meeting.topic}" on ${timeFormatted} has been cancelled. Rescheduling details will follow soon.`,
+      type: 'meeting_cancelled'
+    });
+  }
+
+  // Revalidate paths
+  revalidatePath('/instructor/dashboard');
+  revalidatePath('/instructor/groups');
+  revalidatePath('/student/dashboard');
+  revalidatePath('/student/group-session');
+  revalidatePath('/student/one-on-one');
+
+  return { success: true };
+}
+
 

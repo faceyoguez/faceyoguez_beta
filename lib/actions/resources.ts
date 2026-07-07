@@ -40,7 +40,9 @@ export async function uploadResource(
         const fileExt = fileName.split('.').pop();
         const uniqueFileName = `${studentId}/${uuidv4()}.${fileExt}`;
 
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        const admin = createAdminClient();
+
+        const { data: uploadData, error: uploadError } = await admin.storage
             .from('resources')
             .upload(uniqueFileName, buffer, {
                 contentType,
@@ -53,11 +55,11 @@ export async function uploadResource(
         }
 
         // 3. Get the public URL
-        const { data: publicUrlData } = supabase.storage
+        const { data: publicUrlData } = admin.storage
             .from('resources')
             .getPublicUrl(uniqueFileName);
 
-        const { data: resourceRow, error: dbError } = await supabase
+        const { data: resourceRow, error: dbError } = await admin
             .from('student_resources')
             .insert({
                 student_id: studentId,
@@ -73,7 +75,7 @@ export async function uploadResource(
         if (dbError) {
             console.error('Database insert error:', dbError.message, dbError.details, dbError.hint);
             // Attempt to clean up the file if DB insert fails
-            await supabase.storage.from('resources').remove([uniqueFileName]);
+            await admin.storage.from('resources').remove([uniqueFileName]);
             return { success: false, error: `Failed to save resource record: ${dbError.message}` };
         }
 
@@ -132,17 +134,19 @@ export async function uploadBatchResource(
         const fileExt = fileName.split('.').pop();
         const uniqueFileName = `batches/${batchId}/${uuidv4()}.${fileExt}`;
 
-        const { error: uploadError } = await supabase.storage
+        const admin = createAdminClient();
+
+        const { error: uploadError } = await admin.storage
             .from('resources')
             .upload(uniqueFileName, buffer, { contentType, upsert: false });
 
         if (uploadError) return { success: false, error: 'Failed to upload file to storage.' };
 
-        const { data: publicUrlData } = supabase.storage
+        const { data: publicUrlData } = admin.storage
             .from('resources')
             .getPublicUrl(uniqueFileName);
 
-        const { data: resourceRow, error: dbError } = await supabase
+        const { data: resourceRow, error: dbError } = await admin
             .from('batch_resources')
             .insert({
                 batch_id: batchId,
@@ -154,7 +158,7 @@ export async function uploadBatchResource(
             .single();
 
         if (dbError) {
-            await supabase.storage.from('resources').remove([uniqueFileName]);
+            await admin.storage.from('resources').remove([uniqueFileName]);
             return { success: false, error: 'Failed to save resource record.' };
         }
 

@@ -20,6 +20,7 @@ import { PlanExpiryPill } from '../../../../components/ui/plan-expiry-pill';
 import { PollCard } from '../../../../components/ui/poll-card';
 import { useRouter } from 'next/navigation';
 import { cn, formatISTDate, formatISTTime, getSessionStatus } from '@/lib/utils';
+import { MessageBubble } from '@/components/chat/MessageBubble';
 
 import type { Profile, MeetingWithDetails, BatchPoll, RecordedSession } from '../../../../types/database';
 
@@ -172,6 +173,27 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                         fetchAndAppend();
                         return prev;
                     });
+                }
+            )
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'batch_messages',
+                    filter: `batch_id=eq.${activeBatch.id}`
+                },
+                (payload: any) => {
+                    const updatedMessage = payload.new;
+                    if (updatedMessage) {
+                        setMessages((prev) =>
+                            prev.map((msg) =>
+                                msg.id === updatedMessage.id
+                                    ? { ...msg, content: updatedMessage.content, content_type: updatedMessage.content_type }
+                                    : msg
+                            )
+                        );
+                    }
                 }
             )
             .subscribe();
@@ -338,55 +360,35 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
 
             <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6 custom-scrollbar">
                 {messages.map((msg: any) => {
-                    const sender = msg.sender || msg.profiles || msg.senderProfile || {};
                     const isOwn = msg.sender_id === currentUser.id;
                     const isPoll = msg.message_type === 'poll';
                     const poll = isPoll ? polls[msg.poll_id] : null;
 
-                    const roles: Record<string, string> = {
-                        admin: 'Admin',
-                        instructor: 'Instructor',
-                        staff: 'Staff',
-                        client_management: 'Staff'
-                    };
-
-                    const roleLabel = roles[sender.role] || (msg.sender_id === activeBatch?.instructor_id ? 'Instructor' : null);
+                    if (isPoll) {
+                        return (
+                            poll && (
+                                <div key={msg.id} className="w-full">
+                                    <PollCard
+                                        poll={poll}
+                                        isAdmin={false}
+                                        onVote={(id: string) => handleVotePoll(poll.id, id)}
+                                        isVoting={votingPollId === poll.id}
+                                    />
+                                </div>
+                            )
+                        );
+                    }
 
                     return (
-                        <div key={msg.id} className={cn("flex flex-col gap-1.5", isOwn ? "items-end" : "items-start")}>
-                            {!isOwn && (
-                                <div className="flex items-center gap-2 mb-0.5">
-                                    <div className="h-6 w-6 rounded-lg overflow-hidden border border-outline-variant/10 bg-white">
-                                        {sender.avatar_url ? <img src={sender.avatar_url} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-[7px] font-bold text-foreground/20 bg-foreground/5">{(sender.full_name || 'U').charAt(0).toUpperCase()}</div>}
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <div className="flex items-center gap-1.5">
-                                            <p className="text-[9px] font-bold text-foreground/40 uppercase tracking-widest">{sender.full_name}</p>
-                                            {msg.sender_id === (activeBatch?.instructor_id || activeBatch?.instructor?.id) && <ShieldCheck className="w-3 h-3 text-primary/60" />}
-                                        </div>
-                                        {roleLabel && (
-                                            <span className="text-[7px] font-black uppercase tracking-[0.2em] text-primary/40 leading-none">{roleLabel}</span>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-
-                            {isPoll ? (
-                                poll && <div className="w-full"><PollCard poll={poll} isAdmin={false} onVote={(id: string) => handleVotePoll(poll.id, id)} isVoting={votingPollId === poll.id} /></div>
-                            ) : (
-                                <div className={cn(
-                                    "max-w-[90%] px-4 py-2.5 rounded-2xl text-[13px] font-medium leading-relaxed border shadow-sm",
-                                    isOwn
-                                        ? "bg-foreground text-background border-foreground rounded-tr-none"
-                                        : "bg-white border-outline-variant/5 text-foreground/70 rounded-tl-none"
-                                )}>
-                                {msg.content}
-                                </div>
-                            )}
-                            <p className="text-[8px] font-bold text-foreground/20 uppercase tracking-widest mt-0.5">
-                                {isMounted ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
-                            </p>
-                        </div>
+                        <MessageBubble
+                            key={msg.id}
+                            message={msg}
+                            isOwn={isOwn}
+                            showSender={msg.sender_id !== currentUser.id}
+                            isMultiParty={true}
+                            dark={false}
+                            currentUserRole={currentUser.role}
+                        />
                     );
                 })}
             </div>

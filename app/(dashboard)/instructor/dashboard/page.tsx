@@ -22,6 +22,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { formatIST, formatISTDate, formatISTTime, getSessionStatus } from '@/lib/utils';
 import { completeMeeting } from '@/lib/actions/meetings';
+import { CancelMeetingButton } from '@/components/CancelMeetingButton';
 
 export default async function InstructorDashboardPage() {
   // ─── 1. Auth & Profile ──────────────────────────────────────────
@@ -94,8 +95,8 @@ export default async function InstructorDashboardPage() {
     .lte('start_time', todayEnd)
     .order('start_time', { ascending: true });
 
-  // All upcoming + recently past meetings (last 12h for expired detection)
-  const recentStart = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
+  // All upcoming + recently past meetings (last 24h for expired detection)
+  const recentStart = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const { data: upcomingMeetingsRaw } = await admin
     .from('meetings')
     .select('*')
@@ -337,6 +338,10 @@ export default async function InstructorDashboardPage() {
                               ✓ Done
                             </button>
                           </form>
+                        )}
+                        {/* Cancel/Delete button — only if not completed/expired */}
+                        {!isCompleted && !isExpired && (
+                          <CancelMeetingButton meetingId={meeting.id} />
                         )}
                       </div>
                     </div>

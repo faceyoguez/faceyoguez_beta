@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { useRealtimeMessages } from '@/hooks/useRealtimeMessages';
+import { deleteChatMessage } from '@/lib/actions/chat';
 import { MessageBubble } from './MessageBubble';
 import { MessageInput } from './MessageInput';
 import { Loader2, MessageCircle, MoreHorizontal } from 'lucide-react';
@@ -219,6 +220,13 @@ export function ChatWindow({
                     showSender={showSender && (conversationType === 'group' || isMultiParty)}
                     isMultiParty={isMultiParty}
                     dark={dark}
+                    currentUserRole={currentUser.role}
+                    onDelete={async () => {
+                      const res = await deleteChatMessage(msg.id, 'chat_messages');
+                      if (!res.success) {
+                        alert(res.error || 'Failed to delete message');
+                      }
+                    }}
                   />
                 );
               })}

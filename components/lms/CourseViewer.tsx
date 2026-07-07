@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { markModuleAsComplete } from '@/app/actions/lms';
 import { toast } from 'sonner';
@@ -179,42 +179,14 @@ export function CourseViewer({
     else playerRef.current.playVideo();
   };
 
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const time = parseFloat(e.target.value);
-    setCurrentTime(time);
-    playerRef.current?.seekTo(time, true);
-  };
-
-  const toggleMute = () => {
-    if (!playerRef.current) return;
-    if (isMuted) {
-      playerRef.current.unMute();
-      setIsMuted(false);
-    } else {
-      playerRef.current.mute();
-      setIsMuted(true);
-    }
-  };
-
-  const handleFullscreen = () => {
-    const iframe = document.getElementById('lms-player-container');
-    if (iframe?.requestFullscreen) iframe.requestFullscreen();
-  };
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const activeModule = useMemo(() => 
+  const activeModule = useMemo(() =>
     modules.find(m => m.id === activeModuleId), [modules, activeModuleId]
   );
 
-  const handleAutoMarkComplete = async () => {
+  const handleAutoMarkComplete = useCallback(async () => {
     if (!activeModule || completedIds.has(activeModule.id)) return;
     
-    toast.success('Module complete! Great job. 🧘‍♂️');
+    toast.success('Module complete! Great job. 🧘\u200d♂️');
     
     const result = await markModuleAsComplete(activeModule.id, studentId);
     if (result.success) {
@@ -229,7 +201,57 @@ export function CourseViewer({
         toast.success('Congratulations! You finished the course! 🎉');
       }
     }
+  }, [activeModule, activeModuleId, completedIds, modules, studentId]);
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const time = parseFloat(e.target.value);
+    setCurrentTime(time);
+    playerRef.current?.seekTo(time, true);
+    // If user scrubs to within the last 3 seconds, treat as completed
+    if (duration > 0 && time >= duration - 3) {
+      handleAutoMarkComplete();
+    }
   };
+
+  const toggleMute = () => {
+    if (!playerRef.current) return;
+    if (isMuted) {
+      playerRef.current.unMute();
+      setIsMuted(false);
+    } else {
+      playerRef.current.mute();
+      setIsMuted(true);
+    }
+  };
+
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const handleFullscreen = () => {
+    const container = document.getElementById('lms-player-container');
+    if (!container) return;
+    if (!document.fullscreenElement) {
+      container.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {});
+    } else {
+      document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {});
+    }
+  };
+
+  // Sync isFullscreen state when user presses Escape or otherwise exits
+  useEffect(() => {
+    const onFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
+  }, []);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // activeModule and handleAutoMarkComplete moved above handleSeek
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 min-h-[calc(100vh-200px)] pb-10 animate-in fade-in duration-1000 font-jakarta relative z-10">
@@ -334,7 +356,10 @@ export function CourseViewer({
                      onClick={handleFullscreen}
                      className="text-white/60 hover:text-white transition-colors p-2"
                    >
-                     <Maximize className="w-6 h-6" />
+                     {isFullscreen 
+                       ? <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>
+                       : <Maximize className="w-6 h-6" />
+                     }
                    </button>
                 </div>
              </div>
@@ -374,13 +399,18 @@ export function CourseViewer({
             )}
 
             {activeModule && !completedIds.has(activeModule.id) && (
-              <button
-                onClick={handleAutoMarkComplete}
-                className="bg-[#FF8A75] text-white hover:bg-slate-900 px-8 py-4 rounded-[2.5rem] flex items-center gap-3 transition-all duration-300 shadow-xl shadow-[#FF8A75]/10 hover:shadow-slate-900/10 cursor-pointer border border-[#FF8A75]/20 shrink-0"
-              >
-                <CheckCircle2 className="w-5 h-5 text-white" />
-                <span className="font-aktiv font-bold text-xs uppercase tracking-wider">Mark as Complete</span>
-              </button>
+              <div className="flex flex-col items-end gap-2 shrink-0">
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest text-right leading-snug max-w-[180px]">
+                  ngl, wanna skip? no judgment fr 👇
+                </p>
+                <button
+                  onClick={handleAutoMarkComplete}
+                  className="bg-[#FF8A75] text-white hover:bg-slate-900 px-8 py-4 rounded-[2.5rem] flex items-center gap-3 transition-all duration-300 shadow-xl shadow-[#FF8A75]/10 hover:shadow-slate-900/10 cursor-pointer border border-[#FF8A75]/20"
+                >
+                  <CheckCircle2 className="w-5 h-5 text-white" />
+                  <span className="font-aktiv font-bold text-xs uppercase tracking-wider">Mark as Complete</span>
+                </button>
+              </div>
             )}
           </div>
         </div>

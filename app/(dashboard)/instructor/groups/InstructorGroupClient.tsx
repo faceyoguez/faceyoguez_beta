@@ -18,8 +18,9 @@ import { createAndPopulateBatch, type CreateBatchInput, toggleBatchChat, getInst
 import { useRouter } from 'next/navigation';
 import type { RecordedSession, StudentResource, Profile } from '@/types/database';
 import { uploadBatchResource, getBatchResources, uploadResource, getStudentResources } from '@/lib/actions/resources';
-import { sendBatchMessage, getBatchMessages, getOrCreateSharedChat } from '@/lib/actions/chat';
-import { getBatchRecordedSessions, scheduleGroupSession, getInstructorUpcomingMeetings, startMeeting, completeMeeting } from '@/lib/actions/meetings';
+import { sendBatchMessage, getBatchMessages, getOrCreateSharedChat, deleteChatMessage } from '@/lib/actions/chat';
+import { MessageBubble } from '@/components/chat/MessageBubble';
+import { getBatchRecordedSessions, scheduleGroupSession, getInstructorUpcomingMeetings, startMeeting, completeMeeting, deleteMeeting } from '@/lib/actions/meetings';
 import { getJourneyLogs, type JourneyLog } from '@/lib/actions/journey';
 import { ImageComparison } from '@/components/ui/image-comparison-slider';
 import { JOURNEY_MAX_DAY } from '@/components/ui/journey-progress';
@@ -178,6 +179,15 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                });
             }
          )
+         .on(
+            'postgres_changes',
+            { event: 'UPDATE', schema: 'public', table: 'batch_messages', filter: `batch_id=eq.${selectedBatch.id}` },
+            (payload: { new: any }) => {
+               setMessages((prev: any[]) =>
+                  prev.map(m => m.id === payload.new.id ? { ...m, content: payload.new.content, content_type: payload.new.content_type } : m)
+               );
+            }
+         )
          .subscribe();
 
       return () => { supabase.removeChannel(msgChannel); };
@@ -244,7 +254,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
       }
    }, [messages]);
 
-   // â”€â”€â”€ HANDLERS â”€â”€â”€
+   // ——— HANDLERS ———
    const handleSendMessage = async () => {
       if (!newMessage.trim() || !selectedBatch?.id) return;
       
@@ -593,7 +603,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
 
             <main className="flex-1 flex flex-col overflow-hidden">
 
-               {/* ðŸ—ºï¸ Batch Session Row (Active Batches & Join Session ) */}
+               {/* 🗺️ Batch Session Row (Active Batches & Join Session ) */}
                <div className="shrink-0 h-20 px-6 lg:px-12 bg-white/20 backdrop-blur-md border-b border-[#FF8A75]/5 flex items-center justify-between z-50">
                   <div className="flex items-center gap-6 min-w-0 overflow-hidden">
                      <span className="hidden xl:block text-[9px] font-black uppercase tracking-[0.4em] text-[#FF8A75] shrink-0">Global Group Session</span>
@@ -712,6 +722,28 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                            ✓ Mark Complete
                         </button>
                      )}
+                     {/* Cancel Session button — visible when session is not completed or expired, for staff/instructors */}
+                     {nextBatchMeeting && (() => {
+                        const status = getSessionStatus(nextBatchMeeting.start_time, nextBatchMeeting.duration_minutes || 60, nextBatchMeeting.calendar_event_id);
+                        return status !== 'completed' && status !== 'expired';
+                     })() && ['instructor', 'staff', 'admin', 'client_management'].includes(currentUser.role) && (
+                        <button
+                           onClick={async () => {
+                              if (confirm('Are you sure you want to cancel this group session? An apology email will be sent to enrolled students.')) {
+                                 const res = await deleteMeeting(nextBatchMeeting.id);
+                                 if (res.success) {
+                                    toast.success('Session canceled successfully');
+                                    router.refresh();
+                                 } else {
+                                    toast.error(res.error || 'Failed to cancel session');
+                                 }
+                              }
+                           }}
+                           className="h-10 px-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-red-100 transition-all"
+                        >
+                           Cancel Session
+                        </button>
+                     )}
                   </div>
                </div>
             </div>
@@ -820,23 +852,21 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                              const roleLabel = roles[sender.role] || (msg.sender_id === selectedBatch?.instructor_id ? 'Instructor' : null);
 
                                              return (
-                                                <div key={msg.id} className={cn("flex flex-col gap-1", isMe ? "items-end" : "items-start")}>
-                                                   {!isMe && (
-                                                      <div className="flex flex-col ml-2">
-                                                         <span className="text-[10px] font-bold text-slate-800 leading-none mb-1">{sender?.full_name || 'User'}</span>
-                                                         {roleLabel && <span className="text-[8px] font-bold uppercase tracking-widest text-[#FF8A75] leading-none">{roleLabel}</span>}
-                                                      </div>
-                                                   )}
-                                                   <div className={cn(
-                                                      "px-4 py-2.5 rounded-2xl text-[13px] font-medium max-w-[85%] leading-relaxed shadow-sm",
-                                                      isMe ? "bg-[#FF8A75] text-white rounded-tr-none shadow-[#FF8A75]/10" : "bg-slate-50 text-slate-800 border border-slate-100 rounded-tl-none"
-                                                   )}>
-                                                      {msg.content}
-                                                   </div>
-                                                   <span className="text-[8px] font-bold text-slate-400 mt-1 uppercase tracking-widest">
-                                                      {isMounted ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
-                                                   </span>
-                                                </div>
+                                                <MessageBubble
+                                                   key={msg.id}
+                                                   message={msg}
+                                                   isOwn={isMe}
+                                                   showSender={roleLabel !== null || !isMe}
+                                                   isMultiParty={true}
+                                                   dark={false}
+                                                   currentUserRole={currentUser.role}
+                                                   onDelete={async () => {
+                                                      const res = await deleteChatMessage(msg.id, 'batch_messages');
+                                                      if (!res.success) {
+                                                         toast.error(res.error || 'Failed to delete message');
+                                                      }
+                                                   }}
+                                                />
                                              );
                                           })
                                        )}
@@ -847,25 +877,13 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                           type="text"
                                           value={newMessage}
                                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewMessage(e.target.value)}
-                                          onKeyDown={(e) => e.key === 'Enter' && selectedBatch?.is_chat_enabled && handleSendMessage()}
-                                          placeholder={selectedBatch?.is_chat_enabled ? "Type a message..." : "Chat is disabled"}
-                                          disabled={!selectedBatch?.is_chat_enabled}
-                                          className={cn(
-                                             "w-full h-12 rounded-2xl border-none pl-6 pr-14 text-sm font-medium transition-all outline-none",
-                                             selectedBatch?.is_chat_enabled
-                                                ? "bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#FF8A75]/20 focus:outline outline-slate-200"
-                                                : "bg-slate-50 text-slate-400 cursor-not-allowed"
-                                          )}
+                                          onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                                          placeholder="Type a message..."
+                                          className="w-full h-12 rounded-2xl border-none pl-6 pr-14 text-sm font-medium transition-all outline-none bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#FF8A75]/20 focus:outline outline-slate-200"
                                        />
                                        <button
                                           onClick={handleSendMessage}
-                                          disabled={!selectedBatch?.is_chat_enabled}
-                                          className={cn(
-                                             "absolute right-2 top-[calc(50%+8px)] -translate-y-1/2 h-8 w-8 rounded-xl flex items-center justify-center transition-all transform active:scale-90",
-                                             selectedBatch?.is_chat_enabled
-                                                ? "bg-[#FF8A75] text-white hover:bg-[#FF6B4E] shadow-md shadow-[#FF8A75]/20"
-                                                : "bg-slate-200 text-slate-400 cursor-not-allowed"
-                                          )}
+                                          className="absolute right-2 top-[calc(50%+8px)] -translate-y-1/2 h-8 w-8 rounded-xl flex items-center justify-center transition-all transform active:scale-90 bg-[#FF8A75] text-white hover:bg-[#FF6B4E] shadow-md shadow-[#FF8A75]/20"
                                        >
                                           <Send className="w-4 h-4" />
                                        </button>
@@ -1113,7 +1131,8 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                               type="datetime-local"
                               value={scheduleData.startTime}
                               onChange={(e) => setScheduleData({ ...scheduleData, startTime: e.target.value })}
-                              className="h-12 w-full px-4 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#FF8A75]/20 outline-none transition-all"
+                              onClick={(e) => (e.target as HTMLInputElement).showPicker?.()}
+                              className="h-12 w-full px-4 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#FF8A75]/20 outline-none transition-all cursor-pointer"
                            />
                         </div>
                         <div className="space-y-1.5 text-left">
@@ -1230,24 +1249,23 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                             const sender = msg.sender || {};
                             const roles: Record<string, string> = { admin: 'Admin', instructor: 'Instructor', staff: 'Staff', client_management: 'Staff' };
                             const roleLabel = roles[sender.role] || (msg.sender_id === selectedBatch?.instructor_id ? 'Instructor' : null);
-
+ 
                             return (
-                               <div key={msg.id} className={cn("flex flex-col gap-2", isMe ? "items-end" : "items-start")}>
-                                  {!isMe && (
-                                     <div className="flex flex-col ml-4">
-                                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#FF8A75] leading-none mb-1">{sender?.full_name}</span>
-                                        {roleLabel && <span className="text-[7px] font-black uppercase tracking-[0.1em] text-[#FF8A75]/40 leading-none">{roleLabel}</span>}
-                                     </div>
-                                  )}
-                                  <div className={cn(
-                                     "px-5 py-3 rounded-2xl text-[13px] font-medium max-w-[85%] leading-relaxed shadow-lg border border-white/5",
-                                     isMe
-                                        ? "bg-[#FF8A75] text-white rounded-tr-none shadow-[#FF8A75]/20"
-                                        : "bg-white/10 text-white/90 rounded-tl-none backdrop-blur-xl"
-                                  )}>
-                                     {msg.content}
-                                  </div>
-                               </div>
+                               <MessageBubble
+                                  key={msg.id}
+                                  message={msg}
+                                  isOwn={isMe}
+                                  showSender={roleLabel !== null || !isMe}
+                                  isMultiParty={true}
+                                  dark={true}
+                                  currentUserRole={currentUser.role}
+                                  onDelete={async () => {
+                                     const res = await deleteChatMessage(msg.id, 'batch_messages');
+                                     if (!res.success) {
+                                        toast.error(res.error || 'Failed to delete message');
+                                     }
+                                  }}
+                               />
                             );
                          })
                       ) : (
@@ -1281,25 +1299,13 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                            type="text"
                            value={newMessage}
                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewMessage(e.target.value)}
-                           onKeyDown={(e) => e.key === 'Enter' && selectedBatch?.is_chat_enabled && handleSendMessage()}
-                           placeholder={selectedBatch?.is_chat_enabled ? "Type a message..." : "Chat disabled"}
-                           disabled={!selectedBatch?.is_chat_enabled}
-                           className={cn(
-                              "w-full h-12 rounded-2xl border-none pl-6 pr-14 text-sm font-medium transition-all outline-none",
-                              selectedBatch?.is_chat_enabled
-                                 ? "bg-white/10 text-white placeholder:text-white/20 focus:bg-white/15 focus:ring-2 focus:ring-[#FF8A75]/20"
-                                 : "bg-white/[0.02] text-white/10 placeholder:text-white/5 cursor-not-allowed"
-                           )}
+                           onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                           placeholder="Type a message..."
+                           className="w-full h-12 rounded-2xl border-none pl-6 pr-14 text-sm font-medium transition-all outline-none bg-white/10 text-white placeholder:text-white/20 focus:bg-white/15 focus:ring-2 focus:ring-[#FF8A75]/20"
                         />
                         <button
                            onClick={handleSendMessage}
-                           disabled={!selectedBatch?.is_chat_enabled}
-                           className={cn(
-                              "absolute right-8 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full text-white flex items-center justify-center transition-all transform active:scale-90",
-                              selectedBatch?.is_chat_enabled
-                                 ? "bg-[#FF8A75] hover:bg-[#FF6B4E] shadow-xl shadow-[#FF8A75]/40"
-                                 : "bg-white/5 text-white/10 cursor-not-allowed"
-                           )}
+                           className="absolute right-8 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full text-white flex items-center justify-center transition-all transform active:scale-90 bg-[#FF8A75] hover:bg-[#FF6B4E] shadow-xl shadow-[#FF8A75]/40"
                         >
                            <Send className="w-4 h-4" />
                         </button>

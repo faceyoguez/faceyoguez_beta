@@ -40,14 +40,15 @@ import {
   Filter,
   Mail,
   Calendar,
-  Video
+  Video,
+  Trash2
 } from 'lucide-react';
 import type { Profile, StudentResource, LiveGrowthMetrics, MeetingWithDetails } from '@/types/database';
 import { AnglePhotoViewer } from '@/components/ui/angle-photo-tracker';
 import { JourneyProgress, JOURNEY_MAX_DAY } from '@/components/ui/journey-progress';
 import { PlanExpiryPill } from '@/components/ui/plan-expiry-pill';
-import { getInstructorUpcomingMeetings } from '@/lib/actions/meetings';
-import { cn, formatISTDate, formatISTTime, getSessionStatus } from '@/lib/utils';
+import { getInstructorUpcomingMeetings, deleteMeeting } from '@/lib/actions/meetings';
+import { cn, formatISTDate, formatISTTime, getSessionStatus, localInputToIST } from '@/lib/utils';
 
 interface StudentInfo {
   conversationId: string | null;
@@ -281,7 +282,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
 
     setIsScheduling(true);
     try {
-      const startDateTime = new Date(meetingDateTime).toISOString();
+      const startDateTime = localInputToIST(meetingDateTime);
 
       const res = await fetch('/api/meetings', {
         method: 'POST',
@@ -311,6 +312,22 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
       toast.error(e.message || 'Failed to schedule meeting');
     } finally {
       setIsScheduling(false);
+    }
+  };
+
+  const handleDeleteMeeting = async (meetingId: string) => {
+    const loadingToast = toast.loading('Canceling meeting...');
+    try {
+      const res = await deleteMeeting(meetingId);
+      if (res.success) {
+        toast.success("Meeting canceled and student notified!", { id: loadingToast });
+        const updatedList = await getInstructorUpcomingMeetings();
+        setUpcomingMeetings(updatedList || []);
+      } else {
+        toast.error(res.error || "Failed to delete meeting", { id: loadingToast });
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Failed to delete meeting", { id: loadingToast });
     }
   };
 
@@ -689,7 +706,23 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                                 </p>
                               </div>
                             </div>
-                            {!isExpired && !isCompleted && <ChevronRight className="w-4 h-4 text-primary shrink-0" />}
+                            <div className="flex items-center gap-1.5 shrink-0">
+                               {!isExpired && !isCompleted && (
+                                 <button
+                                   onClick={async (e) => {
+                                     e.stopPropagation();
+                                     if (confirm("Are you sure you want to cancel this meeting? An apology email will be sent to the student.")) {
+                                       await handleDeleteMeeting(nextMeeting.id);
+                                     }
+                                   }}
+                                   className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                                   title="Cancel/Delete Meeting"
+                                 >
+                                   <Trash2 className="w-3.5 h-3.5" />
+                                 </button>
+                               )}
+                               {!isExpired && !isCompleted && <ChevronRight className="w-4 h-4 text-primary shrink-0" />}
+                             </div>
                           </div>
                           );
                        })()}
@@ -763,8 +796,22 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                             </div>
                           </div>
                           {!isExpired && !isCompleted && (
-                            <div className="shrink-0 flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-primary bg-white border border-primary/10 px-3.5 py-2 rounded-xl">
-                              Join Call <ChevronRight className="w-3.5 h-3.5" />
+                            <div className="shrink-0 flex items-center gap-3">
+                              <button
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  if (confirm("Are you sure you want to cancel this meeting? An apology email will be sent to the student.")) {
+                                    await handleDeleteMeeting(nextMeeting.id);
+                                  }
+                                }}
+                                className="p-2.5 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 border border-slate-100 transition-colors"
+                                title="Cancel/Delete Meeting"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                              <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-primary bg-white border border-primary/10 px-3.5 py-2 rounded-xl">
+                                Join Call <ChevronRight className="w-3.5 h-3.5" />
+                              </div>
                             </div>
                           )}
                         </div>
@@ -1079,7 +1126,8 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                   type="datetime-local" 
                   value={meetingDateTime}
                   onChange={(e) => setMeetingDateTime(e.target.value)}
-                  className="h-14 w-full px-5 rounded-2xl bg-white border border-slate-200 text-sm font-bold text-slate-700 focus:border-primary/30 focus:ring-4 focus:ring-primary/10 outline-none transition-all shadow-sm" 
+                  onClick={(e) => (e.target as HTMLInputElement).showPicker?.()}
+                  className="h-14 w-full px-5 rounded-2xl bg-white border border-slate-200 text-sm font-bold text-slate-700 focus:border-primary/30 focus:ring-4 focus:ring-primary/10 outline-none transition-all shadow-sm cursor-pointer" 
                 />
               </div>
             </div>

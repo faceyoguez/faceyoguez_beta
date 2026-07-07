@@ -447,3 +447,41 @@ export function meetingStartedEmailHtml(data: MeetingStartedData): string {
 
   return baseLayout(body);
 }
+
+// ─────────────────────────────────────────────────────────────
+//  6. MEETING CANCELLED EMAIL
+// ─────────────────────────────────────────────────────────────
+export interface MeetingCancelledData {
+  studentName: string;
+  meetingTitle: string;
+  meetingTimeStr: string;
+  meetingType: 'one_on_one' | 'group_session';
+}
+
+export function meetingCancelledEmailHtml(data: MeetingCancelledData): string {
+  const typeLabel = data.meetingType === 'one_on_one' ? 'Personal Session' : 'Group Session';
+
+  const body = `
+    <!-- Greeting -->
+    <p style="margin:0 0 8px;font-size:13px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:${C.primary};">⚠️ SESSION CANCELLED</p>
+    <h1 style="margin:0 0 20px;font-size:26px;font-weight:700;color:${C.dark};line-height:1.2;">Apologies, Your ${typeLabel} Has Been Cancelled</h1>
+
+    <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:${C.dark};">
+      Hi ${data.studentName},
+    </p>
+    <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:${C.dark};">
+      We are writing to inform you that your upcoming ${typeLabel} <strong>${data.meetingTitle}</strong> scheduled for <strong>${data.meetingTimeStr}</strong> has been cancelled.
+    </p>
+    <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:${C.dark};">
+      We sincerely apologize for any inconvenience this may cause you. The details for your next session will be shared with you shortly.
+    </p>
+
+    ${divider()}
+
+    <p style="margin:0 0 4px;font-size:15px;color:${C.dark};">With warmth,</p>
+    <p style="margin:0;font-size:15px;font-weight:700;color:${C.dark};">Faceyoguez Desk</p>
+  `;
+
+  return baseLayout(body);
+}
+

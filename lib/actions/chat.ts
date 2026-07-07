@@ -784,3 +784,46 @@ export async function toggleBatchChat(batchId: string, isEnabled: boolean) {
   if (error) return { success: false, error: error.message };
   return { success: true };
 }
+
+export async function deleteChatMessage(messageId: string, table: 'chat_messages' | 'batch_messages') {
+  const supabase = await createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: 'Unauthorized' };
+
+  const admin = createAdminClient();
+  const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single();
+  const role = profile?.role || '';
+  if (!['admin', 'staff', 'instructor', 'client_management'].includes(role)) {
+    return { success: false, error: 'Forbidden' };
+  }
+
+  // Fetch the message first to prefix its content
+  const { data: message, error: fetchError } = await admin
+    .from(table)
+    .select('content')
+    .eq('id', messageId)
+    .single();
+
+  if (fetchError || !message) {
+    return { success: false, error: 'Message not found' };
+  }
+
+  // If already deleted, do nothing
+  if (message.content?.startsWith('__DELETED__:')) {
+    return { success: true };
+  }
+
+  const newContent = `__DELETED__:${message.content || ''}`;
+
+  const { error: updateError } = await admin
+    .from(table)
+    .update({ content: newContent })
+    .eq('id', messageId);
+
+  if (updateError) {
+    console.error(`Failed to delete message in ${table}:`, updateError);
+    return { success: false, error: updateError.message };
+  }
+
+  return { success: true };
+}
