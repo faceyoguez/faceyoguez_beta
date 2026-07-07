@@ -92,7 +92,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
    const displayStatus = useMemo(() => {
       if (!nextBatchMeeting) return { text: "No Session", enabled: false };
       const isMeetingLive = nextBatchMeeting.calendar_event_id === 'LIVE';
-      const isHost = currentUser.is_master_instructor || currentUser.id === nextBatchMeeting.host_id;
+      const isHost = currentUser.role === 'instructor' && (currentUser.is_master_instructor || currentUser.id === nextBatchMeeting.host_id);
       
       if (isHost) {
          const startTime = new Date(nextBatchMeeting.start_time).getTime();
@@ -667,7 +667,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                         disabled={!displayStatus.enabled}
                         onClick={async () => {
                            if (!nextBatchMeeting) return;
-                           const isHost = currentUser.is_master_instructor || currentUser.id === nextBatchMeeting.host_id;
+                           const isHost = currentUser.role === 'instructor' && (currentUser.is_master_instructor || currentUser.id === nextBatchMeeting.host_id);
                            const isLive = nextBatchMeeting.calendar_event_id === 'LIVE';
 
                            if (isHost && !isLive) {
@@ -696,7 +696,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                         {displayStatus.enabled && <ArrowUpRight className="w-4 h-4 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />}
                      </button>
                      {/* Mark Complete button — visible when session is LIVE or in its active window */}
-                     {nextBatchMeeting && nextBatchMeeting.calendar_event_id === 'LIVE' && (currentUser.is_master_instructor || currentUser.id === nextBatchMeeting.host_id) && (
+                     {nextBatchMeeting && nextBatchMeeting.calendar_event_id === 'LIVE' && currentUser.role === 'instructor' && (currentUser.is_master_instructor || currentUser.id === nextBatchMeeting.host_id) && (
                         <button
                            onClick={async () => {
                               const res = await completeMeeting(nextBatchMeeting.id);

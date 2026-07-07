@@ -665,7 +665,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                           const isCompleted = status === 'completed';
                           return (
                           <div 
-                            onClick={() => !isExpired && !isCompleted && window.open(nextMeeting.start_url || nextMeeting.join_url, '_blank')}
+                            onClick={() => !isExpired && !isCompleted && window.open(nextMeeting.join_url, '_blank')}
                             className={cn(
                               "mt-3 border rounded-2xl p-4 transition-all duration-300 shadow-sm flex items-center justify-between gap-3 max-w-md",
                               isExpired ? "bg-slate-50 border-slate-100 opacity-60 cursor-default"
@@ -738,7 +738,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                         const isCompleted = status === 'completed';
                         return (
                         <div 
-                          onClick={() => !isExpired && !isCompleted && window.open(nextMeeting.start_url || nextMeeting.join_url, '_blank')}
+                          onClick={() => !isExpired && !isCompleted && window.open(nextMeeting.join_url, '_blank')}
                           className={cn(
                             "border rounded-3xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all duration-300 shadow-sm",
                             isExpired ? "bg-slate-50 border-slate-100 opacity-60 cursor-default"
