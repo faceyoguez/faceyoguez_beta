@@ -1,9 +1,46 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import Image from 'next/image';
-import type { ChatMessageWithSender, Profile } from '@/types/database';
+import type { ChatMessageWithSender } from '@/types/database';
 import { format } from 'date-fns';
+
+// Regex that matches http/https URLs and bare www. links in message text
+const URL_REGEX = /(https?:\/\/[^\s<>"]+|www\.[^\s<>"]+)/g;
+
+/**
+ * Splits message text by URLs and returns a mix of plain strings and <a> elements.
+ * This makes any link shared in chat clickable.
+ */
+function renderMessageContent(text: string, isOwn: boolean, dark: boolean) {
+  const parts = text.split(URL_REGEX);
+  return parts.map((part, i) => {
+    if (URL_REGEX.test(part)) {
+      // Reset lastIndex after .test() so subsequent calls work correctly
+      URL_REGEX.lastIndex = 0;
+      const href = part.startsWith('http') ? part : `https://${part}`;
+      return (
+        <a
+          key={i}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(
+            'underline underline-offset-2 break-all font-semibold hover:opacity-80 transition-opacity',
+            isOwn
+              ? dark ? 'text-white/90' : 'text-white/90'
+              : dark ? 'text-[#FF8A75]' : 'text-[#e76f51]'
+          )}
+          onClick={e => e.stopPropagation()}
+        >
+          {part}
+        </a>
+      );
+    }
+    // Reset just in case
+    URL_REGEX.lastIndex = 0;
+    return part;
+  });
+}
 
 interface MessageBubbleProps {
   message: ChatMessageWithSender;
@@ -97,7 +134,7 @@ export function MessageBubble({ message, isOwn, showSender = false, isMultiParty
         >
           {message.content_type === 'text' && (
             <p className="whitespace-pre-wrap break-words text-[13.5px] sm:text-sm leading-[1.6] tracking-tight">
-              {message.content}
+              {renderMessageContent(message.content || '', isOwn, dark)}
             </p>
           )}
 
