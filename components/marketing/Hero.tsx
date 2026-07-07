@@ -1,32 +1,35 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, Variants } from 'framer-motion';
 import { pixel } from '@/lib/pixel';
 
 const HERO_IMAGE = '/assets/instructor_img.jpg';
 
+// Module-level constants — framer-motion needs stable object references
+// to correctly diff initial vs animate states across re-renders.
+// Defining these inside the component body causes them to be recreated
+// on every render, which breaks the initial → animate transition.
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.12, delayChildren: 0.2 } }
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
+};
+
 interface HeroProps {
   visible: boolean;
 }
 
 export function Hero({ visible }: HeroProps) {
+  // ALL hooks must be called before any conditional return (React rules of hooks)
   const router = useRouter();
-  if (!visible) return null;
 
-  const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.12, delayChildren: 0.2 } }
-  };
-
-  const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
-  };
-
-  // Navigate immediately on touch (fires ~300ms before onClick on mobile)
+  // onTouchStart fires ~300ms before onClick on mobile — gives instant response
   const handleLoginTouch = (e: React.TouchEvent) => {
     e.preventDefault();
     setTimeout(() => pixel.heroCtaClicked({ buttonLabel: 'Login' }), 0);
@@ -39,6 +42,14 @@ export function Hero({ visible }: HeroProps) {
     router.push('/auth/signup');
   };
 
+  const handleBookTouch = (e: React.TouchEvent) => {
+    e.preventDefault();
+    setTimeout(() => pixel.heroCtaClicked({ buttonLabel: 'Book Your Class' }), 0);
+    router.push('/auth/signup');
+  };
+
+  if (!visible) return null;
+
   return (
     <motion.section
       initial="hidden"
@@ -46,7 +57,6 @@ export function Hero({ visible }: HeroProps) {
       variants={containerVariants}
       className="relative w-full min-h-[100dvh] flex flex-col overflow-x-hidden"
     >
-
       {/* Premium Floating Nav */}
       <motion.nav
         variants={itemVariants}
@@ -58,18 +68,18 @@ export function Hero({ visible }: HeroProps) {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-8" style={{ touchAction: 'manipulation' }}>
-          {/* Login — onTouchStart fires ~300ms earlier than onClick on mobile */}
-          <button
-            onTouchStart={handleLoginTouch}
-            onClick={() => {
-              setTimeout(() => pixel.heroCtaClicked({ buttonLabel: 'Login' }), 0);
-              router.push('/auth/login');
-            }}
-            className="flex text-xs sm:text-sm font-black uppercase tracking-widest text-[#2a2019]/60 hover:text-[#e76f51] active:scale-95 transition-all duration-150 leading-none items-center py-2 px-3 rounded-lg"
-            style={{ touchAction: 'manipulation', background: 'none', border: 'none', cursor: 'pointer' }}
-          >
-            Login
-          </button>
+            {/* Login — onTouchStart fires ~300ms earlier than onClick on mobile */}
+            <button
+              onTouchStart={handleLoginTouch}
+              onClick={() => {
+                setTimeout(() => pixel.heroCtaClicked({ buttonLabel: 'Login' }), 0);
+                router.push('/auth/login');
+              }}
+              className="flex text-xs sm:text-sm font-black uppercase tracking-widest text-[#2a2019]/60 hover:text-[#e76f51] active:scale-95 transition-all duration-150 leading-none items-center py-2 px-3 rounded-lg"
+              style={{ touchAction: 'manipulation', background: 'none', border: 'none', cursor: 'pointer' }}
+            >
+              Login
+            </button>
             <button
               onTouchStart={handleSignupTouch}
               onClick={() => {
@@ -85,7 +95,7 @@ export function Hero({ visible }: HeroProps) {
         </div>
       </motion.nav>
 
-
+      {/* Hero Content */}
       <div className="flex-1 flex flex-col-reverse pt-28 pb-12 px-6 lg:flex-row lg:items-center lg:px-[6vw] lg:pt-10">
 
         {/* Headline Column */}
@@ -117,15 +127,19 @@ export function Hero({ visible }: HeroProps) {
             Expert-led. Results in 21 days — or we'll work with you until you see them.
           </motion.p>
 
-          {/* CTA Buttons */}
+          {/* CTA Button */}
           <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 mb-4 items-center lg:items-start">
-            <Link
-              href="/auth/signup"
-              onClick={() => pixel.heroCtaClicked({ buttonLabel: 'Book Your Class' })}
+            <button
+              onTouchStart={handleBookTouch}
+              onClick={() => {
+                pixel.heroCtaClicked({ buttonLabel: 'Book Your Class' });
+                router.push('/auth/signup');
+              }}
               className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#e76f51] text-white rounded-full text-[11px] font-black uppercase tracking-[0.25em] hover:bg-[#d4603f] transition-all shadow-[0_12px_32px_rgba(231,111,81,0.35)] hover:scale-105 active:scale-95"
+              style={{ touchAction: 'manipulation', border: 'none', cursor: 'pointer' }}
             >
               🌸 Book Your Class →
-            </Link>
+            </button>
           </motion.div>
         </div>
 
