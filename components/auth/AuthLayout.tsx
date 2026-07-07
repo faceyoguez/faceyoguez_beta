@@ -44,11 +44,11 @@ const AuthLayout = ({ children, title, subtitle, isSignup = false }: AuthLayoutP
 
         {/* Premium Symmetrical Form Container */}
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           className={cn(
-            "w-full bg-white/60 rounded-[3rem] backdrop-blur-2xl border border-white/60 shadow-[0_20px_60px_rgba(231,111,81,0.08)]",
+            "w-full bg-white/80 sm:bg-white/60 rounded-[3rem] backdrop-blur-md sm:backdrop-blur-2xl border border-white/60 shadow-[0_20px_60px_rgba(231,111,81,0.08)]",
             isSignup ? "p-6 sm:p-7 space-y-4" : "p-8 sm:p-10 space-y-8"
           )}
         >

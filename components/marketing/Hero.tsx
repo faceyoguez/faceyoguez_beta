@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion, Variants } from 'framer-motion';
 import { pixel } from '@/lib/pixel';
 
@@ -12,6 +13,7 @@ interface HeroProps {
 }
 
 export function Hero({ visible }: HeroProps) {
+  const router = useRouter();
   if (!visible) return null;
 
   const containerVariants: Variants = {
@@ -24,6 +26,19 @@ export function Hero({ visible }: HeroProps) {
     visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
   };
 
+  // Navigate immediately on touch (fires ~300ms before onClick on mobile)
+  const handleLoginTouch = (e: React.TouchEvent) => {
+    e.preventDefault();
+    setTimeout(() => pixel.heroCtaClicked({ buttonLabel: 'Login' }), 0);
+    router.push('/auth/login');
+  };
+
+  const handleSignupTouch = (e: React.TouchEvent) => {
+    e.preventDefault();
+    setTimeout(() => pixel.heroCtaClicked({ buttonLabel: 'Get Started' }), 0);
+    router.push('/auth/signup');
+  };
+
   return (
     <motion.section
       initial="hidden"
@@ -31,7 +46,6 @@ export function Hero({ visible }: HeroProps) {
       variants={containerVariants}
       className="relative w-full min-h-[100dvh] flex flex-col overflow-x-hidden"
     >
-
 
       {/* Premium Floating Nav */}
       <motion.nav
@@ -44,35 +58,34 @@ export function Hero({ visible }: HeroProps) {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-8" style={{ touchAction: 'manipulation' }}>
-          {/* Login link - visible on ALL screen sizes in mobile nav */}
-          <Link
-            href="/auth/login"
-            prefetch={true}
+          {/* Login — onTouchStart fires ~300ms earlier than onClick on mobile */}
+          <button
+            onTouchStart={handleLoginTouch}
             onClick={() => {
-              // Fire analytics track in next tick to prevent blocking transition
               setTimeout(() => pixel.heroCtaClicked({ buttonLabel: 'Login' }), 0);
+              router.push('/auth/login');
             }}
             className="flex text-xs sm:text-sm font-black uppercase tracking-widest text-[#2a2019]/60 hover:text-[#e76f51] active:scale-95 transition-all duration-150 leading-none items-center py-2 px-3 rounded-lg"
-            style={{ touchAction: 'manipulation' }}
+            style={{ touchAction: 'manipulation', background: 'none', border: 'none', cursor: 'pointer' }}
           >
             Login
-          </Link>
-            <Link 
-              href="/auth/signup" 
-              prefetch={true}
+          </button>
+            <button
+              onTouchStart={handleSignupTouch}
               onClick={() => {
                 setTimeout(() => pixel.heroCtaClicked({ buttonLabel: 'Get Started' }), 0);
-              }} 
+                router.push('/auth/signup');
+              }}
               className="inline-flex items-center justify-center px-4 py-2.5 sm:px-6 sm:py-3 bg-[#1a1a1a] text-white rounded-full text-[9px] sm:text-[11px] font-black uppercase tracking-[0.2em] hover:bg-[#e76f51] transition-all duration-150 shadow-md active:scale-95 leading-none"
-              style={{ touchAction: 'manipulation' }}
+              style={{ touchAction: 'manipulation', border: 'none', cursor: 'pointer' }}
             >
               Get Started
-            </Link>
+            </button>
           </div>
         </div>
       </motion.nav>
 
-      {/* Hero Content */}
+
       <div className="flex-1 flex flex-col-reverse pt-28 pb-12 px-6 lg:flex-row lg:items-center lg:px-[6vw] lg:pt-10">
 
         {/* Headline Column */}
