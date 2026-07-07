@@ -47,7 +47,7 @@ export function FloatingEnquiry() {
 
             {/* Email (Gmail Redirect) */}
             <a
-              href="https://mail.google.com/mail/?view=cm&fs=1&to=info@faceyoguez.com"
+              href="https://mail.google.com/mail/?view=cm&fs=1&to=management@faceyoguez.com"
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => pixel.emailEnquiryClicked()}

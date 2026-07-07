@@ -21,6 +21,7 @@ import { PollCard } from '../../../../components/ui/poll-card';
 import { useRouter } from 'next/navigation';
 import { cn, formatISTDate, formatISTTime, getSessionStatus } from '@/lib/utils';
 import { MessageBubble } from '@/components/chat/MessageBubble';
+import { SupportContact } from '@/components/ui/SupportContact';
 
 import type { Profile, MeetingWithDetails, BatchPoll, RecordedSession } from '../../../../types/database';
 
@@ -437,7 +438,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                         Group <span className="text-[#e76f51]">Hub</span>
                     </h1>
                 </div>
-                <div />
+                <SupportContact className="px-3.5 py-2 bg-white rounded-2xl border border-slate-100 shadow-sm" />
             </header>
 
             <main className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start pb-20 lg:pb-0">

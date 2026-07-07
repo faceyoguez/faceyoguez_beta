@@ -31,6 +31,8 @@ import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { pixel } from '@/lib/pixel';
 
+import { SupportContact } from '@/components/ui/SupportContact';
+
 const ImageComparison = dynamic(() => import('@/components/ui/image-comparison-slider').then(mod => mod.ImageComparison), {
   ssr: false,
   loading: () => <div className="w-full h-full bg-slate-50 animate-pulse rounded-2xl" />
@@ -295,6 +297,7 @@ export function StudentDashboardClient({
 
         {/* Quick Stats Pills */}
         <div className="flex items-center gap-2 flex-wrap">
+          <SupportContact className="px-3.5 py-2 bg-white rounded-2xl border border-slate-100 shadow-sm" />
           <div className="flex items-center gap-2 px-3.5 py-2 bg-white rounded-2xl border border-slate-100 shadow-sm">
             <Flame className="w-4 h-4 text-[#e76f51]" />
             <div>

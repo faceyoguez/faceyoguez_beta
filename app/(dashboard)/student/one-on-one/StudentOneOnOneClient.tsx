@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { JourneyProgress } from '@/components/ui/journey-progress';
 import { PlanExpiryPill } from '@/components/ui/plan-expiry-pill';
 import { AnglePhotoTracker } from '@/components/ui/angle-photo-tracker';
+import { SupportContact } from '@/components/ui/SupportContact';
 import {
   Video,
   FileText,
@@ -177,6 +178,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                 <span className="text-[9px] font-black uppercase tracking-[0.15em] text-[#e76f51]">Trial Active</span>
               </div>
             )}
+            <SupportContact className="px-3.5 py-2 bg-white rounded-2xl border border-slate-100 shadow-sm" />
             <div className="flex items-center gap-2 px-3.5 py-2 bg-white rounded-2xl border border-slate-100 shadow-sm">
               <Flame className="w-4 h-4 text-[#e76f51]" />
               <div>

@@ -827,3 +827,97 @@ export async function deleteChatMessage(messageId: string, table: 'chat_messages
 
   return { success: true };
 }
+
+/**
+ * For a list of student IDs, return their shared direct conversation metadata:
+ *   - conversationId
+ *   - lastMessageAt (ISO string | null)
+ *   - unreadCount (messages sent by the student after the caller last viewed)
+ * 
+ * "Unread" = messages in that conversation whose sender is the STUDENT (not the current staff/instructor)
+ *            and whose created_at is after the last message sent by the staff/instructor.
+ */
+export async function getStudentsConversationMeta(studentIds: string[]) {
+  if (!studentIds.length) return {};
+
+  const supabase = await createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return {};
+
+  const admin = createAdminClient();
+
+  // 1. Find all direct conversations that each student is part of
+  const { data: studentParts } = await admin
+    .from('conversation_participants')
+    .select('conversation_id, user_id')
+    .in('user_id', studentIds);
+
+  if (!studentParts?.length) return {};
+
+  // Map studentId -> conversationIds
+  type Part = { user_id: string; conversation_id: string };
+  type Conv = { id: string };
+  type Msg = { conversation_id: string; created_at: string; sender_id: string };
+
+  const studentToConvIds: Record<string, string[]> = {};
+  for (const p of studentParts as Part[]) {
+    if (!studentToConvIds[p.user_id]) studentToConvIds[p.user_id] = [];
+    studentToConvIds[p.user_id].push(p.conversation_id);
+  }
+
+  const allConvIds = [...new Set((studentParts as Part[]).map(p => p.conversation_id))];
+
+  // 2. Get only "direct" type conversations
+  const { data: convs } = await admin
+    .from('conversations')
+    .select('id, type')
+    .in('id', allConvIds)
+    .eq('type', 'direct');
+
+  const directConvIds = new Set(((convs || []) as Conv[]).map(c => c.id));
+
+  // 3. Get last message for each conversation
+  const { data: lastMsgsRaw } = await admin
+    .from('chat_messages')
+    .select('conversation_id, created_at, sender_id')
+    .in('conversation_id', [...directConvIds])
+    .not('content', 'like', '__DELETED__:%')
+    .order('created_at', { ascending: false });
+
+  const lastMsgs = (lastMsgsRaw || []) as Msg[];
+
+  // 4. For each student, find their direct conversation and compute metadata
+  const result: Record<string, { conversationId: string | null; lastMessageAt: string | null; unreadCount: number }> = {};
+
+  for (const studentId of studentIds) {
+    const studentConvIds = (studentToConvIds[studentId] || []).filter((id: string) => directConvIds.has(id));
+    
+    if (!studentConvIds.length) {
+      result[studentId] = { conversationId: null, lastMessageAt: null, unreadCount: 0 };
+      continue;
+    }
+
+    // Pick the conversation with the most recent message
+    const relevantMsgs = lastMsgs.filter((m: Msg) => studentConvIds.includes(m.conversation_id));
+    const latestMsg = relevantMsgs[0] || null;
+    const convId = latestMsg?.conversation_id || studentConvIds[0];
+
+    // Count unread: messages from the STUDENT after the last message sent by the current user
+    const myLastMsg = relevantMsgs.find((m: Msg) => m.sender_id === user.id);
+    const myLastMsgAt = myLastMsg?.created_at || null;
+
+    const unreadMsgs = relevantMsgs.filter((m: Msg) => {
+      if (m.sender_id === user.id) return false; // sent by me → not unread
+      if (!myLastMsgAt) return true; // I haven't replied at all → all student msgs are unread
+      return m.created_at > myLastMsgAt;
+    });
+
+    result[studentId] = {
+      conversationId: convId,
+      lastMessageAt: latestMsg?.created_at || null,
+      unreadCount: unreadMsgs.length,
+    };
+  }
+
+  return result;
+}

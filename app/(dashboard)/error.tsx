@@ -87,10 +87,10 @@ export default function DashboardError({
           <span>
             Need help?{' '}
             <a
-              href="mailto:support@faceyoguez.com"
+              href="mailto:management@faceyoguez.com"
               className="text-[#FF8A75] font-semibold hover:underline"
             >
-              support@faceyoguez.com
+              management@faceyoguez.com
             </a>
           </span>
         </div>

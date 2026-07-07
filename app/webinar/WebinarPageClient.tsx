@@ -692,7 +692,7 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
       <footer className="bg-transparent py-12 border-t border-[#FF8A75]/10 text-center relative z-10">
         <p className="text-sm font-aktiv font-bold text-[#2a2019] mb-4">Train your face. Love your reflection.</p>
         <div className="flex justify-center gap-6 text-[11px] font-medium uppercase tracking-widest text-[#2a2019]/40">
-          <a href="mailto:support@faceyoguez.com" className="hover:text-[#FF8A75]">support@faceyoguez.com</a>
+          <a href="mailto:management@faceyoguez.com" className="hover:text-[#FF8A75]">management@faceyoguez.com</a>
           <a href="https://instagram.com/faceyoguez" target="_blank" rel="noopener noreferrer" className="hover:text-[#FF8A75]">@faceyoguez on Instagram</a>
         </div>
       </footer>

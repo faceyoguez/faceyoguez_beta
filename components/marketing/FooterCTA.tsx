@@ -144,7 +144,7 @@ export function FooterCTA() {
                   const emailInput = (e.currentTarget.elements[0] as HTMLInputElement).value;
                   pixel.newsletterSubscribed();
                   trackConversionEvent({ event_type: 'newsletter_subscribe' });
-                  window.location.href = `mailto:info@faceyoguez.com?subject=Newsletter Subscription for ${emailInput}`;
+                  window.location.href = `mailto:management@faceyoguez.com?subject=Newsletter Subscription for ${emailInput}`;
                 }}
               >
                 <input 

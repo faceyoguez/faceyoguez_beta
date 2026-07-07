@@ -18,7 +18,7 @@ import { createAndPopulateBatch, type CreateBatchInput, toggleBatchChat, getInst
 import { useRouter } from 'next/navigation';
 import type { RecordedSession, StudentResource, Profile } from '@/types/database';
 import { uploadBatchResource, getBatchResources, uploadResource, getStudentResources } from '@/lib/actions/resources';
-import { sendBatchMessage, getBatchMessages, getOrCreateSharedChat, deleteChatMessage } from '@/lib/actions/chat';
+import { sendBatchMessage, getBatchMessages, getOrCreateSharedChat, deleteChatMessage, getStudentsConversationMeta } from '@/lib/actions/chat';
 import { MessageBubble } from '@/components/chat/MessageBubble';
 import { getBatchRecordedSessions, scheduleGroupSession, getInstructorUpcomingMeetings, startMeeting, completeMeeting, deleteMeeting } from '@/lib/actions/meetings';
 import { getJourneyLogs, type JourneyLog } from '@/lib/actions/journey';
@@ -68,6 +68,8 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
    const [isSendingEmail, setIsSendingEmail] = useState(false);
    const [isZipping, setIsZipping] = useState(false);
    const [photoAngle, setPhotoAngle] = useState<'front' | 'left' | 'right'>('front');
+   // Conversation metadata for unread badges & sort by last message
+   const [convMeta, setConvMeta] = useState<Record<string, { lastMessageAt: string | null; unreadCount: number }>>({});
 
    // Meetings State
    const [upcomingMeetings, setUpcomingMeetings] = useState<any[]>([]);
@@ -132,6 +134,15 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
       setResources(initialBatchResources);
       if (batch) fetchRecordings(batch);
    }, [initialBatches, initialBatchResources]);
+
+   // Fetch unread meta when selected batch changes (has its student list)
+   useEffect(() => {
+      if (!selectedBatch?.students?.length) return;
+      const ids = (selectedBatch.students as any[]).map((s: any) => s.id || s.student_id).filter(Boolean);
+      if (ids.length > 0) {
+         getStudentsConversationMeta(ids).then(meta => setConvMeta(meta as any)).catch(console.error);
+      }
+   }, [selectedBatch?.id]);
 
    useEffect(() => {
       setStudentPage(0);
@@ -518,7 +529,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
          );
       }
 
-      // Sort: priority to plans expiring in 0-5 days
+      // Sort: priority to plans expiring in 0-5 days, then by last message
       return [...base].sort((a: any, b: any) => {
          const aExpiring = a.daysLeft >= 0 && a.daysLeft <= 5;
          const bExpiring = b.daysLeft >= 0 && b.daysLeft <= 5;
@@ -526,13 +537,19 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
          if (aExpiring && !bExpiring) return -1;
          if (!aExpiring && bExpiring) return 1;
          if (aExpiring && bExpiring) return a.daysLeft - b.daysLeft;
+
+         // Sort by most recent message
+         const aMsg = convMeta[a.id]?.lastMessageAt || '';
+         const bMsg = convMeta[b.id]?.lastMessageAt || '';
+         if (bMsg > aMsg) return 1;
+         if (aMsg > bMsg) return -1;
          
-         // Fallback: recent first
+         // Fallback: recent enrollment first
          const aDate = new Date(a.enrolled_at || a.subscription?.start_date || a.created_at || 0).getTime();
          const bDate = new Date(b.enrolled_at || b.subscription?.start_date || b.created_at || 0).getTime();
          return bDate - aDate;
       });
-   }, [studentTab, activeStudents, normalizedWaitingQueue, searchQuery]);
+   }, [studentTab, activeStudents, normalizedWaitingQueue, searchQuery, convMeta]);
 
    const totalStudentPages = Math.ceil(displayStudents.length / STUDENTS_PER_PAGE);
    const paginatedStudents = displayStudents.slice(studentPage * STUDENTS_PER_PAGE, (studentPage + 1) * STUDENTS_PER_PAGE);
@@ -941,6 +958,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                            <div className="flex-1 overflow-y-auto custom-scrollbar">
                               {paginatedStudents.map((student: any, i: number) => {
                                  const isSelected = selectedStudent?.id === student.id;
+                                 const unread = !isSelected ? (convMeta[student.id]?.unreadCount || 0) : 0;
                                  let planBadge = null;
                                  let expiringNote = null;
                                  if (student.subscription) {
@@ -965,28 +983,36 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                        onClick={() => {
                                           setSelectedStudent(student);
                                           setChatMode('private');
+                                          setConvMeta(prev => ({ ...prev, [student.id]: { ...prev[student.id], unreadCount: 0 } }));
                                        }}
                                        className={cn(
                                           "w-full p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 group mb-2",
                                           isSelected
                                              ? "bg-[#FFFAF7] border-[#FF8A75]/30 shadow-sm ring-2 ring-[#FF8A75]/5"
-                                             : "bg-white border-slate-100 hover:border-[#FF8A75]/10 hover:bg-slate-50"
+                                             : unread > 0
+                                               ? "bg-[#FF8A75]/5 border-[#FF8A75]/20 hover:bg-[#FF8A75]/10"
+                                               : "bg-white border-slate-100 hover:border-[#FF8A75]/10 hover:bg-slate-50"
                                        )}
                                     >
                                        <div className="flex items-center gap-3 min-w-0">
-                                          <div className="h-10 w-10 rounded-xl overflow-hidden ring-[2px] ring-white shadow-sm bg-slate-50 shrink-0">
+                                          <div className="h-10 w-10 rounded-xl overflow-hidden ring-[2px] ring-white shadow-sm bg-slate-50 shrink-0 relative">
                                              {student.avatar_url ? (
                                                 <img src={student.avatar_url} className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700" />
                                              ) : (
                                                 <div className="h-full w-full flex items-center justify-center text-lg font-aktiv font-bold text-[#FF8A75]">{student.full_name ? student.full_name[0] : 'S'}</div>
                                              )}
+                                             {unread > 0 && (
+                                                <span className="absolute -top-1 -right-1 h-4 min-w-4 px-0.5 rounded-full bg-[#FF8A75] text-white text-[8px] font-black flex items-center justify-center leading-none shadow animate-pulse z-10">{unread > 9 ? '9+' : unread}</span>
+                                             )}
                                           </div>
                                           <div className="text-left min-w-0 flex flex-col justify-center items-start">
                                              <div className="flex items-center gap-2">
-                                                <p className="text-[13px] text-slate-800 truncate leading-none capitalize font-bold">{student.full_name || 'Student'}</p>
+                                                <p className={cn("text-[13px] truncate leading-none capitalize font-bold", unread > 0 ? "text-[#FF8A75]" : "text-slate-800")}>{student.full_name || 'Student'}</p>
                                                 {student.daysLeft <= 5 && student.daysLeft >= 0 && <span className="h-2 w-2 rounded-full bg-red-500 animate-ping shrink-0" />}
                                              </div>
-                                             {planBadge}
+                                             {unread > 0 ? (
+                                                <span className="text-[9px] font-black text-[#FF8A75] uppercase tracking-widest mt-0.5">{unread} new message{unread > 1 ? 's' : ''}</span>
+                                             ) : planBadge}
                                              {expiringNote}
                                           </div>
                                        </div>

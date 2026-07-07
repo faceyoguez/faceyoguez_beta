@@ -717,13 +717,42 @@ export function AnglePhotoViewer({ dayNumber, photos, day1Photos, studentName, a
                     <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[#FF8A75]">Visual Progress Tracker</span>
                     <h4 className="text-sm font-bold text-slate-800 capitalize mt-0.5">{lightboxTitle}</h4>
                   </div>
-                  <button
-                    onClick={() => setLightboxUrl(null)}
-                    className="h-8 w-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-all cursor-pointer"
-                    title="Close Full View"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {/* Download button */}
+                    <button
+                      onClick={async () => {
+                        if (!lightboxUrl) return;
+                        try {
+                          const response = await fetch(lightboxUrl);
+                          const blob = await response.blob();
+                          const blobUrl = URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = blobUrl;
+                          const ext = blob.type.includes('jpeg') || blob.type.includes('jpg') ? 'jpg' : blob.type.includes('png') ? 'png' : 'jpg';
+                          a.download = `${lightboxTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.${ext}`;
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
+                          URL.revokeObjectURL(blobUrl);
+                        } catch {
+                          // Fallback: open in new tab
+                          window.open(lightboxUrl, '_blank');
+                        }
+                      }}
+                      className="h-8 w-8 rounded-full bg-slate-100 hover:bg-[#FF8A75]/10 text-slate-400 hover:text-[#FF8A75] flex items-center justify-center transition-all cursor-pointer"
+                      title="Download Photo"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                    {/* Close button */}
+                    <button
+                      onClick={() => setLightboxUrl(null)}
+                      className="h-8 w-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-all cursor-pointer"
+                      title="Close Full View"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="relative w-full aspect-[4/5] bg-slate-50 rounded-2xl overflow-hidden flex items-center justify-center border border-slate-100/80">
@@ -742,3 +771,4 @@ export function AnglePhotoViewer({ dayNumber, photos, day1Photos, studentName, a
     </div>
   );
 }
+

@@ -116,7 +116,7 @@ export default function NotFound() {
               { label: 'Face Yoga Classes', href: '/#classes' },
               { label: 'Pricing', href: '/#pricing' },
               { label: 'Login', href: '/auth/login' },
-              { label: 'Support', href: 'mailto:support@faceyoguez.com' },
+              { label: 'Support', href: 'mailto:management@faceyoguez.com' },
             ].map(({ label, href }) => (
               <Link
                 key={label}

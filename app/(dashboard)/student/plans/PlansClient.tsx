@@ -16,6 +16,7 @@ import {
 import type { Profile } from '@/types/database';
 import { consumeCouponAction } from '@/lib/actions/coupons';
 import { pixel } from '@/lib/pixel';
+import { SupportContact } from '@/components/ui/SupportContact';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPERS
@@ -735,9 +736,9 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                 )}
                             </button>
 
-                            {/* Trial button removed — no free trials */}
                         </div>
                     </div>
+                    <SupportContact className="px-5 py-3.5 bg-white rounded-2xl border border-slate-100 shadow-sm w-full justify-center" />
                 </div>
             </div>
 
@@ -870,8 +871,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                         >
                             Subscribe Now <MoveRight className="w-3 h-3" />
                         </button>
-
-                        {/* Trial button removed — no free trials */}
+                        <SupportContact className="w-full justify-center pt-2" />
                     </div>
                 </div>
             </div>

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import JSZip from 'jszip';
 import { ChatWindow } from '@/components/chat';
-import { searchStudents, getOrCreateSharedChat } from '@/lib/actions/chat';
+import { searchStudents, getOrCreateSharedChat, getStudentsConversationMeta } from '@/lib/actions/chat';
 import { uploadResource, getStudentResources } from '@/lib/actions/resources';
 import { assignInstructor } from '@/lib/actions/subscription';
 import { getJourneyLogs, type JourneyLog } from '@/lib/actions/journey';
@@ -115,9 +115,17 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
   const [isSearching, setIsSearching] = useState(false);
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
   const [isChatOpen, setIsChatOpen] = useState(false);
+  // Conversation metadata: lastMessageAt + unreadCount per student
+  const [convMeta, setConvMeta] = useState<Record<string, { lastMessageAt: string | null; unreadCount: number }>>({});
 
   useEffect(() => {
     setIsMounted(true);
+    // Fetch conversation metadata for sorting by last message
+    if (students.length > 0) {
+      getStudentsConversationMeta(students.map(s => s.id)).then(meta => {
+        setConvMeta(meta as any);
+      }).catch(console.error);
+    }
   }, []);
 
   const sortedAndFiltered = React.useMemo(() => {
@@ -139,12 +147,18 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
         if (aExpiring && !bExpiring) return -1;
         if (!aExpiring && bExpiring) return 1;
         
-        // 2. Latest onboarding (startDate desc)
+        // 2. Most recent message first
+        const aMsg = convMeta[a.id]?.lastMessageAt || '';
+        const bMsg = convMeta[b.id]?.lastMessageAt || '';
+        if (bMsg > aMsg) return 1;
+        if (aMsg > bMsg) return -1;
+
+        // 3. Latest onboarding (startDate desc) as fallback
         const aDate = a.startDate ? new Date(a.startDate).getTime() : 0;
         const bDate = b.startDate ? new Date(b.startDate).getTime() : 0;
         return bDate - aDate;
       });
-  }, [students, searchQuery, filterTrial]);
+  }, [students, searchQuery, filterTrial, convMeta]);
 
   // Reset page when filters change
   useEffect(() => {
@@ -533,20 +547,27 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                 const isEnding = !isEnded && elapsedDays >= 25;
                 const isEmergency = isEnded || isEnding;
                 const isExpiringSoon = student.daysLeft !== null && student.daysLeft !== undefined && student.daysLeft <= 5;
+                const isSelected = selectedStudent?.id === student.id;
+                const unread = !isSelected ? (convMeta[student.id]?.unreadCount || 0) : 0;
 
                 return (
                   <div
                     key={student.id}
                     role="button"
                     tabIndex={0}
-                    onClick={() => setSelectedStudent(student)}
+                    onClick={() => {
+                      setSelectedStudent(student);
+                      setConvMeta(prev => ({ ...prev, [student.id]: { ...prev[student.id], unreadCount: 0 } }));
+                    }}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedStudent(student); }}
                     className={cn(
                       "w-full flex items-center gap-3 py-2 px-3 rounded-xl transition-all text-left group cursor-pointer",
                       selectedStudent?.id === student.id
                         ? (isEmergency ? "bg-red-50/50 border border-red-500/20 shadow-md scale-[1.02]" : "bg-white border border-outline-variant/10 shadow-md scale-[1.02]")
-                        : "bg-transparent border border-transparent hover:bg-white/40 hover:border-outline-variant/5",
-                      isExpiringSoon && selectedStudent?.id !== student.id && "bg-amber-50/30 border-amber-100/50"
+                        : unread > 0
+                          ? "bg-[#FF8A75]/5 border border-[#FF8A75]/20 hover:bg-[#FF8A75]/10"
+                          : "bg-transparent border border-transparent hover:bg-white/40 hover:border-outline-variant/5",
+                      isExpiringSoon && selectedStudent?.id !== student.id && unread === 0 && "bg-amber-50/30 border-amber-100/50"
                     )}
                   >
                     <div className="relative shrink-0">
@@ -558,11 +579,16 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                         </div>
                       )}
                       <div className={cn("absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-white", isEmergency ? "bg-red-500 animate-pulse" : (student.isTrial ? "bg-primary animate-pulse" : "bg-brand-emerald"))} />
+                      {unread > 0 && (
+                        <span className="absolute -top-1.5 -right-1.5 h-4.5 min-w-4 px-1 rounded-full bg-[#FF8A75] text-white text-[8px] font-black flex items-center justify-center leading-none shadow-md animate-pulse z-10">
+                          {unread > 9 ? '9+' : unread}
+                        </span>
+                      )}
                     </div>
                     <div className="min-w-0 flex-1 flex flex-col">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-1.5 min-w-0">
-                          <h4 className={cn("text-[13px] font-aktiv font-bold truncate transition-colors", isEmergency ? "text-red-600 group-hover:text-red-700" : "text-foreground group-hover:text-primary")}>
+                          <h4 className={cn("text-[13px] font-aktiv font-bold truncate transition-colors", isEmergency ? "text-red-600 group-hover:text-red-700" : unread > 0 ? "text-primary" : "text-foreground group-hover:text-primary")}>
                             {student.full_name}
                           </h4>
                           {student.isTrial && (
@@ -576,13 +602,20 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                              </span>
                           )}
                         </div>
+                        {unread > 0 && (
+                          <span className="text-[7px] font-black text-[#FF8A75] uppercase tracking-widest whitespace-nowrap shrink-0">
+                            {unread} new
+                          </span>
+                        )}
                       </div>
-                      <p className={cn("text-[9px] font-aktiv font-bold uppercase tracking-wider truncate", isEmergency ? "text-red-500/70" : "text-foreground/30")}>
+                      <p className={cn("text-[9px] font-aktiv font-bold uppercase tracking-wider truncate", isEmergency ? "text-red-500/70" : unread > 0 ? "text-primary/60" : "text-foreground/30")}>
                         {isEmergency
                           ? (isEnded ? 'Plan Ended' : `Day ${elapsedDays}: Ending Soon`)
                           : (student.isTrial
                             ? "Not Yet Subscribed"
-                            : `Aligned: ${getInstructorName(student.assignedInstructorId) || 'Pending'}`)}
+                            : unread > 0
+                              ? `${unread} unread message${unread > 1 ? 's' : ''}`
+                              : `Aligned: ${getInstructorName(student.assignedInstructorId) || 'Pending'}`)}
                       </p>
                     </div>
                   </div>

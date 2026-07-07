@@ -64,7 +64,8 @@ export function StaffStudentTable() {
       const nameMatch = s.name?.toLowerCase().includes(searchTerm.toLowerCase());
       const emailMatch = s.email?.toLowerCase().includes(searchTerm.toLowerCase());
       const planMatch = s.plan?.toLowerCase().includes(searchTerm.toLowerCase());
-      return nameMatch || emailMatch || planMatch;
+      const couponMatch = s.couponCode?.toLowerCase().includes(searchTerm.toLowerCase());
+      return nameMatch || emailMatch || planMatch || couponMatch;
     });
   }, [students, searchTerm]);
 
@@ -145,6 +146,7 @@ export function StaffStudentTable() {
                     <th className="px-5 py-4">Joined Plan</th>
                     <th className="px-5 py-4">Plan End Date</th>
                     <th className="px-5 py-4 text-right">Amount Paid</th>
+                    <th className="px-5 py-4 text-center">Coupon</th>
                     <th className="px-5 py-4 text-center">Actions</th>
                   </tr>
                 </thead>
@@ -192,6 +194,16 @@ export function StaffStudentTable() {
                           <CreditCard className="w-3.5 h-3.5 text-slate-400" />
                           ₹{student.amountPaid.toLocaleString()}
                         </span>
+                      </td>
+                      <td className="px-5 py-3 text-center">
+                        {student.couponCode ? (
+                           <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-slate-900 text-white rounded text-[8px] font-black tracking-widest uppercase">
+                              <Tag className="w-2.5 h-2.5" />
+                              {student.couponCode}
+                           </div>
+                        ) : (
+                           <span className="text-[10px] text-slate-200 font-bold uppercase tracking-widest italic">Direct</span>
+                        )}
                       </td>
                       {/* Student Actions */}
                       <td className="px-5 py-3">
@@ -282,6 +294,18 @@ export function StaffStudentTable() {
                         <CreditCard className="w-3 h-3 text-emerald-500" />
                         ₹{student.amountPaid.toLocaleString()}
                       </span>
+                    </div>
+
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">Coupon</span>
+                      {student.couponCode ? (
+                         <span className="font-bold text-slate-700 flex items-center gap-1 uppercase">
+                            <Tag className="w-3 h-3 text-[#FF8A75]" />
+                            {student.couponCode}
+                         </span>
+                      ) : (
+                         <span className="text-slate-300 font-bold uppercase tracking-wide text-[10px] italic">Direct</span>
+                      )}
                     </div>
 
                     <div className="flex flex-col gap-0.5 col-span-2">

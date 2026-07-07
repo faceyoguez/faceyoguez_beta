@@ -226,7 +226,7 @@ function ErrorUI({ error, reset }: { error: Error & { digest?: string }; reset: 
         <p style={{ marginTop: '2.5rem', fontSize: '13px', color: '#aaa' }}>
           Need help?{' '}
           <a
-            href="mailto:support@faceyoguez.com"
+            href="mailto:management@faceyoguez.com"
             style={{ color: '#FF8A75', textDecoration: 'none', fontWeight: '600' }}
           >
             Contact support

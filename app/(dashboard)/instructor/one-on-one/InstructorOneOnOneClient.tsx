@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { ChatWindow } from '@/components/chat';
-import { getOrCreateSharedChat } from '@/lib/actions/chat';
+import { getOrCreateSharedChat, getStudentsConversationMeta } from '@/lib/actions/chat';
 import { uploadResource, getStudentResources } from '@/lib/actions/resources';
 import { getInstructorUpcomingMeetings, deleteMeeting } from '@/lib/actions/meetings';
 import { createClient } from '@/lib/supabase/client';
@@ -54,6 +54,9 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
   const [selectedStudent, setSelectedStudent] = useState<StudentInfo | null>(students[0] || null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  // Conversation metadata: lastMessageAt + unreadCount per student
+  const [convMeta, setConvMeta] = useState<Record<string, { lastMessageAt: string | null; unreadCount: number }>>({});
   const supabase = useMemo(() => createClient(), []);
   
   const [resources, setResources] = useState<StudentResource[]>([]);
@@ -66,10 +69,15 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
   const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
   const [meetingDateTime, setMeetingDateTime] = useState('');
   const [isScheduling, setIsScheduling] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
+    // Fetch conversation metadata for all students to sort by last message
+    if (students.length > 0) {
+      getStudentsConversationMeta(students.map(s => s.id)).then(meta => {
+        setConvMeta(meta as any);
+      }).catch(console.error);
+    }
   }, []);
 
   const [notes, setNotes] = useState('');
@@ -224,9 +232,19 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
     }
   };
 
-  const filteredStudents = students.filter((s: StudentInfo) => 
-    s.full_name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredStudents = useMemo(() => {
+    const base = students.filter((s: StudentInfo) =>
+      s.full_name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    // Sort by most recent message first
+    return [...base].sort((a, b) => {
+      const aTime = convMeta[a.id]?.lastMessageAt || '';
+      const bTime = convMeta[b.id]?.lastMessageAt || '';
+      if (bTime > aTime) return 1;
+      if (aTime > bTime) return -1;
+      return 0;
+    });
+  }, [students, searchQuery, convMeta]);
 
   const activeLog = journeyLogs.find((l: JourneyLog) => l.day_number === activeStepDay);
   const day1Log   = journeyLogs.find((l: JourneyLog) => l.day_number === 1);
@@ -300,10 +318,15 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                {filteredStudents.map((student: StudentInfo) => {
                   const isSelected = selectedStudent?.id === student.id;
                   const currentDay = student.startDate && isMounted ? Math.max(1, Math.floor((Date.now() - new Date(student.startDate).getTime()) / 86400000) + 1) : 1;
+                  const unread = !isSelected ? (convMeta[student.id]?.unreadCount || 0) : 0;
                   return (
                      <button
                         key={student.id}
-                        onClick={() => setSelectedStudent(student)}
+                        onClick={() => {
+                          setSelectedStudent(student);
+                          // Mark as read locally
+                          setConvMeta(prev => ({ ...prev, [student.id]: { ...prev[student.id], unreadCount: 0 } }));
+                        }}
                         className={cn(
                            "flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all shrink-0 border whitespace-nowrap relative overflow-hidden",
                            isSelected 
@@ -312,7 +335,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                         )}
                      >
                          <div className={cn(
-                           "h-7 w-7 rounded-lg overflow-hidden flex items-center justify-center shrink-0 border border-white transition-all",
+                           "h-7 w-7 rounded-lg overflow-hidden flex items-center justify-center shrink-0 border border-white transition-all relative",
                            isSelected ? "bg-[#FF8A75]/10" : "bg-slate-100"
                          )}>
                            {student.avatar_url ? (
@@ -320,16 +343,19 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                            ) : (
                               <span className={cn("text-xs font-aktiv font-bold", isSelected ? "text-[#FF8A75]" : "text-slate-400")}>{student.full_name[0]}</span>
                            )}
-                        </div>
+                           {unread > 0 && (
+                             <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-[#FF8A75] text-white text-[8px] font-black flex items-center justify-center leading-none shadow">{unread > 9 ? '9+' : unread}</span>
+                           )}
+                         </div>
                          <div className="text-left flex-1 min-w-0 pr-1">
-                            <p className={cn("text-[10px] font-bold tracking-tight capitalize truncate", isSelected ? "text-slate-900" : "text-slate-600")}>
+                            <p className={cn("text-[10px] font-bold tracking-tight capitalize truncate", isSelected ? "text-slate-900" : unread > 0 ? "text-slate-900 font-black" : "text-slate-600")}>
                                {student.full_name}
                             </p>
                             <p className={cn(
                               "text-[7px] font-black uppercase tracking-widest mt-0.5",
-                              isSelected ? "text-[#FF8A75]" : "text-slate-400"
+                              isSelected ? "text-[#FF8A75]" : unread > 0 ? "text-[#FF8A75]" : "text-slate-400"
                             )}>
-                               Day {currentDay}
+                               {unread > 0 ? `${unread} new msg${unread > 1 ? 's' : ''}` : `Day ${currentDay}`}
                             </p>
                         </div>
                      </button>
@@ -345,13 +371,17 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                {filteredStudents.map((student: StudentInfo, idx: number) => {
                   const isSelected = selectedStudent?.id === student.id;
                   const currentDay = student.startDate && isMounted ? Math.max(1, Math.floor((Date.now() - new Date(student.startDate).getTime()) / 86400000) + 1) : 1;
+                  const unread = !isSelected ? (convMeta[student.id]?.unreadCount || 0) : 0;
                   return (
                      <motion.button
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: idx * 0.05 }}
                         key={student.id}
-                        onClick={() => setSelectedStudent(student)}
+                        onClick={() => {
+                          setSelectedStudent(student);
+                          setConvMeta(prev => ({ ...prev, [student.id]: { ...prev[student.id], unreadCount: 0 } }));
+                        }}
                         className={cn(
                            "flex items-center gap-3 px-3 py-2 rounded-xl transition-all shrink-0 border whitespace-nowrap group relative overflow-hidden",
                            isSelected 
@@ -361,7 +391,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                      >
                          {isSelected && <motion.div layoutId="activeStudentHighlightDesktop" className="absolute left-0 top-0 bottom-0 w-0.5 bg-[#FF8A75]" />}
                          <div className={cn(
-                           "h-9 w-9 rounded-lg overflow-hidden shadow-inner flex items-center justify-center shrink-0 border border-white transition-all",
+                           "h-9 w-9 rounded-lg overflow-hidden shadow-inner flex items-center justify-center shrink-0 border border-white transition-all relative",
                            isSelected ? "bg-[#FF8A75]/10" : "bg-slate-100"
                          )}>
                            {student.avatar_url ? (
@@ -369,14 +399,17 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                            ) : (
                               <span className={cn("text-sm font-aktiv font-bold", isSelected ? "text-[#FF8A75]" : "text-slate-400")}>{student.full_name[0]}</span>
                            )}
-                        </div>
+                           {unread > 0 && (
+                             <span className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-[#FF8A75] text-white text-[8px] font-black flex items-center justify-center leading-none shadow animate-pulse">{unread > 9 ? '9+' : unread}</span>
+                           )}
+                         </div>
                          <div className="text-left flex-1 min-w-0">
-                            <p className={cn("text-[11px] font-bold tracking-tight capitalize truncate", isSelected ? "text-slate-900" : "text-slate-600 group-hover:text-slate-800")}>
+                            <p className={cn("text-[11px] font-bold tracking-tight capitalize truncate", isSelected ? "text-slate-900" : unread > 0 ? "text-slate-900 font-black" : "text-slate-600 group-hover:text-slate-800")}>
                                {student.full_name}
                             </p>
                             <p className={cn(
                               "text-[8px] font-black uppercase tracking-widest mt-0.5",
-                              isSelected ? "text-[#FF8A75]" : "text-slate-400"
+                              isSelected ? "text-[#FF8A75]" : unread > 0 ? "text-[#FF8A75]" : "text-slate-400"
                             )}>
                                Day {currentDay} Progress
                             </p>
