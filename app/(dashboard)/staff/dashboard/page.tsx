@@ -2,8 +2,14 @@ import { redirect } from 'next/navigation';
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
 import { getLiveGrowthMetrics } from '@/lib/actions/subscription';
 import { checkExpiringSubscriptions } from '@/lib/actions/batches';
-import { Users, Crown, Radio, ShieldCheck } from 'lucide-react';
+import { Users, Crown, Radio, ShieldCheck, Video, Calendar } from 'lucide-react';
 import { StaffStudentTable } from './StaffStudentTable';
+import { format, startOfDay, endOfDay, addMinutes } from 'date-fns';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
+import { formatISTDate, formatISTTime, getSessionStatus } from '@/lib/utils';
+import { completeMeeting } from '@/lib/actions/meetings';
+import { CancelMeetingButton } from '@/components/CancelMeetingButton';
 
 const STAFF_ROLES = ['admin', 'staff', 'client_management'];
 
@@ -25,6 +31,20 @@ export default async function StaffDashboardPage() {
   checkExpiringSubscriptions().catch(() => {});
 
   const metrics = await getLiveGrowthMetrics();
+
+  // Fetch today's meetings (all group + 1-on-1 sessions)
+  const now = new Date();
+  const todayStart = startOfDay(now).toISOString();
+  const todayEnd = endOfDay(now).toISOString();
+
+  const { data: todaysMeetingsRaw } = await admin
+    .from('meetings')
+    .select('*')
+    .gte('start_time', todayStart)
+    .lte('start_time', todayEnd)
+    .order('start_time', { ascending: true });
+
+  const todaysMeetings = todaysMeetingsRaw || [];
 
   const statCards = [
     { 
@@ -157,6 +177,104 @@ export default async function StaffDashboardPage() {
               ))}
             </div>
           </div>
+
+          {/* ─── Session Timetable ─── */}
+          <section className="flex flex-col gap-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <h2 className="text-2xl font-aktiv font-bold text-slate-900 tracking-tight">Today&apos;s Sessions</h2>
+                <p className="text-[8px] font-black uppercase tracking-[0.4em] text-[#FF8A75] opacity-60">Scheduled Sessions</p>
+              </div>
+              <div className="px-4 py-2 bg-white/60 backdrop-blur-3xl rounded-2xl border border-[#FF8A75]/10 shadow-sm">
+                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">
+                  {format(now, 'EEEE, MMM d')}
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {todaysMeetings.length === 0 ? (
+                <div className="col-span-full p-12 bg-white/40 backdrop-blur-3xl border border-dashed border-[#FF8A75]/10 rounded-3xl text-center space-y-4">
+                  <Calendar className="w-8 h-8 text-[#FF8A75]/20 mx-auto" />
+                  <p className="text-sm font-bold text-slate-300 text-center">No sessions scheduled for today.</p>
+                </div>
+              ) : (
+                todaysMeetings.map((meeting: any) => {
+                  const status = getSessionStatus(meeting.start_time, meeting.duration_minutes || 45, meeting.calendar_event_id);
+                  const isLive = status === 'live';
+                  const isExpired = status === 'expired';
+                  const isCompleted = status === 'completed';
+                  const isUpcoming = new Date(meeting.start_time) > now;
+
+                  return (
+                    <div key={meeting.id} className={cn(
+                      "group flex flex-col gap-3 p-5 rounded-3xl transition-all duration-700 bg-white border",
+                      isLive ? "border-[#FF8A75]/30 shadow-xl shadow-[#FF8A75]/10 ring-2 ring-[#FF8A75]/5" 
+                      : isExpired ? "border-slate-100 opacity-60"
+                      : isCompleted ? "border-emerald-100 bg-emerald-50/30"
+                      : "border-[#FF8A75]/5 hover:border-[#FF8A75]/20 shadow-sm"
+                    )}>
+                      <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-xl bg-[#FF8A75]/5 flex items-center justify-center text-[#FF8A75] shrink-0 border border-[#FF8A75]/10">
+                          <Video className="w-5 h-5" />
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <h4 className={cn("text-sm font-bold tracking-tight truncate", isExpired ? 'line-through text-slate-400' : isCompleted ? 'text-slate-500' : 'text-[#1a1a1a]')}>{meeting.topic}</h4>
+                              {isLive && <div className="h-1.5 w-1.5 rounded-full bg-[#FF8A75] animate-pulse" />}
+                              {isExpired && <span className="text-[7px] font-black uppercase tracking-widest text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">Expired</span>}
+                              {isCompleted && <span className="text-[7px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded-full">✓ Completed</span>}
+                            </div>
+                            <div className="flex items-center gap-3 flex-wrap">
+                               <span className="text-[10px] font-bold text-slate-400">
+                                 {formatISTDate(meeting.start_time)} · {formatISTTime(meeting.start_time)} IST
+                               </span>
+                               <span className="text-[7px] font-black uppercase tracking-widest text-[#FF8A75]/60 px-2 py-0.5 rounded-md bg-[#FF8A75]/5">
+                                 {meeting.meeting_type === 'one_on_one' ? 'Private' : 'Group'}
+                               </span>
+                            </div>
+                        </div>
+
+                        <div className="shrink-0 flex items-center gap-2">
+                          {isCompleted ? (
+                            <span className="text-[9px] font-black uppercase text-emerald-500">Done</span>
+                          ) : isExpired ? (
+                            <span className="text-[7px] font-black uppercase text-slate-300">Expired</span>
+                          ) : (isLive || isUpcoming) ? (
+                            <Link 
+                              href={meeting.start_url || meeting.join_url} 
+                              target="_blank" 
+                              className={cn(
+                                "h-10 px-4 rounded-xl text-white text-[8px] font-black uppercase tracking-widest flex items-center justify-center transition-all",
+                                isLive 
+                                  ? "bg-[#FF8A75] shadow-[0_0_15px_rgba(255,138,117,0.4)] animate-pulse" 
+                                  : "bg-[#1a1a1a] hover:bg-[#FF8A75]"
+                              )}
+                            >
+                              {isLive ? 'Join Live' : 'View'}
+                            </Link>
+                          ) : null}
+                          {/* Mark Complete button — only when LIVE */}
+                          {isLive && (
+                            <form action={async () => { 'use server'; await completeMeeting(meeting.id); }}>
+                              <button type="submit" className="h-10 px-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-[8px] font-black uppercase tracking-widest hover:bg-emerald-100 transition-all">
+                                ✓ Done
+                              </button>
+                            </form>
+                          )}
+                          {/* Cancel/Delete button — only if not completed/expired */}
+                          {!isCompleted && !isExpired && (
+                            <CancelMeetingButton meetingId={meeting.id} />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </section>
 
           {/* Student Table Section */}
           <StaffStudentTable />

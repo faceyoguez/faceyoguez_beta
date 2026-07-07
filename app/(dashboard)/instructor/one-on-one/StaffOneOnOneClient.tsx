@@ -707,58 +707,6 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                           <Mail className="w-3.5 h-3.5" /> {selectedStudent.email}
                         </a>
                       </div>
-                      
-                      {/* Next Scheduled Meeting Card under the schedule section */}
-                      {nextMeeting && (() => {
-                          const status = getSessionStatus(nextMeeting.start_time, nextMeeting.duration_minutes || 45, nextMeeting.calendar_event_id);
-                          const isExpired = status === 'expired';
-                          const isCompleted = status === 'completed';
-                          return (
-                          <div 
-                            onClick={() => !isExpired && !isCompleted && window.open(nextMeeting.join_url, '_blank')}
-                            className={cn(
-                              "mt-3 border rounded-2xl p-4 transition-all duration-300 shadow-sm flex items-center justify-between gap-3 max-w-md",
-                              isExpired ? "bg-slate-50 border-slate-100 opacity-60 cursor-default"
-                              : isCompleted ? "bg-emerald-50 border-emerald-100 cursor-default"
-                              : "cursor-pointer bg-primary/10 border-primary/20 hover:bg-primary/15"
-                            )}
-                          >
-                            <div className="flex items-center gap-3 min-w-0">
-                              <div className={cn("h-8 w-8 rounded-xl flex items-center justify-center shrink-0", isCompleted ? 'bg-emerald-200 text-emerald-700' : 'bg-primary text-white')}>
-                                <Video className="w-4 h-4" />
-                              </div>
-                              <div className="min-w-0">
-                                <div className="flex items-center gap-1.5 flex-wrap">
-                                  <span className="text-[7px] font-black uppercase tracking-[0.2em] text-primary">Scheduled Live Session</span>
-                                  {isExpired && <span className="text-[7px] font-black uppercase tracking-widest text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">Expired</span>}
-                                  {isCompleted && <span className="text-[7px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded-full">✓ Done</span>}
-                                </div>
-                                <h4 className={cn("text-xs font-bold truncate mt-0.5", isExpired ? 'line-through text-slate-400' : isCompleted ? 'text-slate-500' : 'text-foreground')}>{nextMeeting.topic}</h4>
-                                <p className="text-[9px] font-medium text-foreground/60 mt-0.5">
-                                  {formatISTDate(nextMeeting.start_time)} · {formatISTTime(nextMeeting.start_time)} IST
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1.5 shrink-0">
-                               {!isExpired && !isCompleted && (
-                                 <button
-                                   onClick={async (e) => {
-                                     e.stopPropagation();
-                                     if (confirm("Are you sure you want to cancel this meeting? An apology email will be sent to the student.")) {
-                                       await handleDeleteMeeting(nextMeeting.id);
-                                     }
-                                   }}
-                                   className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-                                   title="Cancel/Delete Meeting"
-                                 >
-                                   <Trash2 className="w-3.5 h-3.5" />
-                                 </button>
-                               )}
-                               {!isExpired && !isCompleted && <ChevronRight className="w-4 h-4 text-primary shrink-0" />}
-                             </div>
-                          </div>
-                          );
-                       })()}
                     </div>
 
                   <div className="flex items-center gap-3">
@@ -797,59 +745,64 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                 {/* Journey & Transformation Focus */}
                 <div className="p-4 lg:p-10 space-y-8 lg:space-y-12">
 
-                  {/* Next Scheduled Meeting Card */}
-                  {nextMeeting && (() => {
-                        const status = getSessionStatus(nextMeeting.start_time, nextMeeting.duration_minutes || 45, nextMeeting.calendar_event_id);
+                  {/* Scheduled Live Sessions */}
+                  {studentMeetings.length > 0 && (
+                    <div className="space-y-3">
+                      {studentMeetings.map((meeting) => {
+                        const status = getSessionStatus(meeting.start_time, meeting.duration_minutes || 45, meeting.calendar_event_id);
                         const isExpired = status === 'expired';
                         const isCompleted = status === 'completed';
                         return (
-                        <div 
-                          onClick={() => !isExpired && !isCompleted && window.open(nextMeeting.join_url, '_blank')}
-                          className={cn(
-                            "border rounded-3xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all duration-300 shadow-sm",
-                            isExpired ? "bg-slate-50 border-slate-100 opacity-60 cursor-default"
-                            : isCompleted ? "bg-emerald-50 border-emerald-100 cursor-default"
-                            : "cursor-pointer bg-primary/10 border-primary/20 hover:bg-primary/15"
-                          )}
-                        >
-                          <div className="flex items-center gap-3.5">
-                            <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0", isCompleted ? 'bg-emerald-200 text-emerald-700' : 'bg-primary text-white')}>
-                              <Video className="w-5 h-5" />
-                            </div>
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-[8px] font-black uppercase tracking-[0.2em] text-primary">Scheduled Live Session</span>
-                                {isExpired && <span className="text-[7px] font-black uppercase tracking-widest text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">Expired</span>}
-                                {isCompleted && <span className="text-[7px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded-full">✓ Completed</span>}
+                          <div 
+                            key={meeting.id}
+                            onClick={() => !isExpired && !isCompleted && window.open(meeting.join_url, '_blank')}
+                            className={cn(
+                              "border rounded-3xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all duration-300 shadow-sm",
+                              isExpired ? "bg-slate-50 border-slate-100 opacity-60 cursor-default"
+                              : isCompleted ? "bg-emerald-50 border-emerald-100 cursor-default"
+                              : "cursor-pointer bg-primary/10 border-primary/20 hover:bg-primary/15"
+                            )}
+                          >
+                            <div className="flex items-center gap-3.5">
+                              <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0", isCompleted ? 'bg-emerald-200 text-emerald-700' : 'bg-primary text-white')}>
+                                <Video className="w-5 h-5" />
                               </div>
-                              <h4 className={cn("text-sm font-bold truncate mt-0.5", isExpired ? 'line-through text-slate-400' : isCompleted ? 'text-slate-500' : 'text-slate-800')}>{nextMeeting.topic}</h4>
-                              <p className="text-[10px] font-medium text-slate-500 mt-0.5">
-                                {formatISTDate(nextMeeting.start_time)} · {formatISTTime(nextMeeting.start_time)} IST
-                              </p>
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="text-[8px] font-black uppercase tracking-[0.2em] text-primary">Scheduled Live Session</span>
+                                  {isExpired && <span className="text-[7px] font-black uppercase tracking-widest text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">Expired</span>}
+                                  {isCompleted && <span className="text-[7px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded-full">✓ Completed</span>}
+                                </div>
+                                <h4 className={cn("text-sm font-bold truncate mt-0.5", isExpired ? 'line-through text-slate-400' : isCompleted ? 'text-slate-500' : 'text-slate-800')}>{meeting.topic}</h4>
+                                <p className="text-[10px] font-medium text-slate-500 mt-0.5">
+                                  {formatISTDate(meeting.start_time)} · {formatISTTime(meeting.start_time)} IST
+                                </p>
+                              </div>
                             </div>
+                            {!isExpired && !isCompleted && (
+                              <div className="shrink-0 flex items-center gap-3">
+                                <button
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    if (confirm("Are you sure you want to cancel this meeting? An apology email will be sent to the student.")) {
+                                      await handleDeleteMeeting(meeting.id);
+                                    }
+                                  }}
+                                  className="p-2.5 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 border border-slate-100 transition-colors"
+                                  title="Cancel/Delete Meeting"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                                <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-primary bg-white border border-primary/10 px-3.5 py-2 rounded-xl">
+                                  Join Call <ChevronRight className="w-3.5 h-3.5" />
+                                </div>
+                              </div>
+                            )}
                           </div>
-                          {!isExpired && !isCompleted && (
-                            <div className="shrink-0 flex items-center gap-3">
-                              <button
-                                onClick={async (e) => {
-                                  e.stopPropagation();
-                                  if (confirm("Are you sure you want to cancel this meeting? An apology email will be sent to the student.")) {
-                                    await handleDeleteMeeting(nextMeeting.id);
-                                  }
-                                }}
-                                className="p-2.5 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 border border-slate-100 transition-colors"
-                                title="Cancel/Delete Meeting"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                              <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-primary bg-white border border-primary/10 px-3.5 py-2 rounded-xl">
-                                Join Call <ChevronRight className="w-3.5 h-3.5" />
-                              </div>
-                            </div>
-                          )}
-                        </div>
                         );
-                     })()}
+                      })}
+                    </div>
+                  )}
 
                   {/* Image Comparison / Visual Log */}
                   <div className="grid grid-cols-1 gap-10">

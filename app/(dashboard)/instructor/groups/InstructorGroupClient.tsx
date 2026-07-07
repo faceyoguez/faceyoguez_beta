@@ -781,23 +781,17 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                     <h3 className="text-xl font-bold text-slate-800 tracking-tight">{chatMode === 'batch' ? 'Group Chat' : 'Private Chat'}</h3>
                                     <p className="text-[9px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">Messages are live</p>
                                  </div>
-                                 {!selectedBatch?.is_chat_enabled && chatMode === 'batch' && (
-                                    <div className="px-3 py-1 rounded-full bg-red-50 border border-red-100 flex items-center gap-2">
-                                       <div className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
-                                       <span className="text-[8px] font-bold uppercase tracking-widest text-red-500">Chat Disabled</span>
-                                    </div>
-                                 )}
                               </div>
                               <div className="flex items-center gap-4">
-                                 <div className="flex bg-slate-100 p-1 rounded-xl">
+                                 <div className="flex bg-slate-100 p-0.5 rounded-lg">
                                     <button 
                                        onClick={() => setChatMode('batch')}
                                        className={cn(
-                                          "px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all flex items-center gap-2",
+                                          "px-2 py-1 rounded-md text-[7px] font-bold uppercase tracking-widest transition-all flex items-center gap-1",
                                           chatMode === 'batch' ? "bg-white text-[#FF8A75] shadow-sm" : "text-slate-400 hover:text-slate-600"
                                        )}
                                     >
-                                       <Users className="w-3 h-3" />
+                                       <Users className="w-2.5 h-2.5" />
                                        Batch
                                     </button>
                                     <button 
@@ -809,11 +803,11 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                           setChatMode('private');
                                        }}
                                        className={cn(
-                                          "px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all flex items-center gap-2",
+                                          "px-2 py-1 rounded-md text-[7px] font-bold uppercase tracking-widest transition-all flex items-center gap-1",
                                           chatMode === 'private' ? "bg-white text-[#FF8A75] shadow-sm" : "text-slate-400 hover:text-slate-600"
                                        )}
                                     >
-                                       <MessageCircle className="w-3 h-3" />
+                                       <MessageCircle className="w-2.5 h-2.5" />
                                        Private
                                     </button>
                                  </div>
@@ -831,13 +825,13 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                        }
                                     }}
                                     className={cn(
-                                       "h-9 px-4 rounded-xl flex items-center gap-2 transition-all text-[9px] font-bold uppercase tracking-widest border",
+                                       "h-7 px-2.5 rounded-lg flex items-center gap-1.5 transition-all text-[7px] font-bold uppercase tracking-widest border",
                                        selectedBatch?.is_chat_enabled
                                           ? "bg-slate-50 border-slate-200 text-slate-500 hover:text-[#FF8A75] hover:border-[#FF8A75]/30 hover:bg-white"
                                           : "bg-[#FF8A75] border-[#FF8A75] text-white shadow-sm shadow-[#FF8A75]/30"
                                     )}
                                  >
-                                    {selectedBatch?.is_chat_enabled ? <ShieldCheck className="w-4 h-4" /> : <ShieldAlert className="w-4 h-4" />}
+                                    {selectedBatch?.is_chat_enabled ? <ShieldCheck className="w-3 h-3" /> : <ShieldAlert className="w-3 h-3" />}
                                     {selectedBatch?.is_chat_enabled ? "Enabled" : "Disabled"}
                                  </button>
                               </div>

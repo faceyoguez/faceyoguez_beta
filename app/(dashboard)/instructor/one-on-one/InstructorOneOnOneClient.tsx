@@ -449,59 +449,64 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
 
                <div className="space-y-6 pb-12 lg:pb-0">
 
-                  {/* Next Scheduled Meeting Card */}
-                   {nextMeeting && (() => {
-                      const status = getSessionStatus(nextMeeting.start_time, nextMeeting.duration_minutes || 45, nextMeeting.calendar_event_id);
-                      const isExpired = status === 'expired';
-                      const isCompleted = status === 'completed';
-                      return (
-                      <div 
-                         onClick={() => !isExpired && !isCompleted && window.open(nextMeeting.start_url || nextMeeting.join_url, '_blank')}
-                         className={cn(
-                           "border rounded-3xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all duration-300 shadow-sm",
-                           isExpired ? "bg-slate-50 border-slate-100 opacity-60 cursor-default" 
-                           : isCompleted ? "bg-emerald-50 border-emerald-100 cursor-default"
-                           : "cursor-pointer bg-[#FF8A75]/10 border-[#FF8A75]/20 hover:bg-[#FF8A75]/15"
-                         )}
-                      >
-                         <div className="flex items-center gap-3.5">
-                            <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0", isCompleted ? 'bg-emerald-200 text-emerald-700' : 'bg-[#FF8A75] text-white')}>
-                               <Video className="w-5 h-5" />
-                            </div>
-                            <div className="min-w-0">
-                               <div className="flex items-center gap-2">
-                                  <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[#FF8A75]">Scheduled Live Session</span>
-                                  {isExpired && <span className="text-[7px] font-black uppercase tracking-widest text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">Expired</span>}
-                                  {isCompleted && <span className="text-[7px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded-full">✓ Completed</span>}
-                               </div>
-                               <h4 className={cn("text-sm font-bold truncate mt-0.5", isExpired ? 'line-through text-slate-400' : isCompleted ? 'text-slate-500' : 'text-slate-800')}>{nextMeeting.topic}</h4>
-                               <p className="text-[10px] font-medium text-slate-500 mt-0.5">
-                                  {formatISTDate(nextMeeting.start_time)} · {formatISTTime(nextMeeting.start_time)} IST
-                               </p>
-                            </div>
-                         </div>
-                         {!isExpired && !isCompleted && (
-                            <div className="shrink-0 flex items-center gap-3">
-                               <button
-                                 onClick={async (e) => {
-                                   e.stopPropagation();
-                                   if (confirm("Are you sure you want to cancel this meeting? An apology email will be sent to the student.")) {
-                                     await handleDeleteMeeting(nextMeeting.id);
-                                   }
-                                 }}
-                                 className="p-2.5 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 border border-slate-100 transition-colors"
-                                 title="Cancel/Delete Meeting"
-                               >
-                                 <Trash2 className="w-4 h-4" />
-                               </button>
-                               <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-[#FF8A75] bg-white border border-[#FF8A75]/10 px-3.5 py-2 rounded-xl">
-                                  Join Call <ExternalLink className="w-3.5 h-3.5" />
-                               </div>
-                            </div>
-                         )}
-                      </div>
-                      );
-                   })()}
+                  {/* Scheduled Live Sessions */}
+                  {studentMeetings.length > 0 && (
+                     <div className="space-y-3">
+                        {studentMeetings.map((meeting) => {
+                           const status = getSessionStatus(meeting.start_time, meeting.duration_minutes || 45, meeting.calendar_event_id);
+                           const isExpired = status === 'expired';
+                           const isCompleted = status === 'completed';
+                           return (
+                              <div 
+                                 key={meeting.id}
+                                 onClick={() => !isExpired && !isCompleted && window.open(meeting.start_url || meeting.join_url, '_blank')}
+                                 className={cn(
+                                   "border rounded-3xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all duration-300 shadow-sm",
+                                   isExpired ? "bg-slate-50 border-slate-100 opacity-60 cursor-default" 
+                                   : isCompleted ? "bg-emerald-50 border-emerald-100 cursor-default"
+                                   : "cursor-pointer bg-[#FF8A75]/10 border-[#FF8A75]/20 hover:bg-[#FF8A75]/15"
+                                 )}
+                              >
+                                 <div className="flex items-center gap-3.5">
+                                    <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0", isCompleted ? 'bg-emerald-200 text-emerald-700' : 'bg-[#FF8A75] text-white')}>
+                                       <Video className="w-5 h-5" />
+                                    </div>
+                                    <div className="min-w-0">
+                                       <div className="flex items-center gap-2">
+                                          <span className="text-[8px] font-black uppercase tracking-[0.2em] text-[#FF8A75]">Scheduled Live Session</span>
+                                          {isExpired && <span className="text-[7px] font-black uppercase tracking-widest text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">Expired</span>}
+                                          {isCompleted && <span className="text-[7px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded-full">✓ Completed</span>}
+                                       </div>
+                                       <h4 className={cn("text-sm font-bold truncate mt-0.5", isExpired ? 'line-through text-slate-400' : isCompleted ? 'text-slate-500' : 'text-slate-800')}>{meeting.topic}</h4>
+                                       <p className="text-[10px] font-medium text-slate-500 mt-0.5">
+                                          {formatISTDate(meeting.start_time)} · {formatISTTime(meeting.start_time)} IST
+                                       </p>
+                                    </div>
+                                 </div>
+                                 {!isExpired && !isCompleted && (
+                                    <div className="shrink-0 flex items-center gap-3">
+                                       <button
+                                         onClick={async (e) => {
+                                           e.stopPropagation();
+                                           if (confirm("Are you sure you want to cancel this meeting? An apology email will be sent to the student.")) {
+                                             await handleDeleteMeeting(meeting.id);
+                                           }
+                                         }}
+                                         className="p-2.5 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 border border-slate-100 transition-colors"
+                                         title="Cancel/Delete Meeting"
+                                       >
+                                         <Trash2 className="w-4 h-4" />
+                                       </button>
+                                       <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-[#FF8A75] bg-white border border-[#FF8A75]/10 px-3.5 py-2 rounded-xl">
+                                          Join Call <ExternalLink className="w-3.5 h-3.5" />
+                                       </div>
+                                    </div>
+                                 )}
+                              </div>
+                           );
+                        })}
+                     </div>
+                  )}
 
                   {/* 3-Angle Photo Viewer for instructor */}
                   <div className="rounded-3xl bg-white/60 backdrop-blur-xl border border-white/60 shadow-lg shadow-[#FF8A75]/5 p-5 lg:p-6">
