@@ -4,7 +4,7 @@ import { useState, createContext, useContext, useEffect, useCallback, useRef } f
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { getGlobalUnreadChatCounts } from '@/lib/actions/chat_unread';
+import { getGlobalUnreadChatCounts, getStudentGlobalUnreadCounts } from '@/lib/actions/chat_unread';
 import { toast } from 'sonner';
 import {
   LayoutDashboard,
@@ -124,19 +124,58 @@ export function AppSidebar({
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [chatUnreadCounts, setChatUnreadCounts] = useState({ unreadOneOnOne: 0, unreadGroup: 0 });
+  const [studentUnreadCounts, setStudentUnreadCounts] = useState({
+    oneOnOneMessages: 0,
+    oneOnOneResources: 0,
+    groupMessages: 0,
+    groupResources: 0
+  });
+
+  const pathname = usePathname();
 
   useEffect(() => {
     if (['instructor', 'staff', 'admin', 'client_management'].includes(user.role)) {
       getGlobalUnreadChatCounts().then(counts => {
         setChatUnreadCounts(counts);
       }).catch(console.error);
+    } else if (user.role === 'student') {
+      getStudentGlobalUnreadCounts().then(res => {
+        const lastOneOnOneView = localStorage.getItem('last_viewed_resources_one_on_one');
+        const lastGroupView = localStorage.getItem('last_viewed_resources_group');
+
+        const newOneOnOneResources = res.oneOnOneResources.filter(time => {
+          if (!lastOneOnOneView) return true;
+          return new Date(time) > new Date(lastOneOnOneView);
+        }).length;
+
+        const newGroupResources = res.groupResources.filter(time => {
+          if (!lastGroupView) return true;
+          return new Date(time) > new Date(lastGroupView);
+        }).length;
+
+        setStudentUnreadCounts({
+          oneOnOneMessages: res.oneOnOneUnreadMessages,
+          oneOnOneResources: newOneOnOneResources,
+          groupMessages: res.groupUnreadMessages,
+          groupResources: newGroupResources
+        });
+      }).catch(console.error);
     }
-  }, [user.role]);
+  }, [user.role, pathname]);
+
+  useEffect(() => {
+    if (user.role === 'student') {
+      if (pathname === '/student/one-on-one') {
+        localStorage.setItem('last_viewed_resources_one_on_one', new Date().toISOString());
+      } else if (pathname === '/student/group-session') {
+        localStorage.setItem('last_viewed_resources_group', new Date().toISOString());
+      }
+    }
+  }, [pathname, user.role]);
 
   // Touch-swipe-to-close on mobile
   const touchStartX = useRef<number | null>(null);
 
-  const pathname = usePathname();
   const router = useRouter();
   const links = navConfig[user.role as keyof typeof navConfig] ?? navConfig.student;
 
@@ -383,14 +422,40 @@ export function AppSidebar({
                         )} />
                         {/* Superscript unread badge on icon */}
                         {(() => {
-                          const isChatLink = path.includes('one-on-one') || path.includes('groups');
-                          if (!isChatLink) return null;
-                          const unread = path.includes('one-on-one') ? chatUnreadCounts.unreadOneOnOne : chatUnreadCounts.unreadGroup;
-                          if (unread > 0 && ['instructor', 'staff', 'admin', 'client_management'].includes(user.role)) {
+                          if (['instructor', 'staff', 'admin', 'client_management'].includes(user.role)) {
+                            const isChatLink = path.includes('one-on-one') || path.includes('groups');
+                            if (!isChatLink) return null;
+                            const unread = path.includes('one-on-one') ? chatUnreadCounts.unreadOneOnOne : chatUnreadCounts.unreadGroup;
+                            if (unread > 0) {
+                              return (
+                                <span className="absolute -top-1 -right-1 h-[14px] min-w-[14px] px-0.5 rounded-full bg-[#FF8A75] text-white text-[7px] font-black flex items-center justify-center leading-none shadow-sm animate-pulse z-10">
+                                  {unread > 9 ? '9+' : unread}
+                                </span>
+                              );
+                            }
+                          } else if (user.role === 'student') {
+                            const isOneOnOne = path.includes('one-on-one');
+                            const isGroup = path.includes('group-session');
+                            if (!isOneOnOne && !isGroup) return null;
+
+                            const msgUnread = isOneOnOne ? studentUnreadCounts.oneOnOneMessages : studentUnreadCounts.groupMessages;
+                            const docUnread = isOneOnOne ? studentUnreadCounts.oneOnOneResources : studentUnreadCounts.groupResources;
+
                             return (
-                              <span className="absolute -top-1 -right-1 h-[14px] min-w-[14px] px-0.5 rounded-full bg-[#FF8A75] text-white text-[7px] font-black flex items-center justify-center leading-none shadow-sm animate-pulse z-10">
-                                {unread > 9 ? '9+' : unread}
-                              </span>
+                              <>
+                                {/* Message Badge (top-right of icon) */}
+                                {msgUnread > 0 && (
+                                  <span className="absolute -top-1 -right-1 h-[13px] min-w-[13px] px-0.5 rounded-full bg-[#FF8A75] text-white text-[7px] font-black flex items-center justify-center leading-none shadow-sm animate-pulse z-10" title={`${msgUnread} unread messages`}>
+                                    {msgUnread > 9 ? '9+' : msgUnread}
+                                  </span>
+                                )}
+                                {/* Document Badge (top-left of icon) */}
+                                {docUnread > 0 && (
+                                  <span className="absolute -top-1 -left-1 h-[13px] min-w-[13px] px-0.5 rounded-full bg-[#E76F51] text-white text-[7px] font-black flex items-center justify-center leading-none shadow-sm z-10 animate-bounce" title={`${docUnread} new documents`}>
+                                    {docUnread > 9 ? '9+' : docUnread}
+                                  </span>
+                                )}
+                              </>
                             );
                           }
                           return null;
