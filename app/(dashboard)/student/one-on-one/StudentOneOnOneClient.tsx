@@ -23,7 +23,8 @@ import {
   Camera,
   Calendar,
   Clock,
-  Flame
+  Flame,
+  ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn, getSessionStatus } from '@/lib/utils';
@@ -39,6 +40,33 @@ interface Props {
 }
 
 export function StudentOneOnOneClient({ currentUser, hasSubscription, subscriptionStartDate, durationMonths, isTrial = false }: Props) {
+  if (!hasSubscription) {
+    return (
+      <div className="flex items-center justify-center p-6 sm:p-12 min-h-[calc(100vh-10rem)]">
+        <div className="w-full max-w-lg rounded-[1.75rem] border border-slate-100 bg-white shadow-sm p-12 text-center space-y-6">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 text-slate-300">
+            <MessageSquare className="h-8 w-8" />
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Personal 1-on-1 Classes</h2>
+            <p className="text-xs text-slate-400 font-medium leading-relaxed max-w-sm mx-auto">
+              You haven&apos;t enrolled in a 1-on-1 plan yet. Pick a plan to start your personalized transformation journey with a personal guide.
+            </p>
+          </div>
+
+          <a
+            href="/student/plans"
+            className="inline-flex h-12 items-center gap-2 rounded-xl bg-slate-900 px-8 text-[10px] font-black uppercase tracking-widest text-white shadow-lg hover:bg-[#FF8A75] transition-all"
+          >
+            View Plans
+            <ChevronRight className="h-4 w-4" />
+          </a>
+        </div>
+      </div>
+    );
+  }
+
   const currentDay = subscriptionStartDate
     ? Math.max(1, differenceInDays(startOfDay(new Date()), startOfDay(new Date(subscriptionStartDate))) + 1)
     : 1;

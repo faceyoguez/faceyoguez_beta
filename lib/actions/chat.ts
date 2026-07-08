@@ -192,18 +192,35 @@ export async function getOrCreateStudentChat() {
 
   const admin = createAdminClient();
 
-  // 1. Find an instructor
-  const { data: instructors } = await admin
-    .from('profiles')
-    .select('id')
-    .eq('role', 'instructor')
-    .limit(1);
+  // 1. Find assigned instructor from active subscription or fallback to any instructor
+  let instructorId = null;
 
-  if (!instructors || instructors.length === 0) {
-    throw new Error('No instructors available');
+  const { data: activeSub } = await admin
+    .from('subscriptions')
+    .select('assigned_instructor_id')
+    .eq('student_id', user.id)
+    .eq('status', 'active')
+    .eq('plan_type', 'one_on_one')
+    .limit(1)
+    .maybeSingle();
+
+  if (activeSub?.assigned_instructor_id) {
+    instructorId = activeSub.assigned_instructor_id;
+  } else {
+    const { data: instructors } = await admin
+      .from('profiles')
+      .select('id')
+      .eq('role', 'instructor')
+      .limit(1);
+
+    if (instructors && instructors.length > 0) {
+      instructorId = instructors[0].id;
+    }
   }
 
-  const instructorId = instructors[0].id;
+  if (!instructorId) {
+    throw new Error('No instructors available');
+  }
 
   // 2. Find common direct conversation between user and instructor
   const { data: commonParts } = await admin
