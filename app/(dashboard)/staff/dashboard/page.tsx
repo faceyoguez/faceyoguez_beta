@@ -5,11 +5,12 @@ import { checkExpiringSubscriptions } from '@/lib/actions/batches';
 import { Users, Crown, Radio, ShieldCheck, Video, Calendar } from 'lucide-react';
 import { StaffStudentTable } from './StaffStudentTable';
 import { format, startOfDay, endOfDay, addMinutes } from 'date-fns';
-import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { formatISTDate, formatISTTime, getSessionStatus } from '@/lib/utils';
 import { completeMeeting } from '@/lib/actions/meetings';
 import { CancelMeetingButton } from '@/components/CancelMeetingButton';
+import { ZoomJoinButton } from '@/components/zoom/ZoomJoinButton';
+import { OneOnOneChat, BatchChatWindow } from '@/components/chat';
 
 const STAFF_ROLES = ['admin', 'staff', 'client_management'];
 
@@ -21,7 +22,7 @@ export default async function StaffDashboardPage() {
   const admin = createAdminClient();
   const { data: profile } = await admin
     .from('profiles')
-    .select('role, full_name')
+    .select('id, role, full_name, avatar_url')
     .eq('id', user.id)
     .single();
 
@@ -242,18 +243,25 @@ export default async function StaffDashboardPage() {
                           ) : isExpired ? (
                             <span className="text-[7px] font-black uppercase text-slate-300">Expired</span>
                           ) : (isLive || isUpcoming) ? (
-                            <Link 
-                              href={meeting.start_url || meeting.join_url} 
-                              target="_blank" 
+                            <ZoomJoinButton
+                              meetingId={meeting.id}
+                              type="meeting"
                               className={cn(
                                 "h-10 px-4 rounded-xl text-white text-[8px] font-black uppercase tracking-widest flex items-center justify-center transition-all",
-                                isLive 
-                                  ? "bg-[#FF8A75] shadow-[0_0_15px_rgba(255,138,117,0.4)] animate-pulse" 
+                                isLive
+                                  ? "bg-[#FF8A75] shadow-[0_0_15px_rgba(255,138,117,0.4)] animate-pulse"
                                   : "bg-[#1a1a1a] hover:bg-[#FF8A75]"
                               )}
+                              chatPanel={
+                                meeting.meeting_type === 'group_session' && meeting.batch_id ? (
+                                  <BatchChatWindow batchId={meeting.batch_id} currentUser={profile as any} title={meeting.topic} dark className="h-full" />
+                                ) : meeting.student_id ? (
+                                  <OneOnOneChat currentUser={profile as any} selectedStudentId={meeting.student_id} hideHeader dark className="h-full" />
+                                ) : undefined
+                              }
                             >
                               {isLive ? 'Join Live' : 'View'}
-                            </Link>
+                            </ZoomJoinButton>
                           ) : null}
                           {/* Mark Complete button — only when LIVE */}
                           {isLive && (

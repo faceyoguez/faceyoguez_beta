@@ -9,6 +9,7 @@ import {
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import type { ConsultationWithDetails, ConsultationMessageWithSender } from '@/types/consultation';
+import { ZoomJoinButton } from '@/components/zoom/ZoomJoinButton';
 
 const CONSULTATION_PRICE = 999;
 
@@ -332,15 +333,14 @@ export default function StudentConsultationPage() {
             </p>
         </div>
         {zoomCall && status === 'active' && (
-          <a
-            href={zoomCall.join_url}
-            target="_blank"
-            rel="noopener noreferrer"
+          <ZoomJoinButton
+            meetingId={zoomCall.id}
+            type="consultation"
             className="flex items-center gap-2 h-11 px-6 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#FF8A75] transition-all shadow-lg shadow-slate-900/10"
           >
             <Video className="w-4 h-4" />
             Join Zoom
-          </a>
+          </ZoomJoinButton>
         )}
       </header>
 
@@ -360,10 +360,10 @@ export default function StudentConsultationPage() {
                 {' '}· {zoomCall.duration_minutes} min
             </p>
           </div>
-          <a href={zoomCall.join_url} target="_blank" rel="noopener noreferrer"
+          <ZoomJoinButton meetingId={zoomCall.id} type="consultation"
             className="inline-flex items-center gap-1.5 text-[10px] font-black text-blue-500 uppercase tracking-widest hover:text-slate-900 transition-colors">
-            {zoomCall.join_url} <ExternalLink className="w-3 h-3" />
-          </a>
+            Join this call <ExternalLink className="w-3 h-3" />
+          </ZoomJoinButton>
         </div>
       )}
 

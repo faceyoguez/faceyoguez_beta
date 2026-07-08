@@ -8,16 +8,16 @@ import {
    FileText, Send, X,
    Download, DownloadCloud, Mail,
    Loader2, ArrowUpRight,
-   ArrowRight, ChevronLeft, ChevronRight,   
-   Activity, 
-   
+   ArrowRight, ChevronLeft, ChevronRight, ChevronDown,
+   Activity, Calendar, Clock,
+
    ShieldCheck, ShieldAlert,
    MessageSquare, MessageCircle
 } from 'lucide-react';
 import { createAndPopulateBatch, type CreateBatchInput, toggleBatchChat, getInstructorBatches } from '@/lib/actions/batches';
 import { useRouter } from 'next/navigation';
 import type { RecordedSession, StudentResource, Profile } from '@/types/database';
-import { uploadBatchResource, getBatchResources, uploadResource, getStudentResources } from '@/lib/actions/resources';
+import { getBatchResources, uploadResource, getStudentResources } from '@/lib/actions/resources';
 import { sendBatchMessage, getBatchMessages, getOrCreateSharedChat, deleteChatMessage, getStudentsConversationMeta } from '@/lib/actions/chat';
 import { MessageBubble } from '@/components/chat/MessageBubble';
 import { getBatchRecordedSessions, scheduleGroupSession, getInstructorUpcomingMeetings, startMeeting, completeMeeting, deleteMeeting } from '@/lib/actions/meetings';
@@ -27,8 +27,9 @@ import { JOURNEY_MAX_DAY } from '@/components/ui/journey-progress';
 import { createClient } from '@/lib/supabase/client';
 import { cn, formatIST, formatISTDate, formatISTTime, getSessionStatus, localInputToUTC } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChatWindow } from '@/components/chat';
+import { ChatWindow, BatchChatWindow } from '@/components/chat';
 import { sendDirectStudentEmail } from '@/lib/actions/email';
+import { ZoomMeetingEmbed } from '@/components/zoom/ZoomMeetingEmbed';
 import JSZip from 'jszip';
 
 interface InstructorGroupClientProps {
@@ -41,6 +42,7 @@ interface InstructorGroupClientProps {
 
 export function InstructorGroupClient({ currentUser, initialBatches, initialBatchResources, instructors, waitingQueue }: InstructorGroupClientProps) {
    const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+   const [activeCallMeetingId, setActiveCallMeetingId] = useState<string | null>(null);
    const [isPending, startTransition] = useTransition();
    const router = useRouter();
 
@@ -706,10 +708,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                               toast.success("Session is now LIVE!");
                            }
 
-                           const url = isHost 
-                              ? nextBatchMeeting.start_url 
-                              : nextBatchMeeting.join_url;
-                           window.open(url, '_blank');
+                           setActiveCallMeetingId(nextBatchMeeting.id);
                         }}
                         className={cn(
                            "h-10 px-6 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-3 transition-all duration-500 group/btn",
@@ -1147,26 +1146,39 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <div className="space-y-1.5 text-left">
                            <label className="text-[10px] font-bold uppercase tracking-wide text-slate-500 ml-2">Date & Time</label>
-                           <input
-                              type="datetime-local"
-                              value={scheduleData.startTime}
-                              onChange={(e) => setScheduleData({ ...scheduleData, startTime: e.target.value })}
-                              onClick={(e) => (e.target as HTMLInputElement).showPicker?.()}
-                              className="h-12 w-full px-4 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#FF8A75]/20 outline-none transition-all cursor-pointer"
-                           />
+                           <div className="group relative">
+                              <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                 <Calendar className="w-4 h-4 text-[#FF8A75] transition-colors" />
+                              </div>
+                              <input
+                                 type="datetime-local"
+                                 value={scheduleData.startTime}
+                                 onChange={(e) => setScheduleData({ ...scheduleData, startTime: e.target.value })}
+                                 onClick={(e) => (e.target as HTMLInputElement).showPicker?.()}
+                                 className="h-12 w-full pl-11 pr-4 rounded-xl bg-gradient-to-br from-[#FF8A75]/5 to-transparent border border-[#FF8A75]/15 text-sm font-bold text-slate-900 shadow-sm hover:border-[#FF8A75]/30 hover:shadow-md focus:bg-white focus:ring-4 focus:ring-[#FF8A75]/15 focus:border-[#FF8A75]/40 outline-none transition-all cursor-pointer [color-scheme:light]"
+                              />
+                           </div>
                         </div>
                         <div className="space-y-1.5 text-left">
-                           <label className="text-[10px] font-bold uppercase tracking-wide text-slate-500 ml-2">Duration (mins)</label>
-                           <select
-                              value={scheduleData.duration}
-                              onChange={(e) => setScheduleData({ ...scheduleData, duration: parseInt(e.target.value) })}
-                              className="h-12 w-full px-4 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#FF8A75]/20 outline-none transition-all"
-                           >
-                              <option value={30}>30 Minutes</option>
-                              <option value={45}>45 Minutes</option>
-                              <option value={60}>60 Minutes</option>
-                              <option value={90}>90 Minutes</option>
-                           </select>
+                           <label className="text-[10px] font-bold uppercase tracking-wide text-slate-500 ml-2">Duration</label>
+                           <div className="group relative">
+                              <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                 <Clock className="w-4 h-4 text-[#FF8A75]" />
+                              </div>
+                              <select
+                                 value={scheduleData.duration}
+                                 onChange={(e) => setScheduleData({ ...scheduleData, duration: parseInt(e.target.value) })}
+                                 className="h-12 w-full pl-11 pr-10 rounded-xl bg-gradient-to-br from-[#FF8A75]/5 to-transparent border border-[#FF8A75]/15 text-sm font-bold text-slate-900 shadow-sm hover:border-[#FF8A75]/30 hover:shadow-md focus:bg-white focus:ring-4 focus:ring-[#FF8A75]/15 focus:border-[#FF8A75]/40 outline-none transition-all cursor-pointer appearance-none"
+                              >
+                                 <option value={30}>30 Minutes</option>
+                                 <option value={45}>45 Minutes</option>
+                                 <option value={60}>60 Minutes</option>
+                                 <option value={90}>90 Minutes</option>
+                              </select>
+                              <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                                 <ChevronDown className="w-4 h-4 text-slate-400" />
+                              </div>
+                           </div>
                         </div>
                      </div>
 
@@ -1384,6 +1396,18 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                   </div>
                </div>
             </div>
+         )}
+
+         {/* Embedded Zoom Call — joins in one click, no Zoom login/app switch */}
+         {activeCallMeetingId && (
+            <ZoomMeetingEmbed
+              meetingId={activeCallMeetingId}
+              type="meeting"
+              onClose={() => setActiveCallMeetingId(null)}
+              chatPanel={selectedBatch ? (
+                <BatchChatWindow batchId={selectedBatch.id} currentUser={currentUser} title={selectedBatch.name} dark className="h-full" />
+              ) : undefined}
+            />
          )}
 
          <style dangerouslySetInnerHTML={{ __html: `

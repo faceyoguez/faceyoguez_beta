@@ -126,6 +126,7 @@ interface CreateMeetingDBPayload {
   duration_minutes: number;
   join_url: string;
   start_url: string;
+  password?: string;
   meeting_type: 'one_on_one' | 'group_session';
 }
 
@@ -479,6 +480,7 @@ export async function scheduleGroupSession(batchId: string, startTime: string, t
     duration_minutes: zoomMeeting.duration,
     join_url: zoomMeeting.join_url,
     start_url: zoomMeeting.start_url,
+    password: zoomMeeting.password,
     meeting_type: 'group_session'
   });
 
@@ -617,6 +619,7 @@ export async function scheduleOneOnOne(startTime: string, topic: string = 'One-o
     duration_minutes: zoomMeeting.duration,
     join_url: zoomMeeting.join_url,
     start_url: zoomMeeting.start_url,
+    password: zoomMeeting.password,
     meeting_type: 'one_on_one'
   });
 

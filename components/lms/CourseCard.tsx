@@ -48,7 +48,7 @@ export function CourseCard({
             Level {level}
             {isCompleted && <div className="w-1.5 h-1.5 rounded-full bg-[#FF8A75]" />}
           </div>
-          
+
           {isCompleted && (
              <div className="h-10 w-10 rounded-2xl bg-[#FF8A75] text-white flex items-center justify-center shadow-lg shadow-[#FF8A75]/30 transform group-hover:scale-110 transition-all">
                 <CheckCircle className="w-5 h-5" />

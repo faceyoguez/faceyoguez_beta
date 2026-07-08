@@ -21,6 +21,12 @@
       "sourceType": "github",
       "computedHash": "18c81c59796c6280db62d5fb9ac544c094259c51a9c69cfc225ba6c428b9ed57"
     },
+    "responsive-design": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/ui-design/skills/responsive-design/SKILL.md",
+      "computedHash": "794cc7f1b2f79d398135d19ef3fe32c406dde926b9bdf86ee3fe7b939a0be906"
+    },
     "security-best-practices": {
       "source": "supercent-io/skills-template",
       "sourceType": "github",

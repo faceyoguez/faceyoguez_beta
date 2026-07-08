@@ -460,7 +460,7 @@ export function CourseViewer({
 
             {activeModule && !completedIds.has(activeModule.id) && (
               <div className="flex flex-col items-end gap-1.5 shrink-0">
-                <p className="text-[8px] font-semibold text-slate-400/80 uppercase tracking-widest text-right leading-snug max-w-[150px]">
+                <p className="text-[8px] font-semibold text-slate-400/80 uppercase tracking-widest text-right whitespace-nowrap">
                   ngl, wanna skip? no judgment fr 👇
                 </p>
                 <button
@@ -550,7 +550,7 @@ export function CourseViewer({
                        <span className={cn(
                           "text-[7px] font-aktiv font-bold uppercase tracking-[0.2em]",
                           isActive ? "text-[#FF8A75]/80" : "text-slate-400"
-                       )}>Phase {index + 1}</span>
+                       )}>Session {index + 1}</span>
                        {courseLevel === 1 && index === 0 && (
                          <span className={cn(
                            "text-[6px] font-aktiv font-bold uppercase tracking-widest px-1 py-0.5 rounded bg-[#FF8A75]/10 text-[#FF8A75]",

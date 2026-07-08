@@ -231,6 +231,7 @@ export interface Meeting {
   duration_minutes: number;
   join_url: string;
   start_url: string;
+  password: string | null;
   meeting_type: MeetingType;
   /** 'LIVE' = session in progress, 'DONE' = completed by instructor, null = scheduled/upcoming */
   calendar_event_id: string | null;

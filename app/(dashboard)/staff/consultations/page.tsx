@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
+import { ZoomJoinButton } from '@/components/zoom/ZoomJoinButton';
 
 interface ConsultationUser {
   id: string; full_name: string; email: string; phone?: string; avatar_url?: string;
@@ -276,6 +277,10 @@ export default function StaffConsultationsPage() {
                 <p className="text-xs text-blue-600 truncate">{selected.zoom_call.join_url}</p>
               </div>
               <div className="flex gap-2">
+                <ZoomJoinButton meetingId={selected.zoom_call.id} type="consultation"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors">
+                  <Video className="w-3.5 h-3.5" /> Join
+                </ZoomJoinButton>
                 <button onClick={() => { navigator.clipboard.writeText(selected.zoom_call!.join_url); toast.success('Link copied!'); }}
                   className="p-1.5 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"><Copy className="w-3.5 h-3.5" /></button>
                 <a href={`https://wa.me/${selected.student?.phone?.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi ${selected.student?.full_name?.split(' ')[0]}! Your Zoom link: ${selected.zoom_call.join_url}`)}`}

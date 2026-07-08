@@ -11,6 +11,7 @@ import { JourneyProgress } from '@/components/ui/journey-progress';
 import { PlanExpiryPill } from '@/components/ui/plan-expiry-pill';
 import { AnglePhotoTracker } from '@/components/ui/angle-photo-tracker';
 import { SupportContact } from '@/components/ui/SupportContact';
+import { ZoomMeetingEmbed } from '@/components/zoom/ZoomMeetingEmbed';
 import {
   Video,
   FileText,
@@ -81,6 +82,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
   const [journeyLogs, setJourneyLogs] = useState<JourneyLog[]>([]);
   const [activeDay, setActiveDay] = useState(currentDay);
   const [notesInput, setNotesInput] = useState('');
+  const [activeCallMeetingId, setActiveCallMeetingId] = useState<string | null>(null);
   const [isSavingLog, setIsSavingLog] = useState(false);
 
   useEffect(() => {
@@ -276,7 +278,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                     </div>
                     <button
                       disabled={!isJoinEnabled}
-                      onClick={() => window.open(nextMeeting.join_url, '_blank')}
+                      onClick={() => setActiveCallMeetingId(nextMeeting.id)}
                       className={cn(
                         "flex items-center justify-center gap-2.5 px-6 h-11 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all w-full md:w-auto shadow-sm",
                         isJoinEnabled
@@ -523,6 +525,16 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
             </>
          )}
       </AnimatePresence>
+
+      {/* Embedded Zoom Call — joins in one click, no Zoom login/app switch */}
+      {activeCallMeetingId && (
+        <ZoomMeetingEmbed
+          meetingId={activeCallMeetingId}
+          type="meeting"
+          onClose={() => setActiveCallMeetingId(null)}
+          chatPanel={<OneOnOneChat currentUser={currentUser} hideHeader className="h-full" dark />}
+        />
+      )}
 
       <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }

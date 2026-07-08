@@ -18,11 +18,12 @@ import {
   Heart
 } from 'lucide-react';
 import { format, startOfMonth, startOfDay, endOfDay, addMinutes, addDays } from 'date-fns';
-import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { formatIST, formatISTDate, formatISTTime, getSessionStatus } from '@/lib/utils';
 import { completeMeeting } from '@/lib/actions/meetings';
 import { CancelMeetingButton } from '@/components/CancelMeetingButton';
+import { ZoomJoinButton } from '@/components/zoom/ZoomJoinButton';
+import { OneOnOneChat, BatchChatWindow } from '@/components/chat';
 
 export default async function InstructorDashboardPage() {
   // ─── 1. Auth & Profile ──────────────────────────────────────────
@@ -329,18 +330,25 @@ export default async function InstructorDashboardPage() {
                         ) : isExpired ? (
                           <span className="text-[7px] font-black uppercase text-slate-300">Expired</span>
                         ) : (isLive || isMeetingUpcoming(meeting.start_time)) ? (
-                          <Link 
-                            href={meeting.start_url || meeting.join_url} 
-                            target="_blank" 
+                          <ZoomJoinButton
+                            meetingId={meeting.id}
+                            type="meeting"
                             className={cn(
                               "h-10 px-4 rounded-xl text-white text-[8px] font-black uppercase tracking-widest flex items-center justify-center transition-all",
-                              isLive 
-                                ? "bg-[#FF8A75] shadow-[0_0_15px_rgba(255,138,117,0.4)] animate-pulse" 
+                              isLive
+                                ? "bg-[#FF8A75] shadow-[0_0_15px_rgba(255,138,117,0.4)] animate-pulse"
                                 : "bg-[#1a1a1a] hover:bg-[#FF8A75]"
                             )}
+                            chatPanel={
+                              meeting.meeting_type === 'group_session' && meeting.batch_id ? (
+                                <BatchChatWindow batchId={meeting.batch_id} currentUser={profile} title={meeting.topic} dark className="h-full" />
+                              ) : meeting.student_id ? (
+                                <OneOnOneChat currentUser={profile} selectedStudentId={meeting.student_id} hideHeader dark className="h-full" />
+                              ) : undefined
+                            }
                           >
                             {isLive ? 'Join Live' : 'View'}
-                          </Link>
+                          </ZoomJoinButton>
                         ) : null}
                         {/* Mark Complete button — only for host, only when LIVE */}
                         {isLive && meeting.host_id === user.id && (

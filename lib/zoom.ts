@@ -92,6 +92,7 @@ export async function createZoomMeeting(options: ZoomMeetingOptions): Promise<Zo
       join_before_host: false,
       waiting_room: true,
       mute_upon_entry: true,
+      auto_recording: 'cloud',
     },
   };
 
@@ -168,6 +169,35 @@ export async function getZoomMeetingRecordings(
   } catch {
     return null;
   }
+}
+
+/**
+ * Fetch a ZAK (Zoom Access Key) token for the account's host user.
+ * Required by the Meeting SDK for a host to start a meeting embedded in the browser
+ * without ever logging into Zoom.
+ */
+export async function getZoomZakToken(): Promise<string> {
+  const token = await getZoomToken();
+  const hostEmail = process.env.ZOOM_HOST_EMAIL;
+
+  if (!hostEmail) {
+    throw new Error('ZOOM_HOST_EMAIL is not configured in environment variables.');
+  }
+
+  const url = `${ZOOM_API_BASE}/users/${hostEmail}/token?type=zak`;
+
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.text();
+    console.error('Failed to get Zoom ZAK token:', errorData);
+    throw new Error(`Failed to get Zoom ZAK token: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.token;
 }
 
 export async function deleteZoomMeeting(meetingId: string): Promise<void> {

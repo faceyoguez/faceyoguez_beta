@@ -28,6 +28,8 @@ import { cn, formatISTDate, formatISTTime, getSessionStatus } from '@/lib/utils'
 import { toast } from 'sonner';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
+import { ZoomMeetingEmbed } from '@/components/zoom/ZoomMeetingEmbed';
+import { OneOnOneChat, BatchChatWindow } from '@/components/chat';
 import { createClient } from '@/lib/supabase/client';
 import { pixel } from '@/lib/pixel';
 
@@ -84,6 +86,7 @@ export function StudentDashboardClient({
   const [selectedAngle, setSelectedAngle] = React.useState('Front');
   const [showVerificationBanner, setShowVerificationBanner] = React.useState(true);
   const [showPlanBanner, setShowPlanBanner] = React.useState(true);
+  const [activeCallMeetingId, setActiveCallMeetingId] = React.useState<string | null>(null);
   const supabase = createClient();
 
   const [timeFilter, setTimeFilter] = React.useState<'upcoming' | 'past'>('upcoming');
@@ -517,15 +520,14 @@ export function StudentDashboardClient({
                             Ended
                           </span>
                         ) : (
-                          <a
-                            href={canJoin ? meeting.join_url : undefined}
-                            onClick={(e) => !canJoin && e.preventDefault()}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <button
+                            type="button"
+                            disabled={!canJoin}
+                            onClick={() => canJoin && setActiveCallMeetingId(meeting.id)}
                             className={cn(
                               "h-9 w-9 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-xl transition-all duration-300 shrink-0",
-                              isLive 
-                                ? "bg-white text-[#e76f51] hover:scale-110" 
+                              isLive
+                                ? "bg-white text-[#e76f51] hover:scale-110"
                                 : canJoin
                                   ? "bg-[#1a1a1a] text-white hover:bg-[#e76f51] group-hover/card:scale-105"
                                   : "bg-slate-200 text-slate-400 cursor-not-allowed opacity-50"
@@ -533,7 +535,7 @@ export function StudentDashboardClient({
                             title={!canJoin ? "Instructor hasn't started the session yet" : "Join Session"}
                           >
                             <ArrowUpRight className="w-3.5 h-3.5" />
-                          </a>
+                          </button>
                         )}
                       </div>
                     </motion.div>
@@ -764,6 +766,25 @@ export function StudentDashboardClient({
           </div>
         </div>
       </motion.div>
+
+      {/* Embedded Zoom Call — joins in one click, no Zoom login/app switch */}
+      {activeCallMeetingId && (() => {
+        const activeMeeting = filteredMeetings.find((m: any) => m.id === activeCallMeetingId);
+        return (
+          <ZoomMeetingEmbed
+            meetingId={activeCallMeetingId}
+            type="meeting"
+            onClose={() => setActiveCallMeetingId(null)}
+            chatPanel={
+              activeMeeting?.meeting_type === 'group_session' && activeMeeting.batch_id ? (
+                <BatchChatWindow batchId={activeMeeting.batch_id} currentUser={profile} title={activeMeeting.host?.full_name || 'Group Chat'} dark className="h-full" />
+              ) : (
+                <OneOnOneChat currentUser={profile} hideHeader className="h-full" dark />
+              )
+            }
+          />
+        );
+      })()}
 
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }

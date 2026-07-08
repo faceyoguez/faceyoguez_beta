@@ -21,7 +21,9 @@ import { PollCard } from '../../../../components/ui/poll-card';
 import { useRouter } from 'next/navigation';
 import { cn, formatISTDate, formatISTTime, getSessionStatus } from '@/lib/utils';
 import { MessageBubble } from '@/components/chat/MessageBubble';
+import { BatchChatWindow } from '@/components/chat/BatchChatWindow';
 import { SupportContact } from '@/components/ui/SupportContact';
+import { ZoomMeetingEmbed } from '@/components/zoom/ZoomMeetingEmbed';
 
 import type { Profile, MeetingWithDetails, BatchPoll, RecordedSession } from '../../../../types/database';
 
@@ -56,6 +58,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isMounted, setIsMounted] = useState(false);
+    const [activeCallMeetingId, setActiveCallMeetingId] = useState<string | null>(null);
     const isChatEnabled = activeBatch?.is_chat_enabled ?? true;
 
     useEffect(() => {
@@ -495,7 +498,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                 </div>
                             ) : (
                                 <button
-                                    onClick={() => window.open(nextBatchMeeting.join_url, '_blank')}
+                                    onClick={() => setActiveCallMeetingId(nextBatchMeeting.id)}
                                     className="h-12 w-full rounded-xl bg-[#e76f51] text-white text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:scale-[1.02] shadow-lg shadow-[#e76f51]/20 flex items-center justify-center gap-3 shrink-0 relative z-10"
                                 >
                                     <Video className="w-4 h-4" /> Join Session
@@ -768,6 +771,18 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                     </>
                 )}
             </AnimatePresence>
+
+            {/* Embedded Zoom Call — joins in one click, no Zoom login/app switch */}
+            {activeCallMeetingId && (
+                <ZoomMeetingEmbed
+                  meetingId={activeCallMeetingId}
+                  type="meeting"
+                  onClose={() => setActiveCallMeetingId(null)}
+                  chatPanel={activeBatch ? (
+                    <BatchChatWindow batchId={activeBatch.id} currentUser={currentUser} title={activeBatch.name} dark className="h-full" />
+                  ) : undefined}
+                />
+            )}
 
             <style jsx global>{`
                 .custom-scrollbar::-webkit-scrollbar { width: 3px; }

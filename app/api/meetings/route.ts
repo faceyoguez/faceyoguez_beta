@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
       duration_minutes: zoomResult.duration,
       join_url: zoomResult.join_url,
       start_url: zoomResult.start_url,
+      password: zoomResult.password,
       meeting_type: meetingType,
     });
 

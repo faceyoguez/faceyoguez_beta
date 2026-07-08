@@ -118,56 +118,6 @@ export async function getStudentResources(studentId: string): Promise<StudentRes
     return data || [];
 }
 
-export async function uploadBatchResource(
-    batchId: string,
-    fileName: string,
-    contentType: string,
-    size: number,
-    base64Data: string
-) {
-    const supabase = await createServerSupabaseClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { success: false, error: 'Unauthorized' };
-
-    try {
-        const buffer = Buffer.from(base64Data, 'base64');
-        const fileExt = fileName.split('.').pop();
-        const uniqueFileName = `batches/${batchId}/${uuidv4()}.${fileExt}`;
-
-        const admin = createAdminClient();
-
-        const { error: uploadError } = await admin.storage
-            .from('resources')
-            .upload(uniqueFileName, buffer, { contentType, upsert: false });
-
-        if (uploadError) return { success: false, error: 'Failed to upload file to storage.' };
-
-        const { data: publicUrlData } = admin.storage
-            .from('resources')
-            .getPublicUrl(uniqueFileName);
-
-        const { data: resourceRow, error: dbError } = await admin
-            .from('batch_resources')
-            .insert({
-                batch_id: batchId,
-                uploader_id: user.id,
-                title: fileName,
-                file_url: publicUrlData.publicUrl,
-            })
-            .select()
-            .single();
-
-        if (dbError) {
-            await admin.storage.from('resources').remove([uniqueFileName]);
-            return { success: false, error: 'Failed to save resource record.' };
-        }
-
-        return { success: true, data: resourceRow };
-    } catch (error) {
-        return { success: false, error: 'Unexpected error occurred.' };
-    }
-}
-
 export async function getBatchResources(batchId: string) {
     const supabase = await createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();

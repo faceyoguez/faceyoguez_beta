@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Live Session</title>
+  <style>
+    html, body { margin: 0; padding: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }
+  </style>
+</head>
+<body>
+  <div id="zmmtg-root"></div>
+
+  <!--
+    Client View (ZoomMtg) — the full, familiar Zoom experience (gallery/speaker/
+    screen-share views, full toolbar), unlike the smaller Component View widget we
+    used before. It needs its own React 18 + Redux 4 + Redux-Thunk 2 + React-Redux 8
+    (Zoom's exact required versions, not the app's own), bundled together by
+    zoom-bundle/build.mjs into zoom-client-view.bundle.js — Zoom's prebuilt file
+    can't be loaded via a plain <script> tag on its own (its browser-global exports
+    are misconfigured), so a real bundler step is required to package it properly.
+    That, plus isolating it in this same-origin iframe with React 18, is what keeps
+    it from crashing under the app's own React 19 (a known unresolved Zoom SDK bug).
+  -->
+  <script src="/vendor/zoom-meetingsdk/zoom-client-view.bundle.js"></script>
+  <script>
+    (function () {
+      var parentOrigin = null;
+      var joinState = 'idle'; // idle | joining | joined
+      var ZOOM_SDK_VERSION = '6.2.0';
+
+      function safeStringify(obj) {
+        try {
+          return JSON.stringify(obj, Object.getOwnPropertyNames(obj || {}));
+        } catch (e) {
+          return String(obj);
+        }
+      }
+
+      function post(type, detail) {
+        if (window.parent) {
+          window.parent.postMessage({ source: 'zoom-embed', type: type, detail: detail || null }, parentOrigin || '*');
+        }
+      }
+
+      window.addEventListener('message', function (event) {
+        if (!event.data || event.data.source !== 'zoom-embed-host') return;
+        parentOrigin = event.origin;
+
+        if (event.data.type === 'join') {
+          if (joinState !== 'idle') {
+            console.log('[zoom-embed] ignoring duplicate join request, current state:', joinState);
+            return;
+          }
+          joinState = 'joining';
+          var ctx = event.data.payload;
+          console.log('[zoom-embed] joining', { meetingNumber: ctx.meetingNumber, hasZak: !!ctx.zak, hasPassword: !!ctx.password, sessionKind: ctx.sessionKind });
+
+          try {
+            var ZoomMtg = window.ZoomMtg;
+            ZoomMtg.setZoomJSLib('https://source.zoom.us/' + ZOOM_SDK_VERSION + '/lib', '/av');
+            ZoomMtg.preLoadWasm();
+            ZoomMtg.prepareWebSDK();
+
+            ZoomMtg.init({
+              leaveUrl: window.location.href,
+              patchJsMedia: true,
+              meetingInfo: ['topic', 'host', 'participant'],
+              // Zoom's own chat/polling/breakout stay off — the app has its own chat
+              // panel, and these aren't used for tutoring sessions.
+              isSupportChat: false,
+              isSupportPolling: false,
+              isSupportBreakout: false,
+              // We already auto-record via the REST API when the meeting is created —
+              // no manual "Record" button needed in the toolbar.
+              disableRecord: true,
+              disableInvite: true,
+              defaultView: ctx.sessionKind === 'group' ? 'gallery' : 'speaker',
+              success: function () {
+                console.log('[zoom-embed] init succeeded, joining meeting...');
+                ZoomMtg.join({
+                  signature: ctx.signature,
+                  meetingNumber: ctx.meetingNumber,
+                  userName: ctx.userName,
+                  passWord: ctx.password || '',
+                  zak: ctx.zak,
+                  success: function () {
+                    console.log('[zoom-embed] join succeeded');
+                    joinState = 'joined';
+                    post('joined');
+                  },
+                  error: function (err) {
+                    console.error('[zoom-embed] join failed: ' + safeStringify(err));
+                    joinState = 'idle';
+                    post('error', { message: 'Could not join the meeting.', raw: safeStringify(err) });
+                  },
+                });
+              },
+              error: function (err) {
+                console.error('[zoom-embed] init failed: ' + safeStringify(err));
+                joinState = 'idle';
+                post('error', { message: 'Could not start the video SDK.', raw: safeStringify(err) });
+              },
+            });
+          } catch (err) {
+            var syncDetail = { message: (err && err.message) || 'Failed to start the video SDK.', raw: safeStringify(err) };
+            console.error('[zoom-embed] threw synchronously: ' + JSON.stringify(syncDetail));
+            joinState = 'idle';
+            post('error', syncDetail);
+          }
+        }
+
+        if (event.data.type === 'leave') {
+          // Only actually leave if we're fully connected — a 'leave' that arrives while
+          // still joining is a stray signal (e.g. React dev-mode's double effect
+          // invocation) and would otherwise abort a join that's genuinely in progress.
+          if (joinState === 'joined' && window.ZoomMtg) {
+            joinState = 'idle';
+            window.ZoomMtg.leaveMeeting({ confirm: false });
+          }
+        }
+      });
+
+      post('ready');
+    })();
+  </script>
+</body>
+</html>

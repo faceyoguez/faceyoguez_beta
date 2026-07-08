@@ -27,6 +27,7 @@ import type { Profile, StudentResource, MeetingWithDetails } from '@/types/datab
 
 import { getJourneyLogs, type JourneyLog } from '@/lib/actions/journey';
 import { AnglePhotoViewer } from '@/components/ui/angle-photo-tracker';
+import { ZoomMeetingEmbed } from '@/components/zoom/ZoomMeetingEmbed';
 import { cn, formatISTDate, formatISTTime, getSessionStatus, localInputToUTC } from '@/lib/utils';
 import { JourneyProgress, JOURNEY_MAX_DAY } from '@/components/ui/journey-progress';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -55,6 +56,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [activeCallMeetingId, setActiveCallMeetingId] = useState<string | null>(null);
   // Conversation metadata: lastMessageAt + unreadCount per student
   const [convMeta, setConvMeta] = useState<Record<string, { lastMessageAt: string | null; unreadCount: number }>>({});
   const supabase = useMemo(() => createClient(), []);
@@ -459,7 +461,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                            return (
                               <div 
                                  key={meeting.id}
-                                 onClick={() => !isExpired && !isCompleted && window.open(meeting.start_url || meeting.join_url, '_blank')}
+                                 onClick={() => !isExpired && !isCompleted && setActiveCallMeetingId(meeting.id)}
                                  className={cn(
                                    "border rounded-3xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all duration-300 shadow-sm",
                                    isExpired ? "bg-slate-50 border-slate-100 opacity-60 cursor-default" 
@@ -727,13 +729,18 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                      </div>
                                       <div className="space-y-2">
                         <label className="text-[9px] font-black tracking-[0.2em] uppercase text-slate-400 ml-4">Date & Time</label>
-                        <input 
-                           type="datetime-local" 
-                           value={meetingDateTime}
-                           onChange={(e) => setMeetingDateTime(e.target.value)}
-                           onClick={(e) => (e.target as HTMLInputElement).showPicker?.()}
-                           className="h-14 w-full px-5 rounded-2xl bg-white border border-slate-200 text-sm font-bold text-slate-700 focus:border-[#FF8A75]/30 focus:ring-4 focus:ring-[#FF8A75]/10 outline-none transition-all shadow-sm cursor-pointer" 
-                        />
+                        <div className="relative">
+                           <div className="absolute inset-y-0 left-0 flex items-center pl-5 pointer-events-none">
+                              <Calendar className="w-4 h-4 text-[#FF8A75]" />
+                           </div>
+                           <input
+                              type="datetime-local"
+                              value={meetingDateTime}
+                              onChange={(e) => setMeetingDateTime(e.target.value)}
+                              onClick={(e) => (e.target as HTMLInputElement).showPicker?.()}
+                              className="h-14 w-full pl-12 pr-5 rounded-2xl bg-gradient-to-br from-[#FF8A75]/5 to-white border border-[#FF8A75]/15 text-sm font-bold text-slate-700 shadow-sm hover:border-[#FF8A75]/30 hover:shadow-md focus:bg-white focus:border-[#FF8A75]/40 focus:ring-4 focus:ring-[#FF8A75]/15 outline-none transition-all cursor-pointer [color-scheme:light]"
+                           />
+                        </div>
                      </div>
                   </div>
 
@@ -752,6 +759,26 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Embedded Zoom Call — joins in one click, no Zoom login/app switch */}
+      {activeCallMeetingId && (
+        <ZoomMeetingEmbed
+          meetingId={activeCallMeetingId}
+          type="meeting"
+          onClose={() => setActiveCallMeetingId(null)}
+          chatPanel={selectedStudent && selectedStudent.conversationId ? (
+            <ChatWindow
+              conversationId={selectedStudent.conversationId}
+              currentUser={currentUser}
+              conversationType="direct"
+              title={selectedStudent.full_name}
+              otherParticipant={{ id: selectedStudent.id, full_name: selectedStudent.full_name, avatar_url: selectedStudent.avatar_url, email: selectedStudent.email } as Profile}
+              className="h-full"
+              dark
+            />
+          ) : undefined}
+        />
+      )}
 
       <style jsx global>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
