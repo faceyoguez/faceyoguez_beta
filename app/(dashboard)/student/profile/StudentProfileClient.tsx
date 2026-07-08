@@ -118,6 +118,7 @@ export default function StudentProfileClient({
     
     setLoadingPhone(true);
     // Triggers SMS OTP to the EXISTING number
+    //Test
     const { error } = await supabase.auth.updateUser({ 
       phone: phoneToVerify 
     });
