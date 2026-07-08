@@ -170,7 +170,36 @@ export async function uploadBatchResource(
 
 export async function getBatchResources(batchId: string) {
     const supabase = await createServerSupabaseClient();
-    const { data, error } = await supabase
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return [];
+
+    // Authorize caller: instructor/staff/admin, or a student actively enrolled in this batch
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+    if (!profile) return [];
+
+    let isAuthorized = ['instructor', 'admin', 'staff', 'client_management'].includes(profile.role);
+
+    if (!isAuthorized) {
+        const { data: enrollment } = await supabase
+            .from('batch_enrollments')
+            .select('batch_id')
+            .eq('student_id', user.id)
+            .eq('batch_id', batchId)
+            .in('status', ['active', 'extended'])
+            .maybeSingle();
+
+        isAuthorized = !!enrollment;
+    }
+
+    if (!isAuthorized) return [];
+
+    const admin = createAdminClient();
+    const { data, error } = await admin
         .from('batch_resources')
         .select('*')
         .eq('batch_id', batchId)
