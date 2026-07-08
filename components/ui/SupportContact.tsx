@@ -33,11 +33,9 @@ export function SupportContact({ className, showText = true }: SupportContactPro
           </svg>
         </a>
 
-        {/* Gmail Button */}
+        {/* Email Button */}
         <a
-          href="https://mail.google.com/mail/?view=cm&fs=1&to=management@faceyoguez.com"
-          target="_blank"
-          rel="noopener noreferrer"
+          href="mailto:management@faceyoguez.com"
           className="h-8 w-8 rounded-xl bg-[#bc162d]/10 text-[#bc162d] hover:bg-[#bc162d] hover:text-white transition-all duration-300 flex items-center justify-center shadow-sm"
           title="Email Support"
         >

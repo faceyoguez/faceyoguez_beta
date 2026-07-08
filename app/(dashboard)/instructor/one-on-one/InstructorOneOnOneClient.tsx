@@ -27,7 +27,7 @@ import type { Profile, StudentResource, MeetingWithDetails } from '@/types/datab
 
 import { getJourneyLogs, type JourneyLog } from '@/lib/actions/journey';
 import { AnglePhotoViewer } from '@/components/ui/angle-photo-tracker';
-import { cn, formatISTDate, formatISTTime, getSessionStatus, localInputToIST } from '@/lib/utils';
+import { cn, formatISTDate, formatISTTime, getSessionStatus, localInputToUTC } from '@/lib/utils';
 import { JourneyProgress, JOURNEY_MAX_DAY } from '@/components/ui/journey-progress';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -183,7 +183,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
 
     setIsScheduling(true);
     try {
-      const startDateTime = localInputToIST(meetingDateTime);
+      const startDateTime = localInputToUTC(meetingDateTime);
 
       const res = await fetch('/api/meetings', {
         method: 'POST',

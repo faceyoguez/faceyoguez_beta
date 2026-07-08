@@ -45,11 +45,9 @@ export function FloatingEnquiry() {
               </div>
             </a>
 
-            {/* Email (Gmail Redirect) */}
+            {/* Email */}
             <a
-              href="https://mail.google.com/mail/?view=cm&fs=1&to=management@faceyoguez.com"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="mailto:management@faceyoguez.com"
               onClick={() => pixel.emailEnquiryClicked()}
               className="group flex items-center gap-3 bg-white border border-[#2c2525]/5 rounded-2xl px-5 py-3 shadow-xl hover:bg-[#2c2525] transition-all duration-500"
             >

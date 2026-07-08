@@ -25,7 +25,7 @@ import { getJourneyLogs, type JourneyLog } from '@/lib/actions/journey';
 import { ImageComparison } from '@/components/ui/image-comparison-slider';
 import { JOURNEY_MAX_DAY } from '@/components/ui/journey-progress';
 import { createClient } from '@/lib/supabase/client';
-import { cn, formatIST, formatISTDate, formatISTTime, getSessionStatus, localInputToIST } from '@/lib/utils';
+import { cn, formatIST, formatISTDate, formatISTTime, getSessionStatus, localInputToUTC } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChatWindow } from '@/components/chat';
 import { sendDirectStudentEmail } from '@/lib/actions/email';
@@ -463,7 +463,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
          try {
             // Convert the local datetime-local value to an IST-offset ISO string
             // e.g. "2026-07-07T19:30" → "2026-07-07T19:30:00+05:30"
-            const istStartTime = localInputToIST(scheduleData.startTime);
+            const istStartTime = localInputToUTC(scheduleData.startTime);
             const res = await scheduleGroupSession(selectedBatch.id, istStartTime, scheduleData.topic, scheduleData.duration);
             if (res) {
                toast.success("Session scheduled & invites sent!");

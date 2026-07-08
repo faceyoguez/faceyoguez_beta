@@ -4,6 +4,7 @@ import { useState, createContext, useContext, useEffect, useCallback, useRef } f
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { getGlobalUnreadChatCounts } from '@/lib/actions/chat_unread';
 import { toast } from 'sonner';
 import {
   LayoutDashboard,
@@ -122,6 +123,15 @@ export function AppSidebar({
 }: AppSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [chatUnreadCounts, setChatUnreadCounts] = useState({ unreadOneOnOne: 0, unreadGroup: 0 });
+
+  useEffect(() => {
+    if (['instructor', 'staff', 'admin', 'client_management'].includes(user.role)) {
+      getGlobalUnreadChatCounts().then(counts => {
+        setChatUnreadCounts(counts);
+      }).catch(console.error);
+    }
+  }, [user.role]);
 
   // Touch-swipe-to-close on mobile
   const touchStartX = useRef<number | null>(null);
@@ -360,7 +370,7 @@ export function AppSidebar({
 
                       {/* Icon — always centered when collapsed */}
                       <span className={cn(
-                        'shrink-0 flex items-center justify-center',
+                        'relative shrink-0 flex items-center justify-center',
                         'h-9 w-9 rounded-xl transition-all duration-300',
                         collapsed ? 'mx-auto' : '',
                         isActive
@@ -371,6 +381,20 @@ export function AppSidebar({
                           'transition-transform duration-200 group-hover/item:scale-110',
                           collapsed ? 'h-[18px] w-[18px]' : 'h-4 w-4'
                         )} />
+                        {/* Superscript unread badge on icon */}
+                        {(() => {
+                          const isChatLink = path.includes('one-on-one') || path.includes('groups');
+                          if (!isChatLink) return null;
+                          const unread = path.includes('one-on-one') ? chatUnreadCounts.unreadOneOnOne : chatUnreadCounts.unreadGroup;
+                          if (unread > 0 && ['instructor', 'staff', 'admin', 'client_management'].includes(user.role)) {
+                            return (
+                              <span className="absolute -top-1 -right-1 h-[14px] min-w-[14px] px-0.5 rounded-full bg-[#FF8A75] text-white text-[7px] font-black flex items-center justify-center leading-none shadow-sm animate-pulse z-10">
+                                {unread > 9 ? '9+' : unread}
+                              </span>
+                            );
+                          }
+                          return null;
+                        })()}
                       </span>
 
                       {/* Label — hidden when collapsed */}
@@ -442,13 +466,11 @@ export function AppSidebar({
                     WhatsApp
                   </a>
                   <a
-                    href="https://mail.google.com/mail/?view=cm&fs=1&to=management@faceyoguez.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href="mailto:management@faceyoguez.com"
                     className="flex-1 py-2 px-3 rounded-xl bg-[#bc162d]/10 text-[#bc162d] hover:bg-[#bc162d] hover:text-white transition-all flex items-center justify-center gap-1.5 text-[9px] font-black uppercase tracking-wider"
                   >
                     <Mail className="w-3.5 h-3.5" />
-                    Gmail
+                    Mail
                   </a>
                 </div>
               </div>

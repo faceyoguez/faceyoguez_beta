@@ -9,6 +9,7 @@ import { getJourneyLogs, type JourneyLog } from '@/lib/actions/journey';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { sendWhatsAppMessage } from '@/lib/actions/whatsapp';
+import { sendDirectStudentEmail } from '@/lib/actions/email';
 import {
   Search,
   MessageSquare,
@@ -48,7 +49,7 @@ import { AnglePhotoViewer } from '@/components/ui/angle-photo-tracker';
 import { JourneyProgress, JOURNEY_MAX_DAY } from '@/components/ui/journey-progress';
 import { PlanExpiryPill } from '@/components/ui/plan-expiry-pill';
 import { getInstructorUpcomingMeetings, deleteMeeting } from '@/lib/actions/meetings';
-import { cn, formatISTDate, formatISTTime, getSessionStatus, localInputToIST } from '@/lib/utils';
+import { cn, formatISTDate, formatISTTime, getSessionStatus, localInputToUTC } from '@/lib/utils';
 
 interface StudentInfo {
   conversationId: string | null;
@@ -115,8 +116,10 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
   const [isSearching, setIsSearching] = useState(false);
   const [globalSearchQuery, setGlobalSearchQuery] = useState('');
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [emailModal, setEmailModal] = useState<{ open: boolean; subject: string; body: string }>({ open: false, subject: '', body: '' });
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
   // Conversation metadata: lastMessageAt + unreadCount per student
-  const [convMeta, setConvMeta] = useState<Record<string, { lastMessageAt: string | null; unreadCount: number }>>({});
+  const [convMeta, setConvMeta] = useState<Record<string, { lastMessageAt: string | null; unreadCount: number }>>({}); 
 
   useEffect(() => {
     setIsMounted(true);
@@ -296,7 +299,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
 
     setIsScheduling(true);
     try {
-      const startDateTime = localInputToIST(meetingDateTime);
+      const startDateTime = localInputToUTC(meetingDateTime);
 
       const res = await fetch('/api/meetings', {
         method: 'POST',
@@ -739,8 +742,91 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                         </svg>
                       </button>
                     )}
+                    {/* Gmail / Email button */}
+                    <button
+                      onClick={() => setEmailModal({
+                        open: true,
+                        subject: `Regarding your Face Yoga session — ${selectedStudent.full_name}`,
+                        body: `Hi ${selectedStudent.full_name.split(' ')[0]},\n\nThis is the Faceyoguez team reaching out regarding your ongoing face yoga journey.\n\n`,
+                      })}
+                      className="h-10 w-10 lg:h-12 lg:w-12 rounded-full bg-[#EA4335]/10 text-[#EA4335] flex items-center justify-center transition-all hover:scale-110 active:scale-95 shadow-sm"
+                      title={`Send Email to ${selectedStudent.email}`}
+                    >
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 lg:w-6 lg:h-6">
+                        <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z"/>
+                      </svg>
+                    </button>
                   </div>
                 </div>
+
+                {/* Email Compose Modal */}
+                {emailModal.open && (
+                  <div className="fixed inset-0 z-[200] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 space-y-4 animate-in fade-in zoom-in duration-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-base font-bold text-slate-800">Send Email</h3>
+                          <p className="text-[10px] font-medium text-slate-400 mt-0.5">From: management@faceyoguez.com → {selectedStudent?.email}</p>
+                        </div>
+                        <button onClick={() => setEmailModal({ open: false, subject: '', body: '' })} className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors">
+                          <X className="w-4 h-4 text-slate-500" />
+                        </button>
+                      </div>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Subject</label>
+                          <input
+                            type="text"
+                            value={emailModal.subject}
+                            onChange={e => setEmailModal(prev => ({ ...prev, subject: e.target.value }))}
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#EA4335]/20 focus:border-[#EA4335]/40"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-1">Message</label>
+                          <textarea
+                            rows={6}
+                            value={emailModal.body}
+                            onChange={e => setEmailModal(prev => ({ ...prev, body: e.target.value }))}
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#EA4335]/20 focus:border-[#EA4335]/40 resize-none"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 pt-1">
+                        <button
+                          onClick={() => setEmailModal({ open: false, subject: '', body: '' })}
+                          className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-500 hover:bg-slate-50 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          disabled={isSendingEmail || !emailModal.subject.trim() || !emailModal.body.trim()}
+                          onClick={async () => {
+                            if (!selectedStudent?.email) return;
+                            setIsSendingEmail(true);
+                            try {
+                              const result = await sendDirectStudentEmail(selectedStudent.email, emailModal.subject, emailModal.body);
+                              if (result.success) {
+                                toast.success('Email sent successfully!');
+                                setEmailModal({ open: false, subject: '', body: '' });
+                              } else {
+                                toast.error('Failed to send email. Please try again.');
+                              }
+                            } catch (err) {
+                              toast.error('Failed to send email.');
+                            } finally {
+                              setIsSendingEmail(false);
+                            }
+                          }}
+                          className="flex-1 py-2.5 rounded-xl bg-[#EA4335] text-white text-sm font-bold flex items-center justify-center gap-2 hover:bg-[#d33426] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isSendingEmail ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mail className="w-4 h-4" />}
+                          {isSendingEmail ? 'Sending...' : 'Send Email'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Journey & Transformation Focus */}
                 <div className="p-4 lg:p-10 space-y-8 lg:space-y-12">

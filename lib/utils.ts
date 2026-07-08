@@ -48,9 +48,9 @@ export function getSessionStatus(startTime: string, durationMinutes: number, cal
 }
 
 // Convert a datetime-local input value (e.g. "2026-07-07T19:30") to a full
-// ISO 8601 string with IST offset (+05:30) for passing to Zoom/DB.
-export function localInputToIST(datetimeLocalValue: string): string {
+// ISO 8601 string in UTC, respecting the user's browser timezone.
+export function localInputToUTC(datetimeLocalValue: string): string {
     if (!datetimeLocalValue) return '';
-    // datetime-local gives "YYYY-MM-DDTHH:mm" — append IST offset
-    return `${datetimeLocalValue}:00+05:30`;
+    // new Date("YYYY-MM-DDTHH:mm") assumes the browser's local timezone.
+    return new Date(datetimeLocalValue).toISOString();
 }

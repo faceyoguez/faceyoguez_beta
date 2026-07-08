@@ -5,8 +5,8 @@ import { EMAIL_CONFIG } from '../email/config';
 
 export async function sendDirectStudentEmail(to: string, subject: string, body: string) {
   try {
-    // Send from simrat@faceyoguez.com as requested
-    const FROM = `"Simrat from Faceyoguez" <simrat@faceyoguez.com>`;
+    // Send from management@faceyoguez.com
+    const FROM = `"Faceyoguez Management" <management@faceyoguez.com>`;
     
     await transporter.sendMail({
       from: FROM,

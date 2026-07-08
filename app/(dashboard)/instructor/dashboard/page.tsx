@@ -87,20 +87,31 @@ export default async function InstructorDashboardPage() {
   const todayStart = startOfDay(new Date()).toISOString();
   const todayEnd = endOfDay(new Date()).toISOString();
 
-  const { data: todaysMeetingsRaw } = await admin
+  let todaysQuery = admin
     .from('meetings')
-    .select('*')
-    .eq('host_id', user.id)
+    .select('*');
+
+  if (!isMaster) {
+    todaysQuery = todaysQuery.eq('host_id', user.id);
+  }
+
+  const { data: todaysMeetingsRaw } = await todaysQuery
     .gte('start_time', todayStart)
     .lte('start_time', todayEnd)
     .order('start_time', { ascending: true });
 
   // All upcoming + recently past meetings (last 24h for expired detection)
   const recentStart = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-  const { data: upcomingMeetingsRaw } = await admin
+  
+  let upcomingQuery = admin
     .from('meetings')
-    .select('*')
-    .eq('host_id', user.id)
+    .select('*');
+
+  if (!isMaster) {
+    upcomingQuery = upcomingQuery.eq('host_id', user.id);
+  }
+
+  const { data: upcomingMeetingsRaw } = await upcomingQuery
     .gte('start_time', recentStart)
     .lte('start_time', upcomingEnd)
     .order('start_time', { ascending: true });
