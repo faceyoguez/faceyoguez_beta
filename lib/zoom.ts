@@ -69,10 +69,21 @@ export async function createZoomMeeting(options: ZoomMeetingOptions): Promise<Zo
 
   const url = `${ZOOM_API_BASE}/users/${hostEmail}/meetings`;
 
+  // Zoom API: when timezone is set, start_time must be sent WITHOUT a UTC offset (no Z).
+  // It should be the LOCAL time in that timezone.
+  // The incoming startTime is always a UTC ISO string (from .toISOString()).
+  // We convert UTC → IST by adding 5h30m, then strip the Z so Zoom reads it as IST local.
+  const utcDate = new Date(options.startTime);
+  // Add IST offset: +5:30 = 330 minutes
+  const istOffsetMs = 5.5 * 60 * 60 * 1000;
+  const istDate = new Date(utcDate.getTime() + istOffsetMs);
+  // Format as 'YYYY-MM-DDTHH:mm:ss' (no Z, no offset) — Zoom will read this as IST
+  const istLocalString = istDate.toISOString().replace('Z', '').split('.')[0];
+
   const payload = {
     topic: options.topic,
     type: 2, // 2 = Scheduled meeting
-    start_time: options.startTime,
+    start_time: istLocalString,
     duration: options.durationMinutes,
     timezone: 'Asia/Calcutta',
     settings: {
@@ -99,7 +110,19 @@ export async function createZoomMeeting(options: ZoomMeetingOptions): Promise<Zo
     throw new Error(`Failed to create Zoom meeting (Status ${response.status}): ${errorData}`);
   }
 
-  return response.json();
+  const result = await response.json();
+
+  // Zoom returns start_time as IST local (no offset) when timezone is Asia/Calcutta.
+  // We convert it back to UTC for consistent storage in our database.
+  // If it already has a Z or +offset, new Date() handles it correctly.
+  if (result.start_time && !result.start_time.includes('Z') && !result.start_time.includes('+')) {
+    // It's a local IST time — subtract 5h30m to get UTC
+    const returnedIst = new Date(result.start_time + 'Z'); // parse as UTC momentarily
+    const correctedUtc = new Date(returnedIst.getTime() - istOffsetMs);
+    result.start_time = correctedUtc.toISOString();
+  }
+
+  return result;
 }
 
 export interface ZoomRecordingFile {
