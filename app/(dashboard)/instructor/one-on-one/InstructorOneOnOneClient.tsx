@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { ChatWindow } from '@/components/chat';
 import { getOrCreateSharedChat, getStudentsConversationMeta } from '@/lib/actions/chat';
 import { uploadResource, getStudentResources } from '@/lib/actions/resources';
-import { getInstructorUpcomingMeetings, deleteMeeting } from '@/lib/actions/meetings';
+import { getInstructorUpcomingMeetings, deleteMeeting, completeMeeting } from '@/lib/actions/meetings';
 import { createClient } from '@/lib/supabase/client';
 import {
   Search,
@@ -21,7 +21,8 @@ import {
   Menu,
   Video,
   ExternalLink,
-  Trash2
+  Trash2,
+  CheckCircle2
 } from 'lucide-react';
 import type { Profile, StudentResource, MeetingWithDetails } from '@/types/database';
 
@@ -128,11 +129,18 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
         { event: 'INSERT', schema: 'public', table: 'student_resources', filter: `student_id=eq.${selectedStudent.id}` },
         (payload: { new: StudentResource }) => setResources((prev: StudentResource[]) => [payload.new, ...prev])
       )
-
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'meetings', filter: `host_id=eq.${currentUser.id}` },
+        async () => {
+          const updatedList = await getInstructorUpcomingMeetings();
+          setUpcomingMeetings(updatedList || []);
+        }
+      )
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [selectedStudent]);
+  }, [selectedStudent, currentUser.id]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.[0] || !selectedStudent) return;
@@ -231,6 +239,22 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
       }
     } catch (e: any) {
       toast.error(e.message || "Failed to delete meeting", { id: loadingToast });
+    }
+  };
+
+  const handleCompleteMeeting = async (meetingId: string) => {
+    const loadingToast = toast.loading('Marking session as done...');
+    try {
+      const res = await completeMeeting(meetingId);
+      if (res.success) {
+        toast.success('Session marked as completed!', { id: loadingToast });
+        const updatedList = await getInstructorUpcomingMeetings();
+        setUpcomingMeetings(updatedList || []);
+      } else {
+        toast.error(res.error || 'Failed to mark session as complete', { id: loadingToast });
+      }
+    } catch (e: any) {
+      toast.error(e.message || 'Failed to mark session as complete', { id: loadingToast });
     }
   };
 
@@ -458,6 +482,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                            const status = getSessionStatus(meeting.start_time, meeting.duration_minutes || 45, meeting.calendar_event_id);
                            const isExpired = status === 'expired';
                            const isCompleted = status === 'completed';
+                           const isLive = status === 'live';
                            return (
                               <div 
                                  key={meeting.id}
@@ -499,6 +524,18 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                                        >
                                          <Trash2 className="w-4 h-4" />
                                        </button>
+                                       {isLive && meeting.host_id === currentUser.id && (
+                                         <button
+                                           onClick={async (e) => {
+                                             e.stopPropagation();
+                                             await handleCompleteMeeting(meeting.id);
+                                           }}
+                                           className="p-2.5 rounded-xl text-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 border border-emerald-100 transition-colors"
+                                           title="Mark Session as Done"
+                                         >
+                                           <CheckCircle2 className="w-4 h-4" />
+                                         </button>
+                                       )}
                                        <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-[#FF8A75] bg-white border border-[#FF8A75]/10 px-3.5 py-2 rounded-xl">
                                           Join Call <ExternalLink className="w-3.5 h-3.5" />
                                        </div>

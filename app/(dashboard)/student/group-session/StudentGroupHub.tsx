@@ -216,9 +216,21 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
             )
             .subscribe();
 
+        const meetingChannel = supabase
+            .channel(`student-batch-meetings-${activeBatch.id}-${Math.random().toString(36).slice(2, 9)}`)
+            .on(
+                'postgres_changes',
+                { event: 'UPDATE', schema: 'public', table: 'meetings', filter: `batch_id=eq.${activeBatch.id}` },
+                (payload: any) => {
+                    setUpcomingMeetings((prev) => prev.map((m) => m.id === payload.new.id ? { ...m, ...payload.new } : m));
+                }
+            )
+            .subscribe();
+
         return () => {
             supabase.removeChannel(msgChannel);
             supabase.removeChannel(voteChannel);
+            supabase.removeChannel(meetingChannel);
         };
     }, [activeBatch?.id, currentUser.id, supabase]);
 
@@ -328,6 +340,11 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
 
     const nextBatchMeeting = upcomingMeetings.find((m: MeetingWithDetails) => m.batch_id === activeBatch?.id);
 
+    const nextBatchMeetingStatus = nextBatchMeeting ? getSessionStatus(nextBatchMeeting.start_time, nextBatchMeeting.duration_minutes || 60, nextBatchMeeting.calendar_event_id) : null;
+    const isNextMeetingCompleted = nextBatchMeetingStatus === 'completed';
+    const isNextMeetingExpired = nextBatchMeetingStatus === 'expired';
+    const isNextMeetingLive = nextBatchMeetingStatus === 'live';
+
     const isJoinEnabled = useMemo(() => {
         if (!nextBatchMeeting) return false;
         const now = new Date();
@@ -338,6 +355,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
 
     const isSessionClosed = useMemo(() => {
         if (!nextBatchMeeting) return false;
+        if (isNextMeetingCompleted || isNextMeetingExpired) return true;
         const now = new Date();
         const startTime = new Date(nextBatchMeeting.start_time);
         const duration = nextBatchMeeting.duration_minutes || 60;
@@ -350,7 +368,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
         const isPastBuffer = now > new Date(endTime.getTime() + 30 * 60000);
 
         return hasRecording || isPastBuffer;
-    }, [nextBatchMeeting, recordings]);
+    }, [nextBatchMeeting, recordings, isNextMeetingCompleted, isNextMeetingExpired]);
 
     const chatContent = (
         <div className="h-full flex flex-col overflow-hidden bg-white/50 backdrop-blur-xl">
@@ -449,43 +467,43 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                 <div className="lg:col-span-3 flex flex-col gap-6">
                     {/* Meeting Section */}
                     {nextBatchMeeting && (
-                        <div className="p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] border border-slate-100 bg-white shadow-xl shadow-slate-200/50 flex flex-col gap-6 relative overflow-hidden group">
+                        <div className={cn(
+                            "p-5 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] border flex flex-col gap-6 relative overflow-hidden group transition-all duration-500",
+                            isNextMeetingLive ? "border-[#e76f51]/30 bg-white shadow-xl shadow-[#e76f51]/10 ring-2 ring-[#e76f51]/5"
+                            : isNextMeetingExpired ? "border-slate-100 bg-white opacity-60"
+                            : isNextMeetingCompleted ? "border-emerald-100 bg-emerald-50/30 shadow-xl shadow-slate-200/50"
+                            : "border-slate-100 bg-white shadow-xl shadow-slate-200/50"
+                        )}>
                             {/* Decorative Background Accent */}
                             <div className="absolute -top-12 -right-12 w-32 h-32 bg-[#e76f51]/5 rounded-full blur-[40px] group-hover:bg-[#e76f51]/10 transition-colors duration-700" />
 
                             <div className="space-y-4 relative z-10">
                                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#e76f51]/10 border border-[#e76f51]/10 text-[#e76f51] text-[9px] font-black uppercase tracking-widest">
-                                    <div className={cn("w-1.5 h-1.5 rounded-full", isSessionClosed ? "bg-slate-400" : "bg-[#e76f51] animate-pulse")} />
-                                    {isSessionClosed ? 'Session Ended' : isJoinEnabled ? 'Session is LIVE' : 'Scheduled Session'}
+                                    <div className={cn("w-1.5 h-1.5 rounded-full", isNextMeetingCompleted ? "bg-emerald-500" : isSessionClosed ? "bg-slate-400" : "bg-[#e76f51] animate-pulse")} />
+                                    {isNextMeetingCompleted ? 'Session Completed' : isSessionClosed ? 'Session Ended' : isJoinEnabled ? 'Session is LIVE' : 'Scheduled Session'}
                                 </div>
                                 <div className="space-y-1">
-                                    <h2 className="text-xl font-bold text-slate-900 tracking-tight leading-tight">{nextBatchMeeting.topic}</h2>
+                                    <h2 className={cn(
+                                        "text-xl font-bold tracking-tight leading-tight",
+                                        isNextMeetingExpired ? "line-through text-slate-400" : isNextMeetingCompleted ? "text-slate-500" : "text-slate-900"
+                                    )}>{nextBatchMeeting.topic}</h2>
                                     <div className="space-y-1.5">
-                                        {(() => {
-                                            const status = getSessionStatus(nextBatchMeeting.start_time, nextBatchMeeting.duration_minutes || 60, nextBatchMeeting.calendar_event_id);
-                                            const isExpired = status === 'expired';
-                                            const isCompleted = status === 'completed';
-                                            return (
-                                                <>
-                                                {(isExpired || isCompleted) && (
-                                                    <div className={cn(
-                                                        "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest",
-                                                        isExpired ? 'bg-slate-100 text-slate-400' : 'bg-emerald-100 text-emerald-600'
-                                                    )}>
-                                                        {isExpired ? 'Expired' : '✓ Completed'}
-                                                    </div>
-                                                )}
-                                                <div className="flex items-center gap-2 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
-                                                    <Calendar className="w-3.5 h-3.5" /> 
-                                                    {isMounted ? formatISTDate(nextBatchMeeting.start_time) : '---'}
-                                                </div>
-                                                <div className="flex items-center gap-2 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
-                                                    <Clock className="w-3.5 h-3.5" /> 
-                                                    {isMounted ? `${formatISTTime(nextBatchMeeting.start_time)} IST` : '--:--'}
-                                                </div>
-                                                </>
-                                            );
-                                        })()}
+                                        {(isNextMeetingExpired || isNextMeetingCompleted) && (
+                                            <div className={cn(
+                                                "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest",
+                                                isNextMeetingExpired ? 'bg-slate-100 text-slate-400' : 'bg-emerald-100 text-emerald-600'
+                                            )}>
+                                                {isNextMeetingExpired ? 'Expired' : '✓ Completed'}
+                                            </div>
+                                        )}
+                                        <div className="flex items-center gap-2 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+                                            <Calendar className="w-3.5 h-3.5" />
+                                            {isMounted ? formatISTDate(nextBatchMeeting.start_time) : '---'}
+                                        </div>
+                                        <div className="flex items-center gap-2 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
+                                            <Clock className="w-3.5 h-3.5" />
+                                            {isMounted ? `${formatISTTime(nextBatchMeeting.start_time)} IST` : '--:--'}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

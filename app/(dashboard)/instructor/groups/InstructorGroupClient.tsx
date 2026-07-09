@@ -91,20 +91,35 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
 
    const nextBatchMeeting = useMemo(() => {
       if (!selectedBatch) return null;
-      return upcomingMeetings.find(m => m.batch_id === selectedBatch.id) || null;
+      const batchMeetings = upcomingMeetings.filter(m => m.batch_id === selectedBatch.id);
+      if (batchMeetings.length === 0) return null;
+      // Prefer a session that's still actionable (not done/expired) — a newly
+      // created session should take priority over a stale completed/canceled one
+      // still sitting in the same 24h window, instead of always picking the earliest.
+      const active = batchMeetings.find(m => {
+         const status = getSessionStatus(m.start_time, m.duration_minutes || 60, m.calendar_event_id);
+         return status !== 'completed' && status !== 'expired';
+      });
+      return active || batchMeetings[batchMeetings.length - 1];
    }, [upcomingMeetings, selectedBatch]);
 
    const displayStatus = useMemo(() => {
       if (!nextBatchMeeting) return { text: "No Session", enabled: false };
+      const status = getSessionStatus(nextBatchMeeting.start_time, nextBatchMeeting.duration_minutes || 60, nextBatchMeeting.calendar_event_id);
+      // A completed or expired session should never leave Start/Join active —
+      // it only turns on again once a genuinely new session is scheduled.
+      if (status === 'completed' || status === 'expired') {
+         return { text: "No Session", enabled: false };
+      }
       const isMeetingLive = nextBatchMeeting.calendar_event_id === 'LIVE';
       const isHost = currentUser.role === 'instructor' && (currentUser.is_master_instructor || currentUser.id === nextBatchMeeting.host_id);
-      
+
       if (isHost) {
          const startTime = new Date(nextBatchMeeting.start_time).getTime();
          const isTimeReady = now >= startTime - 300000;
-         return { 
-            text: isMeetingLive ? "Join Session" : "Start Session", 
-            enabled: isTimeReady 
+         return {
+            text: isMeetingLive ? "Join Session" : "Start Session",
+            enabled: isTimeReady
          };
       } else {
          return {

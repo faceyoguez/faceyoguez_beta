@@ -26,6 +26,7 @@
     (function () {
       var parentOrigin = null;
       var joinState = 'idle'; // idle | joining | joined
+      var isReconnecting = false;
       var ZOOM_SDK_VERSION = '6.2.0';
 
       function safeStringify(obj) {
@@ -86,7 +87,31 @@
                   success: function () {
                     console.log('[zoom-embed] join succeeded');
                     joinState = 'joined';
+                    isReconnecting = false;
                     post('joined');
+
+                    // Distinguish "user clicked Leave/End" from a dropped network
+                    // connection: Zoom's SDK goes connected -> disconnected directly
+                    // for a deliberate leave, but goes through reconnecting first for
+                    // a network blip. Only report 'left' for the direct case, so a
+                    // flaky connection doesn't get auto-marked complete and block the
+                    // host from rejoining the same meeting.
+                    ZoomMtg.inMeetingServiceListener('onMeetingStatus', function (data) {
+                      var s = data && (data.meetingStatus !== undefined ? data.meetingStatus : data.status);
+                      console.log('[zoom-embed] meeting status changed:', s);
+                      if (s === 4) {
+                        isReconnecting = true;
+                      } else if (s === 2) {
+                        isReconnecting = false;
+                      } else if (s === 3) {
+                        var wasReconnecting = isReconnecting;
+                        isReconnecting = false;
+                        if (!wasReconnecting && joinState === 'joined') {
+                          joinState = 'idle';
+                          post('left');
+                        }
+                      }
+                    });
                   },
                   error: function (err) {
                     console.error('[zoom-embed] join failed: ' + safeStringify(err));

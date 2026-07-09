@@ -116,6 +116,14 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
           { event: 'INSERT', schema: 'public', table: 'student_resources', filter: `student_id=eq.${currentUser.id}` },
           (payload: any) => setResources((prev: any[]) => [payload.new as StudentResource, ...prev])
         )
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'meetings', filter: `student_id=eq.${currentUser.id}` },
+          async () => {
+            const updatedList = await getUpcomingMeetingsForStudent();
+            setUpcomingMeetings(updatedList || []);
+          }
+        )
         .subscribe();
 
       return () => {
@@ -155,6 +163,10 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
 
   const studentMeetings = upcomingMeetings.filter((m: MeetingWithDetails) => m.meeting_type === 'one_on_one');
   const nextMeeting = studentMeetings.length > 0 ? studentMeetings[0] : null;
+  const nextMeetingStatus = nextMeeting ? getSessionStatus(nextMeeting.start_time, nextMeeting.duration_minutes || 45, nextMeeting.calendar_event_id) : null;
+  const isNextMeetingCompleted = nextMeetingStatus === 'completed';
+  const isNextMeetingExpired = nextMeetingStatus === 'expired';
+  const isNextMeetingLive = nextMeetingStatus === 'live';
   const [isJoinEnabled, setIsJoinEnabled] = useState(false);
 
   useEffect(() => {
@@ -168,6 +180,8 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
     const interval = setInterval(checkTime, 10000);
     return () => clearInterval(interval);
   }, [nextMeeting]);
+
+  const canJoinNextMeeting = isJoinEnabled && !isNextMeetingCompleted && !isNextMeetingExpired;
 
   const [isChatOpen, setIsChatOpen] = useState(false);
 
@@ -232,35 +246,30 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
               transition={{ delay: 0.05 }}
             >
               {nextMeeting ? (
-                <div className="bg-white rounded-[1.75rem] border border-slate-100 shadow-sm p-5 sm:p-6 hover:shadow-lg hover:shadow-[#e76f51]/5 transition-shadow duration-500">
+                <div className={cn(
+                  "bg-white rounded-[1.75rem] border p-5 sm:p-6 transition-all duration-500",
+                  isNextMeetingLive ? "border-[#e76f51]/30 shadow-xl shadow-[#e76f51]/10 ring-2 ring-[#e76f51]/5"
+                  : isNextMeetingExpired ? "border-slate-100 opacity-60"
+                  : isNextMeetingCompleted ? "border-emerald-100 bg-emerald-50/30"
+                  : "border-slate-100 shadow-sm hover:shadow-lg hover:shadow-[#e76f51]/5"
+                )}>
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
                     <div className="flex-1 min-w-0 space-y-3">
-                      {(() => {
-                        const status = getSessionStatus(nextMeeting.start_time, nextMeeting.duration_minutes || 45, nextMeeting.calendar_event_id);
-                        const isExpired = status === 'expired';
-                        const isCompleted = status === 'completed';
-                        const isLive = status === 'live';
-                        
-                        return (
-                          <>
-                            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#fef4f2] rounded-full border border-[#e76f51]/10">
-                              <div className={cn(
-                                "h-1.5 w-1.5 rounded-full shadow-[0_0_6px]", 
-                                isCompleted ? "bg-emerald-500 shadow-emerald-500" : isExpired ? "bg-slate-400 shadow-slate-400" : "bg-[#e76f51] shadow-[#e76f51] animate-pulse"
-                              )} />
-                              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#e76f51]">
-                                {isCompleted ? 'Session Completed' : isExpired ? 'Session Expired' : isLive ? 'Session Live' : 'Upcoming Session'}
-                              </span>
-                            </div>
-                            <h3 className={cn(
-                              "text-xl sm:text-2xl font-aktiv font-bold tracking-tight truncate",
-                              isExpired ? "line-through text-slate-400" : isCompleted ? "text-slate-500" : "text-[#1a1a1a]"
-                            )}>
-                              {nextMeeting.topic}
-                            </h3>
-                          </>
-                        );
-                      })()}
+                      <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#fef4f2] rounded-full border border-[#e76f51]/10">
+                        <div className={cn(
+                          "h-1.5 w-1.5 rounded-full shadow-[0_0_6px]",
+                          isNextMeetingCompleted ? "bg-emerald-500 shadow-emerald-500" : isNextMeetingExpired ? "bg-slate-400 shadow-slate-400" : "bg-[#e76f51] shadow-[#e76f51] animate-pulse"
+                        )} />
+                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-[#e76f51]">
+                          {isNextMeetingCompleted ? 'Session Completed' : isNextMeetingExpired ? 'Session Expired' : isNextMeetingLive ? 'Session Live' : 'Upcoming Session'}
+                        </span>
+                      </div>
+                      <h3 className={cn(
+                        "text-xl sm:text-2xl font-aktiv font-bold tracking-tight truncate",
+                        isNextMeetingExpired ? "line-through text-slate-400" : isNextMeetingCompleted ? "text-slate-500" : "text-[#1a1a1a]"
+                      )}>
+                        {nextMeeting.topic}
+                      </h3>
                       <div className="flex items-center gap-6 pt-3 border-t border-slate-50">
                         <div className="flex items-center gap-2">
                           <Calendar className="w-3.5 h-3.5 text-slate-400" />
@@ -277,16 +286,16 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                       </div>
                     </div>
                     <button
-                      disabled={!isJoinEnabled}
+                      disabled={!canJoinNextMeeting}
                       onClick={() => setActiveCallMeetingId(nextMeeting.id)}
                       className={cn(
                         "flex items-center justify-center gap-2.5 px-6 h-11 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all w-full md:w-auto shadow-sm",
-                        isJoinEnabled
+                        canJoinNextMeeting
                           ? "bg-[#1a1a1a] text-white hover:bg-[#e76f51] hover:scale-[1.02] active:scale-95"
                           : "bg-slate-50 text-slate-300 border border-slate-100 cursor-not-allowed"
                       )}
                     >
-                      {isJoinEnabled ? "Join Session" : "Starting Soon"}
+                      {isNextMeetingCompleted ? "Session Completed" : isNextMeetingExpired ? "Session Expired" : canJoinNextMeeting ? "Join Session" : "Starting Soon"}
                       <ArrowUpRight className="h-3.5 w-3.5" />
                     </button>
                   </div>

@@ -215,14 +215,14 @@ export default async function StaffDashboardPage() {
                       : isCompleted ? "border-emerald-100 bg-emerald-50/30"
                       : "border-[#FF8A75]/5 hover:border-[#FF8A75]/20 shadow-sm"
                     )}>
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-start gap-4">
                         <div className="h-12 w-12 rounded-xl bg-[#FF8A75]/5 flex items-center justify-center text-[#FF8A75] shrink-0 border border-[#FF8A75]/10">
                           <Video className="w-5 h-5" />
                         </div>
 
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1 flex-wrap">
-                              <h4 className={cn("text-sm font-bold tracking-tight truncate", isExpired ? 'line-through text-slate-400' : isCompleted ? 'text-slate-500' : 'text-[#1a1a1a]')}>{meeting.topic}</h4>
+                              <h4 className={cn("text-sm font-bold tracking-tight break-words min-w-0 flex-1", isExpired ? 'line-through text-slate-400' : isCompleted ? 'text-slate-500' : 'text-[#1a1a1a]')}>{meeting.topic}</h4>
                               {isLive && <div className="h-1.5 w-1.5 rounded-full bg-[#FF8A75] animate-pulse" />}
                               {isExpired && <span className="text-[7px] font-black uppercase tracking-widest text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">Expired</span>}
                               {isCompleted && <span className="text-[7px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded-full">✓ Completed</span>}
@@ -237,17 +237,17 @@ export default async function StaffDashboardPage() {
                             </div>
                         </div>
 
-                        <div className="shrink-0 flex items-center gap-2">
+                        <div className="shrink-0 flex flex-col items-stretch gap-2 w-20">
                           {isCompleted ? (
-                            <span className="text-[9px] font-black uppercase text-emerald-500">Done</span>
+                            <span className="text-[9px] font-black uppercase text-emerald-500 text-center">Done</span>
                           ) : isExpired ? (
-                            <span className="text-[7px] font-black uppercase text-slate-300">Expired</span>
+                            <span className="text-[7px] font-black uppercase text-slate-300 text-center">Expired</span>
                           ) : (isLive || isUpcoming) ? (
                             <ZoomJoinButton
                               meetingId={meeting.id}
                               type="meeting"
                               className={cn(
-                                "h-10 px-4 rounded-xl text-white text-[8px] font-black uppercase tracking-widest flex items-center justify-center transition-all",
+                                "h-6 min-h-0 min-w-0 px-1.5 rounded-md text-white text-[8px] font-black uppercase tracking-widest flex items-center justify-center transition-all w-full",
                                 isLive
                                   ? "bg-[#FF8A75] shadow-[0_0_15px_rgba(255,138,117,0.4)] animate-pulse"
                                   : "bg-[#1a1a1a] hover:bg-[#FF8A75]"
@@ -263,17 +263,17 @@ export default async function StaffDashboardPage() {
                               {isLive ? 'Join Live' : 'View'}
                             </ZoomJoinButton>
                           ) : null}
-                          {/* Mark Complete button — only when LIVE */}
-                          {isLive && (
-                            <form action={async () => { 'use server'; await completeMeeting(meeting.id); }}>
-                              <button type="submit" className="h-10 px-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-[8px] font-black uppercase tracking-widest hover:bg-emerald-100 transition-all">
+                          {/* Mark Complete button — only for host, only when LIVE */}
+                          {isLive && meeting.host_id === user.id && (
+                            <form action={async () => { 'use server'; await completeMeeting(meeting.id); }} className="w-full">
+                              <button type="submit" className="w-full h-6 min-h-0 min-w-0 px-1.5 rounded-md bg-emerald-50 border border-emerald-200 text-emerald-700 text-[8px] font-black uppercase tracking-widest hover:bg-emerald-100 transition-all">
                                 ✓ Done
                               </button>
                             </form>
                           )}
                           {/* Cancel/Delete button — only if not completed/expired */}
                           {!isCompleted && !isExpired && (
-                            <CancelMeetingButton meetingId={meeting.id} />
+                            <CancelMeetingButton meetingId={meeting.id} className="w-full" />
                           )}
                         </div>
                       </div>

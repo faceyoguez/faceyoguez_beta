@@ -30,7 +30,7 @@ export async function getUpcomingMeetingsForStudent(): Promise<MeetingWithDetail
   let query = supabase
     .from('meetings')
     .select(`
-      id, topic, start_time, duration_minutes, meeting_type, join_url, start_url, zoom_meeting_id, batch_id, student_id, host_id,
+      id, topic, start_time, duration_minutes, meeting_type, join_url, start_url, zoom_meeting_id, batch_id, student_id, host_id, calendar_event_id,
       host:host_id(id, full_name, avatar_url, role),
       student:student_id(id, full_name, avatar_url),
       batch:batch_id(id, name, start_date, end_date)
@@ -77,7 +77,7 @@ export async function getInstructorUpcomingMeetings(): Promise<MeetingWithDetail
   let query = supabase
     .from('meetings')
     .select(`
-      id, topic, start_time, duration_minutes, meeting_type, join_url, start_url, zoom_meeting_id, batch_id, student_id, host_id,
+      id, topic, start_time, duration_minutes, meeting_type, join_url, start_url, zoom_meeting_id, batch_id, student_id, host_id, calendar_event_id,
       host:host_id(id, full_name, avatar_url, role),
       student:student_id(id, full_name, avatar_url),
       batch:batch_id(id, name, start_date, end_date)
@@ -725,7 +725,7 @@ export async function getLatestMeetingForBatch(batchId: string): Promise<Meeting
   const { data, error } = await supabase
     .from('meetings')
     .select(`
-      id, topic, start_time, duration_minutes, meeting_type, join_url, start_url, zoom_meeting_id, batch_id, student_id, host_id,
+      id, topic, start_time, duration_minutes, meeting_type, join_url, start_url, zoom_meeting_id, batch_id, student_id, host_id, calendar_event_id,
       host:host_id(id, full_name, avatar_url, role),
       student:student_id(id, full_name, avatar_url),
       batch:batch_id(id, name, start_date, end_date)
@@ -763,6 +763,9 @@ export async function completeMeeting(meetingId: string) {
 
   revalidatePath('/instructor/dashboard');
   revalidatePath('/instructor/groups');
+  revalidatePath('/instructor/one-on-one');
+  revalidatePath('/staff/dashboard');
+  revalidatePath('/staff/one-on-one');
   revalidatePath('/student/dashboard');
   revalidatePath('/student/group-session');
   revalidatePath('/student/one-on-one');
