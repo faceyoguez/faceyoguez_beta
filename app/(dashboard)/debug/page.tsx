@@ -17,6 +17,8 @@ export default async function DebugPage() {
         ZOOM_ACCOUNT_ID: envCheck('ZOOM_ACCOUNT_ID'),
         ZOOM_CLIENT_ID: envCheck('ZOOM_CLIENT_ID'),
         ZOOM_CLIENT_SECRET: envCheck('ZOOM_CLIENT_SECRET'),
+        // Not a secret (just an email) — shown in full to confirm it's the right account.
+        ZOOM_HOST_EMAIL: process.env.ZOOM_HOST_EMAIL || '(not set)',
     };
 
     // Names only (never values) of every env var Vercel actually injected that
