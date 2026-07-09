@@ -193,7 +193,7 @@ export async function getZoomZakToken(): Promise<string> {
   if (!response.ok) {
     const errorData = await response.text();
     console.error('Failed to get Zoom ZAK token:', errorData);
-    throw new Error(`Failed to get Zoom ZAK token: ${response.status}`);
+    throw new Error(`Failed to get Zoom ZAK token (${response.status}): ${errorData}`);
   }
 
   const data = await response.json();
