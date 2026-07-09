@@ -1,4 +1,5 @@
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { getZoomToken } from '@/lib/zoom';
 
 // TEMPORARY: presence/length-only check for Zoom env vars — never logs the actual
 // secret values — to confirm whether Vercel is actually injecting them at runtime.
@@ -28,6 +29,31 @@ export default async function DebugPage() {
         .sort()
         .map((k) => JSON.stringify(k)); // JSON.stringify surfaces stray whitespace
 
+    // TEMPORARY: checks whether specific known emails exist as Zoom users under
+    // our Server-to-Server credentials' account — presence/count only, never the
+    // actual user list, since this page has no admin gate (any logged-in role
+    // can view it) and a full user dump would leak real emails/PII to students.
+    const KNOWN_EMAILS_TO_CHECK = ['faceyoguezofficial@gmail.com', 'faceyoguezwebsitedevelopment@gmail.com'];
+    let zoomUsersResult: any;
+    try {
+        const token = await getZoomToken();
+        const res = await fetch('https://api.zoom.us/v2/users?status=active&page_size=100', {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        const emails: string[] = (data.users || []).map((u: any) => (u.email || '').toLowerCase());
+        zoomUsersResult = {
+            ok: res.ok,
+            status: res.status,
+            total_records: data.total_records,
+            presenceCheck: Object.fromEntries(
+                KNOWN_EMAILS_TO_CHECK.map((e) => [e, emails.includes(e.toLowerCase())])
+            ),
+        };
+    } catch (err: any) {
+        zoomUsersResult = { error: err?.message || 'Failed to fetch Zoom users' };
+    }
+
     const { data: batches, error: batchError } = await supabase
         .from('batches')
         .select('id, name, created_at, max_students, current_students, status, is_chat_enabled')
@@ -51,6 +77,9 @@ export default async function DebugPage() {
 
             <h2 className="text-xl font-bold mt-8">All env var KEY NAMES containing "ZOOM" (names only, never values)</h2>
             <pre className="bg-gray-100 p-4 rounded">{JSON.stringify(allZoomKeys, null, 2)}</pre>
+
+            <h2 className="text-xl font-bold mt-8">Do known emails exist as Zoom users under our S2S credentials' account? (presence/count only, no PII)</h2>
+            <pre className="bg-gray-100 p-4 rounded">{JSON.stringify(zoomUsersResult, null, 2)}</pre>
 
             <h2 className="text-xl font-bold mt-8">Batches</h2>
             <pre className="bg-gray-100 p-4 rounded">{JSON.stringify({ batches, error: batchError }, null, 2)}</pre>
