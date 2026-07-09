@@ -18,18 +18,27 @@ export default async function StudentGroupPage() {
 
     const today = new Date().toISOString().split('T')[0];
 
-    // Find the student's active batch enrollments (including trial access)
-    const { data: enrollments } = await admin
-        .from('batch_enrollments')
-        .select(`
-            *,
-            batches (*, instructor:profiles!instructor_id(*)),
-            subscriptions (*)
-        `)
-        .eq('student_id', user.id)
-        .in('status', ['active', 'extended'])
-        .or(`effective_end_date.is.null,effective_end_date.gte.${today}`)
-        .order('created_at', { ascending: false });
+    // Find the student's active batch enrollments (including trial access), and
+    // check for an active subscription in parallel — neither depends on the other.
+    const [{ data: enrollments }, { data: activeSubs }] = await Promise.all([
+        admin
+            .from('batch_enrollments')
+            .select(`
+                *,
+                batches (*, instructor:profiles!instructor_id(*)),
+                subscriptions (*)
+            `)
+            .eq('student_id', user.id)
+            .in('status', ['active', 'extended'])
+            .or(`effective_end_date.is.null,effective_end_date.gte.${today}`)
+            .order('created_at', { ascending: false }),
+        admin
+            .from('subscriptions')
+            .select('id, plan_type, metadata, is_trial, start_date')
+            .eq('student_id', user.id)
+            .eq('status', 'active')
+            .or(`end_date.is.null,end_date.gte.${today}`),
+    ]);
 
     // Prioritize an 'active' batch over 'upcoming' or others
     const enrollment = (enrollments as any[])?.find(e => e.batches?.status === 'active') || enrollments?.[0] || null;
@@ -38,14 +47,6 @@ export default async function StudentGroupPage() {
     // Only show "Trial" mode if the enrollment IS trial access AND the subscription itself IS a trial.
     // This hides the trial banner for paid users who are just getting a 2-day preview of a running batch.
     let isTrialAccess = (enrollment?.is_trial_access && enrollment?.subscriptions?.is_trial) || false;
-
-    // Also check if they have an active subscription (fallback for manual DB changes)
-    const { data: activeSubs } = await admin
-        .from('subscriptions')
-        .select('id, plan_type, metadata, is_trial, start_date')
-        .eq('student_id', user.id)
-        .eq('status', 'active')
-        .or(`end_date.is.null,end_date.gte.${today}`);
 
     const activeSub = activeSubs?.find((s: any) =>
         s.plan_type === 'group_session' ||
