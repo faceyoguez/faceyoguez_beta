@@ -7,6 +7,7 @@ import {
 import { useState } from 'react';
 import { markNotificationAsRead } from '@/lib/actions/broadcast';
 import { cn } from '@/lib/utils';
+import { LinkifiedText } from '@/components/LinkifiedText';
 import { PlanExpiryPill } from '@/components/ui/plan-expiry-pill';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format, isToday, isYesterday } from 'date-fns';
@@ -165,7 +166,7 @@ export function StudentBroadcastClient({ notifications, subscriptionStartDate }:
                                                                 {notif.title}
                                                             </h3>
                                                             <p className="text-sm leading-relaxed text-slate-500 font-medium font-jakarta whitespace-pre-wrap line-clamp-6 group-hover:line-clamp-none transition-all duration-700">
-                                                                {notif.message}
+                                                                <LinkifiedText text={notif.message} />
                                                             </p>
                                                         </div>
 
