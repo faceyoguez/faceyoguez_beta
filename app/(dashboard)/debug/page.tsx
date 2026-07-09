@@ -1,7 +1,23 @@
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 
+// TEMPORARY: presence/length-only check for Zoom env vars — never logs the actual
+// secret values — to confirm whether Vercel is actually injecting them at runtime.
+// Remove this block once the Vercel env var issue is confirmed fixed.
+function envCheck(name: string) {
+    const val = process.env[name];
+    return { present: !!val, length: val ? val.length : 0 };
+}
+
 export default async function DebugPage() {
     const supabase = await createServerSupabaseClient();
+
+    const zoomEnvStatus = {
+        ZOOM_SDK_CLIENT_ID: envCheck('ZOOM_SDK_CLIENT_ID'),
+        ZOOM_SDK_CLIENT_SECRET: envCheck('ZOOM_SDK_CLIENT_SECRET'),
+        ZOOM_ACCOUNT_ID: envCheck('ZOOM_ACCOUNT_ID'),
+        ZOOM_CLIENT_ID: envCheck('ZOOM_CLIENT_ID'),
+        ZOOM_CLIENT_SECRET: envCheck('ZOOM_CLIENT_SECRET'),
+    };
 
     const { data: batches, error: batchError } = await supabase
         .from('batches')
@@ -20,6 +36,9 @@ export default async function DebugPage() {
     return (
         <div className="p-10 font-mono text-xs whitespace-pre-wrap">
             <h1 className="text-2xl font-bold mb-4">Database State</h1>
+
+            <h2 className="text-xl font-bold mt-8">Zoom Env Vars (presence/length only, never the value)</h2>
+            <pre className="bg-gray-100 p-4 rounded">{JSON.stringify(zoomEnvStatus, null, 2)}</pre>
 
             <h2 className="text-xl font-bold mt-8">Batches</h2>
             <pre className="bg-gray-100 p-4 rounded">{JSON.stringify({ batches, error: batchError }, null, 2)}</pre>
