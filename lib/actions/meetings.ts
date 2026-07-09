@@ -634,7 +634,7 @@ export async function startMeeting(meetingId: string) {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) throw new Error('Not authenticated');
+  if (!user) return { success: false, error: 'Not authenticated' };
 
   const { error } = await supabase
     .from('meetings')
@@ -745,7 +745,7 @@ export async function getLatestMeetingForBatch(batchId: string): Promise<Meeting
 export async function completeMeeting(meetingId: string) {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('Not authenticated');
+  if (!user) return { success: false, error: 'Not authenticated' };
 
   const { error } = await supabase
     .from('meetings')
@@ -776,7 +776,7 @@ export async function completeMeeting(meetingId: string) {
 export async function deleteMeeting(meetingId: string) {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('Not authenticated');
+  if (!user) return { success: false, error: 'Not authenticated' };
 
   const admin = createAdminClient();
 
@@ -784,7 +784,7 @@ export async function deleteMeeting(meetingId: string) {
   const { data: profile } = await admin.from('profiles').select('role').eq('id', user.id).single();
   const role = profile?.role || '';
   if (!['admin', 'staff', 'instructor', 'client_management'].includes(role)) {
-    throw new Error('Unauthorized');
+    return { success: false, error: 'Unauthorized' };
   }
 
   // Get the meeting info before deleting

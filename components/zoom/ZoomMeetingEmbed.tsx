@@ -86,7 +86,11 @@ export function ZoomMeetingEmbed({ meetingId, type, onClose, chatPanel }: ZoomMe
         // being done — a dropped connection reports separately (see zoom-embed.html)
         // so it never triggers this, keeping the host able to rejoin after a disconnect.
         if (type === 'meeting' && isHostRef.current) {
-          completeMeeting(meetingId).catch((err) => console.error('Failed to auto-complete meeting on leave', err));
+          completeMeeting(meetingId)
+            .then((res) => {
+              if (!res.success) console.error('Failed to auto-complete meeting on leave:', res.error);
+            })
+            .catch((err) => console.error('Failed to auto-complete meeting on leave', err));
         }
         if (!cancelled) onClose();
       }
