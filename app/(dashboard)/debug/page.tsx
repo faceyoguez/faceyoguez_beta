@@ -19,6 +19,13 @@ export default async function DebugPage() {
         ZOOM_CLIENT_SECRET: envCheck('ZOOM_CLIENT_SECRET'),
     };
 
+    // Names only (never values) of every env var Vercel actually injected that
+    // contains "ZOOM" — reveals typos/renames invisible in the Vercel dashboard.
+    const allZoomKeys = Object.keys(process.env)
+        .filter((k) => k.toUpperCase().includes('ZOOM'))
+        .sort()
+        .map((k) => JSON.stringify(k)); // JSON.stringify surfaces stray whitespace
+
     const { data: batches, error: batchError } = await supabase
         .from('batches')
         .select('id, name, created_at, max_students, current_students, status, is_chat_enabled')
@@ -39,6 +46,9 @@ export default async function DebugPage() {
 
             <h2 className="text-xl font-bold mt-8">Zoom Env Vars (presence/length only, never the value)</h2>
             <pre className="bg-gray-100 p-4 rounded">{JSON.stringify(zoomEnvStatus, null, 2)}</pre>
+
+            <h2 className="text-xl font-bold mt-8">All env var KEY NAMES containing "ZOOM" (names only, never values)</h2>
+            <pre className="bg-gray-100 p-4 rounded">{JSON.stringify(allZoomKeys, null, 2)}</pre>
 
             <h2 className="text-xl font-bold mt-8">Batches</h2>
             <pre className="bg-gray-100 p-4 rounded">{JSON.stringify({ batches, error: batchError }, null, 2)}</pre>
