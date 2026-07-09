@@ -24,6 +24,7 @@ import { MessageBubble } from '@/components/chat/MessageBubble';
 import { BatchChatWindow } from '@/components/chat/BatchChatWindow';
 import { SupportContact } from '@/components/ui/SupportContact';
 import { ZoomMeetingEmbed } from '@/components/zoom/ZoomMeetingEmbed';
+import { RecordingPlayerModal } from '@/components/RecordingPlayerModal';
 
 import type { Profile, MeetingWithDetails, BatchPoll, RecordedSession } from '../../../../types/database';
 
@@ -59,6 +60,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
     const [unreadCount, setUnreadCount] = useState(0);
     const [isMounted, setIsMounted] = useState(false);
     const [activeCallMeetingId, setActiveCallMeetingId] = useState<string | null>(null);
+    const [playingRecording, setPlayingRecording] = useState<RecordedSession | null>(null);
     const isChatEnabled = activeBatch?.is_chat_enabled ?? true;
 
     useEffect(() => {
@@ -556,7 +558,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                         {recordings.slice(recordingPage, recordingPage + 1).map((rec: RecordedSession) => (
                                             <button
                                                 key={rec.id}
-                                                onClick={() => rec.is_available && window.open(rec.play_url!, '_blank')}
+                                                onClick={() => rec.is_available && setPlayingRecording(rec)}
                                                 disabled={!rec.is_available}
                                                 className={cn(
                                                     "w-full flex items-center gap-3 p-3 bg-slate-50/50 border border-slate-100/50 rounded-xl transition-all text-left group",
@@ -830,6 +832,15 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                   chatPanel={activeBatch ? (
                     <BatchChatWindow batchId={activeBatch.id} currentUser={currentUser} title={activeBatch.name} dark className="h-full" />
                   ) : undefined}
+                />
+            )}
+
+            {/* Recording player — streams through our own server, no zoom.us redirect */}
+            {playingRecording && (
+                <RecordingPlayerModal
+                    meetingId={playingRecording.id}
+                    topic={playingRecording.topic}
+                    onClose={() => setPlayingRecording(null)}
                 />
             )}
 
