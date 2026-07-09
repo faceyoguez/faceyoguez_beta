@@ -234,6 +234,23 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
         };
     }, [activeBatch?.id, currentUser.id, supabase]);
 
+    // Auto-refresh recordings while any are still processing on Zoom's side —
+    // students shouldn't have to manually reload the page to see one appear.
+    const recordingsRef = useRef(recordings);
+    useEffect(() => { recordingsRef.current = recordings; }, [recordings]);
+
+    useEffect(() => {
+        if (!activeBatch?.id) return;
+
+        const interval = setInterval(async () => {
+            if (!recordingsRef.current.some((r) => r.is_processing)) return;
+            const recs = await getBatchRecordedSessions(activeBatch.id, activeBatch.end_date ?? '');
+            setRecordings(recs);
+        }, 60000);
+
+        return () => clearInterval(interval);
+    }, [activeBatch?.id, activeBatch?.end_date]);
+
     const router = useRouter();
 
     useEffect(() => {
@@ -540,14 +557,28 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                             <button
                                                 key={rec.id}
                                                 onClick={() => rec.is_available && window.open(rec.play_url!, '_blank')}
-                                                className="w-full flex items-center gap-3 p-3 bg-slate-50/50 border border-slate-100/50 rounded-xl hover:border-[#e76f51]/20 hover:bg-white hover:shadow-sm transition-all text-left group"
+                                                disabled={!rec.is_available}
+                                                className={cn(
+                                                    "w-full flex items-center gap-3 p-3 bg-slate-50/50 border border-slate-100/50 rounded-xl transition-all text-left group",
+                                                    rec.is_available
+                                                        ? "hover:border-[#e76f51]/20 hover:bg-white hover:shadow-sm cursor-pointer"
+                                                        : "cursor-default opacity-80"
+                                                )}
                                             >
-                                                <div className="h-9 w-9 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-300 group-hover:text-[#e76f51] transition-colors">
-                                                    <Play className="w-3.5 h-3.5 fill-current" />
+                                                <div className="h-9 w-9 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-300 group-hover:text-[#e76f51] transition-colors shrink-0">
+                                                    {rec.is_processing ? (
+                                                        <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
+                                                    ) : (
+                                                        <Play className="w-3.5 h-3.5 fill-current" />
+                                                    )}
                                                 </div>
                                                 <div className="min-w-0">
                                                     <p className="text-[11px] font-bold text-slate-700 truncate">{rec.topic}</p>
-                                                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{isMounted ? formatISTDate(rec.start_time) : '---'}</p>
+                                                    {rec.is_processing ? (
+                                                        <p className="text-[8px] font-bold text-amber-500 uppercase tracking-widest mt-0.5">Recording under process — check back soon</p>
+                                                    ) : (
+                                                        <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{isMounted ? formatISTDate(rec.start_time) : '---'}</p>
+                                                    )}
                                                 </div>
                                             </button>
                                         ))}

@@ -155,7 +155,7 @@ export async function getBatchRecordedSessions(
   // Also filter by meetings that started within the last 5 days
   const { data: meetings } = await admin
     .from('meetings')
-    .select('id, topic, start_time, duration_minutes, zoom_meeting_id')
+    .select('id, topic, start_time, duration_minutes, zoom_meeting_id, calendar_event_id')
     .eq('batch_id', batchId)
     .eq('meeting_type', 'group_session')
     .lt('start_time', now.toISOString())
@@ -189,6 +189,13 @@ export async function getBatchRecordedSessions(
         durationMinutes = Math.round(ms / 60000);
       }
 
+      // A session has actually ended once it's marked Done, or its scheduled
+      // window (start + duration) has passed — Zoom recordings only start
+      // processing after the meeting truly ends, so "processing" shouldn't be
+      // shown for a session that's still upcoming or in progress.
+      const scheduledEnd = new Date(meeting.start_time).getTime() + meeting.duration_minutes * 60000;
+      const hasEnded = meeting.calendar_event_id === 'DONE' || Date.now() > scheduledEnd;
+
       return {
         id: meeting.id,
         topic: meeting.topic,
@@ -196,6 +203,7 @@ export async function getBatchRecordedSessions(
         duration_minutes: durationMinutes,
         play_url: mainFile?.play_url ?? null,
         is_available: !!mainFile,
+        is_processing: hasEnded && !mainFile,
       } satisfies RecordedSession;
     })
   );

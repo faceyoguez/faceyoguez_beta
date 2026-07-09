@@ -250,6 +250,8 @@ export interface RecordedSession {
   /** Zoom cloud recording play URL — null while the recording is still processing */
   play_url: string | null;
   is_available: boolean;
+  /** Session has ended but Zoom hasn't finished processing the recording yet */
+  is_processing: boolean;
 }
 
 export interface JourneyLog {
