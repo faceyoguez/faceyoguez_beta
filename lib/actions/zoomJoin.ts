@@ -50,6 +50,21 @@ function generateSdkSignature(meetingNumber: string, role: 0 | 1): string {
 export async function getZoomJoinContext(input: {
   meetingId: string;
   type: 'meeting' | 'consultation';
+}): Promise<{ ctx: ZoomJoinContext | null; error: string | null }> {
+  try {
+    return { ctx: await resolveZoomJoinContext(input), error: null };
+  } catch (err: any) {
+    // A thrown error from a Server Action has its message stripped in production
+    // ("...omitted to avoid leaking sensitive details") — returning the reason as
+    // plain data instead means the real cause actually reaches the user/console.
+    console.error('[getZoomJoinContext] failed:', err);
+    return { ctx: null, error: err?.message || 'Could not connect to the meeting.' };
+  }
+}
+
+async function resolveZoomJoinContext(input: {
+  meetingId: string;
+  type: 'meeting' | 'consultation';
 }): Promise<ZoomJoinContext> {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();

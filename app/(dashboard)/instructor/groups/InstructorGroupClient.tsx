@@ -12,7 +12,8 @@ import {
    Activity, Calendar, Clock,
 
    ShieldCheck, ShieldAlert,
-   MessageSquare, MessageCircle
+   MessageSquare, MessageCircle,
+   CheckCircle, Trash2
 } from 'lucide-react';
 import { createAndPopulateBatch, type CreateBatchInput, toggleBatchChat, getInstructorBatches } from '@/lib/actions/batches';
 import { useRouter } from 'next/navigation';
@@ -683,38 +684,16 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                   <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 shrink-0">
                      {nextBatchMeeting && (() => {
                         const status = getSessionStatus(nextBatchMeeting.start_time, nextBatchMeeting.duration_minutes || 60, nextBatchMeeting.calendar_event_id);
-                        return (
-                        <div className="text-left sm:text-right flex flex-col items-start sm:items-end min-w-0 gap-1">
-                           <div className="flex items-center gap-2">
-                              <span className="text-[7px] font-black uppercase tracking-[0.2em] text-[#FF8A75]">Next Live Session</span>
-                              {status === 'expired' && <span className="text-[7px] font-black uppercase tracking-widest text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">Expired</span>}
-                              {status === 'completed' && <span className="text-[7px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">Completed</span>}
-                              {status === 'live' && <span className="text-[7px] font-black uppercase tracking-widest text-[#FF8A75] bg-[#FF8A75]/10 px-1.5 py-0.5 rounded-full animate-pulse">Live</span>}
-                           </div>
-                           <h4 className={cn("text-[11px] font-bold truncate max-w-[180px] sm:max-w-[220px]", status === 'expired' ? 'line-through text-slate-400' : status === 'completed' ? 'text-slate-500' : 'text-slate-800')}>{nextBatchMeeting.topic}</h4>
-                           <p className="text-[9px] font-medium text-slate-500">
-                              {formatISTDate(nextBatchMeeting.start_time)} · {formatISTTime(nextBatchMeeting.start_time)} IST
-                           </p>
-                        </div>
-                        );
-                     })()}
-                     <div className="flex items-center gap-2 flex-wrap">
-                        <button
-                           onClick={() => setIsScheduleModalOpen(true)}
-                           disabled={!selectedBatch}
-                           className="h-10 px-6 rounded-xl bg-white border border-[#FF8A75]/20 text-[#FF8A75] text-[9px] font-black uppercase tracking-widest flex items-center gap-3 hover:bg-[#FF8A75]/5 disabled:opacity-30 transition-all duration-300"
-                        >
-                           <Video className="w-4 h-4" />
-                           Schedule Session
-                        </button>
-                        <button
-                        disabled={!displayStatus.enabled}
-                        onClick={async () => {
-                           if (!nextBatchMeeting) return;
-                           const isHost = currentUser.role === 'instructor' && (currentUser.is_master_instructor || currentUser.id === nextBatchMeeting.host_id);
-                           const isLive = nextBatchMeeting.calendar_event_id === 'LIVE';
+                        const isExpired = status === 'expired';
+                        const isCompleted = status === 'completed';
+                        const isLive = status === 'live';
+                        const isHost = currentUser.role === 'instructor' && (currentUser.is_master_instructor || currentUser.id === nextBatchMeeting.host_id);
+                        const canCancel = !isCompleted && !isExpired && ['instructor', 'staff', 'admin', 'client_management'].includes(currentUser.role);
 
-                           if (isHost && !isLive) {
+                        const handleJoin = async () => {
+                           if (!displayStatus.enabled) return;
+                           const isMeetingLive = nextBatchMeeting.calendar_event_id === 'LIVE';
+                           if (isHost && !isMeetingLive) {
                               const res = await startMeeting(nextBatchMeeting.id);
                               if (!res.success) {
                                  toast.error("Failed to start session");
@@ -722,62 +701,92 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                               }
                               toast.success("Session is now LIVE!");
                            }
-
                            setActiveCallMeetingId(nextBatchMeeting.id);
-                        }}
-                        className={cn(
-                           "h-10 px-6 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-3 transition-all duration-500 group/btn",
-                           displayStatus.enabled
-                              ? "bg-[#FF8A75] text-white hover:bg-[#ff7a63] shadow-[0_0_20px_rgba(255,138,117,0.4)] hover:shadow-[0_0_30px_rgba(255,138,117,0.6)] hover:-translate-y-0.5" 
-                              : "bg-slate-100 text-slate-400 cursor-not-allowed shadow-none"
-                        )}
+                        };
+
+                        return (
+                        <div
+                           onClick={displayStatus.enabled ? handleJoin : undefined}
+                           className={cn(
+                              "flex items-center gap-3 h-14 pl-4 pr-2 rounded-2xl border transition-all duration-300",
+                              displayStatus.enabled ? "cursor-pointer" : "cursor-default",
+                              isLive ? "bg-[#FF8A75]/10 border-[#FF8A75]/30 hover:bg-[#FF8A75]/15"
+                              : isCompleted ? "bg-emerald-50 border-emerald-100"
+                              : isExpired ? "bg-slate-50 border-slate-100 opacity-60"
+                              : "bg-white border-[#FF8A75]/10 hover:border-[#FF8A75]/20"
+                           )}
+                        >
+                           <div className="text-left flex flex-col min-w-0 gap-0.5">
+                              <div className="flex items-center gap-2">
+                                 <span className="text-[7px] font-black uppercase tracking-[0.2em] text-[#FF8A75]">Next Live Session</span>
+                                 {isExpired && <span className="text-[7px] font-black uppercase tracking-widest text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">Expired</span>}
+                                 {isCompleted && <span className="text-[7px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-100 px-1.5 py-0.5 rounded-full">✓ Completed</span>}
+                                 {isLive && <span className="text-[7px] font-black uppercase tracking-widest text-[#FF8A75] bg-[#FF8A75]/10 px-1.5 py-0.5 rounded-full animate-pulse">Live</span>}
+                              </div>
+                              <h4 className={cn("text-[11px] font-bold truncate max-w-[140px] sm:max-w-[180px]", isExpired ? 'line-through text-slate-400' : isCompleted ? 'text-slate-500' : 'text-slate-800')}>{nextBatchMeeting.topic}</h4>
+                              <p className="text-[9px] font-medium text-slate-500">
+                                 {formatISTDate(nextBatchMeeting.start_time)} · {formatISTTime(nextBatchMeeting.start_time)} IST
+                              </p>
+                           </div>
+
+                           {displayStatus.enabled && (
+                              <div className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-widest text-[#FF8A75] bg-white border border-[#FF8A75]/10 px-3 py-1.5 rounded-lg shrink-0">
+                                 {displayStatus.text} <ArrowUpRight className="w-3 h-3" />
+                              </div>
+                           )}
+
+                           {isLive && isHost && (
+                              <button
+                                 onClick={async (e) => {
+                                    e.stopPropagation();
+                                    const res = await completeMeeting(nextBatchMeeting.id);
+                                    if (res.success) {
+                                       toast.success('Session marked as completed!');
+                                       router.refresh();
+                                    } else {
+                                       toast.error(res.error || 'Failed to mark complete');
+                                    }
+                                 }}
+                                 className="h-8 w-8 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 transition-all shrink-0"
+                                 title="Mark Session as Done"
+                              >
+                                 <CheckCircle className="w-3.5 h-3.5" />
+                              </button>
+                           )}
+
+                           {canCancel && (
+                              <button
+                                 onClick={async (e) => {
+                                    e.stopPropagation();
+                                    if (confirm('Are you sure you want to cancel this group session? An apology email will be sent to enrolled students.')) {
+                                       const res = await deleteMeeting(nextBatchMeeting.id);
+                                       if (res.success) {
+                                          toast.success('Session canceled successfully');
+                                          router.refresh();
+                                       } else {
+                                          toast.error(res.error || 'Failed to cancel session');
+                                       }
+                                    }
+                                 }}
+                                 className="h-8 w-8 rounded-lg bg-red-50 border border-red-200 text-red-600 flex items-center justify-center hover:bg-red-100 transition-all shrink-0"
+                                 title="Cancel/Delete Meeting"
+                              >
+                                 <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                           )}
+                        </div>
+                        );
+                     })()}
+                     <button
+                        onClick={() => setIsScheduleModalOpen(true)}
+                        disabled={!selectedBatch}
+                        className="h-10 px-6 rounded-xl bg-white border border-[#FF8A75]/20 text-[#FF8A75] text-[9px] font-black uppercase tracking-widest flex items-center gap-3 hover:bg-[#FF8A75]/5 disabled:opacity-30 transition-all duration-300 shrink-0"
                      >
-                        <div className={cn("h-2 w-2 rounded-full", (displayStatus.enabled || nextBatchMeeting?.calendar_event_id === 'LIVE') ? "bg-white animate-pulse" : "bg-slate-300")} />
-                        {displayStatus.text}
-                        {displayStatus.enabled && <ArrowUpRight className="w-4 h-4 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />}
+                        <Video className="w-4 h-4" />
+                        Schedule Session
                      </button>
-                     {/* Mark Complete button — visible when session is LIVE or in its active window */}
-                     {nextBatchMeeting && nextBatchMeeting.calendar_event_id === 'LIVE' && currentUser.role === 'instructor' && (currentUser.is_master_instructor || currentUser.id === nextBatchMeeting.host_id) && (
-                        <button
-                           onClick={async () => {
-                              const res = await completeMeeting(nextBatchMeeting.id);
-                              if (res.success) {
-                                 toast.success('Session marked as completed!');
-                                 router.refresh();
-                              } else {
-                                 toast.error('Failed to mark complete');
-                              }
-                           }}
-                           className="h-10 px-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-emerald-100 transition-all"
-                        >
-                           ✓ Mark Complete
-                        </button>
-                     )}
-                     {/* Cancel Session button — visible when session is not completed or expired, for staff/instructors */}
-                     {nextBatchMeeting && (() => {
-                        const status = getSessionStatus(nextBatchMeeting.start_time, nextBatchMeeting.duration_minutes || 60, nextBatchMeeting.calendar_event_id);
-                        return status !== 'completed' && status !== 'expired';
-                     })() && ['instructor', 'staff', 'admin', 'client_management'].includes(currentUser.role) && (
-                        <button
-                           onClick={async () => {
-                              if (confirm('Are you sure you want to cancel this group session? An apology email will be sent to enrolled students.')) {
-                                 const res = await deleteMeeting(nextBatchMeeting.id);
-                                 if (res.success) {
-                                    toast.success('Session canceled successfully');
-                                    router.refresh();
-                                 } else {
-                                    toast.error(res.error || 'Failed to cancel session');
-                                 }
-                              }
-                           }}
-                           className="h-10 px-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-red-100 transition-all"
-                        >
-                           Cancel Session
-                        </button>
-                     )}
                   </div>
                </div>
-            </div>
 
                <div className="flex-1 flex flex-col lg:flex-row overflow-y-auto overflow-x-hidden p-4 lg:p-8 pt-4 lg:pt-6 gap-4 lg:gap-6 custom-scrollbar relative pb-24 lg:pb-12">
 

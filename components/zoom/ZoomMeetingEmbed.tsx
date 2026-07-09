@@ -48,21 +48,20 @@ export function ZoomMeetingEmbed({ meetingId, type, onClose, chatPanel }: ZoomMe
 
     async function sendJoin() {
       if (joinSent || cancelled) return;
-      try {
-        const ctx = await getZoomJoinContext({ meetingId, type });
-        if (cancelled || !iframeRef.current?.contentWindow) return;
-        isHostRef.current = ctx.isHost;
-        joinSent = true;
-        iframeRef.current.contentWindow.postMessage(
-          { source: 'zoom-embed-host', type: 'join', payload: ctx },
-          window.location.origin
-        );
-      } catch (err: any) {
-        if (!cancelled) {
-          setErrorMsg(err?.message || 'Could not connect to the meeting.');
-          setStatus('error');
-        }
+      const { ctx, error } = await getZoomJoinContext({ meetingId, type });
+      if (cancelled) return;
+      if (error || !ctx) {
+        setErrorMsg(error || 'Could not connect to the meeting.');
+        setStatus('error');
+        return;
       }
+      if (!iframeRef.current?.contentWindow) return;
+      isHostRef.current = ctx.isHost;
+      joinSent = true;
+      iframeRef.current.contentWindow.postMessage(
+        { source: 'zoom-embed-host', type: 'join', payload: ctx },
+        window.location.origin
+      );
     }
 
     function onMessage(event: MessageEvent) {
