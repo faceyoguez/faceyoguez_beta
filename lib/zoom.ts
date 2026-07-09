@@ -32,7 +32,7 @@ export async function getZoomToken(): Promise<string> {
   if (!response.ok) {
     const errorData = await response.text();
     console.error('Failed to get Zoom token:', errorData);
-    throw new Error(`Failed to get Zoom token: ${response.status}`);
+    throw new Error(`Failed to get Zoom token (${response.status}): ${errorData}`);
   }
 
   const data = await response.json();

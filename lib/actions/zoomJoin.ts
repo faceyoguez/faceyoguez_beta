@@ -22,7 +22,8 @@ function generateSdkSignature(meetingNumber: string, role: 0 | 1): string {
   const sdkSecret = process.env.ZOOM_SDK_CLIENT_SECRET;
 
   if (!sdkKey || !sdkSecret) {
-    throw new Error('Zoom Meeting SDK credentials (ZOOM_SDK_CLIENT_ID / ZOOM_SDK_CLIENT_SECRET) are not configured.');
+    const missing = [!sdkKey && 'ZOOM_SDK_CLIENT_ID', !sdkSecret && 'ZOOM_SDK_CLIENT_SECRET'].filter(Boolean).join(', ');
+    throw new Error(`Zoom Meeting SDK credentials missing on the server: ${missing}. Check the environment variables in Vercel's project settings.`);
   }
 
   const iat = Math.round(Date.now() / 1000) - 30;
