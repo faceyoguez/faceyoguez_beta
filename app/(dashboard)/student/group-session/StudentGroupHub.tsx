@@ -597,7 +597,6 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                         disabled={recordingPage === 0}
                                         className="p-2 rounded-lg hover:bg-slate-50 disabled:opacity-30 transition-colors"
                                     >
-                                        <X className="w-4 h-4 rotate-180" /> {/* Using X as a placeholder for chevron if needed, but I'll use text */}
                                         <span className="sr-only">Prev</span>
                                         <div className="w-4 h-4 border-l-2 border-b-2 border-slate-400 rotate-45 ml-1" />
                                     </button>
