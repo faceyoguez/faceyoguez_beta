@@ -4,7 +4,6 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Loader2, AlertCircle, X, MessageCircle } from 'lucide-react';
 import { getZoomJoinContext } from '@/lib/actions/zoomJoin';
-import { completeMeeting } from '@/lib/actions/meetings';
 import { cn } from '@/lib/utils';
 
 interface ZoomMeetingEmbedProps {
@@ -40,8 +39,6 @@ export function ZoomMeetingEmbed({ meetingId, type, onClose, chatPanel }: ZoomMe
 
   useEffect(() => setMounted(true), []);
 
-  const isHostRef = useRef(false);
-
   useEffect(() => {
     let cancelled = false;
     let joinSent = false;
@@ -56,7 +53,6 @@ export function ZoomMeetingEmbed({ meetingId, type, onClose, chatPanel }: ZoomMe
         return;
       }
       if (!iframeRef.current?.contentWindow) return;
-      isHostRef.current = ctx.isHost;
       joinSent = true;
       iframeRef.current.contentWindow.postMessage(
         { source: 'zoom-embed-host', type: 'join', payload: ctx },
@@ -81,16 +77,8 @@ export function ZoomMeetingEmbed({ meetingId, type, onClose, chatPanel }: ZoomMe
           setStatus('error');
         }
       } else if (event.data.type === 'left') {
-        // The host deliberately leaving/ending the call is treated as the session
-        // being done — a dropped connection reports separately (see zoom-embed.html)
-        // so it never triggers this, keeping the host able to rejoin after a disconnect.
-        if (type === 'meeting' && isHostRef.current) {
-          completeMeeting(meetingId)
-            .then((res) => {
-              if (!res.success) console.error('Failed to auto-complete meeting on leave:', res.error);
-            })
-            .catch((err) => console.error('Failed to auto-complete meeting on leave', err));
-        }
+        // Sessions are only marked Done via the explicit Done button — leaving
+        // the call (host or student) just closes this window.
         if (!cancelled) onClose();
       }
     }
