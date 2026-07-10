@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Flower2, Menu, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 export function Header() {
@@ -11,8 +10,9 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
+    // passive: true = browser doesn't wait for JS before scrolling → no jank
     const handleScroll = () => setScrolled(window.scrollY > 60);
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -21,12 +21,16 @@ export function Header() {
   return (
     <header
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-500 px-6 md:px-12',
+        'fixed top-0 left-0 right-0 z-50 px-6 md:px-12',
+        // Use transform-based properties only (GPU composited, no layout recalc)
+        'transition-[padding,background-color,border-color] duration-300',
         scrolled ? 'py-3' : 'py-5',
       )}
       style={{
-        backgroundColor: scrolled ? 'rgba(252, 244, 235, 0.9)' : 'transparent',
-        backdropFilter: scrolled ? 'blur(20px) saturate(180%)' : 'none',
+        backgroundColor: scrolled ? 'rgba(252, 244, 235, 0.92)' : 'transparent',
+        // Reduce blur: blur(12px) is far lighter than blur(20px) on mobile
+        backdropFilter: scrolled ? 'blur(12px)' : 'none',
+        WebkitBackdropFilter: scrolled ? 'blur(12px)' : 'none',
         borderBottom: scrolled ? '1px solid rgba(44, 37, 37, 0.08)' : '1px solid transparent',
       }}
     >
@@ -70,7 +74,7 @@ export function Header() {
           ))}
         </nav>
 
-        {/* CTAs */}
+        {/* Desktop CTAs */}
         <div className="hidden md:flex items-center gap-5">
           <Link
             href="/auth/login"
@@ -88,7 +92,7 @@ export function Header() {
           </Link>
           <Link
             href="/auth/signup"
-            className="px-5 py-2.5 rounded-full text-[13px] tracking-[0.05em] transition-all duration-300 hover:scale-[1.03]"
+            className="px-5 py-2.5 rounded-full text-[13px] tracking-[0.05em] transition-transform duration-200 hover:scale-[1.03] active:scale-[0.98]"
             style={{
               fontFamily: 'var(--font-jakarta)',
               fontWeight: 700,
@@ -100,10 +104,10 @@ export function Header() {
           </Link>
         </div>
 
-        {/* Mobile toggle */}
+        {/* Mobile hamburger */}
         <button
-          className="md:hidden p-2"
-          onClick={() => setMenuOpen(!menuOpen)}
+          className="md:hidden p-2 rounded-lg active:bg-black/5 transition-colors"
+          onClick={() => setMenuOpen((v) => !v)}
           aria-label="Toggle menu"
           style={{ color: 'rgb(44, 37, 37)' }}
         >
@@ -111,64 +115,72 @@ export function Header() {
         </button>
       </div>
 
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {menuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.25 }}
-            className="absolute top-full left-0 right-0 p-8 flex flex-col gap-5 md:hidden border-b"
+      {/*
+        Mobile Menu — CSS-only transition (no Framer Motion).
+        Framer Motion's exit animation was blocking navigation by 250ms.
+        CSS transitions are composited on the GPU and don't block the main thread.
+      */}
+      <div
+        className={cn(
+          'absolute top-full left-0 right-0 p-8 flex flex-col gap-5 md:hidden border-b',
+          'transition-[opacity,transform] duration-200 ease-out',
+          menuOpen
+            ? 'opacity-100 translate-y-0 pointer-events-auto'
+            : 'opacity-0 -translate-y-2 pointer-events-none'
+        )}
+        style={{
+          backgroundColor: 'rgba(252, 244, 235, 0.97)',
+          // Removed heavy backdrop-filter from mobile menu — not needed with opaque bg
+          borderColor: 'rgba(44, 37, 37, 0.08)',
+        }}
+      >
+        {mainLinks.map((link) => (
+          <Link
+            key={link.name}
+            href={link.href}
+            onClick={() => setMenuOpen(false)}
             style={{
-              backgroundColor: 'rgba(252, 244, 235, 0.97)',
-              backdropFilter: 'blur(20px)',
-              borderColor: 'rgba(44, 37, 37, 0.08)',
+              fontFamily: 'var(--font-aktiv)',
+              fontSize: '24px',
+              fontWeight: 600,
+              color: 'rgb(44, 37, 37)',
             }}
           >
-            {mainLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                onClick={() => setMenuOpen(false)}
-                style={{
-                  fontFamily: 'var(--font-aktiv)',
-                  fontSize: '24px',
-                  fontWeight: 600,
-                  color: 'rgb(44, 37, 37)',
-                }}
-              >
-                {link.name}
-              </Link>
-            ))}
-            <div className="h-px" style={{ backgroundColor: 'rgba(44, 37, 37, 0.1)' }} />
-            <Link
-              href="/auth/login"
-              className="text-center"
-              style={{
-                fontFamily: 'var(--font-aktiv)',
-                fontSize: '18px',
-                fontWeight: 600,
-                color: 'rgb(44, 37, 37)',
-              }}
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/auth/signup"
-              className="px-6 py-3.5 rounded-full text-center text-[13px] tracking-[0.05em]"
-              style={{
-                fontFamily: 'var(--font-jakarta)',
-                fontWeight: 700,
-                backgroundColor: 'rgb(44, 37, 37)',
-                color: 'rgb(252, 244, 235)',
-              }}
-            >
-              Book a Session
-            </Link>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            {link.name}
+          </Link>
+        ))}
+        <div className="h-px" style={{ backgroundColor: 'rgba(44, 37, 37, 0.1)' }} />
+
+        {/* Sign In — navigates instantly, menu closes after */}
+        <Link
+          href="/auth/login"
+          className="text-center active:opacity-70 transition-opacity"
+          onClick={() => setMenuOpen(false)}
+          style={{
+            fontFamily: 'var(--font-aktiv)',
+            fontSize: '18px',
+            fontWeight: 600,
+            color: 'rgb(44, 37, 37)',
+          }}
+        >
+          Sign In
+        </Link>
+
+        {/* Book a Session — navigates instantly */}
+        <Link
+          href="/auth/signup"
+          className="px-6 py-3.5 rounded-full text-center text-[13px] tracking-[0.05em] active:scale-[0.98] transition-transform"
+          onClick={() => setMenuOpen(false)}
+          style={{
+            fontFamily: 'var(--font-jakarta)',
+            fontWeight: 700,
+            backgroundColor: 'rgb(44, 37, 37)',
+            color: 'rgb(252, 244, 235)',
+          }}
+        >
+          Book a Session
+        </Link>
+      </div>
     </header>
   );
 }
