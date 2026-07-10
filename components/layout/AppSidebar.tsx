@@ -221,7 +221,7 @@ export function AppSidebar({
       <div className="flex h-[100dvh] overflow-hidden bg-[#FFFAF7] selection:bg-[#FF8A75]/20 selection:text-[#FF8A75] font-jakarta">
 
         {/* ── MOBILE HEADER ─────────────────────────────────────────── */}
-        <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/70 backdrop-blur-3xl border-b border-[#FF8A75]/10 z-[70] flex items-center justify-between px-5 sm:px-6">
+        <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-[#FF8A75]/10 z-[70] flex items-center justify-between px-5 sm:px-6">
           <Link href="/" className="flex items-center gap-2.5">
             <div className="h-9 w-9 flex items-center justify-center rounded-xl bg-[#1a1a1a] text-white shadow-lg">
               <Flower2 className="h-4 w-4" />
@@ -233,29 +233,23 @@ export function AppSidebar({
           <button
             id="mobile-menu-toggle"
             aria-label="Toggle navigation menu"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="h-11 w-11 flex items-center justify-center rounded-xl bg-[#FF8A75]/8 text-[#FF8A75] transition-all active:scale-95"
+            onClick={() => setMobileMenuOpen((v) => !v)}
+            className="h-11 w-11 flex items-center justify-center rounded-xl bg-[#FF8A75]/8 text-[#FF8A75] transition-colors active:scale-95"
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
 
-        {/* ── MOBILE BACKDROP ───────────────────────────────────────── */}
-        <AnimatePresence>
-          {mobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              onPointerDown={(e) => {
-                e.preventDefault();
-                setMobileMenuOpen(false);
-              }}
-              className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-[80] lg:hidden"
-            />
+        {/* ── MOBILE BACKDROP (CSS-only for 60fps performance) ─────── */}
+        <div
+          aria-hidden="true"
+          onClick={() => setMobileMenuOpen(false)}
+          className={cn(
+            'fixed inset-0 bg-slate-900/30 z-[80] lg:hidden',
+            'transition-opacity duration-200',
+            mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
           )}
-        </AnimatePresence>
+        />
 
         {/* ── SIDEBAR ───────────────────────────────────────────────── */}
         <aside
@@ -266,7 +260,7 @@ export function AppSidebar({
           }}
           className={cn(
             'fixed inset-y-0 left-0 z-[100] flex flex-col border-r',
-            'transition-[width,transform] duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]',
+            'transition-[width,transform] duration-200 ease-out',
             isAdmin
               ? 'bg-[#0a0a0a] text-white border-white/[0.04]'
               : 'bg-white border-[#FF8A75]/8 text-slate-900 shadow-[4px_0_24px_-4px_rgba(255,138,117,0.06)]',
@@ -394,18 +388,14 @@ export function AppSidebar({
                       )}
                     >
                       {/* Active left accent */}
-                      <AnimatePresence>
-                        {isActive && (
-                          <motion.span
-                            layoutId={`active-nav-${user.role}`}
-                            className={cn(
-                              'absolute left-0 w-1 h-5 rounded-r-full',
-                              isAdmin ? 'bg-white' : 'bg-[#FF8A75]'
-                            )}
-                            transition={{ type: 'spring', stiffness: 400, damping: 35 }}
-                          />
-                        )}
-                      </AnimatePresence>
+                      {isActive && (
+                        <span
+                          className={cn(
+                            'absolute left-0 w-1 h-5 rounded-r-full transition-opacity duration-150',
+                            isAdmin ? 'bg-white' : 'bg-[#FF8A75]'
+                          )}
+                        />
+                      )}
 
                       {/* Icon — always centered when collapsed */}
                       <span className={cn(

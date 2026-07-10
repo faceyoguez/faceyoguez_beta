@@ -639,7 +639,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
             <main className="flex-1 flex flex-col overflow-hidden">
 
                {/* 🗺️ Batch Session Row (Active Batches & Join Session ) */}
-               <div className="shrink-0 h-20 px-6 lg:px-12 bg-white/20 backdrop-blur-md border-b border-[#FF8A75]/5 flex items-center justify-between z-50">
+               <div className="shrink-0 h-auto min-h-[5rem] px-4 lg:px-12 bg-white/20 backdrop-blur-sm border-b border-[#FF8A75]/5 flex flex-wrap items-center justify-between gap-y-2 py-2 lg:py-0 lg:h-20 z-50">
                   <div className="flex items-center gap-6 min-w-0 overflow-hidden">
                      <span className="hidden xl:block text-[9px] font-black uppercase tracking-[0.4em] text-[#FF8A75] shrink-0">Global Group Session</span>
                      
@@ -681,7 +681,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                      </div>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 shrink-0">
+                  <div className="flex flex-row flex-wrap items-center gap-2 shrink-0">
                      {nextBatchMeeting && (() => {
                         const status = getSessionStatus(nextBatchMeeting.start_time, nextBatchMeeting.duration_minutes || 60, nextBatchMeeting.calendar_event_id);
                         const isExpired = status === 'expired';
