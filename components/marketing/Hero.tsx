@@ -1,7 +1,7 @@
 'use client';
 
+import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 import { motion, Variants } from 'framer-motion';
 import { pixel } from '@/lib/pixel';
 
@@ -26,28 +26,6 @@ interface HeroProps {
 }
 
 export function Hero({ visible }: HeroProps) {
-  // ALL hooks must be called before any conditional return (React rules of hooks)
-  const router = useRouter();
-
-  // onTouchStart fires ~300ms before onClick on mobile — gives instant response
-  const handleLoginTouch = (e: React.TouchEvent) => {
-    e.preventDefault();
-    setTimeout(() => pixel.heroCtaClicked({ buttonLabel: 'Login' }), 0);
-    router.push('/auth/login');
-  };
-
-  const handleSignupTouch = (e: React.TouchEvent) => {
-    e.preventDefault();
-    setTimeout(() => pixel.heroCtaClicked({ buttonLabel: 'Get Started' }), 0);
-    router.push('/auth/signup');
-  };
-
-  const handleBookTouch = (e: React.TouchEvent) => {
-    e.preventDefault();
-    setTimeout(() => pixel.heroCtaClicked({ buttonLabel: 'Book Your Class' }), 0);
-    router.push('/auth/signup');
-  };
-
   if (!visible) return null;
 
   return (
@@ -67,30 +45,22 @@ export function Hero({ visible }: HeroProps) {
             faceyoguez
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-8" style={{ touchAction: 'manipulation' }}>
-            {/* Login — onTouchStart fires ~300ms earlier than onClick on mobile */}
-            <button
-              onTouchStart={handleLoginTouch}
-              onClick={() => {
-                setTimeout(() => pixel.heroCtaClicked({ buttonLabel: 'Login' }), 0);
-                router.push('/auth/login');
-              }}
+          <div className="flex items-center gap-2 sm:gap-8">
+            {/* Login — Link auto-prefetches on mount, instant navigation */}
+            <Link
+              href="/auth/login"
+              onClick={() => pixel.heroCtaClicked({ buttonLabel: 'Login' })}
               className="flex text-xs sm:text-sm font-black uppercase tracking-widest text-[#2a2019]/60 hover:text-[#e76f51] active:scale-95 transition-all duration-150 leading-none items-center py-2 px-3 rounded-lg"
-              style={{ touchAction: 'manipulation', background: 'none', border: 'none', cursor: 'pointer' }}
             >
               Login
-            </button>
-            <button
-              onTouchStart={handleSignupTouch}
-              onClick={() => {
-                setTimeout(() => pixel.heroCtaClicked({ buttonLabel: 'Get Started' }), 0);
-                router.push('/auth/signup');
-              }}
+            </Link>
+            <Link
+              href="/auth/signup"
+              onClick={() => pixel.heroCtaClicked({ buttonLabel: 'Get Started' })}
               className="inline-flex items-center justify-center px-4 py-2.5 sm:px-6 sm:py-3 bg-[#1a1a1a] text-white rounded-full text-[9px] sm:text-[11px] font-black uppercase tracking-[0.2em] hover:bg-[#e76f51] transition-all duration-150 shadow-md active:scale-95 leading-none"
-              style={{ touchAction: 'manipulation', border: 'none', cursor: 'pointer' }}
             >
               Get Started
-            </button>
+            </Link>
           </div>
         </div>
       </motion.nav>
@@ -129,17 +99,13 @@ export function Hero({ visible }: HeroProps) {
 
           {/* CTA Button */}
           <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 mb-4 items-center lg:items-start">
-            <button
-              onTouchStart={handleBookTouch}
-              onClick={() => {
-                pixel.heroCtaClicked({ buttonLabel: 'Book Your Class' });
-                router.push('/auth/signup');
-              }}
+            <Link
+              href="/auth/signup"
+              onClick={() => pixel.heroCtaClicked({ buttonLabel: 'Book Your Class' })}
               className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#e76f51] text-white rounded-full text-[11px] font-black uppercase tracking-[0.25em] hover:bg-[#d4603f] transition-all shadow-[0_12px_32px_rgba(231,111,81,0.35)] hover:scale-105 active:scale-95"
-              style={{ touchAction: 'manipulation', border: 'none', cursor: 'pointer' }}
             >
               🌸 Book Your Class →
-            </button>
+            </Link>
           </motion.div>
         </div>
 
