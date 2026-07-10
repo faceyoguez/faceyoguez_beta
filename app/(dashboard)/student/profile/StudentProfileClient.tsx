@@ -9,6 +9,13 @@ import { cn } from '@/lib/utils';
 
 import { Profile } from '@/types/database';
 
+const ROLE_LABELS: Record<string, string> = {
+  admin: 'Admin',
+  instructor: 'Instructor',
+  staff: 'Staff',
+  client_management: 'Client Management',
+};
+
 export default function StudentProfileClient({
   user,
   profile,
@@ -135,12 +142,13 @@ export default function StudentProfileClient({
   const isEmailVerified = Boolean(user.email_confirmed_at || profile?.email_confirmed_at);
   const isPhoneVerified = Boolean(user.phone_confirmed_at || profile?.phone_confirmed_at);
   const verifiedCount = (isEmailVerified ? 1 : 0) + (isPhoneVerified ? 1 : 0);
+  const roleLabel = ROLE_LABELS[profile?.role];
 
   return (
     <div className="container-app py-8 sm:py-12 md:py-24 max-w-4xl mx-auto px-4 sm:px-6">
       <div className="mb-8 md:mb-10">
         <h1 className="font-aktiv text-2xl sm:text-4xl md:text-5xl mb-3 text-zen-taupe leading-tight">Profile & Verification</h1>
-        <p className="text-sm sm:text-body-lg text-warm-gray">Manage your sanctuary access and contact details.</p>
+        <p className="text-sm sm:text-body-lg text-warm-gray">Manage your account access and contact details.</p>
       </div>
 
       <div className="space-y-6 sm:space-y-8">
@@ -154,7 +162,14 @@ export default function StudentProfileClient({
                 </span>
               </div>
               <div className="min-w-0">
-                <p className="font-aktiv text-xl sm:text-2xl text-zen-taupe leading-snug truncate">{profile?.full_name || 'Not provided'}</p>
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <p className="font-aktiv text-xl sm:text-2xl text-zen-taupe leading-snug truncate">{profile?.full_name || 'Not provided'}</p>
+                  {roleLabel && (
+                    <span className="shrink-0 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-zen-peach/10 text-[#E76F51]">
+                      {roleLabel}
+                    </span>
+                  )}
+                </div>
                 <p className="text-sm text-warm-gray mt-0.5">
                   Member since {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Unknown'}
                 </p>
