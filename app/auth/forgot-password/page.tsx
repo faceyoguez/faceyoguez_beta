@@ -23,7 +23,7 @@ export default function ForgotPasswordPage() {
     setSuccess(false);
 
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/auth/reset-password`,
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.faceyoguez.com'}/auth/callback?next=/auth/reset-password`,
     });
 
     if (resetError) {
