@@ -162,8 +162,8 @@ export default function StudentProfileClient({
                 </span>
               </div>
               <div className="min-w-0">
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  <p className="font-aktiv text-xl sm:text-2xl text-zen-taupe leading-snug truncate">{profile?.full_name || 'Not provided'}</p>
+                <div className="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:gap-2.5">
+                  <p className="font-aktiv text-xl sm:text-2xl text-zen-taupe leading-snug truncate max-w-full">{profile?.full_name || 'Not provided'}</p>
                   {roleLabel && (
                     <span className="shrink-0 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-zen-peach/10 text-[#E76F51]">
                       {roleLabel}
@@ -176,7 +176,7 @@ export default function StudentProfileClient({
               </div>
             </div>
 
-            <div className="sm:w-52 shrink-0 sm:pl-8 sm:border-l sm:border-outline-variant/60">
+            <div className="sm:w-52 shrink-0 pt-6 border-t border-outline-variant/60 sm:pt-0 sm:border-t-0 sm:pl-8 sm:border-l sm:border-outline-variant/60">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] font-black uppercase tracking-widest text-warm-gray">Account Security</span>
                 <span className="text-[10px] font-black uppercase tracking-widest text-[#E76F51]">{verifiedCount}/2</span>
@@ -311,14 +311,14 @@ export default function StudentProfileClient({
                     {!isPhoneVerified ? (
                       <button
                         onClick={() => setIsEditingPhone(true)}
-                        className="text-xs text-[#E76F51] font-bold opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="text-xs text-[#E76F51] font-bold p-2 -m-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                       >
                         Add
                       </button>
                     ) : (
                       <button
                         onClick={() => setIsEditingPhone(true)}
-                        className="text-xs text-[#E76F51] font-bold opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="text-xs text-[#E76F51] font-bold p-2 -m-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                       >
                         Change
                       </button>
