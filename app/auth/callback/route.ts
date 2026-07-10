@@ -78,7 +78,7 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${origin}${redirectPath}`);
     } else {
       console.error('OAuth Exchange Code Error:', exchangeError.message);
-      return NextResponse.redirect(`${origin}/auth/login?error=ExchangeCodeError`);
+      return NextResponse.redirect(`${origin}/auth/login?error=ExchangeCodeError&message=${encodeURIComponent(exchangeError.message)}`);
     }
   }
 
