@@ -22,6 +22,16 @@ export default async function DebugPage() {
         ZOOM_HOST_EMAIL: process.env.ZOOM_HOST_EMAIL || '(not set)',
     };
 
+    // TEMPORARY: presence/length-only check for SMTP env vars — same safe pattern
+    // as the Zoom check above — to compare local vs Vercel-deployed credentials.
+    const smtpEnvStatus = {
+        SMTP_HOST: envCheck('SMTP_HOST'),
+        SMTP_PORT: envCheck('SMTP_PORT'),
+        SMTP_USER: envCheck('SMTP_USER'),
+        SMTP_PASSWORD: envCheck('SMTP_PASSWORD'),
+        EMAIL_FROM: envCheck('EMAIL_FROM'),
+    };
+
     // Names only (never values) of every env var Vercel actually injected that
     // contains "ZOOM" — reveals typos/renames invisible in the Vercel dashboard.
     const allZoomKeys = Object.keys(process.env)
@@ -74,6 +84,9 @@ export default async function DebugPage() {
 
             <h2 className="text-xl font-bold mt-8">Zoom Env Vars (presence/length only, never the value)</h2>
             <pre className="bg-gray-100 p-4 rounded">{JSON.stringify(zoomEnvStatus, null, 2)}</pre>
+
+            <h2 className="text-xl font-bold mt-8">SMTP Env Vars (presence/length only, never the value)</h2>
+            <pre className="bg-gray-100 p-4 rounded">{JSON.stringify(smtpEnvStatus, null, 2)}</pre>
 
             <h2 className="text-xl font-bold mt-8">All env var KEY NAMES containing "ZOOM" (names only, never values)</h2>
             <pre className="bg-gray-100 p-4 rounded">{JSON.stringify(allZoomKeys, null, 2)}</pre>
