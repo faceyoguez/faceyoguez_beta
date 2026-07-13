@@ -9,7 +9,7 @@ import { createPortal } from 'react-dom';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-export const PHOTO_MILESTONE_DAYS = [1, 7, 14, 21, 25] as const;
+export const PHOTO_MILESTONE_DAYS = [1, 7, 14, 21, 25, 30] as const;
 export type PhotoMilestoneDay = typeof PHOTO_MILESTONE_DAYS[number];
 
 export type PhotoAngleKey = 'front' | 'left' | 'right';
@@ -308,6 +308,7 @@ export interface MultiAnglePhotos {
 
 interface AnglePhotoTrackerProps {
   dayNumber: number;
+  currentDay?: number;
   /** Photos saved to DB for the current day */
   savedPhotos?: MultiAnglePhotos;
   /** Day 1 photos — used as "before" baseline from Day 7 onward */
@@ -339,6 +340,7 @@ interface JourneyLog {
 
 export function AnglePhotoTracker({
   dayNumber,
+  currentDay: propCurrentDay,
   savedPhotos,
   day1Photos,
   onSave,
@@ -346,14 +348,30 @@ export function AnglePhotoTracker({
   accentColor = '#FF8A75',
   allLogs = [],
 }: AnglePhotoTrackerProps) {
+  const currentDay = propCurrentDay ?? dayNumber;
   const [pending, setPending] = useState<Partial<Record<PhotoAngleKey, { base64: string; mime: string }>>>({});
   const [activeAngle, setActiveAngle] = useState<PhotoAngleKey>('front');
   const hasPending = Object.keys(pending).length > 0;
+
+  // Find the current active upload milestone based on currentDay
+  let activeUploadMilestone: number = PHOTO_MILESTONE_DAYS[0];
+  let nextMilestoneDay: number = PHOTO_MILESTONE_DAYS[1];
+  for (let i = 0; i < PHOTO_MILESTONE_DAYS.length; i++) {
+    if (currentDay >= PHOTO_MILESTONE_DAYS[i]) {
+      activeUploadMilestone = PHOTO_MILESTONE_DAYS[i];
+      nextMilestoneDay = PHOTO_MILESTONE_DAYS[i + 1] || (PHOTO_MILESTONE_DAYS[i] + 7);
+    }
+  }
 
   const isDay1 = dayNumber === 1;
   const isMilestone = isMilestoneDay(dayNumber);
   const isComparisonMode = dayNumber >= 7;
   const hasSavedDay1 = !!(day1Photos?.front || day1Photos?.left || day1Photos?.right);
+  
+  const isEditable = dayNumber === activeUploadMilestone;
+  const isPast = dayNumber < activeUploadMilestone;
+  const isFuture = dayNumber > activeUploadMilestone;
+  const hasPhotos = !!(savedPhotos?.front || savedPhotos?.left || savedPhotos?.right);
   const next = nextMilestone(dayNumber);
 
   const handleSelect = (key: PhotoAngleKey, base64: string, mime: string) => {
@@ -369,29 +387,171 @@ export function AnglePhotoTracker({
     setPending({});
   };
 
-  // ── Day 1: Full prompt mode ──────────────────────────────────────────────
-  if (isDay1) {
+  const daysLeft = nextMilestoneDay - currentDay;
+  const isLate = daysLeft <= 2;
+
+  // Banners for active milestone
+  const successBanner = (
+    <div className="flex items-center gap-3 p-4 rounded-2xl bg-emerald-50 border border-emerald-100/50">
+      <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+      <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600">
+        ✓ Day {dayNumber} photos saved successfully — Next milestone: Day {nextMilestoneDay}
+      </p>
+    </div>
+  );
+
+  const warningBanner = (
+    <div className="flex items-start gap-4 p-5 rounded-2xl border-2 border-rose-200 bg-rose-50/50">
+      <div className="h-10 w-10 shrink-0 rounded-xl flex items-center justify-center bg-rose-100">
+        <AlertCircle className="w-5 h-5 text-rose-500" />
+      </div>
+      <div>
+        <p className="text-sm font-black text-rose-700 leading-tight">
+          🚨 Late Upload Warning: Day {dayNumber}
+        </p>
+        <p className="text-[11px] text-rose-500 font-medium mt-1 leading-relaxed">
+          Upload your progress photos today! This will lock in {daysLeft === 1 ? '1 day' : `${daysLeft} days`} (when Day {nextMilestoneDay} starts).
+        </p>
+      </div>
+    </div>
+  );
+
+  const pendingBanner = (
+    <div className="flex items-start gap-4 p-5 rounded-2xl border border-blue-100 bg-blue-50/30">
+      <div className="h-10 w-10 shrink-0 rounded-xl flex items-center justify-center bg-blue-50">
+        <Camera className="w-5 h-5 text-blue-500" />
+      </div>
+      <div>
+        <p className="text-sm font-black text-blue-700 leading-tight">
+          📸 Pending Photo Upload: Day {dayNumber}
+        </p>
+        <p className="text-[11px] text-blue-500 font-medium mt-1 leading-relaxed">
+          Please upload your front, left, and right profile photos for Day {dayNumber} before Day {nextMilestoneDay} begins.
+        </p>
+      </div>
+    </div>
+  );
+
+  // ── Past Locked Milestones ────────────────────────────────────────────────
+  if (isPast) {
+    if (!hasPhotos) {
+      return (
+        <div className="flex flex-col items-center justify-center gap-4 py-16 px-6 rounded-[3rem] border-2 border-dashed border-slate-200 text-center bg-slate-50/50">
+          <div className="h-16 w-16 rounded-[2rem] bg-white border border-slate-100 flex items-center justify-center shadow-sm">
+            <AlertCircle className="w-6 h-6 text-slate-400 animate-pulse" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
+              ⚠️ Missed Milestone: Day {dayNumber}
+            </p>
+            <p className="text-[9px] text-slate-400 font-medium leading-relaxed">
+              You did not upload photos for this milestone before the deadline.<br />This upload window is now locked.
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-6">
+        <AnglePhotoViewer
+          dayNumber={dayNumber}
+          photos={{
+            front: savedPhotos?.front ?? null,
+            left: savedPhotos?.left ?? null,
+            right: savedPhotos?.right ?? null,
+          }}
+          day1Photos={day1Photos}
+          accentColor={accentColor}
+          allLogs={allLogs}
+        />
+      </div>
+    );
+  }
+
+  // ── Future Locked Milestones ──────────────────────────────────────────────
+  if (isFuture) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col items-center justify-center gap-4 py-16 px-6 rounded-[3rem] border-2 border-dashed border-[#FF8A75]/10 text-center bg-white/40 backdrop-blur-xl">
+          <div className="h-16 w-16 rounded-[2rem] bg-white border border-[#FF8A75]/5 flex items-center justify-center shadow-sm">
+            <Camera className="w-6 h-6 text-[#FF8A75]/20" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FF8A75]/60">
+              Uploads unlock on milestones
+            </p>
+            <p className="text-[9px] text-slate-400 font-medium">
+              Next milestone: Day {dayNumber} (Unlocks in {dayNumber - currentDay} days)
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Non-milestone days: Show Gallery ─────────────────────────────────────
+  if (!isMilestone) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col items-center justify-center gap-4 py-8 px-6 rounded-[2.5rem] border-2 border-dashed border-[#FF8A75]/10 text-center bg-white/40 backdrop-blur-xl">
+          <div className="h-12 w-12 rounded-2xl bg-[#FF8A75]/5 flex items-center justify-center">
+            <AlertCircle className="w-5 h-5 text-[#FF8A75]/40" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FF8A75]/60">
+              Uploads unlock on milestones
+            </p>
+            <p className="text-[9px] text-slate-400 font-medium">
+              Next milestone: Day {next || '??'}
+            </p>
+          </div>
+        </div>
+
+        <AnglePhotoViewer
+          dayNumber={dayNumber}
+          photos={{
+            front: savedPhotos?.front ?? null,
+            left: savedPhotos?.left ?? null,
+            right: savedPhotos?.right ?? null,
+          }}
+          day1Photos={day1Photos}
+          accentColor={accentColor}
+          allLogs={allLogs}
+        />
+      </div>
+    );
+  }
+
+  // ── Day 1: Full prompt mode (Active & Editable) ───────────────────────────
+  if (isDay1 && isEditable) {
     return (
       <div className="space-y-5">
         {/* Banner */}
-        <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-start gap-4 p-5 rounded-2xl border-2"
-          style={{ borderColor: `${accentColor}40`, background: `${accentColor}08` }}
-        >
-          <div className="h-10 w-10 shrink-0 rounded-xl flex items-center justify-center" style={{ background: `${accentColor}20` }}>
-            <Camera className="w-5 h-5" style={{ color: accentColor }} />
-          </div>
-          <div>
-            <p className="text-sm font-black text-slate-700 leading-tight">
-              📸 Welcome — Time to capture your <span style={{ color: accentColor }}>Day 1 baseline!</span>
-            </p>
-            <p className="text-[11px] text-slate-500 font-medium mt-1 leading-relaxed">
-              Upload your front, left, and right profile photos today. These become your <strong>"Before"</strong> photos — visible on all future milestone comparisons.
-            </p>
-          </div>
-        </motion.div>
+        {hasPhotos ? (
+          successBanner
+        ) : isLate ? (
+          warningBanner
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-start gap-4 p-5 rounded-2xl border-2"
+            style={{ borderColor: `${accentColor}40`, background: `${accentColor}08` }}
+          >
+            <div className="h-10 w-10 shrink-0 rounded-xl flex items-center justify-center" style={{ background: `${accentColor}20` }}>
+              <Camera className="w-5 h-5" style={{ color: accentColor }} />
+            </div>
+            <div>
+              <p className="text-sm font-black text-slate-700 leading-tight">
+                📸 Welcome — Time to capture your <span style={{ color: accentColor }}>Day 1 baseline!</span>
+              </p>
+              <p className="text-[11px] text-slate-500 font-medium mt-1 leading-relaxed">
+                Upload your front, left, and right profile photos today. These become your <strong>"Before"</strong> photos — visible on all future milestone comparisons.
+              </p>
+            </div>
+          </motion.div>
+        )}
 
         {/* Angle Navbar */}
         <div className="flex items-center gap-2 p-1.5 bg-slate-100/50 rounded-2xl border border-slate-200/60 w-fit mx-auto">
@@ -466,49 +626,11 @@ export function AnglePhotoTracker({
     );
   }
 
-  // ── Non-milestone days: Show Gallery ─────────────────────────────────────
-  if (!isMilestone) {
-    return (
-      <div className="space-y-6">
-        <div className="flex flex-col items-center justify-center gap-4 py-8 px-6 rounded-[2.5rem] border-2 border-dashed border-[#FF8A75]/10 text-center bg-white/40 backdrop-blur-xl">
-          <div className="h-12 w-12 rounded-2xl bg-[#FF8A75]/5 flex items-center justify-center">
-            <AlertCircle className="w-5 h-5 text-[#FF8A75]/40" />
-          </div>
-          <div className="space-y-1">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FF8A75]/60">
-              Uploads unlock on milestones
-            </p>
-            <p className="text-[9px] text-slate-400 font-medium">
-              Next milestone: Day {next || '??'}
-            </p>
-          </div>
-        </div>
-
-        <AnglePhotoViewer
-          dayNumber={dayNumber}
-          photos={{
-            front: savedPhotos?.front ?? null,
-            left: savedPhotos?.left ?? null,
-            right: savedPhotos?.right ?? null,
-          }}
-          day1Photos={day1Photos}
-          accentColor={accentColor}
-          allLogs={allLogs}
-        />
-      </div>
-    );
-  }
-
-  // ── Milestone Day 7/14/21/25: Comparison mode ─────────────────────────────
+  // ── Milestone Day 7/14/21/25/30: Comparison mode (Active & Editable) ─────
   return (
     <div className="space-y-5">
       {/* Info banner */}
-      <div className="flex items-center gap-3 px-4 py-3 rounded-xl border" style={{ borderColor: `${accentColor}30`, background: `${accentColor}08` }}>
-        <ArrowLeftRight className="w-4 h-4 shrink-0" style={{ color: accentColor }} />
-        <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: accentColor }}>
-          Day {dayNumber} milestone — Upload &amp; see your Before vs Now comparison
-        </p>
-      </div>
+      {hasPhotos ? successBanner : isLate ? warningBanner : pendingBanner}
 
       {/* Angle Navbar */}
       <div className="flex items-center gap-2 p-1.5 bg-slate-100/50 rounded-2xl border border-slate-200/60 w-fit mx-auto">

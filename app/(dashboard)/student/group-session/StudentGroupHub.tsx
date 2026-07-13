@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '../../../../lib/supabase/client';
 import { getBatchMessages, sendBatchMessage } from '../../../../lib/actions/chat';
 import { getBatchPollsMap, getPollById, votePoll } from '../../../../lib/actions/polls';
-import { getJourneyLogs, saveDailyCheckIn, type JourneyLog } from '../../../../lib/actions/journey';
+import { getJourneyLogs, saveDailyCheckIn, checkAndCreateJourneyNotifications, type JourneyLog } from '../../../../lib/actions/journey';
 import { getUpcomingMeetingsForStudent, getBatchRecordedSessions, getLatestMeetingForBatch } from '../../../../lib/actions/meetings';
 import { AnglePhotoTracker } from '../../../../components/ui/angle-photo-tracker';
 import { PlanExpiryPill } from '../../../../components/ui/plan-expiry-pill';
@@ -125,6 +125,8 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
             setPolls(pollsMap);
             setJourneyLogs(logs);
             setUpcomingMeetings(meetingsData || []);
+            // Check/create pending notifications in DB
+            checkAndCreateJourneyNotifications(currentUser.id, currentDay);
 
             // Fetch recordings separately so they don't block the critical path
             setIsLoadingRecordings(true);
@@ -698,7 +700,8 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
 
                                 <div className="p-1 rounded-[1.75rem] sm:rounded-[2.5rem] bg-slate-50/50 border border-slate-100 shadow-inner overflow-hidden">
                                     <AnglePhotoTracker
-                                        dayNumber={currentDay}
+                                        dayNumber={activeStepDay}
+                                        currentDay={currentDay}
                                         savedPhotos={{
                                             front: activeLog?.photo_url ?? [...journeyLogs].filter((l: JourneyLog) => l.photo_url).sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0]?.photo_url ?? null,
                                             left: activeLog?.photo_url_left ?? [...journeyLogs].filter((l: JourneyLog) => l.photo_url_left).sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0]?.photo_url_left ?? null,

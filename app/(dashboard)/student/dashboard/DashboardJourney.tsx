@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { Star, Camera, CheckCircle, Loader2 } from 'lucide-react';
+import { Star, Camera, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ImageComparison } from '@/components/ui/image-comparison-slider';
 import { JourneyProgress, JOURNEY_MAX_DAY } from '@/components/ui/journey-progress';
-import { saveDailyCheckIn, type JourneyLog } from '@/lib/actions/journey';
+import { saveDailyCheckIn, checkAndCreateJourneyNotifications, type JourneyLog } from '@/lib/actions/journey';
 import type { Profile } from '@/types/database';
 
 interface DashboardJourneyProps {
@@ -55,9 +55,44 @@ export function DashboardJourney({
     setActiveStepDay(currentDay);
   }, [currentDay]);
 
+  useEffect(() => {
+    if (currentUser?.id && currentDay) {
+      checkAndCreateJourneyNotifications(currentUser.id, currentDay);
+    }
+  }, [currentUser?.id, currentDay]);
+
   const activeLog = journeyLogs.find((l) => l.day_number === activeStepDay);
   const day1Log = journeyLogs.find((l) => l.day_number === 1);
   const day25Log = journeyLogs.find((l) => l.day_number === 25);
+
+  const isDay1 = activeStepDay === 1;
+  const isDay25 = activeStepDay === 25;
+  const hasPhoto = !!activeLog?.photo_url;
+
+  const isEditable = React.useMemo(() => {
+    if (isDay1) return currentDay < 7;
+    if (isDay25) return currentDay >= 25 && currentDay < 30;
+    return false;
+  }, [isDay1, isDay25, currentDay]);
+
+  const isPast = React.useMemo(() => {
+    if (isDay1) return currentDay >= 7;
+    if (isDay25) return currentDay >= 30;
+    return false;
+  }, [isDay1, isDay25, currentDay]);
+
+  const isFuture = React.useMemo(() => {
+    if (isDay25) return currentDay < 25;
+    return false;
+  }, [isDay25, currentDay]);
+
+  const daysLeft = React.useMemo(() => {
+    if (isDay1) return 7 - currentDay;
+    if (isDay25) return 30 - currentDay;
+    return 0;
+  }, [isDay1, isDay25, currentDay]);
+
+  const isLate = daysLeft <= 2;
 
   const beforeImage =
     day1Log?.photo_url ||
@@ -144,20 +179,87 @@ export function DashboardJourney({
             </div>
           </div>
 
-          <div className="flex flex-col gap-6 justify-center items-center text-center px-4">
+          <div className="flex flex-col gap-6 justify-center items-center text-center px-4 w-full">
             <div className="space-y-2">
               <h4 className="text-lg font-aktiv font-bold text-foreground">
                 {activeStepDay === 1 ? 'Start Your Journey' : activeStepDay === 25 ? 'Final Comparison' : `Day ${activeStepDay} Progress`}
               </h4>
-              <p className="text-sm text-foreground/50 font-jakarta font-medium max-w-[200px]">
+              <p className="text-sm text-foreground/50 font-jakarta font-medium max-w-[280px]">
                 {activeStepDay === 1 || activeStepDay === 25
                   ? 'Capture your face yoga progress to see the visible results of your practice.'
                   : 'Maintain your consistent practice. Photo uploads are only required for Day 1 and Day 25.'}
               </p>
             </div>
 
-            {(activeStepDay === 1 || activeStepDay === 25) && (
-              <div className="flex flex-col gap-4 w-full max-w-[240px]">
+            {/* Banners for upload status */}
+            {(isDay1 || isDay25) && (
+              <div className="w-full max-w-[280px] space-y-3">
+                {isEditable && (
+                  <>
+                    {hasPhoto ? (
+                      <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200/50 text-[10px] font-black uppercase text-emerald-600 tracking-wider justify-center">
+                        <CheckCircle className="h-4 w-4 shrink-0" />
+                        ✓ Photo Saved Successfully
+                      </div>
+                    ) : isLate ? (
+                      <div className="flex items-start gap-3 p-4 rounded-xl bg-rose-50 border border-rose-200/50 text-left">
+                        <AlertCircle className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-[10px] font-black uppercase text-rose-700 tracking-wider">🚨 Late Upload Warning</p>
+                          <p className="text-[9px] text-rose-500 font-semibold mt-0.5">
+                            Please upload today! Day {activeStepDay} locks in {daysLeft} days.
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-50/50 border border-blue-200/50 text-left">
+                        <Camera className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-[10px] font-black uppercase text-blue-700 tracking-wider">📸 Pending Photo Upload</p>
+                          <p className="text-[9px] text-blue-500 font-semibold mt-0.5">
+                            Upload Day {activeStepDay} photos before Day {activeStepDay === 1 ? '7' : '30'} starts.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {isPast && !hasPhoto && (
+                  <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200 text-left">
+                    <AlertCircle className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-[10px] font-black uppercase text-slate-700 tracking-wider">⚠️ Missed Milestone</p>
+                      <p className="text-[9px] text-slate-400 font-medium mt-0.5">
+                        Day {activeStepDay} photos were not uploaded before the deadline. Locked.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {isPast && hasPhoto && (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-200/50 text-[10px] font-black uppercase text-emerald-600 tracking-wider justify-center">
+                    <CheckCircle className="h-4 w-4 shrink-0" />
+                    ✓ Day {activeStepDay} Milestone Saved
+                  </div>
+                )}
+
+                {isFuture && (
+                  <div className="flex items-start gap-3 p-4 rounded-xl bg-slate-50 border border-slate-100 text-left">
+                    <Camera className="h-4 w-4 text-slate-400 shrink-0 mt-0.5 animate-pulse" />
+                    <div>
+                      <p className="text-[10px] font-black uppercase text-slate-600 tracking-wider">🔒 Future Milestone</p>
+                      <p className="text-[9px] text-slate-400 font-medium mt-0.5">
+                        Day {activeStepDay} photos will unlock on Day 25.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {isEditable && (
+              <div className="flex flex-col gap-4 w-full max-w-[240px] mt-2">
                 <input
                   type="file"
                   ref={fileInputRef}

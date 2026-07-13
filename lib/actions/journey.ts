@@ -161,3 +161,70 @@ export async function saveDailyCheckIn(
     revalidatePath('/student/group-session');
     return { success: true, data: row as JourneyLog };
 }
+
+export async function checkAndCreateJourneyNotifications(studentId: string, currentDay: number) {
+    try {
+        const admin = createAdminClient();
+        const milestones = [1, 7, 14, 21, 25, 30];
+
+        // Find current active milestone
+        let activeMilestone = milestones[0];
+        let nextMilestone = milestones[1];
+        for (let i = 0; i < milestones.length; i++) {
+            if (currentDay >= milestones[i]) {
+                activeMilestone = milestones[i];
+                nextMilestone = milestones[i + 1] || (milestones[i] + 7);
+            }
+        }
+
+        // Check if student has uploaded photo for this activeMilestone
+        const { data: log } = await admin
+            .from('journey_logs')
+            .select('photo_url')
+            .eq('student_id', studentId)
+            .eq('day_number', activeMilestone)
+            .maybeSingle();
+
+        const hasPhoto = !!log?.photo_url;
+
+        if (!hasPhoto) {
+            const daysLeft = nextMilestone - currentDay;
+            const isLate = daysLeft <= 2; // Late if 2 or fewer days remain before lock
+
+            const title = isLate ? '🚨 Late Photo Upload Warning!' : '📸 Pending Photo Upload';
+            const message = isLate
+                ? `Your Day ${activeMilestone} progress photos are late! Upload them before Day ${nextMilestone} starts, or they will lock.`
+                : `Please upload your Day ${activeMilestone} baseline/progress photos to keep track of your face yoga journey.`;
+
+            const notifType = isLate ? 'journey_late' : 'journey_pending';
+
+            // Check if notification already exists for this milestone and type
+            const { data: existing } = await admin
+                .from('notifications')
+                .select('id')
+                .eq('user_id', studentId)
+                .eq('type', notifType)
+                .ilike('message', `%Day ${activeMilestone}%`)
+                .limit(1);
+
+            if (!existing || existing.length === 0) {
+                // Delete older pending/late notifications of this specific context
+                await admin
+                    .from('notifications')
+                    .delete()
+                    .eq('user_id', studentId)
+                    .in('type', ['journey_pending', 'journey_late']);
+
+                await admin.from('notifications').insert({
+                    user_id: studentId,
+                    title,
+                    message,
+                    type: notifType,
+                    is_read: false,
+                });
+            }
+        }
+    } catch (e) {
+        console.error('[Journey Notifications] Failed to process checks:', e);
+    }
+}

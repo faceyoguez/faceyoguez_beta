@@ -48,7 +48,11 @@ export function JourneyProgress({
             return (
               <div
                 key={day}
-                className="group relative flex flex-col items-center"
+                className={cn(
+                  "group relative flex flex-col items-center transition-all duration-300",
+                  isReached ? "cursor-pointer hover:scale-105 active:scale-95" : "cursor-not-allowed"
+                )}
+                onClick={() => isReached && onSelectDay?.(day)}
                 title={`Day ${day}`}
               >
                 {/* Dot */}

@@ -5,7 +5,7 @@ import { OneOnOneChat } from '@/components/chat';
 import { getStudentResources } from '@/lib/actions/resources';
 import { getUpcomingMeetingsForStudent } from '@/lib/actions/meetings';
 import { createClient } from '@/lib/supabase/client';
-import { getJourneyLogs, saveDailyCheckIn, type JourneyLog } from '@/lib/actions/journey';
+import { getJourneyLogs, saveDailyCheckIn, checkAndCreateJourneyNotifications, type JourneyLog } from '@/lib/actions/journey';
 import { toast } from 'sonner';
 import { JourneyProgress } from '@/components/ui/journey-progress';
 import { PlanExpiryPill } from '@/components/ui/plan-expiry-pill';
@@ -105,6 +105,8 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
         setJourneyLogs(logsData);
         setUpcomingMeetings(meetingsData || []);
         setIsLoadingResources(false);
+        // Trigger check/creation of pending notifications in the DB
+        checkAndCreateJourneyNotifications(currentUser.id, currentDay);
       };
       loadData();
 
@@ -363,6 +365,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                 </div>
                 <AnglePhotoTracker
                   dayNumber={activeDay}
+                  currentDay={currentDay}
                   savedPhotos={{
                     front: activeLog?.photo_url ?? [...journeyLogs].filter((l: JourneyLog) => l.photo_url).sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0]?.photo_url ?? null,
                     left:  activeLog?.photo_url_left ?? [...journeyLogs].filter((l: JourneyLog) => l.photo_url_left).sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0]?.photo_url_left ?? null,
