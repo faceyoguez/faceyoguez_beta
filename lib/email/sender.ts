@@ -17,6 +17,8 @@ import {
   meetingStartedEmailHtml,
   meetingCancelledEmailHtml,
   meetingReminder10mEmailHtml,
+  hostMeetingScheduledEmailHtml,
+  hostMeetingCancelledEmailHtml,
 } from './templates';
 import type {
   InvoiceData,
@@ -25,6 +27,8 @@ import type {
   MeetingStartedData,
   MeetingCancelledData,
   MeetingReminder10mData,
+  HostMeetingScheduledData,
+  HostMeetingCancelledData,
 } from './templates';
 import {
   consultationReceiptEmailHtml,
@@ -172,6 +176,23 @@ export async function sendBrandedMeetingInviteEmail(to: string, data: MeetingInv
   }
 }
 
+// ── 8b. Host copy: Meeting Scheduled ───────────────────────────
+export async function sendHostMeetingScheduledEmail(to: string, data: HostMeetingScheduledData): Promise<void> {
+  const typeLabel = data.meetingType === 'one_on_one' ? 'Personal Session' : 'Live Group Session';
+  try {
+    await transporter.sendMail({
+      from: FROM,
+      replyTo: EMAIL_CONFIG.replyTo,
+      to,
+      subject: `📅 ${typeLabel} Scheduled: ${data.meetingTitle}`,
+      html: hostMeetingScheduledEmailHtml(data),
+    });
+    console.log(`[Email] Host meeting-scheduled sent → ${to} (${data.meetingType})`);
+  } catch (err) {
+    console.error('[Email] Host meeting-scheduled failed:', err);
+  }
+}
+
 // ── 9. Meeting Started (LIVE) ─────────────────────────────────
 export async function sendMeetingStartedEmail(to: string, data: MeetingStartedData): Promise<void> {
   try {
@@ -202,6 +223,23 @@ export async function sendMeetingCancellationEmail(to: string, data: MeetingCanc
     console.log(`[Email] Meeting cancellation email sent → ${to}`);
   } catch (err) {
     console.error('[Email] Meeting cancellation email failed:', err);
+  }
+}
+
+// ── 10b. Host copy: Meeting Cancelled ──────────────────────────
+export async function sendHostMeetingCancelledEmail(to: string, data: HostMeetingCancelledData): Promise<void> {
+  const typeLabel = data.meetingType === 'one_on_one' ? 'Personal Session' : 'Live Group Session';
+  try {
+    await transporter.sendMail({
+      from: FROM,
+      replyTo: EMAIL_CONFIG.replyTo,
+      to,
+      subject: `⚠️ CANCELLATION: ${typeLabel} - ${data.meetingTitle}`,
+      html: hostMeetingCancelledEmailHtml(data),
+    });
+    console.log(`[Email] Host meeting-cancelled sent → ${to}`);
+  } catch (err) {
+    console.error('[Email] Host meeting-cancelled failed:', err);
   }
 }
 

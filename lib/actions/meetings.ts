@@ -5,7 +5,13 @@ import { createServerSupabaseClient, createAdminClient } from '../supabase/serve
 import { MeetingWithDetails, Meeting, type RecordedSession } from '../../types/database';
 import { getZoomMeetingRecordings, createZoomMeeting, deleteZoomMeeting } from '../zoom';
 import { sendMeetingInviteEmail } from '../email';
-import { sendBrandedMeetingInviteEmail, sendMeetingStartedEmail, sendMeetingCancellationEmail } from '../email/sender';
+import {
+  sendBrandedMeetingInviteEmail,
+  sendMeetingStartedEmail,
+  sendMeetingCancellationEmail,
+  sendHostMeetingScheduledEmail,
+  sendHostMeetingCancelledEmail,
+} from '../email/sender';
 
 export async function getUpcomingMeetingsForStudent(): Promise<MeetingWithDetails[]> {
   noStore();
@@ -255,10 +261,10 @@ export async function saveMeetingToDb(payload: CreateMeetingDBPayload): Promise<
       .select('student:profiles!student_id(full_name, email)')
       .eq('status', 'waiting');
 
-    // 3. Fetch instructor name
+    // 3. Fetch instructor name/email
     const { data: host } = await admin
       .from('profiles')
-      .select('full_name')
+      .select('full_name, email')
       .eq('id', payload.host_id)
       .single();
 
@@ -300,6 +306,20 @@ export async function saveMeetingToDb(payload: CreateMeetingDBPayload): Promise<
           calendarLink,
         });
       }));
+
+      // Host's own copy of the scheduled-session confirmation
+      if (host?.email) {
+        await sendHostMeetingScheduledEmail(host.email, {
+          hostName: host.full_name || 'Instructor',
+          withWhom: `${allRecipients.size} student${allRecipients.size > 1 ? 's' : ''}`,
+          meetingTitle: payload.topic,
+          meetingDate,
+          meetingTime,
+          zoomLink: payload.join_url,
+          zoomId: payload.zoom_meeting_id,
+          meetingType: 'group_session',
+        }).catch((err) => console.error('[Email] Host group-session scheduled failed:', err));
+      }
     }
   }
 
@@ -315,10 +335,10 @@ export async function saveMeetingToDb(payload: CreateMeetingDBPayload): Promise<
         .eq('id', payload.student_id)
         .single();
 
-      // Fetch instructor name
+      // Fetch instructor name/email
       const { data: host } = await admin
         .from('profiles')
-        .select('full_name')
+        .select('full_name, email')
         .eq('id', payload.host_id)
         .single();
 
@@ -347,6 +367,20 @@ export async function saveMeetingToDb(payload: CreateMeetingDBPayload): Promise<
           calendarLink,
           meetingType: 'one_on_one',
         }).catch(err => console.error('[Email] 1-on-1 invite failed:', err));
+
+        // 1b. Host's own copy of the scheduled-session confirmation
+        if (host?.email) {
+          await sendHostMeetingScheduledEmail(host.email, {
+            hostName: host.full_name || 'Instructor',
+            withWhom: student.full_name || 'the student',
+            meetingTitle: payload.topic,
+            meetingDate,
+            meetingTime,
+            zoomLink: payload.join_url,
+            zoomId: payload.zoom_meeting_id,
+            meetingType: 'one_on_one',
+          }).catch(err => console.error('[Email] Host 1-on-1 scheduled failed:', err));
+        }
 
         // 2. Create in-app notification
         await admin.from('notifications').insert({
@@ -504,81 +538,9 @@ export async function scheduleGroupSession(batchId: string, startTime: string, t
     meeting_type: 'group_session'
   });
 
-  // ── Notify all currently-enrolled batch students ─────────────────────────────
-  // Non-fatal: if this fails, the session is still created successfully.
-  try {
-    // Fetch all active batch enrollments with student profile info
-    const { data: enrollments } = await admin
-      .from('batch_enrollments')
-      .select('student:profiles!student_id(id, full_name, email)')
-      .eq('batch_id', batchId)
-      .eq('status', 'active');
-
-    // Fetch host profile for the email invite sender name
-    const { data: hostProfile } = await admin
-      .from('profiles')
-      .select('full_name')
-      .eq('id', hostId)
-      .maybeSingle();
-
-    const hostName = (hostProfile as any)?.full_name || 'Your Instructor';
-
-    // Format session date/time for email (IST)
-    const sessionDate = new Date(zoomMeeting.start_time);
-    const meetingDate = sessionDate.toLocaleDateString('en-IN', {
-      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-      timeZone: 'Asia/Kolkata',
-    });
-    const meetingTime = sessionDate.toLocaleTimeString('en-IN', {
-      hour: '2-digit', minute: '2-digit', hour12: true,
-      timeZone: 'Asia/Kolkata',
-    });
-
-    if (enrollments && enrollments.length > 0) {
-      // Bulk in-app notifications for all enrolled students
-      const inAppNotifications = enrollments.map((e: any) => ({
-        user_id: e.student.id,
-        title: '📅 New Session Scheduled!',
-        message: `"${topic}" has been scheduled on ${meetingDate} at ${meetingTime} IST. You will be placed in the waiting room when you join.`,
-        type: 'session_scheduled',
-        is_read: false,
-      }));
-
-      await admin.from('notifications').insert(inAppNotifications).catch((err: any) =>
-        console.error('[scheduleGroupSession] In-app notifications failed (non-fatal):', err)
-      );
-
-      // Send branded email invite to each enrolled student
-      await Promise.allSettled(
-        enrollments.map(async (e: any) => {
-          const student = e.student as { id: string; full_name: string; email: string };
-          if (!student?.email) return;
-          const durationMins = zoomMeeting.duration || 60;
-          const endTime = new Date(sessionDate.getTime() + durationMins * 60000);
-          const startIso = sessionDate.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-          const endIso = endTime.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-
-          await sendBrandedMeetingInviteEmail(student.email, {
-            studentName: student.full_name || 'Student',
-            instructorName: hostName,
-            meetingTitle: topic,
-            meetingDate,
-            meetingTime,
-            zoomLink: zoomMeeting.join_url,
-            zoomId: zoomMeeting.id.toString(),
-            zoomPassword: '',
-            calendarLink: `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(topic)}&dates=${startIso}/${endIso}&details=${encodeURIComponent(`Join Zoom: ${zoomMeeting.join_url}`)}`,
-            meetingType: 'group_session',
-          });
-        })
-      );
-
-      console.log(`[scheduleGroupSession] Notified ${enrollments.length} enrolled students for session "${topic}"`);
-    }
-  } catch (notifyErr) {
-    console.error('[scheduleGroupSession] Student notification error (non-fatal):', notifyErr);
-  }
-  // ─────────────────────────────────────────────────────────────────────────────
+  // Student invites, in-app notifications, and the host's own confirmation
+  // email are all sent inside saveMeetingToDb's group-session branch above —
+  // sending them again here would double up every email.
 
   revalidatePath('/instructor/groups');
   revalidatePath('/staff/groups');
@@ -908,6 +870,29 @@ export async function deleteMeeting(meetingId: string) {
       }).catch((err: any) => console.error(`[Notification] Group cancellation insert failed for ${student.id}:`, err));
     })
   );
+
+  // Host's own copy of the cancellation confirmation
+  if (meeting.host_id) {
+    const { data: host } = await admin
+      .from('profiles')
+      .select('full_name, email')
+      .eq('id', meeting.host_id)
+      .single();
+
+    if (host?.email) {
+      const withWhom = meeting.meeting_type === 'one_on_one'
+        ? (studentsToNotify[0]?.full_name || 'the student')
+        : `${studentsToNotify.length} student${studentsToNotify.length === 1 ? '' : 's'}`;
+
+      await sendHostMeetingCancelledEmail(host.email, {
+        hostName: host.full_name || 'Instructor',
+        withWhom,
+        meetingTitle: meeting.topic,
+        meetingTimeStr: timeFormatted,
+        meetingType: meeting.meeting_type,
+      }).catch((err: any) => console.error('[Email] Host cancellation failed:', err));
+    }
+  }
 
   // Revalidate paths
   revalidatePath('/instructor/dashboard');

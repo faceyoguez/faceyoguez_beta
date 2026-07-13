@@ -489,6 +489,102 @@ export function meetingCancelledEmailHtml(data: MeetingCancelledData): string {
 }
 
 // ─────────────────────────────────────────────────────────────
+//  HOST COPIES — same events, addressed to the instructor/staff
+//  who hosts the session, not the student.
+// ─────────────────────────────────────────────────────────────
+export interface HostMeetingScheduledData {
+  hostName: string;
+  withWhom: string; // student name, or "N students in {batch name}"
+  meetingTitle: string;
+  meetingDate: string;
+  meetingTime: string;
+  zoomLink: string;
+  zoomId: string;
+  meetingType: 'one_on_one' | 'group_session';
+}
+
+export function hostMeetingScheduledEmailHtml(data: HostMeetingScheduledData): string {
+  const typeLabel = data.meetingType === 'one_on_one' ? 'Personal 1-on-1 Session' : 'Live Group Session';
+
+  const body = `
+    <p style="margin:0 0 8px;font-size:13px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:${C.primary};">📅 ${typeLabel} Scheduled</p>
+    <h1 style="margin:0 0 20px;font-size:26px;font-weight:700;color:${C.dark};line-height:1.2;">${data.meetingTitle}</h1>
+
+    <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:${C.dark};">
+      Hi ${data.hostName},
+    </p>
+    <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:${C.dark};">
+      You've scheduled a session with <strong>${data.withWhom}</strong>. Here's your copy of the details:
+    </p>
+
+    ${divider()}
+
+    <div style="background-color:${C.background};border-radius:12px;padding:20px 24px;border:1px solid ${C.border};">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+        <tr>
+          <td style="padding:8px 0;">
+            <p style="margin:0;font-size:12px;color:${C.muted};text-transform:uppercase;letter-spacing:0.1em;font-weight:700;">Date</p>
+            <p style="margin:4px 0 0;font-size:15px;font-weight:600;color:${C.dark};">${data.meetingDate}</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:8px 0;">
+            <p style="margin:0;font-size:12px;color:${C.muted};text-transform:uppercase;letter-spacing:0.1em;font-weight:700;">Time</p>
+            <p style="margin:4px 0 0;font-size:15px;font-weight:600;color:${C.dark};">${data.meetingTime} (IST)</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:8px 0;">
+            <p style="margin:0;font-size:12px;color:${C.muted};text-transform:uppercase;letter-spacing:0.1em;font-weight:700;">Meeting ID</p>
+            <p style="margin:4px 0 0;font-size:15px;font-weight:600;color:${C.dark};font-family:monospace;">${data.zoomId}</p>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    ${ctaButton('Start Zoom Meeting', data.zoomLink)}
+
+    ${divider()}
+
+    <p style="margin:0 0 4px;font-size:15px;color:${C.dark};">With warmth,</p>
+    <p style="margin:0;font-size:15px;font-weight:700;color:${C.dark};">Faceyoguez Desk</p>
+  `;
+
+  return baseLayout(body);
+}
+
+export interface HostMeetingCancelledData {
+  hostName: string;
+  withWhom: string;
+  meetingTitle: string;
+  meetingTimeStr: string;
+  meetingType: 'one_on_one' | 'group_session';
+}
+
+export function hostMeetingCancelledEmailHtml(data: HostMeetingCancelledData): string {
+  const typeLabel = data.meetingType === 'one_on_one' ? 'Personal Session' : 'Group Session';
+
+  const body = `
+    <p style="margin:0 0 8px;font-size:13px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:${C.primary};">⚠️ SESSION CANCELLED</p>
+    <h1 style="margin:0 0 20px;font-size:26px;font-weight:700;color:${C.dark};line-height:1.2;">Session Cancelled</h1>
+
+    <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:${C.dark};">
+      Hi ${data.hostName},
+    </p>
+    <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:${C.dark};">
+      This is a confirmation that your ${typeLabel} <strong>${data.meetingTitle}</strong> with <strong>${data.withWhom}</strong>, scheduled for <strong>${data.meetingTimeStr}</strong>, has been cancelled.
+    </p>
+
+    ${divider()}
+
+    <p style="margin:0 0 4px;font-size:15px;color:${C.dark};">With warmth,</p>
+    <p style="margin:0;font-size:15px;font-weight:700;color:${C.dark};">Faceyoguez Desk</p>
+  `;
+
+  return baseLayout(body);
+}
+
+// ─────────────────────────────────────────────────────────────
 //  7. 10-MINUTE MEETING REMINDER EMAIL
 // ─────────────────────────────────────────────────────────────
 export interface MeetingReminder10mData {
