@@ -16,6 +16,7 @@ import {
   meetingInviteEmailHtml,
   meetingStartedEmailHtml,
   meetingCancelledEmailHtml,
+  meetingReminder10mEmailHtml,
 } from './templates';
 import type {
   InvoiceData,
@@ -23,6 +24,7 @@ import type {
   MeetingInviteData,
   MeetingStartedData,
   MeetingCancelledData,
+  MeetingReminder10mData,
 } from './templates';
 import {
   consultationReceiptEmailHtml,
@@ -200,6 +202,22 @@ export async function sendMeetingCancellationEmail(to: string, data: MeetingCanc
     console.log(`[Email] Meeting cancellation email sent → ${to}`);
   } catch (err) {
     console.error('[Email] Meeting cancellation email failed:', err);
+  }
+}
+
+// ── 11. Meeting 10-Minute Reminder ─────────────────────────────
+export async function sendMeetingReminder10mEmail(to: string, data: MeetingReminder10mData): Promise<void> {
+  try {
+    await transporter.sendMail({
+      from: FROM,
+      replyTo: EMAIL_CONFIG.replyTo,
+      to,
+      subject: `⏳ Starting in 10 minutes: ${data.meetingTitle}`,
+      html: meetingReminder10mEmailHtml(data),
+    });
+    console.log(`[Email] 10m reminder sent → ${to}`);
+  } catch (err) {
+    console.error('[Email] 10m reminder failed:', err);
   }
 }
 

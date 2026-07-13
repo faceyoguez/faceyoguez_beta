@@ -323,7 +323,7 @@ export async function saveMeetingToDb(payload: CreateMeetingDBPayload): Promise<
         const calendarLink = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(payload.topic)}&details=${encodeURIComponent('Face Yoga 1-on-1 Session')}&location=${encodeURIComponent(payload.join_url)}&dates=${dateObj.toISOString().replace(/-|:|\.\d\d\d/g, '')}/${new Date(dateObj.getTime() + payload.duration_minutes * 60000).toISOString().replace(/-|:|\.\d\d\d/g, '')}`;
 
         // 1. Send email invite
-        sendBrandedMeetingInviteEmail(student.email, {
+        await sendBrandedMeetingInviteEmail(student.email, {
           studentName: student.full_name || 'Student',
           instructorName: host?.full_name || 'Your Instructor',
           meetingTitle: payload.topic,
@@ -337,7 +337,7 @@ export async function saveMeetingToDb(payload: CreateMeetingDBPayload): Promise<
         }).catch(err => console.error('[Email] 1-on-1 invite failed:', err));
 
         // 2. Create in-app notification
-        admin.from('notifications').insert({
+        await admin.from('notifications').insert({
           user_id: payload.student_id,
           title: '📅 New 1-on-1 Session Scheduled!',
           message: `"${payload.topic}" has been scheduled on ${meetingDate} at ${meetingTime} IST. You will be placed in the waiting room when you join.`,
@@ -541,7 +541,7 @@ export async function scheduleGroupSession(batchId: string, startTime: string, t
         enrollments.map(async (e: any) => {
           const student = e.student as { id: string; full_name: string; email: string };
           if (!student?.email) return;
-          return sendBrandedMeetingInviteEmail(student.email, {
+          await sendBrandedMeetingInviteEmail(student.email, {
             studentName: student.full_name || 'Student',
             instructorName: hostName,
             meetingTitle: topic,
@@ -697,7 +697,7 @@ export async function startMeeting(meetingId: string) {
       // Send emails + in-app notifications in parallel
       await Promise.allSettled(recipients.map(async (student) => {
         // Email notification
-        sendMeetingStartedEmail(student.email, {
+        await sendMeetingStartedEmail(student.email, {
           studentName: student.full_name || 'Student',
           meetingTitle: meeting.topic,
           zoomLink: meeting.join_url,
@@ -708,7 +708,7 @@ export async function startMeeting(meetingId: string) {
         await admin.from('notifications').insert({
           user_id: student.id,
           title: '🔴 Session is LIVE!',
-          message: `"${meeting.topic}" has started. Join now!`,
+          message: `"${meeting.topic}" has started. Grab your face oil or serum and join now for a glowing session! ✨`,
           type: 'meeting_started',
           is_read: false,
         }).catch(() => {});
@@ -871,23 +871,26 @@ export async function deleteMeeting(meetingId: string) {
     hour12: true
   }) + ' IST';
 
-  for (const student of studentsToNotify) {
-    // Cancellation Email
-    await sendMeetingCancellationEmail(student.email, {
-      studentName: student.full_name,
-      meetingTitle: meeting.topic,
-      meetingTimeStr: timeFormatted,
-      meetingType: meeting.meeting_type
-    });
+  // Send cancellation emails and in-app notifications in parallel (Nodemailer pool handles queuing)
+  await Promise.allSettled(
+    studentsToNotify.map(async (student) => {
+      // Cancellation Email
+      await sendMeetingCancellationEmail(student.email, {
+        studentName: student.full_name,
+        meetingTitle: meeting.topic,
+        meetingTimeStr: timeFormatted,
+        meetingType: meeting.meeting_type
+      }).catch((err: any) => console.error(`[Email] Group cancellation failed for ${student.email}:`, err));
 
-    // In-App Notification
-    await admin.from('notifications').insert({
-      user_id: student.id,
-      title: 'Session Cancelled',
-      message: `Apologies, your scheduled session "${meeting.topic}" on ${timeFormatted} has been cancelled. Rescheduling details will follow soon.`,
-      type: 'meeting_cancelled'
-    });
-  }
+      // In-App Notification
+      await admin.from('notifications').insert({
+        user_id: student.id,
+        title: 'Session Cancelled',
+        message: `Apologies, your scheduled session "${meeting.topic}" on ${timeFormatted} has been cancelled. Rescheduling details will follow soon.`,
+        type: 'meeting_cancelled'
+      }).catch((err: any) => console.error(`[Notification] Group cancellation insert failed for ${student.id}:`, err));
+    })
+  );
 
   // Revalidate paths
   revalidatePath('/instructor/dashboard');

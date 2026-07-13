@@ -435,6 +435,9 @@ export function meetingStartedEmailHtml(data: MeetingStartedData): string {
     <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:${C.dark};">
       Your instructor has just started <strong>${data.meetingTitle}</strong>. Join now to begin your session!
     </p>
+    <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:${C.dark};">
+      🌸 <strong>A gentle reminder:</strong> Grab your favorite face oil or serum, keep a glass of water nearby to keep your skin hydrated, and let's get ready to release tension and activate those facial muscles for a natural lift and glow! ✨
+    </p>
 
     ${ctaButton('Join Now', data.zoomLink)}
 
@@ -480,6 +483,46 @@ export function meetingCancelledEmailHtml(data: MeetingCancelledData): string {
 
     <p style="margin:0 0 4px;font-size:15px;color:${C.dark};">With warmth,</p>
     <p style="margin:0;font-size:15px;font-weight:700;color:${C.dark};">Faceyoguez Desk</p>
+  `;
+
+  return baseLayout(body);
+}
+
+// ─────────────────────────────────────────────────────────────
+//  7. 10-MINUTE MEETING REMINDER EMAIL
+// ─────────────────────────────────────────────────────────────
+export interface MeetingReminder10mData {
+  studentName: string;
+  meetingTitle: string;
+  zoomLink: string;
+  meetingType: 'one_on_one' | 'group_session';
+}
+
+export function meetingReminder10mEmailHtml(data: MeetingReminder10mData): string {
+  const typeLabel = data.meetingType === 'one_on_one' ? 'Personal Session' : 'Group Session';
+
+  const body = `
+    <!-- Greeting -->
+    <p style="margin:0 0 8px;font-size:13px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:${C.primary};">⏳ STARTING IN 10 MINUTES</p>
+    <h1 style="margin:0 0 20px;font-size:26px;font-weight:700;color:${C.dark};line-height:1.2;">Your ${typeLabel} starts soon!</h1>
+
+    <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:${C.dark};">
+      Hi ${data.studentName},
+    </p>
+    <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:${C.dark};">
+      This is a quick reminder that your session <strong>${data.meetingTitle}</strong> is scheduled to begin in 10 minutes.
+    </p>
+    <p style="margin:0 0 16px;font-size:15px;line-height:1.7;color:${C.dark};">
+      🌸 <strong>Warm preparation:</strong> Grab your favorite face oil or serum, keep a glass of water nearby to keep your skin hydrated, and get ready to release tension and activate those facial muscles for a natural lift & glow! ✨
+    </p>
+
+    ${ctaButton('Join Zoom Meeting', data.zoomLink)}
+
+    ${divider()}
+
+    <p style="margin:0;font-size:13px;color:${C.muted};">
+      Please join a few minutes early to set up your camera and audio. We can't wait to practice with you!
+    </p>
   `;
 
   return baseLayout(body);
