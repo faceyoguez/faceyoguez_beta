@@ -36,6 +36,7 @@ export function ZoomMeetingEmbed({ meetingId, type, onClose, chatPanel }: ZoomMe
   const [errorMsg, setErrorMsg] = useState('');
   const [mounted, setMounted] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [zoomContext, setZoomContext] = useState<any>(null);
 
   useEffect(() => setMounted(true), []);
 
@@ -52,6 +53,7 @@ export function ZoomMeetingEmbed({ meetingId, type, onClose, chatPanel }: ZoomMe
         setStatus('error');
         return;
       }
+      setZoomContext(ctx);
       if (!iframeRef.current?.contentWindow) return;
       joinSent = true;
       iframeRef.current.contentWindow.postMessage(
@@ -102,6 +104,16 @@ export function ZoomMeetingEmbed({ meetingId, type, onClose, chatPanel }: ZoomMe
       <div className="flex items-center justify-between px-4 py-3 lg:px-6 lg:py-4 shrink-0">
         <p className="text-[10px] font-black uppercase tracking-widest text-white/50">Live Session</p>
         <div className="flex items-center gap-2">
+          {zoomContext && (
+            <a
+              href={`https://zoom.us/j/${zoomContext.meetingNumber}?pwd=${zoomContext.password}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="h-9 px-3.5 rounded-full bg-blue-600 text-white hover:bg-blue-700 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 text-[11px] font-bold shadow-md"
+            >
+              Launch in Zoom App
+            </a>
+          )}
           {chatPanel && (
             <button
               onClick={() => setShowChat((v) => !v)}
