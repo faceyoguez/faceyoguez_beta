@@ -277,7 +277,13 @@ export async function saveMeetingToDb(payload: CreateMeetingDBPayload): Promise<
       const dateObj = new Date(payload.start_time);
       const meetingDate = dateObj.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
       const meetingTime = dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-      const calendarLink = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(payload.topic)}&details=${encodeURIComponent('Face Yoga Live Group Session')}&location=${encodeURIComponent(payload.join_url)}&dates=${dateObj.toISOString().replace(/-|:|\.\d\d\d/g, '')}/${new Date(dateObj.getTime() + payload.duration_minutes * 60000).toISOString().replace(/-|:|\.\d\d\d/g, '')}`;
+      const durationMins = payload.duration_minutes || 60;
+      const endTime = new Date(dateObj.getTime() + durationMins * 60000);
+      
+      const startIso = dateObj.toISOString().replace(/-|:|\.\d\d\d/g, '');
+      const endIso = endTime.toISOString().replace(/-|:|\.\d\d\d/g, '');
+      
+      const calendarLink = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(payload.topic)}&details=${encodeURIComponent('Face Yoga Live Group Session')}&location=${encodeURIComponent(payload.join_url)}&dates=${startIso}/${endIso}`;
 
       // Send emails in parallel
       await Promise.allSettled([...allRecipients.values()].map(async (student) => {
@@ -320,7 +326,13 @@ export async function saveMeetingToDb(payload: CreateMeetingDBPayload): Promise<
         const dateObj = new Date(payload.start_time);
         const meetingDate = dateObj.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         const meetingTime = dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-        const calendarLink = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(payload.topic)}&details=${encodeURIComponent('Face Yoga 1-on-1 Session')}&location=${encodeURIComponent(payload.join_url)}&dates=${dateObj.toISOString().replace(/-|:|\.\d\d\d/g, '')}/${new Date(dateObj.getTime() + payload.duration_minutes * 60000).toISOString().replace(/-|:|\.\d\d\d/g, '')}`;
+        const durationMins = payload.duration_minutes || 45;
+        const endTime = new Date(dateObj.getTime() + durationMins * 60000);
+        
+        const startIso = dateObj.toISOString().replace(/-|:|\.\d\d\d/g, '');
+        const endIso = endTime.toISOString().replace(/-|:|\.\d\d\d/g, '');
+        
+        const calendarLink = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(payload.topic)}&details=${encodeURIComponent('Face Yoga 1-on-1 Session')}&location=${encodeURIComponent(payload.join_url)}&dates=${startIso}/${endIso}`;
 
         // 1. Send email invite
         await sendBrandedMeetingInviteEmail(student.email, {
@@ -541,6 +553,11 @@ export async function scheduleGroupSession(batchId: string, startTime: string, t
         enrollments.map(async (e: any) => {
           const student = e.student as { id: string; full_name: string; email: string };
           if (!student?.email) return;
+          const durationMins = zoomMeeting.duration || 60;
+          const endTime = new Date(sessionDate.getTime() + durationMins * 60000);
+          const startIso = sessionDate.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+          const endIso = endTime.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+
           await sendBrandedMeetingInviteEmail(student.email, {
             studentName: student.full_name || 'Student',
             instructorName: hostName,
@@ -550,7 +567,7 @@ export async function scheduleGroupSession(batchId: string, startTime: string, t
             zoomLink: zoomMeeting.join_url,
             zoomId: zoomMeeting.id.toString(),
             zoomPassword: '',
-            calendarLink: `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(topic)}&dates=${sessionDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z/${new Date(sessionDate.getTime() + zoomMeeting.duration * 60000).toISOString().replace(/[-:]/g, '').split('.')[0]}Z&details=${encodeURIComponent(`Join Zoom: ${zoomMeeting.join_url}`)}`,
+            calendarLink: `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(topic)}&dates=${startIso}/${endIso}&details=${encodeURIComponent(`Join Zoom: ${zoomMeeting.join_url}`)}`,
             meetingType: 'group_session',
           });
         })
