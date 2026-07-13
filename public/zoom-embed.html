@@ -71,9 +71,8 @@
               isSupportChat: false,
               isSupportPolling: false,
               isSupportBreakout: false,
-              // We already auto-record via the REST API when the meeting is created —
-              // no manual "Record" button needed in the toolbar.
-              disableRecord: true,
+              // Let the host start/stop recording manually
+              disableRecord: false,
               disableInvite: true,
               defaultView: ctx.sessionKind === 'group' ? 'gallery' : 'speaker',
               success: function () {

@@ -92,7 +92,7 @@ export async function createZoomMeeting(options: ZoomMeetingOptions): Promise<Zo
       join_before_host: false,
       waiting_room: true,
       mute_upon_entry: true,
-      auto_recording: 'cloud',
+      auto_recording: 'none',
     },
   };
 
