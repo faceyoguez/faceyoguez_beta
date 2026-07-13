@@ -139,7 +139,7 @@ export function ZoomMeetingEmbed({ meetingId, type, onClose, chatPanel }: ZoomMe
           <iframe
             ref={iframeRef}
             src="/zoom-embed.html"
-            allow="camera; microphone; fullscreen; display-capture"
+            allow="camera; microphone; autoplay; fullscreen; display-capture"
             className="w-full h-full border-0"
             title="Live Session"
           />
