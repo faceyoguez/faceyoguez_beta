@@ -34,6 +34,8 @@ export function RecordingPlayerModal({ meetingId, topic, onClose }: RecordingPla
             <div className="relative flex-1 min-h-0 px-4 pb-4 lg:px-6 lg:pb-6">
                 <video
                     controls
+                    controlsList="nodownload"
+                    onContextMenu={(e) => e.preventDefault()}
                     autoPlay
                     src={`/api/recordings/${meetingId}`}
                     className="w-full h-full rounded-2xl bg-black"

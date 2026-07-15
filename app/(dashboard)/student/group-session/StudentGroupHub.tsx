@@ -715,6 +715,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                         onSave={handleSavePhotos}
                                         isSaving={isSavingLog}
                                         accentColor="#e76f51"
+                                        allLogs={journeyLogs}
                                     />
                                     {(() => {
                                         const milestones = [7, 14, 21, 25];
