@@ -373,6 +373,9 @@ export function AnglePhotoTracker({
   const isFuture = dayNumber > activeUploadMilestone;
   const hasPhotos = !!(savedPhotos?.front || savedPhotos?.left || savedPhotos?.right);
   const next = nextMilestone(dayNumber);
+  const isDay1LateUpload = isDay1 && !hasPhotos && isPast;
+  // True when Day 1 baseline was never uploaded and we're past Day 1
+  const isBaselineMissing = !isDay1 && !hasSavedDay1 && currentDay > 1;
 
   const handleSelect = (key: PhotoAngleKey, base64: string, mime: string) => {
     setPending(prev => ({ ...prev, [key]: { base64, mime } }));
@@ -433,8 +436,27 @@ export function AnglePhotoTracker({
   );
 
   // ── Past Locked Milestones ────────────────────────────────────────────────
-  if (isPast) {
+  if (isPast && !isDay1LateUpload) {
     if (!hasPhotos) {
+      // Skipped because Day 1 baseline was never uploaded — show contextual message
+      if (isBaselineMissing) {
+        return (
+          <div className="flex flex-col items-center justify-center gap-4 py-16 px-6 rounded-[3rem] border-2 border-dashed border-amber-100 text-center bg-amber-50/30">
+            <div className="h-16 w-16 rounded-[2rem] bg-white border border-amber-100 flex items-center justify-center shadow-sm">
+              <AlertCircle className="w-6 h-6 text-amber-400" />
+            </div>
+            <div className="space-y-1.5">
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-500">
+                ⏭️ Skipped: Day {dayNumber}
+              </p>
+              <p className="text-[9px] text-amber-400 font-medium leading-relaxed max-w-[260px]">
+                This milestone was skipped because your Day 1 baseline photos were not uploaded in time.<br /><br />
+                Upload your <strong>Day 1 baseline</strong> first — your progress tracking will continue from the next available milestone.
+              </p>
+            </div>
+          </div>
+        );
+      }
       return (
         <div className="flex flex-col items-center justify-center gap-4 py-16 px-6 rounded-[3rem] border-2 border-dashed border-slate-200 text-center bg-slate-50/50">
           <div className="h-16 w-16 rounded-[2rem] bg-white border border-slate-100 flex items-center justify-center shadow-sm">
@@ -523,13 +545,27 @@ export function AnglePhotoTracker({
     );
   }
 
-  // ── Day 1: Full prompt mode (Active & Editable) ───────────────────────────
-  if (isDay1 && isEditable) {
+  // ── Day 1: Full prompt mode (Active & Editable, or Late baseline upload) ───────────────────────────
+  if (isDay1 && (isEditable || isDay1LateUpload)) {
     return (
       <div className="space-y-5">
         {/* Banner */}
         {hasPhotos ? (
           successBanner
+        ) : isDay1LateUpload ? (
+          <div className="flex items-start gap-4 p-5 rounded-2xl border-2 border-amber-200 bg-amber-50/50">
+            <div className="h-10 w-10 shrink-0 rounded-xl flex items-center justify-center bg-amber-100">
+              <AlertCircle className="w-5 h-5 text-amber-500" />
+            </div>
+            <div>
+              <p className="text-sm font-black text-amber-700 leading-tight">
+                ⚠️ Late Baseline Photo Upload: Day 1
+              </p>
+              <p className="text-[11px] text-amber-500 font-medium mt-1 leading-relaxed">
+                You missed the initial Day 1 upload window. Please upload your front, left, and right baseline photos now so we can enable progress tracking for your journey.
+              </p>
+            </div>
+          </div>
         ) : isLate ? (
           warningBanner
         ) : (
@@ -627,6 +663,25 @@ export function AnglePhotoTracker({
   }
 
   // ── Milestone Day 7/14/21/25/30: Comparison mode (Active & Editable) ─────
+  // If Day 1 baseline is missing, block this milestone and prompt baseline upload
+  if (isBaselineMissing) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 py-16 px-6 rounded-[3rem] border-2 border-dashed border-amber-100 text-center bg-amber-50/30">
+        <div className="h-16 w-16 rounded-[2rem] bg-white border border-amber-100 flex items-center justify-center shadow-sm">
+          <AlertCircle className="w-6 h-6 text-amber-400" />
+        </div>
+        <div className="space-y-2">
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-500">
+            📸 Day 1 Baseline Required
+          </p>
+          <p className="text-[9px] text-amber-400 font-medium leading-relaxed max-w-[280px]">
+            Your Day 1 baseline photos haven't been uploaded yet. Please go to the <strong>Day 1</strong> tab and upload your baseline photos first — this enables the before/after comparison for Day {dayNumber} and all future milestones.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5">
       {/* Info banner */}
