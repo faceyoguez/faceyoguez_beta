@@ -4,7 +4,6 @@ import { unstable_noStore as noStore, revalidatePath } from 'next/cache';
 import { createServerSupabaseClient, createAdminClient } from '../supabase/server';
 import { MeetingWithDetails, Meeting, type RecordedSession } from '../../types/database';
 import { getZoomMeetingRecordings, createZoomMeeting, deleteZoomMeeting } from '../zoom';
-import { sendMeetingInviteEmail } from '../email';
 import {
   sendBrandedMeetingInviteEmail,
   sendMeetingStartedEmail,
@@ -293,8 +292,7 @@ export async function saveMeetingToDb(payload: CreateMeetingDBPayload): Promise<
 
       // Send emails in parallel
       await Promise.allSettled([...allRecipients.values()].map(async (student) => {
-        return sendMeetingInviteEmail({
-          to: student.email,
+        return sendBrandedMeetingInviteEmail(student.email, {
           studentName: student.full_name,
           instructorName: host?.full_name || 'Your Instructor',
           meetingTitle: payload.topic,
@@ -304,6 +302,7 @@ export async function saveMeetingToDb(payload: CreateMeetingDBPayload): Promise<
           zoomId: payload.zoom_meeting_id,
           zoomPassword: '',
           calendarLink,
+          meetingType: 'group_session',
         });
       }));
 
