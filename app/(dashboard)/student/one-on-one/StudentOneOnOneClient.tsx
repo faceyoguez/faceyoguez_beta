@@ -85,12 +85,18 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
   const [activeCallMeetingId, setActiveCallMeetingId] = useState<string | null>(null);
   const [isSavingLog, setIsSavingLog] = useState(false);
 
-  useEffect(() => {
-    setActiveDay(currentDay);
-  }, [currentDay]);
-
   const activeLog = journeyLogs.find((l: any) => l.day_number === activeDay);
   const day1Log   = journeyLogs.find((l: any) => l.day_number === 1);
+  const hasSavedDay1Baseline = !!(day1Log?.photo_url || day1Log?.photo_url_left || day1Log?.photo_url_right);
+
+  // Auto-redirect to Day 1 when baseline photos are missing so user can upload late baseline
+  useEffect(() => {
+    if (!hasSavedDay1Baseline && currentDay > 1) {
+      setActiveDay(1);
+    } else {
+      setActiveDay(currentDay);
+    }
+  }, [currentDay, hasSavedDay1Baseline]);
 
   useEffect(() => {
     if (hasSubscription && currentUser) {
@@ -367,9 +373,9 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                   dayNumber={activeDay}
                   currentDay={currentDay}
                   savedPhotos={{
-                    front: activeLog?.photo_url ?? [...journeyLogs].filter((l: JourneyLog) => l.photo_url).sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0]?.photo_url ?? null,
-                    left:  activeLog?.photo_url_left ?? [...journeyLogs].filter((l: JourneyLog) => l.photo_url_left).sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0]?.photo_url_left ?? null,
-                    right: activeLog?.photo_url_right ?? [...journeyLogs].filter((l: JourneyLog) => l.photo_url_right).sort((a: JourneyLog, b: JourneyLog) => b.day_number - a.day_number)[0]?.photo_url_right ?? null,
+                    front: activeLog?.photo_url ?? null,
+                    left:  activeLog?.photo_url_left ?? null,
+                    right: activeLog?.photo_url_right ?? null,
                   }}
                   day1Photos={{
                     front: day1Log?.photo_url ?? null,

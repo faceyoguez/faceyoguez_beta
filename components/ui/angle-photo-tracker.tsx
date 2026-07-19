@@ -663,8 +663,9 @@ export function AnglePhotoTracker({
   }
 
   // ── Milestone Day 7/14/21/25/30: Comparison mode (Active & Editable) ─────
-  // If Day 1 baseline is missing, block this milestone and prompt baseline upload
-  if (isBaselineMissing) {
+  // If Day 1 baseline is missing AND this is a past milestone, block it.
+  // But if it's the current active (editable) milestone, still allow upload.
+  if (isBaselineMissing && !isEditable) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-16 px-6 rounded-[3rem] border-2 border-dashed border-amber-100 text-center bg-amber-50/30">
         <div className="h-16 w-16 rounded-[2rem] bg-white border border-amber-100 flex items-center justify-center shadow-sm">
