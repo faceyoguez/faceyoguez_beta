@@ -280,8 +280,8 @@ export async function saveMeetingToDb(payload: CreateMeetingDBPayload): Promise<
 
     if (allRecipients.size > 0) {
       const dateObj = new Date(payload.start_time);
-      const meetingDate = dateObj.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-      const meetingTime = dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+      const meetingDate = dateObj.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Calcutta' });
+      const meetingTime = dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Calcutta' });
       const durationMins = payload.duration_minutes || 60;
       const endTime = new Date(dateObj.getTime() + durationMins * 60000);
       
@@ -343,8 +343,8 @@ export async function saveMeetingToDb(payload: CreateMeetingDBPayload): Promise<
 
       if (student?.email) {
         const dateObj = new Date(payload.start_time);
-        const meetingDate = dateObj.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-        const meetingTime = dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+        const meetingDate = dateObj.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Calcutta' });
+        const meetingTime = dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Calcutta' });
         const durationMins = payload.duration_minutes || 45;
         const endTime = new Date(dateObj.getTime() + durationMins * 60000);
         
