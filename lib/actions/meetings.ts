@@ -143,7 +143,8 @@ interface CreateMeetingDBPayload {
 export async function getBatchRecordedSessions(
   batchId: string,
   batchEndDate: string,
-  limit = 10
+  limit = 10,
+  olderThan?: string // Date cursor for on-demand pagination — fetch sessions before this date
 ): Promise<RecordedSession[]> {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -154,19 +155,27 @@ export async function getBatchRecordedSessions(
 
   const admin = createAdminClient();
   const now = new Date();
-  const fiveDaysAgo = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000);
 
-  // Get past group meetings for this batch, limited to avoid excessive API calls
-  // Also filter by meetings that started within the last 5 days
-  const { data: meetings } = await admin
+  // Build the time-range filter:
+  // - Default (initial load): last 5 days only, to keep the page fast.
+  // - On-demand (olderThan set): fetch sessions strictly before the provided cursor date,
+  //   going all the way back to the batch start. No extra load on initial page render.
+  let query = admin
     .from('meetings')
     .select('id, topic, start_time, duration_minutes, zoom_meeting_id, calendar_event_id')
     .eq('batch_id', batchId)
     .eq('meeting_type', 'group_session')
-    .lt('start_time', now.toISOString())
-    .gte('start_time', fiveDaysAgo.toISOString())
+    .lt('start_time', olderThan ?? now.toISOString())
     .order('start_time', { ascending: false })
     .limit(limit);
+
+  if (!olderThan) {
+    // Initial load: restrict to last 5 days to avoid excessive Zoom API calls
+    const fiveDaysAgo = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000);
+    query = query.gte('start_time', fiveDaysAgo.toISOString());
+  }
+
+  const { data: meetings } = await query;
 
   if (!meetings || meetings.length === 0) return [];
 

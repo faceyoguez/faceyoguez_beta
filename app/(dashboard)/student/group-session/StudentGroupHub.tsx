@@ -72,6 +72,8 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
     const [recordings, setRecordings] = useState<RecordedSession[]>([]);
     const [recordingPage, setRecordingPage] = useState(0);
     const [isLoadingRecordings, setIsLoadingRecordings] = useState(false);
+    const [hasMoreRecordings, setHasMoreRecordings] = useState(false);
+    const [isLoadingOlderRecordings, setIsLoadingOlderRecordings] = useState(false);
     const [polls, setPolls] = useState<Record<string, BatchPoll>>({});
     const [votingPollId, setVotingPollId] = useState<string | null>(null);
     const [journeyLogs, setJourneyLogs] = useState<JourneyLog[]>([]);
@@ -136,6 +138,8 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                     getLatestMeetingForBatch(activeBatch.id)
                 ]);
                 setRecordings(recs);
+                // If we got a full page, there may be older recordings available
+                setHasMoreRecordings(recs.length === 10);
                 if (latestMeeting && !meetingsData.some(m => m.id === latestMeeting.id)) {
                     setUpcomingMeetings(prev => [...prev, latestMeeting]);
                 }
@@ -614,6 +618,46 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                         <div className="w-4 h-4 border-r-2 border-t-2 border-slate-400 rotate-45 mr-1" />
                                     </button>
                                 </div>
+                            )}
+
+                            {/* Load older recordings — only visible when there may be more, fetched on demand */}
+                            {hasMoreRecordings && (
+                                <button
+                                    onClick={async () => {
+                                        if (!activeBatch?.id || !activeBatch?.end_date || isLoadingOlderRecordings) return;
+                                        // Use the start_time of the oldest recording we already have as the cursor
+                                        const oldestStartTime = recordings[recordings.length - 1]?.start_time;
+                                        if (!oldestStartTime) return;
+                                        setIsLoadingOlderRecordings(true);
+                                        try {
+                                            const older = await getBatchRecordedSessions(
+                                                activeBatch.id,
+                                                activeBatch.end_date,
+                                                10,
+                                                oldestStartTime
+                                            );
+                                            if (older.length === 0) {
+                                                setHasMoreRecordings(false);
+                                            } else {
+                                                setRecordings(prev => [...prev, ...older]);
+                                                // If we got a full page again, there might be even more
+                                                setHasMoreRecordings(older.length === 10);
+                                            }
+                                        } catch (err) {
+                                            console.error('Error loading older recordings:', err);
+                                        } finally {
+                                            setIsLoadingOlderRecordings(false);
+                                        }
+                                    }}
+                                    disabled={isLoadingOlderRecordings}
+                                    className="w-full flex items-center justify-center gap-2 py-2 rounded-xl border border-dashed border-slate-200 text-[9px] font-black uppercase tracking-widest text-slate-400 hover:border-[#e76f51]/30 hover:text-[#e76f51] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isLoadingOlderRecordings ? (
+                                        <><Loader2 className="w-3 h-3 animate-spin" /> Loading...</>
+                                    ) : (
+                                        <>↑ Load older recordings</>
+                                    )}
+                                </button>
                             )}
                         </div>
                     </div>
