@@ -42,14 +42,14 @@ export function PlanExpiryPill({ subscriptionStartDate, totalDays = 30, planName
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setShowModal(true)}
-                className="fixed top-20 lg:top-8 right-4 lg:right-8 z-[100] flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl group transition-all duration-500 hover:bg-white/20"
+                className="fixed top-20 lg:top-8 right-4 lg:right-8 z-[100] flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl group transition-all duration-300 hover:bg-slate-800"
             >
                 <div className="relative">
                     <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                     <div className="absolute inset-0 w-2 h-2 rounded-full bg-red-500 animate-ping opacity-40" />
                 </div>
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Plan Ending Soon</span>
-                <ChevronRight className="w-3.5 h-3.5 text-white/40 group-hover:translate-x-0.5 transition-transform" />
+                <ChevronRight className="w-3.5 h-3.5 text-white/60 group-hover:translate-x-0.5 transition-transform" />
             </motion.button>
 
             <AnimatePresence>
