@@ -138,12 +138,12 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                     getLatestMeetingForBatch(activeBatch.id)
                 ]);
                 setRecordings(recs);
-                // Show "Load older" if the batch started more than 5 days ago —
-                // there may be recordings beyond the initial 5-day window regardless
+                // Show "Load older" if the batch started more than 14 days ago —
+                // there may be recordings beyond the initial 14-day window regardless
                 // of how many sessions happened to fall in that window.
                 const batchStart = activeBatch.start_date ? new Date(activeBatch.start_date) : null;
-                const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
-                setHasMoreRecordings(!!batchStart && batchStart < fiveDaysAgo);
+                const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+                setHasMoreRecordings(!!batchStart && batchStart < fourteenDaysAgo);
                 if (latestMeeting && !meetingsData.some(m => m.id === latestMeeting.id)) {
                     setUpcomingMeetings(prev => [...prev, latestMeeting]);
                 }

@@ -157,7 +157,8 @@ export async function getBatchRecordedSessions(
   const now = new Date();
 
   // Build the time-range filter:
-  // - Default (initial load): last 5 days only, to keep the page fast.
+  // - Default (initial load): last 14 days only, to keep the page fast while
+  //   still covering batches with gaps or week-long breaks between sessions.
   // - On-demand (olderThan set): fetch sessions strictly before the provided cursor date,
   //   going all the way back to the batch start. No extra load on initial page render.
   let query = admin
@@ -170,9 +171,9 @@ export async function getBatchRecordedSessions(
     .limit(limit);
 
   if (!olderThan) {
-    // Initial load: restrict to last 5 days to avoid excessive Zoom API calls
-    const fiveDaysAgo = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000);
-    query = query.gte('start_time', fiveDaysAgo.toISOString());
+    // Initial load: restrict to last 14 days to avoid excessive Zoom API calls
+    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+    query = query.gte('start_time', fourteenDaysAgo.toISOString());
   }
 
   const { data: meetings } = await query;

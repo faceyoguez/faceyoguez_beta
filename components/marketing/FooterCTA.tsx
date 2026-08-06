@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { Flower2 } from 'lucide-react';
 import { trackConversionEvent } from '@/lib/conversionTracking';
@@ -163,6 +164,19 @@ export function FooterCTA() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Footer decorative image */}
+      <div className="flex justify-center items-end overflow-hidden" style={{ marginBottom: '-2px' }}>
+        <Image
+          src="/assets/footer_img.jpg"
+          alt="Faceyoguez couple illustration"
+          width={320}
+          height={420}
+          className="object-contain select-none"
+          style={{ opacity: 0.88, maxHeight: '380px', width: 'auto' }}
+          priority={false}
+        />
       </div>
 
       {/* Bottom bar */}
