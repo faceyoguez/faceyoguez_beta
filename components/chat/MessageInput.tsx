@@ -217,11 +217,11 @@ export function MessageInput({ onSendText, onSendFile, onSendVoice, dark = false
           onClick={handleSend}
           disabled={!text.trim() || isSending}
           className={cn(
-            "h-10 w-10 flex items-center justify-center rounded-full hover:scale-105 active:scale-95 transition-all duration-500 disabled:opacity-20 disabled:scale-100 shadow-sm",
+            "h-8 w-8 flex items-center justify-center rounded-full hover:scale-105 active:scale-95 transition-all duration-500 disabled:opacity-20 disabled:scale-100 shadow-sm shrink-0",
             dark ? "bg-[#FF8A75] text-white shadow-[#FF8A75]/20" : "bg-foreground text-background shadow-primary/10"
           )}
         >
-          <Send className={cn("h-4 w-4 fill-current ml-0.5", isSending && "animate-pulse")} />
+          <Send className={cn("h-3.5 w-3.5 fill-current ml-0.5", isSending && "animate-pulse")} />
         </button>
       </div>
 
