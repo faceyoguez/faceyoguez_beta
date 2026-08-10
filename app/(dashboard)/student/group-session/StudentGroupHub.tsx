@@ -6,12 +6,13 @@ import {
     Calendar, Users, Star,
     Flame, PlayCircle, FileText, Download, CheckCircle, Send,
     Video, Clock, Sparkles, ChevronRight, Play, ShieldCheck, MessageSquare, X,
-    ArrowUpRight, Camera
+    ArrowUpRight, Camera, Bell
 } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '../../../../lib/supabase/client';
 import { getBatchMessages, sendBatchMessage } from '../../../../lib/actions/chat';
+import { getStudentPersonalMessages, markNotificationAsRead } from '../../../../lib/actions/broadcast';
 import { getBatchPollsMap, getPollById, votePoll } from '../../../../lib/actions/polls';
 import { getJourneyLogs, saveDailyCheckIn, checkAndCreateJourneyNotifications, type JourneyLog } from '../../../../lib/actions/journey';
 import { getUpcomingMeetingsForStudent, getBatchRecordedSessions, getLatestMeetingForBatch } from '../../../../lib/actions/meetings';
@@ -56,8 +57,12 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
     const [messages, setMessages] = useState<any[]>([]); // Keep any[] for now as it's complex, but guard its rendering
     const [newMessage, setNewMessage] = useState('');
     const chatContainerRef = useRef<HTMLDivElement>(null);
+    const privateContainerRef = useRef<HTMLDivElement>(null);
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [chatTab, setChatTab] = useState<'group' | 'personal'>('group');
+    const [privateMessages, setPrivateMessages] = useState<any[]>([]);
+    const [unreadPrivateCount, setUnreadPrivateCount] = useState(0);
     const [isMounted, setIsMounted] = useState(false);
     const [activeCallMeetingId, setActiveCallMeetingId] = useState<string | null>(null);
     const [playingRecording, setPlayingRecording] = useState<RecordedSession | null>(null);
@@ -116,17 +121,21 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
 
         const init = async () => {
             // Fetch critical dashboard data first
-            const [msgs, pollsMap, logs, meetingsData] = await Promise.all([
+            const [msgs, pollsMap, logs, meetingsData, personalMsgs] = await Promise.all([
                 getBatchMessages(activeBatch.id),
                 getBatchPollsMap(activeBatch.id, currentUser.id),
                 getJourneyLogs(currentUser.id),
                 getUpcomingMeetingsForStudent(),
+                getStudentPersonalMessages(),
             ]);
 
             setMessages(msgs);
             setPolls(pollsMap);
             setJourneyLogs(logs);
             setUpcomingMeetings(meetingsData || []);
+            setPrivateMessages(personalMsgs);
+            const unreadPrivate = personalMsgs.filter((n: any) => !n.is_read).length;
+            setUnreadPrivateCount(unreadPrivate);
             // Check/create pending notifications in DB
             checkAndCreateJourneyNotifications(currentUser.id, currentDay);
 
@@ -239,10 +248,32 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
             )
             .subscribe();
 
+        // Real-time: personal notifications inserted for this student
+        const notifChannel = supabase
+            .channel(`student-notifications-${currentUser.id}-${Math.random().toString(36).slice(2, 9)}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'notifications',
+                    filter: `user_id=eq.${currentUser.id}`
+                },
+                async () => {
+                    // Re-fetch all personal messages to include joined sender info
+                    const msgs = await getStudentPersonalMessages();
+                    setPrivateMessages(msgs);
+                    const unread = msgs.filter((n: any) => !n.is_read).length;
+                    setUnreadPrivateCount(unread);
+                }
+            )
+            .subscribe();
+
         return () => {
             supabase.removeChannel(msgChannel);
             supabase.removeChannel(voteChannel);
             supabase.removeChannel(meetingChannel);
+            supabase.removeChannel(notifChannel);
         };
     }, [activeBatch?.id, currentUser.id, supabase]);
 
@@ -294,13 +325,17 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
     }, [messages]);
 
     useEffect(() => {
-        if (isChatOpen) {
+        if (isChatOpen && chatTab === 'group') {
             setUnreadCount(0);
         }
-    }, [isChatOpen]);
+        if (isChatOpen && chatTab === 'personal') {
+            setUnreadPrivateCount(0);
+        }
+    }, [isChatOpen, chatTab]);
 
     useEffect(() => {
-        if (!isChatOpen && messages.length > 0) {
+        // Only count as unread group message when not currently viewing group tab
+        if (chatTab !== 'group' || !isChatOpen) {
             setUnreadCount((prev: number) => prev + 1);
         }
     }, [messages]);
@@ -399,70 +434,228 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
         return hasRecording || isPastBuffer;
     }, [nextBatchMeeting, recordings, isNextMeetingCompleted, isNextMeetingExpired]);
 
+    const totalUnread = unreadCount + unreadPrivateCount;
+
     const chatContent = (
         <div className="h-full flex flex-col overflow-hidden bg-white/50 backdrop-blur-xl">
-            <div className="p-6 sm:p-8 border-b border-outline-variant/5 flex flex-col gap-1.5 shrink-0">
-                <div className="flex items-center justify-between">
-                    <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">Group Chat</h3>
-                    <div className="h-2 w-2 rounded-full bg-primary/40" />
+            {/* Tab Toggle Header */}
+            <div className="p-4 border-b border-outline-variant/5 shrink-0">
+                <div className="flex items-center bg-slate-100/80 rounded-2xl p-1 gap-1">
+                    {/* Group Tab */}
+                    <button
+                        onClick={() => { setChatTab('group'); setUnreadCount(0); }}
+                        className={cn(
+                            "relative flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300",
+                            chatTab === 'group'
+                                ? "bg-white shadow-sm text-slate-900"
+                                : "text-slate-400 hover:text-slate-600"
+                        )}
+                    >
+                        <MessageSquare className="w-3 h-3" />
+                        Group
+                        {unreadCount > 0 && chatTab !== 'group' && (
+                            <span className="absolute -top-1 -right-1 h-4 w-4 bg-[#e76f51] rounded-full text-white text-[8px] font-bold flex items-center justify-center animate-pulse shadow-sm shadow-[#e76f51]/40">
+                                {unreadCount > 9 ? '9+' : unreadCount}
+                            </span>
+                        )}
+                        {unreadCount > 0 && chatTab === 'group' && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#e76f51] animate-pulse" />
+                        )}
+                    </button>
+
+                    {/* Personal Tab */}
+                    <button
+                        onClick={async () => {
+                            setChatTab('personal');
+                            setUnreadPrivateCount(0);
+                            // Mark all unread personal messages as read
+                            const unread = privateMessages.filter((n: any) => !n.is_read);
+                            for (const n of unread) {
+                                markNotificationAsRead(n.id);
+                            }
+                            setPrivateMessages(prev => prev.map((n: any) => ({ ...n, is_read: true })));
+                        }}
+                        className={cn(
+                            "relative flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300",
+                            chatTab === 'personal'
+                                ? "bg-white shadow-sm text-slate-900"
+                                : "text-slate-400 hover:text-slate-600"
+                        )}
+                    >
+                        <Bell className="w-3 h-3" />
+                        Personal
+                        {unreadPrivateCount > 0 && chatTab !== 'personal' && (
+                            <span className="absolute -top-1 -right-1 h-4 w-4 bg-[#e76f51] rounded-full text-white text-[8px] font-bold flex items-center justify-center animate-pulse shadow-sm shadow-[#e76f51]/40">
+                                {unreadPrivateCount > 9 ? '9+' : unreadPrivateCount}
+                            </span>
+                        )}
+                        {unreadPrivateCount > 0 && chatTab === 'personal' && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#e76f51] animate-pulse" />
+                        )}
+                    </button>
                 </div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-foreground/30">Live Group Chat</p>
             </div>
 
-            <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6 custom-scrollbar">
-                {messages.map((msg: any) => {
-                    const isOwn = msg.sender_id === currentUser.id;
-                    const isPoll = msg.message_type === 'poll';
-                    const poll = isPoll ? polls[msg.poll_id] : null;
+            {/* GROUP CHAT */}
+            {chatTab === 'group' && (
+                <>
+                    <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 custom-scrollbar">
+                        {messages.length === 0 && (
+                            <div className="flex flex-col items-center justify-center h-full py-16 opacity-30">
+                                <MessageSquare className="w-8 h-8 text-slate-400 mb-3" />
+                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 text-center">No messages yet</p>
+                            </div>
+                        )}
+                        {messages.map((msg: any) => {
+                            const isOwn = msg.sender_id === currentUser.id;
+                            const isPoll = msg.message_type === 'poll';
+                            const poll = isPoll ? polls[msg.poll_id] : null;
 
-                    if (isPoll) {
-                        return (
-                            poll && (
-                                <div key={msg.id} className="w-full">
-                                    <PollCard
-                                        poll={poll}
-                                        isAdmin={false}
-                                        onVote={(id: string) => handleVotePoll(poll.id, id)}
-                                        isVoting={votingPollId === poll.id}
-                                    />
-                                </div>
-                            )
-                        );
-                    }
+                            if (isPoll) {
+                                return (
+                                    poll && (
+                                        <div key={msg.id} className="w-full">
+                                            <PollCard
+                                                poll={poll}
+                                                isAdmin={false}
+                                                onVote={(id: string) => handleVotePoll(poll.id, id)}
+                                                isVoting={votingPollId === poll.id}
+                                            />
+                                        </div>
+                                    )
+                                );
+                            }
 
-                    return (
-                        <MessageBubble
-                            key={msg.id}
-                            message={msg}
-                            isOwn={isOwn}
-                            showSender={msg.sender_id !== currentUser.id}
-                            isMultiParty={true}
-                            dark={false}
-                            currentUserRole={currentUser.role}
-                        />
-                    );
-                })}
-            </div>
-
-            <div className="p-6 sm:p-8 border-t border-outline-variant/10 bg-white/40 backdrop-blur-md shrink-0 mb-safe">
-                {isChatEnabled ? (
-                    <div className="relative group">
-                        <input
-                            type="text"
-                            value={newMessage}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewMessage(e.target.value)}
-                            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleSendMessage()}
-                            placeholder="Type a message..."
-                            className="w-full h-12 pl-5 pr-12 rounded-xl bg-white border border-outline-variant/10 text-base text-foreground font-medium placeholder:text-foreground/20 focus:ring-2 focus:ring-primary/10 focus:outline-none transition-all shadow-sm group-hover:border-primary/20"
-                        />
-                        <button onClick={handleSendMessage} className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 w-9 rounded-xl bg-foreground text-background flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
-                            <Send className="w-3.5 h-3.5" />
-                        </button>
+                            return (
+                                <MessageBubble
+                                    key={msg.id}
+                                    message={msg}
+                                    isOwn={isOwn}
+                                    showSender={msg.sender_id !== currentUser.id}
+                                    isMultiParty={true}
+                                    dark={false}
+                                    currentUserRole={currentUser.role}
+                                />
+                            );
+                        })}
                     </div>
-                ) : (
-                    <div className="h-12 rounded-xl bg-foreground/5 flex items-center justify-center text-[10px] font-bold uppercase tracking-widest text-foreground/20">Chat is turned off</div>
-                )}
-            </div>
+
+                    <div className="p-4 sm:p-6 border-t border-outline-variant/10 bg-white/40 backdrop-blur-md shrink-0 mb-safe">
+                        {isChatEnabled ? (
+                            <div className="relative group">
+                                <input
+                                    type="text"
+                                    value={newMessage}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewMessage(e.target.value)}
+                                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleSendMessage()}
+                                    placeholder="Type a message..."
+                                    className="w-full h-12 pl-5 pr-12 rounded-xl bg-white border border-outline-variant/10 text-base text-foreground font-medium placeholder:text-foreground/20 focus:ring-2 focus:ring-primary/10 focus:outline-none transition-all shadow-sm group-hover:border-primary/20"
+                                />
+                                <button onClick={handleSendMessage} className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 w-9 rounded-xl bg-foreground text-background flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
+                                    <Send className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="h-12 rounded-xl bg-foreground/5 flex items-center justify-center text-[10px] font-bold uppercase tracking-widest text-foreground/20">Chat is turned off</div>
+                        )}
+                    </div>
+                </>
+            )}
+
+            {/* PERSONAL MESSAGES */}
+            {chatTab === 'personal' && (
+                <div ref={privateContainerRef} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 custom-scrollbar">
+                    {privateMessages.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-full py-16 opacity-30">
+                            <Bell className="w-8 h-8 text-slate-400 mb-3" />
+                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 text-center">No personal messages yet</p>
+                        </div>
+                    ) : (
+                        privateMessages.map((notif: any) => {
+                            const broadcast = notif.broadcasts || {};
+                            const sender = broadcast.sender || {};
+                            const isUnread = !notif.is_read;
+                            const timeStr = isMounted
+                                ? new Date(notif.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
+                                : '';
+                            const dateStr = isMounted
+                                ? new Date(notif.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+                                : '';
+
+                            return (
+                                <div
+                                    key={notif.id}
+                                    className={cn(
+                                        "group relative rounded-2xl p-4 border transition-all duration-300",
+                                        isUnread
+                                            ? "bg-[#e76f51]/5 border-[#e76f51]/20 shadow-sm"
+                                            : "bg-white/60 border-slate-100"
+                                    )}
+                                >
+                                    {/* Unread dot */}
+                                    {isUnread && (
+                                        <span className="absolute top-3 right-3 w-2 h-2 rounded-full bg-[#e76f51] animate-pulse" />
+                                    )}
+
+                                    {/* Sender */}
+                                    <div className="flex items-center gap-2.5 mb-3">
+                                        <div className="h-8 w-8 rounded-xl overflow-hidden shrink-0 border border-slate-100">
+                                            {sender.avatar_url ? (
+                                                <img src={sender.avatar_url} alt="" className="h-full w-full object-cover" />
+                                            ) : (
+                                                <div className="h-full w-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-400">
+                                                    {(sender.full_name || 'I').charAt(0)}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-900 truncate">
+                                                {sender.full_name || 'Instructor'}
+                                            </p>
+                                            <div className="flex items-center gap-1 mt-0.5">
+                                                <ShieldCheck className="w-2.5 h-2.5 text-[#e76f51]" />
+                                                <span className="text-[8px] font-black uppercase tracking-widest text-[#e76f51]">
+                                                    {sender.role || 'guide'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <span className="ml-auto text-[8px] font-bold text-slate-300 shrink-0">
+                                            {dateStr} · {timeStr}
+                                        </span>
+                                    </div>
+
+                                    {/* Title */}
+                                    {notif.title && (
+                                        <p className="text-[11px] font-black text-slate-900 mb-1.5 uppercase tracking-wider">
+                                            {notif.title}
+                                        </p>
+                                    )}
+
+                                    {/* Message */}
+                                    <p className="text-sm text-slate-600 font-medium leading-relaxed whitespace-pre-wrap">
+                                        {notif.message}
+                                    </p>
+
+                                    {/* File attachment */}
+                                    {broadcast.file_url && (
+                                        <a
+                                            href={broadcast.file_url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="mt-3 flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-100 hover:border-[#e76f51]/20 hover:bg-white transition-all text-left"
+                                        >
+                                            <Download className="w-3.5 h-3.5 text-[#e76f51] shrink-0" />
+                                            <p className="text-[10px] font-bold text-slate-700 truncate">
+                                                {broadcast.file_name || 'Download Resource'}
+                                            </p>
+                                        </a>
+                                    )}
+                                </div>
+                            );
+                        })
+                    )}
+                </div>
+            )}
         </div>
     );
 
@@ -848,9 +1041,9 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                     className="w-14 h-14 rounded-full bg-slate-900 text-white flex items-center justify-center shadow-xl relative"
                 >
                     <MessageSquare className="w-6 h-6" />
-                    {unreadCount > 0 && (
-                        <div className="absolute top-0 right-0 h-4 w-4 bg-[#e76f51] rounded-full border-2 border-white flex items-center justify-center text-[8px] font-bold">
-                            {unreadCount}
+                    {totalUnread > 0 && (
+                        <div className="absolute top-0 right-0 h-5 w-5 bg-[#e76f51] rounded-full border-2 border-white flex items-center justify-center text-[8px] font-bold animate-pulse shadow-sm shadow-[#e76f51]/50">
+                            {totalUnread > 9 ? '9+' : totalUnread}
                         </div>
                     )}
                 </motion.button>

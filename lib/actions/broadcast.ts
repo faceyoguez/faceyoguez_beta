@@ -218,3 +218,32 @@ export async function markNotificationAsRead(notificationId: string) {
   revalidatePath('/student/dashboard'); // For any dashboard summary
   return { success: true };
 }
+
+// Fetch personal notifications (broadcasts targeted at this student) for use in Group Hub
+export async function getStudentPersonalMessages(limit = 100) {
+  const supabase = await createServerSupabaseClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from('notifications')
+    .select(`
+      id, title, message, type, is_read, created_at, broadcast_id,
+      broadcasts!broadcast_id(
+        id, sender_id, file_url, file_name,
+        sender:profiles!sender_id(id, full_name, avatar_url, role)
+      )
+    `)
+    .eq('user_id', user.id)
+    .eq('type', 'broadcast')
+    .order('created_at', { ascending: true })
+    .limit(limit);
+
+  if (error) {
+    console.error('Error fetching personal messages:', error);
+    return [];
+  }
+
+  return data || [];
+}
