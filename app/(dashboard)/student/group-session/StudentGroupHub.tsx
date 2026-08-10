@@ -50,11 +50,12 @@ interface StudentGroupClientProps {
     isTrialAccess?: boolean;
     trialEndDate?: string | null;
     subscriptionStartDate?: string | null;
+    subscriptionEndDate?: string | null;
 }
 
 const JOURNEY_MAX_DAY = 365;
 
-export function StudentGroupHub({ currentUser, activeBatch, initialResources, isTrialAccess = false, trialEndDate, subscriptionStartDate }: StudentGroupClientProps) {
+export function StudentGroupHub({ currentUser, activeBatch, initialResources, isTrialAccess = false, trialEndDate, subscriptionStartDate, subscriptionEndDate }: StudentGroupClientProps) {
     const [messages, setMessages] = useState<any[]>([]); // Keep any[] for now as it's complex, but guard its rendering
     const [newMessage, setNewMessage] = useState('');
     const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -666,6 +667,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
             {subscriptionStartDate && (
                 <PlanExpiryPill
                     subscriptionStartDate={subscriptionStartDate}
+                    endDate={subscriptionEndDate}
                     planName={activeBatch?.name || "Group Classes"}
                 />
             )}

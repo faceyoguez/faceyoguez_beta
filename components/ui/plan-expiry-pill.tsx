@@ -6,11 +6,12 @@ import { cn } from '@/lib/utils';
 
 interface PlanExpiryPillProps {
     subscriptionStartDate: string;
-    totalDays?: number; // default 30
+    endDate?: string | null;       // actual subscription end date (preferred)
+    totalDays?: number;            // fallback if no endDate
     planName?: string;
 }
 
-export function PlanExpiryPill({ subscriptionStartDate, totalDays = 30, planName = 'Standard Plan' }: PlanExpiryPillProps) {
+export function PlanExpiryPill({ subscriptionStartDate, endDate, totalDays = 30, planName = 'Standard Plan' }: PlanExpiryPillProps) {
     const [isVisible, setIsVisible] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [daysRemaining, setDaysRemaining] = useState(0);
@@ -18,19 +19,28 @@ export function PlanExpiryPill({ subscriptionStartDate, totalDays = 30, planName
     useEffect(() => {
         if (!subscriptionStartDate) return;
 
-        const start = new Date(subscriptionStartDate);
         const now = new Date();
-        const diffTime = now.getTime() - start.getTime();
-        const currentDay = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
-        
-        const remaining = totalDays - currentDay;
+        let remaining: number;
+
+        if (endDate) {
+            // Use the actual end date — accurate regardless of plan length
+            const end = new Date(`${endDate}T23:59:59`);
+            remaining = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        } else {
+            // Fallback: start + totalDays
+            const start = new Date(subscriptionStartDate);
+            const diffTime = now.getTime() - start.getTime();
+            const currentDay = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            remaining = totalDays - currentDay;
+        }
+
         setDaysRemaining(remaining);
 
-        // Show starting from t-5
+        // Show only when 5 or fewer days remain (and not already expired)
         if (remaining <= 5 && remaining >= 0) {
             setIsVisible(true);
         }
-    }, [subscriptionStartDate, totalDays]);
+    }, [subscriptionStartDate, endDate, totalDays]);
 
     if (!isVisible) return null;
 

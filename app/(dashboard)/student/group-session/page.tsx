@@ -34,7 +34,7 @@ export default async function StudentGroupPage() {
             .order('created_at', { ascending: false }),
         admin
             .from('subscriptions')
-            .select('id, plan_type, metadata, is_trial, start_date')
+            .select('id, plan_type, metadata, is_trial, start_date, end_date')
             .eq('student_id', user.id)
             .eq('status', 'active')
             .or(`end_date.is.null,end_date.gte.${today}`),
@@ -83,6 +83,7 @@ export default async function StudentGroupPage() {
                 isTrialAccess={isTrialAccess}
                 trialEndDate={enrollment?.effective_end_date || null}
                 subscriptionStartDate={enrollment?.subscriptions?.start_date || activeSub?.start_date || null}
+                subscriptionEndDate={(enrollment?.subscriptions as any)?.end_date || (activeSub as any)?.end_date || null}
             />
         );
     }
