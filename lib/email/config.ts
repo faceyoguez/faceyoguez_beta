@@ -9,9 +9,9 @@
 
 export const EMAIL_CONFIG = {
   // ── Sender ────────────────────────────────────────────────────
-  senderName: 'Faceyoguez Management',
-  senderEmail: 'management@faceyoguez.com',
-  replyTo: 'management@faceyoguez.com',
+  senderName: 'Simrat from Faceyoguez',
+  senderEmail: 'simrat@faceyoguez.com',
+  replyTo: 'simrat@faceyoguez.com',
 
   // ── Brand ─────────────────────────────────────────────────────
   brandName: 'Faceyoguez',
