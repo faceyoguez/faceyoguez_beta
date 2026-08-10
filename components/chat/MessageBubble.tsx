@@ -94,18 +94,18 @@ export function MessageBubble({ message, isOwn, showSender = false, isMultiParty
         shouldShowSender ? 'mt-8' : 'mt-1'
     )}>
       <div className={cn(
-          "max-w-[85%] sm:max-w-[75%] flex flex-col",
+          "max-w-[85%] sm:max-w-[75%] flex flex-col min-w-0",
           isOwn ? 'items-end' : 'items-start'
       )}>
 
         {/* Sender label */}
         {shouldShowSender && message.sender && (
           <div className={cn(
-              "mb-2.5 flex items-center gap-3",
+              "mb-2.5 flex items-center gap-3 max-w-full min-w-0",
               isOwn ? 'flex-row-reverse mr-1' : 'ml-1'
           )}>
             <div className={cn(
-                "h-7 w-7 rounded-full overflow-hidden p-0.5",
+                "h-7 w-7 rounded-full overflow-hidden p-0.5 shrink-0",
                 dark ? "ring-1 ring-white/10 bg-white/5" : "ring-2 ring-white lustre-border bg-white"
             )}>
               {message.sender.avatar_url ? (
@@ -123,9 +123,9 @@ export function MessageBubble({ message, isOwn, showSender = false, isMultiParty
                 </div>
               )}
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col min-w-0">
                 <span className={cn(
-                "text-[10px] font-black uppercase tracking-widest leading-none mb-1",
+                "text-[10px] font-black uppercase tracking-widest leading-none mb-1 truncate",
                 dark ? "text-white/40" : "text-foreground/40"
                 )}>
                 {isOwn ? 'You' : message.sender.full_name}
@@ -146,7 +146,7 @@ export function MessageBubble({ message, isOwn, showSender = false, isMultiParty
         <div
           onDoubleClick={handleDoubleClick}
           className={cn(
-            "px-6 py-4.5 transition-all duration-500 shadow-sm cursor-pointer select-none",
+            "px-6 py-4.5 transition-all duration-500 shadow-sm cursor-pointer select-none min-w-0 max-w-full overflow-hidden",
             isOwn
               ? dark 
                 ? "rounded-[2.5rem] rounded-tr-none bg-[#FF8A75] text-white font-medium shadow-[#FF8A75]/10"
@@ -168,7 +168,7 @@ export function MessageBubble({ message, isOwn, showSender = false, isMultiParty
 
           {message.content_type === 'text' && (
             <p className={cn(
-              "whitespace-pre-wrap break-words text-[13.5px] sm:text-sm leading-[1.6] tracking-tight",
+              "whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[13.5px] sm:text-sm leading-[1.6] tracking-tight min-w-0 max-w-full overflow-hidden",
               isDeleted && "line-through opacity-70"
             )}>
               {renderMessageContent(originalContent, isOwn, dark)}

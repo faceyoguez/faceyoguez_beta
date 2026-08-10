@@ -11,7 +11,7 @@ import {
 import { Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '../../../../lib/supabase/client';
-import { getBatchMessages, sendBatchMessage } from '../../../../lib/actions/chat';
+import { getBatchMessages, sendBatchMessage, getOrCreateSharedChat } from '../../../../lib/actions/chat';
 import { getStudentPersonalMessages, markNotificationAsRead } from '../../../../lib/actions/broadcast';
 import { getBatchPollsMap, getPollById, votePoll } from '../../../../lib/actions/polls';
 import { getJourneyLogs, saveDailyCheckIn, checkAndCreateJourneyNotifications, type JourneyLog } from '../../../../lib/actions/journey';
@@ -23,6 +23,7 @@ import { useRouter } from 'next/navigation';
 import { cn, formatISTDate, formatISTTime, getSessionStatus } from '@/lib/utils';
 import { MessageBubble } from '@/components/chat/MessageBubble';
 import { BatchChatWindow } from '@/components/chat/BatchChatWindow';
+import { ChatWindow } from '@/components/chat/ChatWindow';
 import { SupportContact } from '@/components/ui/SupportContact';
 import { ZoomMeetingEmbed } from '@/components/zoom/ZoomMeetingEmbed';
 import { RecordingPlayerModal } from '@/components/RecordingPlayerModal';
@@ -63,6 +64,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
     const [chatTab, setChatTab] = useState<'group' | 'personal'>('group');
     const [privateMessages, setPrivateMessages] = useState<any[]>([]);
     const [unreadPrivateCount, setUnreadPrivateCount] = useState(0);
+    const [privateConvId, setPrivateConvId] = useState<string | null>(null);
     const [isMounted, setIsMounted] = useState(false);
     const [activeCallMeetingId, setActiveCallMeetingId] = useState<string | null>(null);
     const [playingRecording, setPlayingRecording] = useState<RecordedSession | null>(null);
@@ -276,6 +278,50 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
             supabase.removeChannel(notifChannel);
         };
     }, [activeBatch?.id, currentUser.id, supabase]);
+
+    // Initialize 1-on-1 direct conversation with instructor/staff
+    useEffect(() => {
+        let isSubscribed = true;
+        async function initPrivateChat() {
+            try {
+                const res = await getOrCreateSharedChat(currentUser.id, activeBatch?.instructor_id || null);
+                if (res?.conversationId && isSubscribed) {
+                    setPrivateConvId(res.conversationId);
+                }
+            } catch (err) {
+                console.error("Error initializing private chat:", err);
+            }
+        }
+        initPrivateChat();
+        return () => { isSubscribed = false; };
+    }, [currentUser.id, activeBatch?.instructor_id]);
+
+    // Real-time listener for direct chat messages to update unread count
+    useEffect(() => {
+        if (!privateConvId) return;
+
+        const directMsgChannel = supabase
+            .channel(`student-direct-msgs-${privateConvId}-${Math.random().toString(36).slice(2, 9)}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'chat_messages',
+                    filter: `conversation_id=eq.${privateConvId}`
+                },
+                (payload: any) => {
+                    if (payload.new && payload.new.sender_id !== currentUser.id) {
+                        setUnreadPrivateCount(prev => prev + 1);
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(directMsgChannel);
+        };
+    }, [privateConvId, currentUser.id, supabase]);
 
     // Auto-refresh recordings while any are still processing on Zoom's side —
     // students shouldn't have to manually reload the page to see one appear.
@@ -562,97 +608,52 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                 </>
             )}
 
-            {/* PERSONAL MESSAGES */}
+            {/* PERSONAL CHAT */}
             {chatTab === 'personal' && (
-                <div ref={privateContainerRef} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 custom-scrollbar">
-                    {privateMessages.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-full py-16 opacity-30">
-                            <Bell className="w-8 h-8 text-slate-400 mb-3" />
-                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 text-center">No personal messages yet</p>
+                <div className="flex-1 flex flex-col overflow-hidden min-w-0 max-w-full relative">
+                    {/* Render ChatWindow for 2-way direct conversation with instructor */}
+                    {privateConvId ? (
+                        <div className="flex-1 flex flex-col overflow-hidden min-w-0 max-w-full">
+                            {/* If there are broadcast notifications, show a top banner */}
+                            {privateMessages.length > 0 && (
+                                <div className="p-3 bg-[#e76f51]/5 border-b border-[#e76f51]/10 flex items-center justify-between shrink-0">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                        <Bell className="w-3.5 h-3.5 text-[#e76f51] shrink-0" />
+                                        <p className="text-[10px] font-bold text-slate-700 truncate">
+                                            {privateMessages.length} Announcement{privateMessages.length > 1 ? 's' : ''} from Sanctuary Guides
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            router.push('/student/broadcasts');
+                                        }}
+                                        className="text-[9px] font-black uppercase tracking-wider text-[#e76f51] hover:underline shrink-0 ml-2"
+                                    >
+                                        View All →
+                                    </button>
+                                </div>
+                            )}
+
+                            <ChatWindow
+                                conversationId={privateConvId}
+                                currentUser={currentUser}
+                                conversationType="direct"
+                                title={activeBatch?.instructor?.full_name || "Personal Chat"}
+                                otherParticipant={activeBatch?.instructor ? {
+                                    id: activeBatch.instructor.id,
+                                    full_name: activeBatch.instructor.full_name,
+                                    avatar_url: activeBatch.instructor.avatar_url,
+                                    role: 'instructor'
+                                } as any : undefined}
+                                hideHeader={true}
+                                className="h-full rounded-none border-none shadow-none bg-transparent min-w-0 max-w-full overflow-hidden"
+                            />
                         </div>
                     ) : (
-                        privateMessages.map((notif: any) => {
-                            const broadcast = notif.broadcasts || {};
-                            const sender = broadcast.sender || {};
-                            const isUnread = !notif.is_read;
-                            const timeStr = isMounted
-                                ? new Date(notif.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
-                                : '';
-                            const dateStr = isMounted
-                                ? new Date(notif.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
-                                : '';
-
-                            return (
-                                <div
-                                    key={notif.id}
-                                    className={cn(
-                                        "group relative rounded-2xl p-4 border transition-all duration-300",
-                                        isUnread
-                                            ? "bg-[#e76f51]/5 border-[#e76f51]/20 shadow-sm"
-                                            : "bg-white/60 border-slate-100"
-                                    )}
-                                >
-                                    {/* Unread dot */}
-                                    {isUnread && (
-                                        <span className="absolute top-3 right-3 w-2 h-2 rounded-full bg-[#e76f51] animate-pulse" />
-                                    )}
-
-                                    {/* Sender */}
-                                    <div className="flex items-center gap-2.5 mb-3">
-                                        <div className="h-8 w-8 rounded-xl overflow-hidden shrink-0 border border-slate-100">
-                                            {sender.avatar_url ? (
-                                                <img src={sender.avatar_url} alt="" className="h-full w-full object-cover" />
-                                            ) : (
-                                                <div className="h-full w-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-400">
-                                                    {(sender.full_name || 'I').charAt(0)}
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-900 truncate">
-                                                {sender.full_name || 'Instructor'}
-                                            </p>
-                                            <div className="flex items-center gap-1 mt-0.5">
-                                                <ShieldCheck className="w-2.5 h-2.5 text-[#e76f51]" />
-                                                <span className="text-[8px] font-black uppercase tracking-widest text-[#e76f51]">
-                                                    {sender.role || 'guide'}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <span className="ml-auto text-[8px] font-bold text-slate-300 shrink-0">
-                                            {dateStr} · {timeStr}
-                                        </span>
-                                    </div>
-
-                                    {/* Title */}
-                                    {notif.title && (
-                                        <p className="text-[11px] font-black text-slate-900 mb-1.5 uppercase tracking-wider">
-                                            {notif.title}
-                                        </p>
-                                    )}
-
-                                    {/* Message */}
-                                    <p className="text-sm text-slate-600 font-medium leading-relaxed whitespace-pre-wrap">
-                                        {notif.message}
-                                    </p>
-
-                                    {/* File attachment */}
-                                    {broadcast.file_url && (
-                                        <a
-                                            href={broadcast.file_url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="mt-3 flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-100 hover:border-[#e76f51]/20 hover:bg-white transition-all text-left"
-                                        >
-                                            <Download className="w-3.5 h-3.5 text-[#e76f51] shrink-0" />
-                                            <p className="text-[10px] font-bold text-slate-700 truncate">
-                                                {broadcast.file_name || 'Download Resource'}
-                                            </p>
-                                        </a>
-                                    )}
-                                </div>
-                            );
-                        })
+                        <div className="flex flex-col items-center justify-center h-full py-16 opacity-50">
+                            <Loader2 className="w-6 h-6 animate-spin text-[#e76f51] mb-3" />
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">Connecting Personal Chat...</p>
+                        </div>
                     )}
                 </div>
             )}
