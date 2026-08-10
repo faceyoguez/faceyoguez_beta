@@ -569,10 +569,11 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
             <div className="flex-1 overflow-y-auto p-3 lg:p-4 space-y-2 custom-scrollbar">
               {paginatedStudents.map((student) => {
                 const elapsedDays = student.startDate ? Math.floor((Date.now() - new Date(student.startDate).getTime()) / 86400000) + 1 : 1;
-                const isEnded = elapsedDays > 30;
-                const isEnding = !isEnded && elapsedDays >= 25;
+                const hasDaysLeft = student.daysLeft !== null && student.daysLeft !== undefined;
+                const isEnded = hasDaysLeft ? student.daysLeft! <= 0 : false;
+                const isEnding = hasDaysLeft ? (student.daysLeft! > 0 && student.daysLeft! <= 5) : false;
                 const isEmergency = isEnded || isEnding;
-                const isExpiringSoon = student.daysLeft !== null && student.daysLeft !== undefined && student.daysLeft <= 5;
+                const isExpiringSoon = hasDaysLeft && student.daysLeft! > 0 && student.daysLeft! <= 5;
                 const isSelected = selectedStudent?.id === student.id;
                 const unread = !isSelected ? (convMeta[student.id]?.unreadCount || 0) : 0;
 

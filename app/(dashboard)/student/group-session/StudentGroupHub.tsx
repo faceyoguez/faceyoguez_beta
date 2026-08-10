@@ -11,7 +11,7 @@ import {
 import { Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '../../../../lib/supabase/client';
-import { getBatchMessages, sendBatchMessage, getOrCreateSharedChat } from '../../../../lib/actions/chat';
+import { getBatchMessages, sendBatchMessage, getOrCreateSharedChat, fetchUserConversations } from '../../../../lib/actions/chat';
 import { getStudentPersonalMessages, markNotificationAsRead } from '../../../../lib/actions/broadcast';
 import { getBatchPollsMap, getPollById, votePoll } from '../../../../lib/actions/polls';
 import { getJourneyLogs, saveDailyCheckIn, checkAndCreateJourneyNotifications, type JourneyLog } from '../../../../lib/actions/journey';
@@ -287,9 +287,19 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                 const res = await getOrCreateSharedChat(currentUser.id, activeBatch?.instructor_id || null);
                 if (res?.conversationId && isSubscribed) {
                     setPrivateConvId(res.conversationId);
+                    return;
                 }
             } catch (err) {
-                console.error("Error initializing private chat:", err);
+                console.error("Error initializing private chat with getOrCreateSharedChat:", err);
+            }
+
+            try {
+                const directConvs = await fetchUserConversations('direct');
+                if (directConvs && directConvs.length > 0 && isSubscribed) {
+                    setPrivateConvId(directConvs[0].id);
+                }
+            } catch (err) {
+                console.error("Fallback error fetching direct conversations:", err);
             }
         }
         initPrivateChat();
@@ -364,11 +374,22 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
         };
     }, [supabase, currentUser.id, router]);
 
-    useEffect(() => {
+    const scrollToGroupBottom = (behavior: ScrollBehavior = 'smooth') => {
         if (chatContainerRef.current) {
-            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+            chatContainerRef.current.scrollTo({
+                top: chatContainerRef.current.scrollHeight,
+                behavior,
+            });
         }
-    }, [messages]);
+    };
+
+    useEffect(() => {
+        if (messages.length > 0 && chatTab === 'group') {
+            scrollToGroupBottom('auto');
+            const timer = setTimeout(() => scrollToGroupBottom('smooth'), 100);
+            return () => clearTimeout(timer);
+        }
+    }, [messages.length, messages[messages.length - 1]?.id, chatTab]);
 
     useEffect(() => {
         if (isChatOpen && chatTab === 'group') {
@@ -483,7 +504,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
     const totalUnread = unreadCount + unreadPrivateCount;
 
     const chatContent = (
-        <div className="h-full flex flex-col overflow-hidden bg-white/50 backdrop-blur-xl">
+        <div className="h-full flex flex-col overflow-hidden min-h-0 bg-white/50 backdrop-blur-xl">
             {/* Tab Toggle Header */}
             <div className="p-4 border-b border-outline-variant/5 shrink-0">
                 <div className="flex items-center bg-slate-100/80 rounded-2xl p-1 gap-1">
@@ -610,30 +631,10 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
 
             {/* PERSONAL CHAT */}
             {chatTab === 'personal' && (
-                <div className="flex-1 flex flex-col overflow-hidden min-w-0 max-w-full relative">
+                <div className="flex-1 flex flex-col overflow-hidden min-h-0 min-w-0 max-w-full relative">
                     {/* Render ChatWindow for 2-way direct conversation with instructor */}
                     {privateConvId ? (
-                        <div className="flex-1 flex flex-col overflow-hidden min-w-0 max-w-full">
-                            {/* If there are broadcast notifications, show a top banner */}
-                            {privateMessages.length > 0 && (
-                                <div className="p-3 bg-[#e76f51]/5 border-b border-[#e76f51]/10 flex items-center justify-between shrink-0">
-                                    <div className="flex items-center gap-2 min-w-0">
-                                        <Bell className="w-3.5 h-3.5 text-[#e76f51] shrink-0" />
-                                        <p className="text-[10px] font-bold text-slate-700 truncate">
-                                            {privateMessages.length} Announcement{privateMessages.length > 1 ? 's' : ''} from Sanctuary Guides
-                                        </p>
-                                    </div>
-                                    <button
-                                        onClick={() => {
-                                            router.push('/student/broadcasts');
-                                        }}
-                                        className="text-[9px] font-black uppercase tracking-wider text-[#e76f51] hover:underline shrink-0 ml-2"
-                                    >
-                                        View All →
-                                    </button>
-                                </div>
-                            )}
-
+                        <div className="flex-1 flex flex-col overflow-hidden min-h-0 min-w-0 max-w-full">
                             <ChatWindow
                                 conversationId={privateConvId}
                                 currentUser={currentUser}
@@ -646,7 +647,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                     role: 'instructor'
                                 } as any : undefined}
                                 hideHeader={true}
-                                className="h-full rounded-none border-none shadow-none bg-transparent min-w-0 max-w-full overflow-hidden"
+                                className="flex-1 min-h-0 rounded-none border-none shadow-none bg-transparent min-w-0 max-w-full overflow-hidden"
                             />
                         </div>
                     ) : (

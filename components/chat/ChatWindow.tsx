@@ -51,16 +51,25 @@ export function ChatWindow({
   const containerRef = useRef<HTMLDivElement>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
 
-  const lastMessageId = messages[messages.length - 1]?.id;
-
-  useEffect(() => {
-    if (isAtBottom && containerRef.current) {
+  const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
+    if (containerRef.current) {
       containerRef.current.scrollTo({
         top: containerRef.current.scrollHeight,
-        behavior: 'smooth',
+        behavior,
       });
     }
-  }, [lastMessageId, isAtBottom]);
+  };
+
+  const lastMessageId = messages[messages.length - 1]?.id;
+
+  // Auto-scroll to bottom whenever messages load or a new message arrives
+  useEffect(() => {
+    if (messages.length > 0) {
+      scrollToBottom('auto');
+      const timer = setTimeout(() => scrollToBottom('smooth'), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [messages.length, lastMessageId]);
 
   const handleScroll = () => {
     const container = containerRef.current;
@@ -75,7 +84,7 @@ export function ChatWindow({
 
   return (
     <div className={cn(
-      "flex flex-col overflow-hidden relative transition-all duration-700 shadow-2xl rounded-none h-full w-full",
+      "flex flex-col overflow-hidden relative transition-all duration-700 shadow-2xl rounded-none h-full min-h-0 w-full",
       dark 
         ? "bg-[#1a1a1a] text-white border border-white/5 shadow-slate-900/50" 
         : "bg-white/40 backdrop-blur-3xl border border-primary/5 shadow-primary/5",
@@ -95,7 +104,7 @@ export function ChatWindow({
       {/* Header */}
       {!hideHeader && (
         <div className={cn(
-          "flex items-center justify-between border-b px-8 py-6 backdrop-blur-3xl relative z-10",
+          "flex items-center justify-between border-b px-8 py-6 backdrop-blur-3xl relative z-10 shrink-0",
           dark ? "border-white/5 bg-white/[0.02]" : "border-outline-variant/5 bg-white/20"
         )}>
           <div className="flex items-center gap-5">
@@ -159,7 +168,7 @@ export function ChatWindow({
       <div
         ref={containerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto px-8 py-8 space-y-4 custom-scrollbar relative z-10"
+        className="flex-1 min-h-0 overflow-y-auto px-8 py-8 space-y-4 custom-scrollbar relative z-10"
       >
         {isLoading ? (
           <div className="flex h-full items-center justify-center">
