@@ -1,7 +1,7 @@
 import { transporter } from './mailer';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.faceyoguez.com';
-const FROM_EMAIL = process.env.EMAIL_FROM || 'Faceyoguez <noreply@faceyoguez.com>';
+const FROM_EMAIL = process.env.EMAIL_FROM || 'Faceyoguez Management <management@faceyoguez.com>';
 
 const BASE_STYLES = `
   font-family: Arial, sans-serif;
