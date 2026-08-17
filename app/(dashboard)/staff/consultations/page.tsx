@@ -4,11 +4,12 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   Users, MessageCircle, Video, CheckCircle2, Clock, Send, Paperclip,
-  Loader2, Copy, ExternalLink, Phone, ChevronRight, ChevronLeft, Bell, Mail
+  Loader2, Copy, ExternalLink, Phone, ChevronRight, ChevronLeft, Bell
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { ZoomJoinButton } from '@/components/zoom/ZoomJoinButton';
+import { MessageComposerModal } from '@/components/staff/MessageComposerModal';
 
 interface ConsultationUser {
   id: string; full_name: string; email: string; phone?: string; avatar_url?: string;
@@ -48,6 +49,7 @@ export default function StaffConsultationsPage() {
   const [completeNotes, setCompleteNotes] = useState('');
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [fileUploading, setFileUploading] = useState(false);
+  const [composer, setComposer] = useState<{ channel: 'email' | 'whatsapp'; subject?: string; message: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
@@ -238,15 +240,14 @@ export default function StaffConsultationsPage() {
                 </a>
               )}
               {selected.student?.email && (
-                <a 
-                  href={`https://mail.google.com/mail/?view=cm&fs=1&to=${selected.student.email}&su=${encodeURIComponent('Face Yoga Consultation')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-2 text-slate-400 hover:text-red-600 transition-colors"
+                <button
+                  type="button"
+                  onClick={() => setComposer({ channel: 'email', subject: 'Face Yoga Consultation', message: `Hi ${selected.student?.full_name?.split(' ')[0] || ''},\n\n` })}
+                  className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
                   title="Send Gmail"
                 >
-                  <Mail className="w-4 h-4" />
-                </a>
+                  <img src="/assets/gmail_icon.png" alt="Gmail" className="w-6 h-6 object-contain" />
+                </button>
               )}
               {selected.status === 'paid' && (
                 <button onClick={() => handleActivate(selected)}
@@ -283,12 +284,29 @@ export default function StaffConsultationsPage() {
                 </ZoomJoinButton>
                 <button onClick={() => { navigator.clipboard.writeText(selected.zoom_call!.join_url); toast.success('Link copied!'); }}
                   className="p-1.5 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"><Copy className="w-3.5 h-3.5" /></button>
-                <a href={`https://wa.me/${selected.student?.phone?.replace(/\D/g, '')}?text=${encodeURIComponent(`Hi ${selected.student?.full_name?.split(' ')[0]}! Your Zoom link: ${selected.zoom_call.join_url}`)}`}
-                  target="_blank" rel="noopener noreferrer"
-                  className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors text-xs font-bold">WhatsApp</a>
-                <a href={`https://mail.google.com/mail/?view=cm&fs=1&to=${selected.student?.email}&su=${encodeURIComponent('Your Zoom Session Link')}&body=${encodeURIComponent(`Hi ${selected.student?.full_name?.split(' ')[0]},\n\nHere is your Zoom link for our session: ${selected.zoom_call.join_url}\n\nSee you there!`)}`}
-                  target="_blank" rel="noopener noreferrer"
-                  className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-xs font-bold">Gmail</a>
+                <button
+                  type="button"
+                  onClick={() => setComposer({
+                    channel: 'whatsapp',
+                    message: `Hi ${selected.student?.full_name?.split(' ')[0] || ''}! Your Zoom link: ${selected.zoom_call!.join_url}`,
+                  })}
+                  title="Send via WhatsApp"
+                  className="p-1.5 hover:bg-green-50 rounded-lg transition-colors"
+                >
+                  <img src="/assets/whatsapp_icon.png" alt="WhatsApp" className="w-6 h-6 object-contain" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setComposer({
+                    channel: 'email',
+                    subject: 'Your Zoom Session Link',
+                    message: `Hi ${selected.student?.full_name?.split(' ')[0] || ''},\n\nHere is your Zoom link for our session: ${selected.zoom_call!.join_url}\n\nSee you there!`,
+                  })}
+                  title="Send via Gmail"
+                  className="p-1.5 hover:bg-red-50 rounded-lg transition-colors"
+                >
+                  <img src="/assets/gmail_icon.png" alt="Gmail" className="w-6 h-6 object-contain" />
+                </button>
               </div>
             </div>
           )}
@@ -394,6 +412,19 @@ export default function StaffConsultationsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {composer && selected?.student && (
+        <MessageComposerModal
+          open={!!composer}
+          onClose={() => setComposer(null)}
+          channel={composer.channel}
+          recipientName={selected.student.full_name}
+          recipientEmail={selected.student.email}
+          recipientPhone={selected.student.phone}
+          defaultSubject={composer.subject}
+          defaultMessage={composer.message}
+        />
       )}
     </div>
   );

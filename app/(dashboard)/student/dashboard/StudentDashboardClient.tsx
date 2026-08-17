@@ -34,6 +34,7 @@ import { createClient } from '@/lib/supabase/client';
 import { pixel } from '@/lib/pixel';
 
 import { SupportContact } from '@/components/ui/SupportContact';
+import { getWebinarWhatsAppLink } from '@/lib/actions/webinar';
 
 const ImageComparison = dynamic(() => import('@/components/ui/image-comparison-slider').then(mod => mod.ImageComparison), {
   ssr: false,
@@ -87,7 +88,14 @@ export function StudentDashboardClient({
   const [showVerificationBanner, setShowVerificationBanner] = React.useState(true);
   const [showPlanBanner, setShowPlanBanner] = React.useState(true);
   const [activeCallMeetingId, setActiveCallMeetingId] = React.useState<string | null>(null);
+  const [communityLink, setCommunityLink] = React.useState('https://wa.me/917837310255');
   const supabase = createClient();
+
+  React.useEffect(() => {
+    getWebinarWhatsAppLink()
+      .then((link) => { if (link) setCommunityLink(link); })
+      .catch(() => { /* keep the default support number */ });
+  }, []);
 
   const [timeFilter, setTimeFilter] = React.useState<'upcoming' | 'past'>('upcoming');
   const [typeFilter, setTypeFilter] = React.useState<'all' | 'group' | 'one_on_one' | 'assigned'>('all');
@@ -300,6 +308,17 @@ export function StudentDashboardClient({
 
         {/* Quick Stats Pills */}
         <div className="flex items-center gap-2 flex-wrap">
+          <a
+            href={communityLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 pr-1 hover:opacity-70 transition-opacity"
+          >
+            <img src="/assets/whatsapp_icon.png" alt="WhatsApp" className="w-7 h-7 object-contain shrink-0" />
+            <span className="text-[9px] font-bold text-slate-400 leading-tight max-w-[110px]">
+              Join our WhatsApp community for exclusive updates
+            </span>
+          </a>
           <SupportContact className="px-3.5 py-2 bg-white rounded-2xl border border-slate-100 shadow-sm" />
           <div className="flex items-center gap-2 px-3.5 py-2 bg-white rounded-2xl border border-slate-100 shadow-sm">
             <Flame className="w-4 h-4 text-[#e76f51]" />

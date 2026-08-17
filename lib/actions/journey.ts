@@ -162,10 +162,15 @@ export async function saveDailyCheckIn(
     return { success: true, data: row as JourneyLog };
 }
 
-export async function checkAndCreateJourneyNotifications(studentId: string, currentDay: number) {
+export async function checkAndCreateJourneyNotifications(studentId: string, currentDay: number, extraMilestoneDay?: number) {
     try {
         const admin = createAdminClient();
-        const milestones = [1, 7, 14, 21, 25, 30];
+        // Group-session plans longer than 30 days (40 or 110 days) get one extra
+        // checkpoint at T-5 (5 days before the plan ends) appended here, reusing
+        // the exact same active/next-milestone logic below.
+        const milestones = extraMilestoneDay && extraMilestoneDay > 30
+            ? [1, 7, 14, 21, 25, 30, extraMilestoneDay]
+            : [1, 7, 14, 21, 25, 30];
 
         // Find current active milestone
         let activeMilestone = milestones[0];

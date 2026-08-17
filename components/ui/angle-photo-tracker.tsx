@@ -12,6 +12,20 @@ import { createPortal } from 'react-dom';
 export const PHOTO_MILESTONE_DAYS = [1, 7, 14, 21, 25, 30] as const;
 export type PhotoMilestoneDay = typeof PHOTO_MILESTONE_DAYS[number];
 
+/**
+ * Appends one extra upload checkpoint (T-5 days before the plan actually ends)
+ * onto the standard 30-day milestone list, for plans that run longer than 30
+ * days (group-session's 40-day and 110-day plans). Everything downstream —
+ * lock/unlock, "next milestone" countdown, reminder notifications — keeps
+ * using the exact same logic, just against this extended list.
+ */
+export function getPhotoMilestoneDays(extraMilestoneDay?: number | null): readonly number[] {
+  if (!extraMilestoneDay || extraMilestoneDay <= PHOTO_MILESTONE_DAYS[PHOTO_MILESTONE_DAYS.length - 1]) {
+    return PHOTO_MILESTONE_DAYS;
+  }
+  return [...PHOTO_MILESTONE_DAYS, extraMilestoneDay];
+}
+
 export type PhotoAngleKey = 'front' | 'left' | 'right';
 
 const PANELS: { key: PhotoAngleKey; label: string; sublabel: string }[] = [
@@ -28,12 +42,12 @@ const PLACEHOLDERS: Record<PhotoAngleKey, string> = {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function isMilestoneDay(day: number): day is PhotoMilestoneDay {
-  return (PHOTO_MILESTONE_DAYS as readonly number[]).includes(day);
+function isMilestoneDay(day: number, milestoneDays: readonly number[] = PHOTO_MILESTONE_DAYS): boolean {
+  return milestoneDays.includes(day);
 }
 
-function nextMilestone(day: number): number | null {
-  return PHOTO_MILESTONE_DAYS.find(d => d > day) ?? null;
+function nextMilestone(day: number, milestoneDays: readonly number[] = PHOTO_MILESTONE_DAYS): number | null {
+  return milestoneDays.find(d => d > day) ?? null;
 }
 
 
@@ -317,6 +331,8 @@ interface AnglePhotoTrackerProps {
   isSaving?: boolean;
   accentColor?: string;
   allLogs?: any[];
+  /** Extra upload checkpoint (T-5 days before plan end) for plans longer than 30 days. */
+  extraMilestoneDay?: number | null;
 }
 
 export interface AnglePhotoViewerProps {
@@ -326,6 +342,8 @@ export interface AnglePhotoViewerProps {
   studentName?: string;
   accentColor?: string;
   allLogs?: any[];
+  /** Extra upload checkpoint (T-5 days before plan end) for plans longer than 30 days. */
+  extraMilestoneDay?: number | null;
 }
 
 interface JourneyLog {
@@ -347,32 +365,35 @@ export function AnglePhotoTracker({
   isSaving = false,
   accentColor = '#FF8A75',
   allLogs = [],
+  extraMilestoneDay,
 }: AnglePhotoTrackerProps) {
   const currentDay = propCurrentDay ?? dayNumber;
   const [pending, setPending] = useState<Partial<Record<PhotoAngleKey, { base64: string; mime: string }>>>({});
   const [activeAngle, setActiveAngle] = useState<PhotoAngleKey>('front');
   const hasPending = Object.keys(pending).length > 0;
 
+  const milestoneDays = getPhotoMilestoneDays(extraMilestoneDay);
+
   // Find the current active upload milestone based on currentDay
-  let activeUploadMilestone: number = PHOTO_MILESTONE_DAYS[0];
-  let nextMilestoneDay: number = PHOTO_MILESTONE_DAYS[1];
-  for (let i = 0; i < PHOTO_MILESTONE_DAYS.length; i++) {
-    if (currentDay >= PHOTO_MILESTONE_DAYS[i]) {
-      activeUploadMilestone = PHOTO_MILESTONE_DAYS[i];
-      nextMilestoneDay = PHOTO_MILESTONE_DAYS[i + 1] || (PHOTO_MILESTONE_DAYS[i] + 7);
+  let activeUploadMilestone: number = milestoneDays[0];
+  let nextMilestoneDay: number = milestoneDays[1];
+  for (let i = 0; i < milestoneDays.length; i++) {
+    if (currentDay >= milestoneDays[i]) {
+      activeUploadMilestone = milestoneDays[i];
+      nextMilestoneDay = milestoneDays[i + 1] || (milestoneDays[i] + 7);
     }
   }
 
   const isDay1 = dayNumber === 1;
-  const isMilestone = isMilestoneDay(dayNumber);
+  const isMilestone = isMilestoneDay(dayNumber, milestoneDays);
   const isComparisonMode = dayNumber >= 7;
   const hasSavedDay1 = !!(day1Photos?.front || day1Photos?.left || day1Photos?.right);
-  
+
   const isEditable = dayNumber === activeUploadMilestone;
   const isPast = dayNumber < activeUploadMilestone;
   const isFuture = dayNumber > activeUploadMilestone;
   const hasPhotos = !!(savedPhotos?.front || savedPhotos?.left || savedPhotos?.right);
-  const next = nextMilestone(dayNumber);
+  const next = nextMilestone(dayNumber, milestoneDays);
   const isDay1LateUpload = isDay1 && !hasPhotos && isPast;
   // True when Day 1 baseline was never uploaded and we're past Day 1
   const isBaselineMissing = !isDay1 && !hasSavedDay1 && currentDay > 1;
@@ -486,6 +507,7 @@ export function AnglePhotoTracker({
           day1Photos={day1Photos}
           accentColor={accentColor}
           allLogs={allLogs}
+          extraMilestoneDay={extraMilestoneDay}
         />
       </div>
     );
@@ -540,6 +562,7 @@ export function AnglePhotoTracker({
           day1Photos={day1Photos}
           accentColor={accentColor}
           allLogs={allLogs}
+          extraMilestoneDay={extraMilestoneDay}
         />
       </div>
     );
@@ -760,7 +783,8 @@ export function AnglePhotoTracker({
 
 // ── Read-only instructor/staff viewer ─────────────────────────────────────────
 
-export function AnglePhotoViewer({ dayNumber, photos, day1Photos, studentName, accentColor = '#FF8A75', allLogs = [] }: AnglePhotoViewerProps) {
+export function AnglePhotoViewer({ dayNumber, photos, day1Photos, studentName, accentColor = '#FF8A75', allLogs = [], extraMilestoneDay }: AnglePhotoViewerProps) {
+  const milestoneDays = getPhotoMilestoneDays(extraMilestoneDay);
   const [selectedDay, setSelectedDay] = useState(dayNumber);
   const [activeAngle, setActiveAngle] = useState<PhotoAngleKey>('front');
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
@@ -793,7 +817,7 @@ export function AnglePhotoViewer({ dayNumber, photos, day1Photos, studentName, a
     right: currentPhotos.photo_url_right || currentPhotos.right || null,
   };
 
-  const milestones = PHOTO_MILESTONE_DAYS.filter(d => allLogs.some((l: JourneyLog) => l.day_number === d) || d === dayNumber);
+  const milestones = milestoneDays.filter(d => allLogs.some((l: JourneyLog) => l.day_number === d) || d === dayNumber);
 
   return (
     <div className="space-y-8">
@@ -805,7 +829,7 @@ export function AnglePhotoViewer({ dayNumber, photos, day1Photos, studentName, a
             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF8A75]">Day {selectedDay}</span>
           </div>
           <div className="flex items-center gap-2 p-2 bg-white/40 backdrop-blur-xl rounded-2xl border border-[#FF8A75]/10">
-            {PHOTO_MILESTONE_DAYS.filter(d => d !== 1 && d !== 25).map(d => {
+            {milestoneDays.filter(d => d !== 1 && d !== 25).map(d => {
               const hasData = allLogs.some((l: JourneyLog) => l.day_number === d) || d === dayNumber;
               const isActive = selectedDay === d;
 

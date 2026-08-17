@@ -4,6 +4,7 @@ import { getLiveGrowthMetrics } from '@/lib/actions/subscription';
 import { checkExpiringSubscriptions } from '@/lib/actions/batches';
 import { Users, Crown, Radio, ShieldCheck, Video, Calendar } from 'lucide-react';
 import { StaffStudentTable } from './StaffStudentTable';
+import { ExpiringStudentsCard } from './ExpiringStudentsCard';
 import { format, startOfDay, endOfDay, addMinutes } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { formatISTDate, formatISTTime, getSessionStatus } from '@/lib/utils';
@@ -47,30 +48,31 @@ export default async function StaffDashboardPage() {
 
   const todaysMeetings = todaysMeetingsRaw || [];
 
+  // Icons are kept out of statCards (and thus out of any client-component props) —
+  // React components/functions cannot be serialized across the server/client boundary.
+  const statIcons = { joinees: Users, renewals: Crown, active: Radio } as const;
+
   const statCards = [
-    { 
+    {
       id: 'joinees',
-      icon: Users,        
-      label: 'New Admissions',  
-      monthly: metrics.monthlyJoinees || 0, 
+      label: 'New Admissions',
+      monthly: metrics.monthlyJoinees || 0,
       daily: metrics.dailyJoinees || 0,
-      trend: metrics.joineesTrend, 
-      trendLabel: 'vs last month' 
+      trend: metrics.joineesTrend,
+      trendLabel: 'vs last month'
     },
-    { 
+    {
       id: 'renewals',
-      icon: Crown,        
-      label: 'Renewals',   
-      monthly: metrics.monthlyRenewals || 0,     
+      label: 'Renewals',
+      monthly: metrics.monthlyRenewals || 0,
       daily: metrics.dailyRenewals || 0,
       trend: metrics.renewalsTrend,
-      trendLabel: 'vs last month' 
+      trendLabel: 'vs last month'
     },
-    { 
+    {
       id: 'active',
-      icon: Radio,        
-      label: 'Active Students',  
-      monthly: metrics.totalActiveStudents || 0, 
+      label: 'Active Students',
+      monthly: metrics.totalActiveStudents || 0,
       daily: metrics.activeTrials || 0,
       monthlyLabel: 'Total Active',
       dailyLabel: 'Active Trials',
@@ -120,35 +122,40 @@ export default async function StaffDashboardPage() {
         <div className="flex-1 min-h-0 flex flex-col gap-6">
           {/* ── Metrics Grid ── */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 flex-shrink-0">
-            {statCards.map((stat, i) => (
-              <div
-                key={i}
-                className="p-5 lg:p-6 rounded-[2rem] bg-white border border-[#FF8A75]/10 flex flex-col gap-4 sm:gap-5 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-[#FF8A75]/5 group relative overflow-hidden"
-              >
-                <div className="flex justify-between items-start w-full">
-                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl bg-[#FF8A75]/5 border border-[#FF8A75]/10 text-[#FF8A75] flex items-center justify-center group-hover:rotate-12 transition-all duration-700 flex-shrink-0">
-                    <stat.icon className="w-5 h-5 sm:w-6 sm:h-6" />
-                  </div>
-                  <div className={`px-2.5 py-1 rounded-full text-[9px] sm:text-[10px] font-bold tracking-wider ${stat.trendNeutral ? 'bg-slate-100 text-slate-600' : (stat.trend?.startsWith('+') ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600')}`}>
-                    {stat.trend} <span className="opacity-70 font-medium ml-0.5">{stat.trendLabel}</span>
-                  </div>
-                </div>
-                
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-3 font-semibold">{stat.label}</p>
-                  <div className="grid grid-cols-2 gap-2 divide-x divide-slate-100">
-                    <div className="flex flex-col">
-                      <span className="text-2xl sm:text-3xl font-aktiv font-bold text-slate-900 tracking-tight leading-none mb-1">{stat.daily}</span>
-                      <span className="text-[9px] font-bold text-[#FF8A75] uppercase tracking-wider">{stat.dailyLabel || 'Today'}</span>
+            {statCards.map((stat, i) => {
+              const StatIcon = statIcons[stat.id as keyof typeof statIcons];
+              return stat.id === 'active' ? (
+                <ExpiringStudentsCard key={i} stat={stat} />
+              ) : (
+                <div
+                  key={i}
+                  className="p-5 lg:p-6 rounded-[2rem] bg-white border border-[#FF8A75]/10 flex flex-col gap-4 sm:gap-5 transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-[#FF8A75]/5 group relative overflow-hidden"
+                >
+                  <div className="flex justify-between items-start w-full">
+                    <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl bg-[#FF8A75]/5 border border-[#FF8A75]/10 text-[#FF8A75] flex items-center justify-center group-hover:rotate-12 transition-all duration-700 flex-shrink-0">
+                      <StatIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                     </div>
-                    <div className="flex flex-col pl-2">
-                      <span className="text-2xl sm:text-3xl font-aktiv font-bold text-slate-900 tracking-tight leading-none mb-1">{stat.monthly}</span>
-                      <span className="text-[9px] font-bold text-[#FF8A75] uppercase tracking-wider">{stat.monthlyLabel || 'This Month'}</span>
+                    <div className={`px-2.5 py-1 rounded-full text-[9px] sm:text-[10px] font-bold tracking-wider ${stat.trendNeutral ? 'bg-slate-100 text-slate-600' : (stat.trend?.startsWith('+') ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600')}`}>
+                      {stat.trend} <span className="opacity-70 font-medium ml-0.5">{stat.trendLabel}</span>
                     </div>
                   </div>
+
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-3 font-semibold">{stat.label}</p>
+                    <div className="grid grid-cols-2 gap-2 divide-x divide-slate-100">
+                      <div className="flex flex-col">
+                        <span className="text-2xl sm:text-3xl font-aktiv font-bold text-slate-900 tracking-tight leading-none mb-1">{stat.daily}</span>
+                        <span className="text-[9px] font-bold text-[#FF8A75] uppercase tracking-wider">{stat.dailyLabel || 'Today'}</span>
+                      </div>
+                      <div className="flex flex-col pl-2">
+                        <span className="text-2xl sm:text-3xl font-aktiv font-bold text-slate-900 tracking-tight leading-none mb-1">{stat.monthly}</span>
+                        <span className="text-[9px] font-bold text-[#FF8A75] uppercase tracking-wider">{stat.monthlyLabel || 'This Month'}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Growth Pulse - Full Width, Flex-1 to fill space nicely */}

@@ -16,7 +16,7 @@ const WHATSAPP_ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
 export async function sendWhatsAppMessage(to: string, message: string) {
   if (!WHATSAPP_PHONE_NUMBER_ID || !WHATSAPP_ACCESS_TOKEN) {
     console.error('WhatsApp credentials missing');
-    return { success: false, error: 'WhatsApp API not configured' };
+    return { success: false, error: 'WhatsApp API not configured', errorCode: 'NOT_CONFIGURED' };
   }
 
   // Clean phone number: remove non-digits
@@ -45,13 +45,18 @@ export async function sendWhatsAppMessage(to: string, message: string) {
 
     if (!response.ok) {
       console.error('WhatsApp API Error:', data);
-      return { success: false, error: data.error?.message || 'Failed to send message' };
+      return {
+        success: false,
+        error: data.error?.message || 'Failed to send message',
+        errorCode: data.error?.code,
+        errorSubcode: data.error?.error_subcode,
+      };
     }
 
     return { success: true, data };
   } catch (error: any) {
     console.error('WhatsApp Request Error:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: error.message, errorCode: 'NETWORK_ERROR' };
   }
 }
 

@@ -334,7 +334,7 @@ export async function getInstructorBatches(instructorId: string) {
                 student_id,
                 status,
                 student:profiles!student_id(id, full_name, avatar_url, phone, email, created_at),
-                subscription:subscriptions!subscription_id(id, status, start_date, end_date, plan_type)
+                subscription:subscriptions!subscription_id(id, status, start_date, end_date, plan_type, duration_months)
             ),
             instructor:profiles!instructor_id(id, full_name, avatar_url)
         `);

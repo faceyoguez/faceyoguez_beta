@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import {
     Bell, Search, Settings, Filter, Send, History, CheckCircle,
     UploadCloud, X, FileText, Image as ImageIcon, CheckCircle2, Loader2,
-    Sparkles, ArrowRight, Radio, ShieldCheck, Zap, Plus
+    ArrowRight, Radio, ShieldCheck, Zap, Plus, Check
 } from 'lucide-react';
 import { sendBroadcastAction, uploadBroadcastResource } from '@/lib/actions/broadcast';
 import type { Profile, Batch, AudienceType, MessageContentType } from '@/types/database';
@@ -20,6 +21,7 @@ interface BroadcastClientProps {
 }
 
 export function BroadcastClient({ currentUser, batches, initialBroadcasts, title, subtitle, badge }: BroadcastClientProps) {
+    const router = useRouter();
     const [broadcastTitle, setBroadcastTitle] = useState('');
     const [content, setContent] = useState('');
     const [targetAudience, setTargetAudience] = useState<AudienceType>('one_on_one');
@@ -30,6 +32,7 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
     const [fileName, setFileName] = useState<string>('');
     const [contentType, setContentType] = useState<MessageContentType>('text');
     const [sendWhatsApp, setSendWhatsApp] = useState(false);
+    const [sendEmail, setSendEmail] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -86,17 +89,22 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
             file_url: fileUrl,
             file_name: fileName,
             content_type: contentType,
-            send_whatsapp: sendWhatsApp
+            send_whatsapp: sendWhatsApp,
+            send_email: sendEmail
         });
 
         if (result.success) {
-            alert(`Broadcast sent successfully to ${result.count} recipients!`);
+            const channels = [sendWhatsApp && 'WhatsApp', sendEmail && 'Gmail'].filter(Boolean).join(' + ');
+            alert(`Broadcast sent successfully to ${result.count} recipients!${channels ? ` (also sent via ${channels})` : ''}`);
             setBroadcastTitle('');
             setContent('');
             setFileUrl('');
             setFileName('');
             setContentType('text');
             setSendWhatsApp(false);
+            setSendEmail(false);
+            // Pull the freshly-saved broadcast into the History panel without a manual page reload.
+            router.refresh();
         } else {
             alert(`Failed to send broadcast: ${result.error}`);
         }
@@ -158,8 +166,8 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
 
                         <div className="space-y-3">
                             {[
-                                { id: 'one_on_one', label: '1-on-1 Students', color: 'bg-indigo-500' },
-                                { id: 'group_session', label: 'Group Students', color: 'bg-rose-500' },
+                                { id: 'one_on_one', label: '1-on-1 Students', color: 'bg-[#5B7A8C]' },
+                                { id: 'group_session', label: 'Group Students', color: 'bg-[#FF6B4E]' },
                                 { id: 'all', label: 'All Students', color: 'bg-foreground' }
                             ].map((audience) => (
                                 <button
@@ -221,30 +229,30 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                         {/* Interactive Background Gradient */}
                         <div className="absolute inset-0 bg-gradient-to-tr from-primary/[0.02] to-transparent pointer-events-none" />
 
-                        <div className="px-4 lg:px-10 py-4 lg:py-8 border-b border-primary/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white relative z-10 shrink-0">
-                            <div className="flex items-center gap-3 lg:gap-4">
-                                <div className="h-10 w-10 lg:h-14 lg:w-14 rounded-xl lg:rounded-2xl bg-primary text-background flex items-center justify-center shrink-0">
-                                    <Zap className="h-5 w-5 lg:h-7 lg:w-7" />
+                        <div className="px-4 lg:px-8 py-3.5 lg:py-5 border-b border-primary/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white relative z-10 shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="h-9 w-9 lg:h-10 lg:w-10 rounded-xl bg-primary text-white flex items-center justify-center shrink-0 shadow-sm shadow-primary/30">
+                                    <Zap className="h-4 w-4 lg:h-4.5 lg:w-4.5" />
                                 </div>
                                 <div>
-                                    <h2 className="text-lg lg:text-2xl font-bold text-foreground">Compose Message</h2>
-                                    <p className="text-[9px] font-bold uppercase tracking-[0.3em] text-primary">Channeling to {targetAudience.replace('_', ' ')}</p>
+                                    <h2 className="text-sm lg:text-base font-bold text-foreground leading-tight">Compose Message</h2>
+                                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-primary leading-tight mt-0.5">Channeling to {targetAudience.replace('_', ' ')}</p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                                <span className="text-[10px] font-black uppercase tracking-widest text-primary/40">Broadcasting Live</span>
+                            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20">
+                                <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                                <span className="text-[9px] font-black uppercase tracking-widest text-primary">Broadcasting Live</span>
                             </div>
                         </div>
 
-                        <div className="flex-1 p-4 lg:p-10 flex flex-col gap-4 lg:gap-8 relative z-10 overflow-hidden">
+                        <div className="flex-1 p-4 lg:p-6 flex flex-col gap-3 lg:gap-4 relative z-10 overflow-hidden">
                             <div className="shrink-0">
                                 <input
                                     type="text"
                                     value={broadcastTitle}
                                     onChange={(e) => setBroadcastTitle(e.target.value)}
-                                    placeholder="Enter Broadcast Title..."
-                                    className="w-full text-xl lg:text-4xl font-bold text-foreground placeholder:text-foreground/5 bg-transparent outline-none tracking-tight border-b-2 border-transparent focus:border-primary/10 pb-2 lg:pb-4 transition-all"
+                                    placeholder="Enter broadcast title..."
+                                    className="w-full text-base lg:text-lg font-bold text-foreground placeholder:text-foreground/30 placeholder:font-medium bg-foreground/[0.03] rounded-xl px-4 py-3 outline-none tracking-tight border border-foreground/5 focus:border-primary/30 focus:bg-primary/[0.03] transition-all"
                                 />
                             </div>
 
@@ -253,44 +261,83 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                                     value={content}
                                     onChange={(e) => setContent(e.target.value)}
                                     placeholder="Type your message here..."
-                                    className="w-full h-full resize-none text-base lg:text-xl font-medium text-foreground/70 placeholder:text-foreground/5 bg-transparent outline-none leading-relaxed custom-scrollbar min-h-[120px]"
+                                    className="w-full h-full resize-none text-sm font-medium text-foreground/80 placeholder:text-foreground/30 bg-foreground/[0.02] rounded-xl px-4 py-3.5 outline-none leading-relaxed custom-scrollbar min-h-[120px] border border-foreground/5 focus:border-primary/30 focus:bg-primary/[0.02] transition-all"
                                 />
                             </div>
 
                             {fileUrl && (
                                 <div className="shrink-0 animate-in slide-in-from-bottom-4 duration-500">
-                                    <div className="flex items-center justify-between p-4 bg-primary/5 rounded-2xl border border-primary/10">
-                                        <div className="flex items-center gap-4">
-                                            <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm">
-                                                {contentType === 'image' ? <ImageIcon className="h-5 w-5" /> : <FileText className="h-5 w-5" />}
+                                    <div className="flex items-center justify-between p-3 bg-primary/5 rounded-xl border border-primary/15">
+                                        <div className="flex items-center gap-3">
+                                            <div className="h-9 w-9 bg-white rounded-lg flex items-center justify-center text-primary shadow-sm">
+                                                {contentType === 'image' ? <ImageIcon className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
                                             </div>
                                             <div className="text-[11px] font-bold text-foreground">
                                                 <p className="line-clamp-1">{fileName}</p>
-                                                <p className="text-[9px] text-primary uppercase">Resource Bound</p>
+                                                <p className="text-[9px] text-primary uppercase tracking-wide">Resource bound</p>
                                             </div>
                                         </div>
-                                        <button onClick={() => { setFileUrl(''); setFileName(''); }} className="h-8 w-8 rounded-full hover:bg-white text-foreground/20 hover:text-rose-500 transition-colors">
-                                            <X className="h-4 w-4" />
+                                        <button onClick={() => { setFileUrl(''); setFileName(''); }} className="h-7 w-7 rounded-full hover:bg-white text-foreground/30 hover:text-rose-500 transition-colors flex items-center justify-center">
+                                            <X className="h-3.5 w-3.5" />
                                         </button>
                                     </div>
                                 </div>
                             )}
                         </div>
 
-                        <div className="px-4 lg:px-10 py-6 lg:py-10 bg-foreground shrink-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group/footer">
-                            <div className="flex items-center gap-4 flex-wrap">
-                                <Sparkles className="h-5 w-5 text-background/20" />
-                                <p className="hidden lg:block text-[10px] font-medium text-background/30 tracking-widest uppercase">Broadcast will be archived in student notifications.</p>
+                        <div className="px-4 lg:px-8 py-4 lg:py-5 bg-[#FCEEE8] border-t border-primary/15 shrink-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5">
+                            {/* Also-send-via toggles: bulk WhatsApp / bulk Gmail, no personal login required */}
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-foreground/45 mr-1">Also send via</span>
+                                <button
+                                    type="button"
+                                    onClick={() => setSendWhatsApp((v) => !v)}
+                                    aria-pressed={sendWhatsApp}
+                                    title="Also send via WhatsApp"
+                                    className={cn(
+                                        "relative h-9 w-9 rounded-full flex items-center justify-center transition-all duration-200 border bg-white",
+                                        sendWhatsApp
+                                            ? "border-[#25D366] shadow-[0_0_0_3px_rgba(37,211,102,0.15)]"
+                                            : "border-foreground/10 opacity-50 hover:opacity-80 hover:border-foreground/20"
+                                    )}
+                                >
+                                    <img src="/assets/whatsapp_icon.png" alt="WhatsApp" className="w-7 h-7 object-contain" />
+                                    {sendWhatsApp && (
+                                        <span className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-[#25D366] border-2 border-white flex items-center justify-center">
+                                            <Check className="w-2 h-2 text-white" strokeWidth={4} />
+                                        </span>
+                                    )}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setSendEmail((v) => !v)}
+                                    aria-pressed={sendEmail}
+                                    title="Also send via Gmail"
+                                    className={cn(
+                                        "relative h-9 w-9 rounded-full flex items-center justify-center transition-all duration-200 border bg-white",
+                                        sendEmail
+                                            ? "border-[#FF6B4E] shadow-[0_0_0_3px_rgba(255,107,78,0.15)]"
+                                            : "border-foreground/10 opacity-50 hover:opacity-80 hover:border-foreground/20"
+                                    )}
+                                >
+                                    <img src="/assets/gmail_icon.png" alt="Gmail" className="w-7 h-7 object-contain" />
+                                    {sendEmail && (
+                                        <span className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-[#FF6B4E] border-2 border-white flex items-center justify-center">
+                                            <Check className="w-2 h-2 text-white" strokeWidth={4} />
+                                        </span>
+                                    )}
+                                </button>
                             </div>
+
                             <button
                                 onClick={handleSendBroadcast}
                                 disabled={sending || !broadcastTitle.trim() || !content.trim()}
-                                className="h-12 lg:h-16 px-8 lg:px-12 rounded-full bg-primary text-background flex items-center gap-3 lg:gap-4 transition-all hover:brightness-110 active:scale-95 disabled:opacity-20 relative overflow-hidden w-full sm:w-auto justify-center"
+                                className="h-9 px-5 rounded-full bg-foreground text-white flex items-center gap-2 transition-all hover:bg-foreground/85 active:scale-95 disabled:opacity-30 w-full sm:w-auto justify-center shrink-0 shadow-md shadow-foreground/20"
                             >
-                                <span className="relative z-10 text-[11px] font-black uppercase tracking-[0.3em]">
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em]">
                                     {sending ? 'Sending...' : 'Send Broadcast'}
                                 </span>
-                                <ArrowRight className="relative z-10 h-5 w-5 group-hover/footer:translate-x-2 transition-transform" />
+                                <ArrowRight className="h-3.5 w-3.5" />
                             </button>
                         </div>
                     </div>
@@ -353,10 +400,6 @@ export function BroadcastClient({ currentUser, batches, initialBroadcasts, title
                     background: rgba(0,0,0,0.05);
                     border-radius: 10px;
                 }
-                .text-rose-500 { color: #f43f5e; }
-                .bg-rose-500 { background-color: #f43f5e; }
-                .text-indigo-500 { color: #6366f1; }
-                .bg-indigo-500 { background-color: #6366f1; }
             `}</style>
         </div>
     );

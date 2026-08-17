@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Image from 'next/image';
-import { JourneyProgress } from '@/components/ui/journey-progress';
+import { JourneyProgress, getJourneyMilestones, getGroupJourneyLength } from '@/components/ui/journey-progress';
 import {
     Calendar, Users, Star,
     Flame, PlayCircle, FileText, Download, CheckCircle, Send,
@@ -51,11 +51,12 @@ interface StudentGroupClientProps {
     trialEndDate?: string | null;
     subscriptionStartDate?: string | null;
     subscriptionEndDate?: string | null;
+    durationMonths?: number | null;
 }
 
 const JOURNEY_MAX_DAY = 365;
 
-export function StudentGroupHub({ currentUser, activeBatch, initialResources, isTrialAccess = false, trialEndDate, subscriptionStartDate, subscriptionEndDate }: StudentGroupClientProps) {
+export function StudentGroupHub({ currentUser, activeBatch, initialResources, isTrialAccess = false, trialEndDate, subscriptionStartDate, subscriptionEndDate, durationMonths }: StudentGroupClientProps) {
     const [messages, setMessages] = useState<any[]>([]); // Keep any[] for now as it's complex, but guard its rendering
     const [newMessage, setNewMessage] = useState('');
     const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -112,8 +113,16 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
         return Math.min(JOURNEY_MAX_DAY, Math.max(1, diffDays));
     }, [effectiveAnchorDate]);
 
-    const currentMonth = Math.ceil(currentDay / 30);
-    const currentDayInMonth = ((currentDay - 1) % 30) + 1;
+    // Full journey length in days for this student's plan (40 for 1-month, 110 for
+    // 3-month) — shown as one continuous track rather than paginated 30-day months.
+    const journeyLength = getGroupJourneyLength(durationMonths);
+    const journeyMilestones = React.useMemo(() => getJourneyMilestones(journeyLength), [journeyLength]);
+    const currentDayInJourney = Math.min(currentDay, journeyLength);
+
+    // Photo-upload checkpoints only go up to Day 30 by default. For plans longer
+    // than 30 days, add one extra checkpoint at T-5 (5 days before the plan ends)
+    // so uploads stay unlockable for the rest of the plan.
+    const extraPhotoMilestoneDay = journeyLength > 30 ? journeyLength - 5 : undefined;
 
     useEffect(() => {
         setActiveStepDay(currentDay);
@@ -140,7 +149,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
             const unreadPrivate = personalMsgs.filter((n: any) => !n.is_read).length;
             setUnreadPrivateCount(unreadPrivate);
             // Check/create pending notifications in DB
-            checkAndCreateJourneyNotifications(currentUser.id, currentDay);
+            checkAndCreateJourneyNotifications(currentUser.id, currentDay, extraPhotoMilestoneDay);
 
             // Fetch recordings separately so they don't block the critical path
             setIsLoadingRecordings(true);
@@ -906,10 +915,12 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
 
                             <div className="w-full">
                                 <JourneyProgress
-                                    currentDay={currentDayInMonth}
+                                    currentDay={currentDayInJourney}
                                     activeDay={activeStepDay}
                                     onSelectDay={(day) => setActiveStepDay(day)}
-                                    completedDays={new Set(journeyLogs.map((l: JourneyLog) => l.day_number).filter((d: number) => Math.ceil(d / 30) === currentMonth).map((d: number) => ((d - 1) % 30) + 1))}
+                                    completedDays={new Set(journeyLogs.map((l: JourneyLog) => l.day_number).filter((d: number) => d <= journeyLength))}
+                                    maxDay={journeyLength}
+                                    milestones={journeyMilestones}
                                 />
                             </div>
 
@@ -924,8 +935,9 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                     </div>
 
                                     {(() => {
-                                        const milestones = [7, 14, 21, 25];
-                                        const nextMilestone = milestones.find(m => m >= currentDay) || 25;
+                                        const milestones = extraPhotoMilestoneDay ? [7, 14, 21, 25, extraPhotoMilestoneDay] : [7, 14, 21, 25];
+                                        const lastMilestone = milestones[milestones.length - 1];
+                                        const nextMilestone = milestones.find(m => m >= currentDay) || lastMilestone;
                                         const anchorDateStr = effectiveAnchorDate;
                                         let milestoneDateStr = '';
 
@@ -961,9 +973,10 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                         isSaving={isSavingLog}
                                         accentColor="#e76f51"
                                         allLogs={journeyLogs}
+                                        extraMilestoneDay={extraPhotoMilestoneDay}
                                     />
                                     {(() => {
-                                        const milestones = [7, 14, 21, 25];
+                                        const milestones = extraPhotoMilestoneDay ? [7, 14, 21, 25, extraPhotoMilestoneDay] : [7, 14, 21, 25];
                                         const isMilestoneDay = milestones.includes(currentDay);
                                         const nextMilestone = milestones.find(m => m > currentDay);
 

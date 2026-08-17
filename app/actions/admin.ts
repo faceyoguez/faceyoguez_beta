@@ -125,6 +125,64 @@ export async function getAdminStudentData() {
 }
 
 /**
+ * Fetches active students whose plan is about to expire, starting from
+ * T-5 days out (i.e. subscriptions ending within the next 5 days).
+ * Used by the "Expiring this week" stat card drill-down on the staff dashboard.
+ */
+export async function getExpiringSoonStudents(daysWindow: number = 5) {
+  await requireAdminAccess();
+  const admin = createAdminClient();
+
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  const windowEnd = new Date(today.getTime() + daysWindow * 24 * 60 * 60 * 1000);
+  const windowEndStr = windowEnd.toISOString().split('T')[0];
+
+  const { data: subs, error: subsError } = await admin
+    .from('subscriptions')
+    .select('id, student_id, plan_type, plan_variant, duration_months, start_date, end_date, metadata, is_trial')
+    .eq('status', 'active')
+    .gte('end_date', todayStr)
+    .lte('end_date', windowEndStr)
+    .order('end_date', { ascending: true });
+
+  if (subsError) throw new Error('Failed to fetch expiring subscriptions');
+  if (!subs || subs.length === 0) return [];
+
+  const studentIds = Array.from(new Set(subs.map((s: any) => s.student_id)));
+  const { data: profiles, error: profilesError } = await admin
+    .from('profiles')
+    .select('id, full_name, email, phone')
+    .in('id', studentIds);
+
+  if (profilesError) throw new Error('Failed to fetch student profiles');
+  const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]));
+
+  return subs.map((s: any) => {
+    const profile: any = profileMap.get(s.student_id);
+    const couponCode = s.metadata?.couponCode || s.metadata?.coupon_code || null;
+    const daysLeft = Math.ceil(
+      (new Date(s.end_date).getTime() - today.getTime()) / (24 * 60 * 60 * 1000)
+    );
+
+    return {
+      id: s.id,
+      studentId: s.student_id,
+      name: profile?.full_name || 'Unknown',
+      email: profile?.email || null,
+      phone: profile?.phone || null,
+      joinDate: s.start_date,
+      endDate: s.end_date,
+      planType: s.plan_type,
+      durationMonths: s.duration_months || null,
+      isTrial: !!s.is_trial,
+      couponCode,
+      daysLeft,
+    };
+  });
+}
+
+/**
  * Admin action to fetch detailed Razorpay metrics.
  */
 export async function getRazorpayMetrics() {

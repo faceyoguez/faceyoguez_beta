@@ -4,6 +4,16 @@ import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/se
 import { revalidatePath } from 'next/cache';
 import type { AudienceType, MessageContentType } from '@/types/database';
 import { sendWhatsAppMessage } from './whatsapp';
+import { managementTransporter, MANAGEMENT_EMAIL_ADDRESS } from '@/lib/mailer';
+
+const MANAGEMENT_SENDER_NAME = 'Faceyoguez Management';
+
+function escapeHtml(str: string) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
 
 export async function sendBroadcastAction(formData: {
   title: string;
@@ -14,6 +24,7 @@ export async function sendBroadcastAction(formData: {
   file_name?: string;
   content_type?: MessageContentType;
   send_whatsapp?: boolean;
+  send_email?: boolean;
 }) {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -116,7 +127,8 @@ export async function sendBroadcastAction(formData: {
 
     if (notifError) throw notifError;
 
-    // 4. Optional WhatsApp Broadcast
+    // 4. Optional WhatsApp Broadcast — via the Meta Cloud API, no personal
+    //    WhatsApp login required on staff's device.
     if (formData.send_whatsapp) {
       // Get phone numbers for all target users
       const admin = createAdminClient();
@@ -130,14 +142,48 @@ export async function sendBroadcastAction(formData: {
         // Send asynchronously to avoid blocking the main broadcast action
         // In a real production app, you'd use a background queue (like Inngest or Upstash)
         Promise.all(
-          profiles.map((p: any) => 
+          profiles.map((p: any) =>
             p.phone ? sendWhatsAppMessage(p.phone, `*${formData.title}*\n\n${formData.content}`) : Promise.resolve()
           )
         ).catch(err => console.error('WhatsApp Broadcast Failure:', err));
       }
     }
 
+    // 5. Optional Bulk Email — sent from management@faceyoguez.com via the
+    //    dedicated management transporter, no staff Gmail login required.
+    if (formData.send_email) {
+      const admin = createAdminClient();
+      const { data: profiles } = await admin
+        .from('profiles')
+        .select('email')
+        .in('id', targetUserIds)
+        .not('email', 'is', null);
+
+      if (profiles && profiles.length > 0) {
+        const htmlBody = escapeHtml(formData.content).replace(/\n/g, '<br/>');
+        // Fire-and-forget, same non-blocking pattern as the WhatsApp fan-out above.
+        Promise.all(
+          profiles.map((p: any) =>
+            p.email
+              ? managementTransporter.sendMail({
+                  from: `"${MANAGEMENT_SENDER_NAME}" <${MANAGEMENT_EMAIL_ADDRESS}>`,
+                  replyTo: MANAGEMENT_EMAIL_ADDRESS,
+                  to: p.email,
+                  subject: formData.title,
+                  text: formData.content,
+                  html: `<div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.7; color: #1a1a1a;">${htmlBody}</div>`,
+                }).catch((err) => console.error(`Broadcast email failed for ${p.email}:`, err))
+              : Promise.resolve()
+          )
+        ).catch((err) => console.error('Email Broadcast Failure:', err));
+      }
+    }
+
+    // Both staff and instructor broadcast pages read from the same
+    // `broadcasts` history — revalidate both so the sent message shows up
+    // regardless of which portal it was sent from.
     revalidatePath('/instructor/broadcast');
+    revalidatePath('/staff/broadcast');
     return { success: true, count: targetUserIds.length };
 
   } catch (err: any) {

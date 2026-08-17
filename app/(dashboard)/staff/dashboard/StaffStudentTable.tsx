@@ -1,23 +1,26 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import { 
-  Search, 
-  ChevronLeft, 
-  ChevronRight, 
-  Calendar, 
-  Tag, 
+import { useState, useMemo, useEffect, useRef } from 'react';
+import {
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  CalendarDays,
+  Tag,
   CreditCard,
   RefreshCw,
   Clock,
   User,
-  Mail,
-  Image
+  Camera,
+  X
 } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, startOfMonth, endOfMonth, subMonths, startOfYear } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { getAdminStudentData } from '@/app/actions/admin';
 import { toast } from 'sonner';
+import { MessageComposerModal } from '@/components/staff/MessageComposerModal';
+import { StudentPhotosModal } from '@/components/staff/StudentPhotosModal';
 
 interface Student {
   id: string;
@@ -40,7 +43,46 @@ export function StaffStudentTable() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [composer, setComposer] = useState<{ channel: 'email' | 'whatsapp'; student: Student } | null>(null);
+  const [photosStudent, setPhotosStudent] = useState<Student | null>(null);
+  const [dateFilterOpen, setDateFilterOpen] = useState(false);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const dateFilterRef = useRef<HTMLDivElement>(null);
   const itemsPerPage = 8;
+
+  // Close the join-date filter popover on outside click
+  useEffect(() => {
+    if (!dateFilterOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (dateFilterRef.current && !dateFilterRef.current.contains(e.target as Node)) {
+        setDateFilterOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [dateFilterOpen]);
+
+  const DATE_PRESETS = [
+    { label: 'This Month', range: () => ({ from: startOfMonth(new Date()), to: endOfMonth(new Date()) }) },
+    { label: 'Last Month', range: () => { const d = subMonths(new Date(), 1); return { from: startOfMonth(d), to: endOfMonth(d) }; } },
+    { label: 'Last 3 Months', range: () => ({ from: startOfMonth(subMonths(new Date(), 2)), to: endOfMonth(new Date()) }) },
+    { label: 'This Year', range: () => ({ from: startOfYear(new Date()), to: new Date() }) },
+  ];
+
+  const applyPreset = (range: { from: Date; to: Date }) => {
+    setDateFrom(format(range.from, 'yyyy-MM-dd'));
+    setDateTo(format(range.to, 'yyyy-MM-dd'));
+    setCurrentPage(1);
+  };
+
+  const clearDateFilter = () => {
+    setDateFrom('');
+    setDateTo('');
+    setCurrentPage(1);
+  };
+
+  const hasDateFilter = !!(dateFrom || dateTo);
 
   useEffect(() => {
     loadData();
@@ -58,16 +100,27 @@ export function StaffStudentTable() {
     }
   }
 
-  // ── Search Filtering ──
+  // ── Search + Join-Date Filtering ──
   const filteredStudents = useMemo(() => {
     return students.filter(s => {
       const nameMatch = s.name?.toLowerCase().includes(searchTerm.toLowerCase());
       const emailMatch = s.email?.toLowerCase().includes(searchTerm.toLowerCase());
       const planMatch = s.plan?.toLowerCase().includes(searchTerm.toLowerCase());
       const couponMatch = s.couponCode?.toLowerCase().includes(searchTerm.toLowerCase());
-      return nameMatch || emailMatch || planMatch || couponMatch;
+      const searchOk = nameMatch || emailMatch || planMatch || couponMatch;
+
+      if (!searchOk) return false;
+
+      if (dateFrom || dateTo) {
+        if (!s.joinDate) return false;
+        const joinDay = s.joinDate.slice(0, 10); // yyyy-MM-dd, safe for lexical comparison
+        if (dateFrom && joinDay < dateFrom) return false;
+        if (dateTo && joinDay > dateTo) return false;
+      }
+
+      return true;
     });
-  }, [students, searchTerm]);
+  }, [students, searchTerm, dateFrom, dateTo]);
 
   // ── Pagination ──
   const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
@@ -98,18 +151,88 @@ export function StaffStudentTable() {
           </p>
         </div>
 
-        <div className="flex gap-2 w-full md:w-auto md:max-w-md flex-1">
+        <div className="flex gap-2 w-full md:w-auto md:max-w-lg flex-1">
+          {/* Join-Date Filter */}
+          <div className="relative" ref={dateFilterRef}>
+            <button
+              onClick={() => setDateFilterOpen((v) => !v)}
+              className={cn(
+                "h-full px-3 rounded-2xl border transition-all shadow-sm flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wide",
+                hasDateFilter
+                  ? "bg-[#FF8A75]/10 border-[#FF8A75]/30 text-[#FF8A75]"
+                  : "bg-white border-slate-200 text-slate-400 hover:text-[#FF8A75] hover:bg-[#FF8A75]/5"
+              )}
+              title="Filter by join date"
+            >
+              <CalendarDays className="w-4 h-4" />
+              <span className="hidden sm:inline">
+                {hasDateFilter
+                  ? `${dateFrom ? format(parseISO(dateFrom), 'dd MMM') : '…'} – ${dateTo ? format(parseISO(dateTo), 'dd MMM') : '…'}`
+                  : 'Calendar'}
+              </span>
+            </button>
+
+            {dateFilterOpen && (
+              <div className="absolute right-0 sm:left-0 top-[calc(100%+8px)] z-30 w-72 bg-white rounded-2xl border border-slate-100 shadow-xl p-4 space-y-4">
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2">Quick Ranges</p>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {DATE_PRESETS.map((preset) => (
+                      <button
+                        key={preset.label}
+                        onClick={() => applyPreset(preset.range())}
+                        className="px-2.5 py-1.5 rounded-lg bg-slate-50 border border-slate-100 text-[10px] font-bold text-slate-600 hover:bg-[#FF8A75]/10 hover:border-[#FF8A75]/20 hover:text-[#FF8A75] transition-all"
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Custom Range</p>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="date"
+                      value={dateFrom}
+                      onChange={(e) => { setDateFrom(e.target.value); setCurrentPage(1); }}
+                      className="flex-1 min-w-0 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-[11px] font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#FF8A75]/10 focus:border-[#FF8A75]/30"
+                    />
+                    <span className="text-slate-300 text-[10px] font-bold">to</span>
+                    <input
+                      type="date"
+                      value={dateTo}
+                      onChange={(e) => { setDateTo(e.target.value); setCurrentPage(1); }}
+                      className="flex-1 min-w-0 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-[11px] font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#FF8A75]/10 focus:border-[#FF8A75]/30"
+                    />
+                  </div>
+                </div>
+
+                {hasDateFilter && (
+                  <button
+                    onClick={clearDateFilter}
+                    className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg bg-slate-50 border border-slate-100 text-[10px] font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-all"
+                  >
+                    <X className="w-3 h-3" />
+                    Clear Filter
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="relative flex-1 group">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#FF8A75] transition-colors" />
-            <input 
-              type="text" 
+            <input
+              type="text"
               placeholder="Search name, email, plan..."
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
               className="w-full bg-white border border-slate-200 rounded-2xl py-2.5 pl-10 pr-4 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#FF8A75]/10 focus:border-[#FF8A75]/30 transition-all shadow-sm"
             />
           </div>
-          <button 
+
+          <button
             onClick={loadData}
             disabled={loading}
             className="bg-white border border-slate-200 p-2.5 rounded-2xl text-slate-400 hover:text-[#FF8A75] hover:bg-[#FF8A75]/5 transition-all shadow-sm flex items-center justify-center disabled:opacity-55"
@@ -132,7 +255,19 @@ export function StaffStudentTable() {
               <User className="w-6 h-6" />
             </div>
             <h4 className="text-base font-bold text-slate-900">No students found</h4>
-            <p className="text-xs text-slate-400 mt-1 max-w-[280px]">We couldn't find any student matching your search term.</p>
+            <p className="text-xs text-slate-400 mt-1 max-w-[280px]">
+              {hasDateFilter
+                ? 'No students joined in the selected date range.'
+                : "We couldn't find any student matching your search term."}
+            </p>
+            {hasDateFilter && (
+              <button
+                onClick={clearDateFilter}
+                className="mt-4 text-[10px] font-black uppercase tracking-widest text-[#FF8A75] hover:underline"
+              >
+                Clear join-date filter
+              </button>
+            )}
           </div>
         ) : (
           <div className="flex-1 flex flex-col gap-4">
@@ -208,26 +343,33 @@ export function StaffStudentTable() {
                       {/* Student Actions */}
                       <td className="px-5 py-3">
                         <div className="flex items-center justify-center gap-2">
-                          <a
-                            href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(student.email)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <button
+                            type="button"
+                            onClick={() => setComposer({ channel: 'email', student })}
                             title={`Email ${student.name}`}
-                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 hover:bg-blue-100 transition-all text-[9px] font-black uppercase tracking-wider"
+                            className="h-8 w-8 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:scale-105 transition-all flex items-center justify-center shadow-sm"
                           >
-                            <Mail className="w-3 h-3" />
-                            Gmail
-                          </a>
-                          <a
-                            href={`https://photos.google.com/search/${encodeURIComponent(student.name)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                            <img src="/assets/gmail_icon.png" alt="Gmail" className="w-7 h-7 object-contain" />
+                          </button>
+                          {student.phone && (
+                            <button
+                              type="button"
+                              onClick={() => setComposer({ channel: 'whatsapp', student })}
+                              title={`WhatsApp ${student.name}`}
+                              className="h-8 w-8 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 hover:border-slate-300 hover:scale-105 transition-all flex items-center justify-center shadow-sm"
+                            >
+                              <img src="/assets/whatsapp_icon.png" alt="WhatsApp" className="w-7 h-7 object-contain" />
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => setPhotosStudent(student)}
                             title={`Photos of ${student.name}`}
                             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-50 border border-amber-100 text-amber-600 hover:bg-amber-100 transition-all text-[9px] font-black uppercase tracking-wider"
                           >
-                            <Image className="w-3 h-3" />
+                            <Camera className="w-3 h-3" />
                             Photos
-                          </a>
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -245,26 +387,33 @@ export function StaffStudentTable() {
                 >
                   {/* Student Actions — top of card */}
                   <div className="flex items-center gap-2 pb-3 border-b border-slate-50">
-                    <a
-                      href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(student.email)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      type="button"
+                      onClick={() => setComposer({ channel: 'email', student })}
                       title={`Email ${student.name}`}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 active:bg-blue-100 transition-all text-[9px] font-black uppercase tracking-wider"
+                      className="h-9 w-9 flex-shrink-0 rounded-xl bg-white border border-slate-200 active:bg-slate-50 transition-all flex items-center justify-center shadow-sm"
                     >
-                      <Mail className="w-3.5 h-3.5" />
-                      Gmail
-                    </a>
-                    <a
-                      href={`https://photos.google.com/search/${encodeURIComponent(student.name)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      <img src="/assets/gmail_icon.png" alt="Gmail" className="w-7 h-7 object-contain" />
+                    </button>
+                    {student.phone && (
+                      <button
+                        type="button"
+                        onClick={() => setComposer({ channel: 'whatsapp', student })}
+                        title={`WhatsApp ${student.name}`}
+                        className="h-9 w-9 flex-shrink-0 rounded-xl bg-white border border-slate-200 active:bg-slate-50 transition-all flex items-center justify-center shadow-sm"
+                      >
+                        <img src="/assets/whatsapp_icon.png" alt="WhatsApp" className="w-7 h-7 object-contain" />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setPhotosStudent(student)}
                       title={`Photos of ${student.name}`}
                       className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-amber-50 border border-amber-100 text-amber-600 active:bg-amber-100 transition-all text-[9px] font-black uppercase tracking-wider"
                     >
-                      <Image className="w-3.5 h-3.5" />
+                      <Camera className="w-3.5 h-3.5" />
                       Photos
-                    </a>
+                    </button>
                   </div>
 
                   {/* Student Identity Row */}
@@ -372,6 +521,28 @@ export function StaffStudentTable() {
             </button>
           </div>
         </div>
+      )}
+
+      {composer && (
+        <MessageComposerModal
+          open={!!composer}
+          onClose={() => setComposer(null)}
+          channel={composer.channel}
+          recipientName={composer.student.name}
+          recipientEmail={composer.student.email}
+          recipientPhone={composer.student.phone}
+          defaultSubject={composer.channel === 'email' ? 'A message from Faceyoguez' : undefined}
+          defaultMessage={`Hi ${composer.student.name?.split(' ')[0] || ''},\n\n`}
+        />
+      )}
+
+      {photosStudent && (
+        <StudentPhotosModal
+          open={!!photosStudent}
+          onClose={() => setPhotosStudent(null)}
+          studentId={photosStudent.id}
+          studentName={photosStudent.name}
+        />
       )}
     </div>
   );
