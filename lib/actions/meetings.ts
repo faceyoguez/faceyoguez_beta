@@ -527,7 +527,7 @@ export async function scheduleGroupSession(batchId: string, startTime: string, t
       }
     }
 
-    // Bulk clear from queue
+    // Bulk clear from
     if (processedIds.length > 0) {
       await admin.from('waiting_queue').update({ status: 'assigned' }).in('id', processedIds);
     }
