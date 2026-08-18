@@ -5,8 +5,9 @@ import { revalidatePath } from 'next/cache';
 import type { AudienceType, MessageContentType } from '@/types/database';
 import { sendWhatsAppMessage } from './whatsapp';
 import { managementTransporter, MANAGEMENT_EMAIL_ADDRESS } from '@/lib/mailer';
+import { EMAIL_CONFIG } from '@/lib/email/config';
 
-const MANAGEMENT_SENDER_NAME = 'Faceyoguez Management';
+const MANAGEMENT_SENDER_NAME = EMAIL_CONFIG.senderName;
 
 function escapeHtml(str: string) {
   return str
@@ -149,8 +150,8 @@ export async function sendBroadcastAction(formData: {
       }
     }
 
-    // 5. Optional Bulk Email — sent from management@faceyoguez.com via the
-    //    dedicated management transporter, no staff Gmail login required.
+    // 5. Optional Bulk Email — sent from the shared Faceyoguez sender account
+    //    via the management transporter, no staff Gmail login required.
     if (formData.send_email) {
       const admin = createAdminClient();
       const { data: profiles } = await admin

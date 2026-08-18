@@ -123,7 +123,7 @@ export function MessageComposerModal({
         <div className="flex flex-col gap-3 p-5">
           <p className="text-[10px] font-bold text-slate-400 -mt-1">
             {isEmail
-              ? `Sent from ${'management@faceyoguez.com'}`
+              ? `Sent from ${'simrat@faceyoguez.com'}`
               : 'Sent from the official Faceyoguez WhatsApp Business number'}
           </p>
 

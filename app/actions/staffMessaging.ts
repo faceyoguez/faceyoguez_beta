@@ -2,9 +2,10 @@
 
 import { requireAdminAccess } from './admin';
 import { managementTransporter, MANAGEMENT_EMAIL_ADDRESS } from '@/lib/mailer';
+import { EMAIL_CONFIG } from '@/lib/email/config';
 import { sendWhatsAppMessage } from '@/lib/actions/whatsapp';
 
-const MANAGEMENT_SENDER_NAME = 'Faceyoguez Management';
+const MANAGEMENT_SENDER_NAME = EMAIL_CONFIG.senderName;
 
 export interface SendResult {
   success: boolean;
@@ -106,9 +107,9 @@ function classifyWhatsAppError(errorCode: string | number | undefined, rawMessag
 }
 
 /**
- * Sends a free-form email composed by staff, from management@faceyoguez.com,
- * to a student. Used by the staff dashboard's "Message" composer so staff
- * never has to open their own personal Gmail.
+ * Sends a free-form email composed by staff, from the shared Faceyoguez
+ * sender account, to a student. Used by the staff dashboard's "Message"
+ * composer so staff never has to open their own personal Gmail.
  */
 export async function sendManagementEmail(input: { to: string; subject: string; message: string }): Promise<SendResult> {
   await requireAdminAccess();

@@ -786,7 +786,7 @@ export function StaffOneOnOneClient({ currentUser, students, metrics, instructor
                       <div className="flex items-center justify-between">
                         <div>
                           <h3 className="text-base font-bold text-slate-800">Send Email</h3>
-                          <p className="text-[10px] font-medium text-slate-400 mt-0.5">From: management@faceyoguez.com → {selectedStudent?.email}</p>
+                          <p className="text-[10px] font-medium text-slate-400 mt-0.5">From: simrat@faceyoguez.com → {selectedStudent?.email}</p>
                         </div>
                         <button onClick={() => setEmailModal({ open: false, subject: '', body: '' })} className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors">
                           <X className="w-4 h-4 text-slate-500" />
