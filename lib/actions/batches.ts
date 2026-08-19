@@ -527,7 +527,7 @@ export async function grantFullAccess(studentId: string, subscriptionId: string,
         }
     }
 
-    await admin.from('batch_enrollments').insert({
+    await admin.from('batch_enrollments').upsert({
         batch_id: batchId,
         student_id: studentId,
         subscription_id: subscriptionId,
@@ -535,7 +535,7 @@ export async function grantFullAccess(studentId: string, subscriptionId: string,
         is_trial_access: false, // It's full access for this batch
         effective_end_date: effectiveEndDate,
         is_extended: false,
-    });
+    }, { onConflict: 'batch_id,student_id' });
 
     try {
         const { data: activeEnrollments } = await admin
@@ -559,7 +559,7 @@ export async function grantTrialAccess(studentId: string, subscriptionId: string
     const trialEnd = new Date();
     trialEnd.setDate(trialEnd.getDate() + 2);
 
-    await admin.from('batch_enrollments').insert({
+    await admin.from('batch_enrollments').upsert({
         batch_id: batchId,
         student_id: studentId,
         subscription_id: subscriptionId,
@@ -567,7 +567,7 @@ export async function grantTrialAccess(studentId: string, subscriptionId: string
         is_trial_access: true,
         effective_end_date: trialEnd.toISOString().split('T')[0],
         is_extended: false,
-    });
+    }, { onConflict: 'batch_id,student_id' });
 
     // Update batch student count using ATOMIC PostgreSQL function
     // This prevents race conditions where multiple students joining simultaneously 

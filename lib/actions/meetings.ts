@@ -498,7 +498,7 @@ export async function scheduleGroupSession(batchId: string, startTime: string, t
 
         if (!existing) {
           // Enroll into this batch
-          await admin.from('batch_enrollments').insert({
+          await admin.from('batch_enrollments').upsert({
             batch_id: batchId,
             student_id: entry.student_id,
             subscription_id: entry.subscription_id,
@@ -506,7 +506,7 @@ export async function scheduleGroupSession(batchId: string, startTime: string, t
             effective_end_date: effectiveEndDate,
             is_extended: false,
             is_trial_access: false,
-          });
+          }, { onConflict: 'batch_id,student_id' });
 
           // Increment batch count
           await admin.rpc('increment_batch_count', { batch_id: batchId }).catch(() => {});
