@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
+import { getWeekWindow } from '@/lib/chat-pagination';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,31 +47,48 @@ export async function GET(
 
         const searchParams = request.nextUrl.searchParams;
         const before = searchParams.get('before') || undefined;
-        const pageSize = parseInt(searchParams.get('pageSize') || '50', 10);
 
+        // Load a week at a time: first load gets the last 7 days, each
+        // subsequent "before" cursor (the oldest currently-loaded message's
+        // created_at) reaches back one more week from there.
+        const { windowStart, windowEnd } = getWeekWindow(before);
+
+        // Safety cap so one very chatty week can't return an unbounded payload.
         let query = admin
             .from('chat_messages')
             .select(`*, sender:profiles!sender_id(id, full_name, avatar_url, role)`)
             .eq('conversation_id', conversationId)
+            .gte('created_at', windowStart)
             .order('created_at', { ascending: false })
-            .limit(pageSize);
+            .limit(500);
 
-        if (before) {
-            query = query.lt('created_at', before);
+        if (windowEnd) {
+            query = query.lt('created_at', windowEnd);
         }
 
         const { data, error } = await query;
 
         if (error) {
             console.error('[CHAT API] DB error:', error);
-            return NextResponse.json({ messages: [] });
+            return NextResponse.json({ messages: [], hasMore: false });
         }
 
         const messages = (data || []).reverse();
-        console.log(`[CHAT API] conv=${conversationId.slice(0, 8)} user=${user.email} msgs=${messages.length}`);
+
+        // Is there anything older than this window? Cheap existence check,
+        // not a count — determines whether to offer "load more".
+        const { data: olderExists } = await admin
+            .from('chat_messages')
+            .select('id')
+            .eq('conversation_id', conversationId)
+            .lt('created_at', windowStart)
+            .limit(1)
+            .maybeSingle();
+
+        console.log(`[CHAT API] conv=${conversationId.slice(0, 8)} user=${user.email} msgs=${messages.length} hasMore=${!!olderExists}`);
 
         return NextResponse.json(
-            { messages },
+            { messages, hasMore: !!olderExists },
             {
                 headers: {
                     'Cache-Control': 'no-store, no-cache, must-revalidate',

@@ -15,13 +15,11 @@ import { createClient } from '@/lib/supabase/client';
 interface UseRealtimeMessagesOptions {
   conversationId: string;
   currentUserId: string;
-  pageSize?: number;
 }
 
 export function useRealtimeMessages({
   conversationId,
   currentUserId,
-  pageSize = 50,
 }: UseRealtimeMessagesOptions) {
   const [messages, setMessages] = useState<ChatMessageWithSender[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,14 +27,16 @@ export function useRealtimeMessages({
   const [isChatEnabled, setIsChatEnabled] = useState(true);
   const mountedRef = useRef(true);
   const lastSignatureRef = useRef('');
+  const hasLoadedOnceRef = useRef(false);
 
-  // ── Fetch messages via API route ──
+  // ── Fetch messages via API route — loads a week at a time. `before` is
+  // the oldest currently-loaded message's created_at; omitted for the
+  // initial "last 7 days" load. ──
   const fetchMessages = useCallback(
     async (before?: string) => {
       try {
         const params = new URLSearchParams();
         if (before) params.set('before', before);
-        params.set('pageSize', String(pageSize));
         params.set('_t', String(Date.now())); // Cache bust
 
         const res = await fetch(
@@ -49,16 +49,19 @@ export function useRealtimeMessages({
           return;
         }
 
-        const { messages: data } = await res.json();
+        const { messages: data, hasMore: moreAvailable } = await res.json();
         if (!mountedRef.current) return;
 
         const fetched = (data || []) as ChatMessageWithSender[];
 
         if (before) {
-          // Loading older messages — prepend
+          // Loading an older week — prepend, nothing to dedupe against.
           setMessages((prev) => [...fetched, ...prev]);
+          setHasMore(!!moreAvailable);
         } else {
-          // Check if anything changed using message IDs
+          // Initial load or realtime refresh of "the last 7 days" window.
+          // Merge rather than replace — a realtime refetch must not wipe
+          // out older weeks the user already scrolled back through.
           const sig = fetched.map((m) => m.id).join(',');
           if (sig === lastSignatureRef.current && fetched.length > 0) {
             return; // No change, skip re-render
@@ -66,24 +69,32 @@ export function useRealtimeMessages({
           lastSignatureRef.current = sig;
 
           setMessages((prev) => {
-            // Keep optimistic messages not yet confirmed
+            const confirmed = prev.filter((m) => !m.id.startsWith('temp-'));
+            const confirmedIds = new Set(confirmed.map((m) => m.id));
             const temps = prev.filter((m) =>
               m.id.startsWith('temp-') &&
-              !fetched.some(
-                (fm) => fm.sender_id === m.sender_id && fm.content === m.content
-              )
+              !fetched.some((fm) => fm.sender_id === m.sender_id && fm.content === m.content)
             );
-            return temps.length > 0 ? [...fetched, ...temps] : fetched;
+            const newOnes = fetched.filter((fm) => !confirmedIds.has(fm.id));
+            return [...confirmed, ...newOnes, ...temps].sort(
+              (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+            );
           });
-        }
 
-        setHasMore(fetched.length === pageSize);
+          // Only trust hasMore from a true initial load — a realtime refresh
+          // re-fetches just the last-week window and says nothing about
+          // whether older weeks the user already loaded still have more.
+          if (!hasLoadedOnceRef.current) {
+            hasLoadedOnceRef.current = true;
+            setHasMore(!!moreAvailable);
+          }
+        }
       } catch (err) {
         console.error('Error fetching messages:', err);
       }
       if (mountedRef.current) setIsLoading(false);
     },
-    [conversationId, pageSize]
+    [conversationId]
   );
 
   // ── Load more (older messages) ──
@@ -198,6 +209,11 @@ export function useRealtimeMessages({
   // ── Lifecycle: WebSockets (Supabase Broadcast) ──
   useEffect(() => {
     mountedRef.current = true;
+    hasLoadedOnceRef.current = false;
+    lastSignatureRef.current = '';
+    setMessages([]);
+    setIsLoading(true);
+    setHasMore(true);
 
     // Initial fetch
     fetchMessages();

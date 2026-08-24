@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
 import { rateLimit } from '@/lib/rate-limit';
+import { getWeekWindow } from '@/lib/chat-pagination';
 
 /** GET /api/consultation/messages?consultationId=xxx */
 export async function GET(request: NextRequest) {
@@ -33,11 +34,30 @@ export async function GET(request: NextRequest) {
 
     if (!isStaff && !isStudent) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
 
-    const { data: messages } = await admin
+    // Loads a week at a time — `before` is the oldest currently-loaded
+    // message's created_at, omitted for the initial "last 7 days" load.
+    const before = request.nextUrl.searchParams.get('before') || undefined;
+    const { windowStart, windowEnd } = getWeekWindow(before);
+
+    let query = admin
       .from('consultation_messages')
       .select('*, sender:profiles!sender_id(id, full_name, role, avatar_url)')
       .eq('consultation_id', consultationId)
-      .order('created_at', { ascending: true });
+      .gte('created_at', windowStart)
+      .order('created_at', { ascending: true })
+      .limit(500);
+
+    if (windowEnd) query = query.lt('created_at', windowEnd);
+
+    const { data: messages } = await query;
+
+    const { data: olderExists } = await admin
+      .from('consultation_messages')
+      .select('id')
+      .eq('consultation_id', consultationId)
+      .lt('created_at', windowStart)
+      .limit(1)
+      .maybeSingle();
 
     // Mark messages as read for this user
     if (messages && messages.length > 0) {
@@ -49,7 +69,7 @@ export async function GET(request: NextRequest) {
         .eq('is_read', false);
     }
 
-    return NextResponse.json({ messages: messages || [] });
+    return NextResponse.json({ messages: messages || [], hasMore: !!olderExists });
   } catch (err: any) {
     console.error('[Consultation] messages GET error:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

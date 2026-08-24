@@ -63,6 +63,8 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
 
    // Chat State
    const [messages, setMessages] = useState<any[]>([]);
+   const [hasMoreMessages, setHasMoreMessages] = useState(false);
+   const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(false);
    const [newMessage, setNewMessage] = useState('');
    const [isChatLoading, setIsChatLoading] = useState(false);
    const [chatMode, setChatMode] = useState<'batch' | 'private'>('batch');
@@ -173,8 +175,9 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
       const fetchAll = async () => {
          setIsChatLoading(true);
          try {
-            const msgs = await getBatchMessages(selectedBatch.id);
+            const { messages: msgs, hasMore } = await getBatchMessages(selectedBatch.id);
             setMessages(msgs);
+            setHasMoreMessages(hasMore);
          } finally {
             setIsChatLoading(false);
          }
@@ -222,6 +225,23 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
 
       return () => { supabase.removeChannel(msgChannel); };
    }, [selectedBatch?.id, supabase, currentUser.id]);
+
+   // Load the previous week of group chat history — triggered by scrolling
+   // to the top of the message list.
+   const handleLoadMoreMessages = async () => {
+      if (!selectedBatch?.id || isLoadingMoreMessages || !hasMoreMessages) return;
+      const oldest = messages.find((m: any) => !String(m.id).startsWith('temp-'));
+      if (!oldest) return;
+      setIsLoadingMoreMessages(true);
+      const { messages: olderMsgs, hasMore } = await getBatchMessages(selectedBatch.id, oldest.created_at);
+      setMessages((prev: any[]) => [...olderMsgs, ...prev]);
+      setHasMoreMessages(hasMore);
+      setIsLoadingMoreMessages(false);
+   };
+
+   const handleGroupChatScroll = (e: React.UIEvent<HTMLDivElement>) => {
+      if (e.currentTarget.scrollTop === 0) handleLoadMoreMessages();
+   };
 
    useEffect(() => {
       if (!selectedBatch?.id) return;
@@ -860,7 +880,12 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                            <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
                               {chatMode === 'batch' ? (
                                  <>
-                                    <div ref={chatContainerRef} className="flex-1 space-y-4 overflow-y-auto mb-4 custom-scrollbar pr-3">
+                                    <div ref={chatContainerRef} onScroll={handleGroupChatScroll} className="flex-1 space-y-4 overflow-y-auto mb-4 custom-scrollbar pr-3">
+                                       {isLoadingMoreMessages && (
+                                          <div className="flex justify-center py-2">
+                                             <Loader2 className="w-4 h-4 animate-spin text-slate-300" />
+                                          </div>
+                                       )}
                                        {isChatLoading ? (
                                           <div className="h-full flex flex-col items-center justify-center space-y-3 opacity-50">
                                              <Loader2 className="w-6 h-6 animate-spin text-[#FF8A75]" />
@@ -1310,7 +1335,12 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                      </div>
                   
                   {/* Messages Area */}
-                  <div className="flex-1 space-y-5 overflow-y-auto custom-scrollbar p-6">
+                  <div onScroll={handleGroupChatScroll} className="flex-1 space-y-5 overflow-y-auto custom-scrollbar p-6">
+                      {isLoadingMoreMessages && chatMode === 'batch' && (
+                          <div className="flex justify-center py-2">
+                              <Loader2 className="w-4 h-4 animate-spin text-white/30" />
+                          </div>
+                      )}
                       {chatMode === 'batch' ? (
                          messages.map((msg: any, idx: number) => {
                             const isMe = msg.sender_id === currentUser.id;

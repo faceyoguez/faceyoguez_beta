@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import type { ChatMessageWithSender } from '@/types/database';
 import { getBatchMessages, sendBatchMessage } from '@/lib/actions/chat';
 import { createClient } from '@/lib/supabase/client';
@@ -19,7 +19,11 @@ interface UseBatchMessagesOptions {
 export function useBatchMessages({ batchId, currentUserId }: UseBatchMessagesOptions) {
   const [messages, setMessages] = useState<ChatMessageWithSender[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const supabase = useMemo(() => createClient(), []);
+  const messagesRef = useRef<ChatMessageWithSender[]>([]);
+  messagesRef.current = messages;
 
   const normalize = useCallback(
     (row: any): ChatMessageWithSender => ({
@@ -59,13 +63,25 @@ export function useBatchMessages({ batchId, currentUserId }: UseBatchMessagesOpt
     [batchId, currentUserId]
   );
 
+  const loadMore = useCallback(async () => {
+    const oldest = messagesRef.current.find((m) => !m.id.startsWith('temp-'));
+    if (!oldest) return;
+    setIsLoadingMore(true);
+    const { messages: rows, hasMore: moreAvailable } = await getBatchMessages(batchId, oldest.created_at);
+    setMessages((prev) => [...rows.map(normalize), ...prev]);
+    setHasMore(moreAvailable);
+    setIsLoadingMore(false);
+  }, [batchId, normalize]);
+
   useEffect(() => {
     let mounted = true;
     setIsLoading(true);
+    setHasMore(true);
 
-    getBatchMessages(batchId).then((rows) => {
+    getBatchMessages(batchId).then(({ messages: rows, hasMore: moreAvailable }) => {
       if (mounted) {
         setMessages(rows.map(normalize));
+        setHasMore(moreAvailable);
         setIsLoading(false);
       }
     });
@@ -123,5 +139,5 @@ export function useBatchMessages({ batchId, currentUserId }: UseBatchMessagesOpt
     };
   }, [batchId, currentUserId, normalize, supabase]);
 
-  return { messages, isLoading, sendMessage };
+  return { messages, isLoading, hasMore, isLoadingMore, loadMore, sendMessage };
 }

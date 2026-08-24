@@ -24,6 +24,8 @@ export default function StudentConsultationPage() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [purchasing, setPurchasing] = useState(false);
+  const [hasMoreMessages, setHasMoreMessages] = useState(false);
+  const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
@@ -42,14 +44,42 @@ export default function StudentConsultationPage() {
     }
   }, []);
 
-  const fetchMessages = useCallback(async (consultationId: string) => {
+  // Loads a week at a time. `before` fetches an older week and prepends;
+  // omitted, it refreshes "the last 7 days" and merges (so a realtime
+  // refresh never wipes out older weeks already loaded via scroll).
+  const fetchMessages = useCallback(async (consultationId: string, before?: string) => {
     try {
-      const res = await fetch(`/api/consultation/messages?consultationId=${consultationId}`);
+      const params = new URLSearchParams({ consultationId });
+      if (before) params.set('before', before);
+      const res = await fetch(`/api/consultation/messages?${params.toString()}`);
       const data = await res.json();
-      setMessages(data.messages || []);
-      setTimeout(scrollToBottom, 100);
+      const fetched: ConsultationMessageWithSender[] = data.messages || [];
+
+      if (before) {
+        setMessages((prev) => [...fetched, ...prev]);
+        setHasMoreMessages(!!data.hasMore);
+      } else {
+        setMessages((prev) => {
+          const existingIds = new Set(prev.map((m) => m.id));
+          const newOnes = fetched.filter((m) => !existingIds.has(m.id));
+          return newOnes.length > 0
+            ? [...prev, ...newOnes].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+            : prev;
+        });
+        setHasMoreMessages(!!data.hasMore);
+        setTimeout(scrollToBottom, 100);
+      }
     } catch { /* non-fatal */ }
   }, []);
+
+  const handleLoadMoreMessages = useCallback(async () => {
+    if (!consultation?.id || isLoadingMoreMessages || !hasMoreMessages) return;
+    const oldest = messages[0];
+    if (!oldest) return;
+    setIsLoadingMoreMessages(true);
+    await fetchMessages(consultation.id, oldest.created_at);
+    setIsLoadingMoreMessages(false);
+  }, [consultation?.id, messages, hasMoreMessages, isLoadingMoreMessages, fetchMessages]);
 
   useEffect(() => {
     fetchStatus();
@@ -57,6 +87,8 @@ export default function StudentConsultationPage() {
 
   useEffect(() => {
     if (!consultation?.id) return;
+    setMessages([]);
+    setHasMoreMessages(false);
     fetchMessages(consultation.id);
 
     // Realtime subscription
@@ -372,7 +404,15 @@ export default function StudentConsultationPage() {
       {(status === 'active' || status === 'completed') && (
         <div className="bg-white rounded-[1.75rem] border border-slate-100 shadow-sm overflow-hidden flex flex-col h-[calc(100vh-25rem)] min-h-[500px]">
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          <div
+            className="flex-1 overflow-y-auto p-6 space-y-4"
+            onScroll={(e) => { if (e.currentTarget.scrollTop === 0) handleLoadMoreMessages(); }}
+          >
+            {isLoadingMoreMessages && (
+              <div className="flex justify-center py-2">
+                <Loader2 className="w-4 h-4 animate-spin text-slate-300" />
+              </div>
+            )}
             {messages.length === 0 && (
               <div className="text-center text-slate-400 text-sm py-12">
                 <MessageCircle className="w-8 h-8 mx-auto mb-3 opacity-30" />

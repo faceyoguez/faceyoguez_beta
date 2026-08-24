@@ -48,6 +48,8 @@ export default function StaffConsultationsPage() {
   const [zoomLoading, setZoomLoading] = useState(false);
   const [completeLoading, setCompleteLoading] = useState(false);
   const [completeNotes, setCompleteNotes] = useState('');
+  const [hasMoreMessages, setHasMoreMessages] = useState(false);
+  const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(false);
   const [showCompleteModal, setShowCompleteModal] = useState(false);
   const [fileUploading, setFileUploading] = useState(false);
   const [composer, setComposer] = useState<{ channel: 'email' | 'whatsapp'; subject?: string; message: string } | null>(null);
@@ -63,17 +65,47 @@ export default function StaffConsultationsPage() {
     setLoading(false);
   }, [tab]);
 
-  const fetchMessages = useCallback(async (consultationId: string) => {
-    const res = await fetch(`/api/consultation/messages?consultationId=${consultationId}`);
+  // Loads a week at a time. `before` fetches an older week and prepends;
+  // omitted, it refreshes "the last 7 days" and merges (so a realtime
+  // refresh never wipes out older weeks already loaded via scroll).
+  const fetchMessages = useCallback(async (consultationId: string, before?: string) => {
+    const params = new URLSearchParams({ consultationId });
+    if (before) params.set('before', before);
+    const res = await fetch(`/api/consultation/messages?${params.toString()}`);
     const data = await res.json();
-    setMessages(data.messages || []);
-    setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+    const fetched: Message[] = data.messages || [];
+
+    if (before) {
+      setMessages((prev) => [...fetched, ...prev]);
+      setHasMoreMessages(!!data.hasMore);
+    } else {
+      setMessages((prev) => {
+        const existingIds = new Set(prev.map((m) => m.id));
+        const newOnes = fetched.filter((m) => !existingIds.has(m.id));
+        return newOnes.length > 0
+          ? [...prev, ...newOnes].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+          : prev;
+      });
+      setHasMoreMessages(!!data.hasMore);
+      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+    }
   }, []);
+
+  const handleLoadMoreMessages = useCallback(async () => {
+    if (!selected?.id || isLoadingMoreMessages || !hasMoreMessages) return;
+    const oldest = messages[0];
+    if (!oldest) return;
+    setIsLoadingMoreMessages(true);
+    await fetchMessages(selected.id, oldest.created_at);
+    setIsLoadingMoreMessages(false);
+  }, [selected?.id, messages, hasMoreMessages, isLoadingMoreMessages, fetchMessages]);
 
   useEffect(() => { fetchQueue(); }, [fetchQueue]);
 
   useEffect(() => {
     if (!selected?.id) return;
+    setMessages([]);
+    setHasMoreMessages(false);
     fetchMessages(selected.id);
     const ch = supabase.channel(`staff-chat-${selected.id}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'consultation_messages', filter: `consultation_id=eq.${selected.id}` },
@@ -313,7 +345,15 @@ export default function StaffConsultationsPage() {
           )}
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-5 space-y-4">
+          <div
+            className="flex-1 overflow-y-auto p-5 space-y-4"
+            onScroll={(e) => { if (e.currentTarget.scrollTop === 0) handleLoadMoreMessages(); }}
+          >
+            {isLoadingMoreMessages && (
+              <div className="flex justify-center py-2">
+                <Loader2 className="w-4 h-4 animate-spin text-slate-300" />
+              </div>
+            )}
             {messages.map((msg, idx) => {
               const isStaff = msg.sender?.role !== 'student';
               const isSystem = msg.content_type === 'system';

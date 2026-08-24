@@ -2,6 +2,7 @@
 
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase/server';
 import type { ConversationType, MessageContentType } from '@/types/database';
+import { getWeekWindow } from '@/lib/chat-pagination';
 
 export async function getConversationIdForBatch(batchId: string) {
   const supabase = await createServerSupabaseClient();
@@ -613,25 +614,46 @@ export async function fetchActiveOneOnOneStudents(instructorId: string) {
   return result;
 }
 
-export async function getBatchMessages(batchId: string, limit = 50) {
+/**
+ * Loads a week at a time. `before` is the oldest currently-loaded message's
+ * created_at; omit it for the initial "last 7 days" load. Returns hasMore so
+ * the caller knows whether an older week is still available to load.
+ */
+export async function getBatchMessages(batchId: string, before?: string) {
   const admin = createAdminClient();
+  const { windowStart, windowEnd } = getWeekWindow(before);
 
-  const { data, error } = await admin
+  let query = admin
     .from('batch_messages')
     .select(`
       id, content, content_type, created_at, sender_id, batch_id, message_type, poll_id,
       sender:profiles!sender_id(id, full_name, avatar_url, role)
     `)
     .eq('batch_id', batchId)
+    .gte('created_at', windowStart)
     .order('created_at', { ascending: true })
-    .limit(limit);
+    .limit(500);
+
+  if (windowEnd) {
+    query = query.lt('created_at', windowEnd);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error('Fetch batch messages error:', error);
-    return [];
+    return { messages: [], hasMore: false };
   }
 
-  return data || [];
+  const { data: olderExists } = await admin
+    .from('batch_messages')
+    .select('id')
+    .eq('batch_id', batchId)
+    .lt('created_at', windowStart)
+    .limit(1)
+    .maybeSingle();
+
+  return { messages: data || [], hasMore: !!olderExists };
 }
 
 export async function sendBatchMessage(batchId: string, content: string, senderId: string) {

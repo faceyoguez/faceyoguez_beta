@@ -59,6 +59,8 @@ const JOURNEY_MAX_DAY = 365;
 
 export function StudentGroupHub({ currentUser, activeBatch, initialResources, isTrialAccess = false, trialEndDate, subscriptionStartDate, subscriptionEndDate, durationMonths }: StudentGroupClientProps) {
     const [messages, setMessages] = useState<any[]>([]); // Keep any[] for now as it's complex, but guard its rendering
+    const [hasMoreMessages, setHasMoreMessages] = useState(false);
+    const [isLoadingMoreMessages, setIsLoadingMoreMessages] = useState(false);
     const [newMessage, setNewMessage] = useState('');
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const privateContainerRef = useRef<HTMLDivElement>(null);
@@ -134,7 +136,7 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
 
         const init = async () => {
             // Fetch critical dashboard data first
-            const [msgs, pollsMap, logs, meetingsData, personalMsgs] = await Promise.all([
+            const [batchMsgs, pollsMap, logs, meetingsData, personalMsgs] = await Promise.all([
                 getBatchMessages(activeBatch.id),
                 getBatchPollsMap(activeBatch.id, currentUser.id),
                 getJourneyLogs(currentUser.id),
@@ -142,7 +144,8 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                 getStudentPersonalMessages(),
             ]);
 
-            setMessages(msgs);
+            setMessages(batchMsgs.messages);
+            setHasMoreMessages(batchMsgs.hasMore);
             setPolls(pollsMap);
             setJourneyLogs(logs);
             setUpcomingMeetings(meetingsData || []);
@@ -289,6 +292,23 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
             supabase.removeChannel(notifChannel);
         };
     }, [activeBatch?.id, currentUser.id, supabase]);
+
+    // Load the previous week of group chat history — triggered by scrolling
+    // to the top of the message list.
+    const handleLoadMoreMessages = async () => {
+        if (!activeBatch?.id || isLoadingMoreMessages || !hasMoreMessages) return;
+        const oldest = messages.find((m: any) => !String(m.id).startsWith('temp-'));
+        if (!oldest) return;
+        setIsLoadingMoreMessages(true);
+        const { messages: olderMsgs, hasMore } = await getBatchMessages(activeBatch.id, oldest.created_at);
+        setMessages((prev: any[]) => [...olderMsgs, ...prev]);
+        setHasMoreMessages(hasMore);
+        setIsLoadingMoreMessages(false);
+    };
+
+    const handleGroupChatScroll = (e: React.UIEvent<HTMLDivElement>) => {
+        if (e.currentTarget.scrollTop === 0) handleLoadMoreMessages();
+    };
 
     // Initialize 1-on-1 direct conversation with instructor/staff
     useEffect(() => {
@@ -577,7 +597,12 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
             {/* GROUP CHAT */}
             {chatTab === 'group' && (
                 <>
-                    <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 custom-scrollbar">
+                    <div ref={chatContainerRef} onScroll={handleGroupChatScroll} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 custom-scrollbar">
+                        {isLoadingMoreMessages && (
+                            <div className="flex justify-center py-2">
+                                <Loader2 className="w-4 h-4 animate-spin text-slate-300" />
+                            </div>
+                        )}
                         {messages.length === 0 && (
                             <div className="flex flex-col items-center justify-center h-full py-16 opacity-30">
                                 <MessageSquare className="w-8 h-8 text-slate-400 mb-3" />

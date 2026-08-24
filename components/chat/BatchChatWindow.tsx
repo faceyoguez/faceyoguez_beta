@@ -30,7 +30,7 @@ export function BatchChatWindow({
   className = '',
   dark = false,
 }: BatchChatWindowProps) {
-  const { messages, isLoading, sendMessage } = useBatchMessages({
+  const { messages, isLoading, hasMore, isLoadingMore, loadMore, sendMessage } = useBatchMessages({
     batchId,
     currentUserId: currentUser.id,
   });
@@ -51,6 +51,7 @@ export function BatchChatWindow({
     if (!container) return;
     const { scrollTop, scrollHeight, clientHeight } = container;
     setIsAtBottom(scrollHeight - scrollTop - clientHeight < 100);
+    if (scrollTop === 0 && hasMore) loadMore();
   };
 
   return (
@@ -85,6 +86,11 @@ export function BatchChatWindow({
           </div>
         ) : (
           <>
+            {isLoadingMore && (
+              <div className="flex justify-center py-2">
+                <Loader2 className="w-4 h-4 animate-spin opacity-40" />
+              </div>
+            )}
             {messages.map((msg, idx) => {
               const prevMsg = messages[idx - 1];
               const showSender =
