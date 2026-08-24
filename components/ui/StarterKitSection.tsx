@@ -1,77 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Backpack, X, Eye, Download, FileText, Users, User, PlayCircle, Folder, ChevronRight, ChevronLeft } from 'lucide-react';
+import { getStarterKitForPlans, type StarterKitFile, type StarterKitFolder } from '@/lib/starter-kit-files';
 
 interface StarterKitSectionProps {
   activePlanTypes: string[];
   className?: string;
+  /** Opens the modal immediately on mount — used by the ?openStarterPack=1 redirect from purchase-success. */
+  autoOpen?: boolean;
 }
 
-interface KitFile {
-  key: string;
-  label: string;
-  href: string;
-}
+type KitFile = StarterKitFile;
+type KitEntry = StarterKitFolder & { icon: typeof FileText };
 
-interface KitEntry {
-  key: string;
-  label: string;
-  blurb: string;
-  icon: typeof FileText;
-  files: KitFile[];
-}
-
-const PLAN_FOLDERS: Record<string, KitEntry> = {
-  one_on_one: {
-    key: 'one_on_one',
-    label: '1:1 Kit',
-    blurb: 'Your personal session lowdown',
-    icon: User,
-    files: [
-      { key: '1-1-welcome', label: 'Welcome Guide', href: '/assets/starter_pdf/1-on-1/faceyoguez-1to1-welcome-guide.pdf' },
-      { key: '1-1-faq', label: 'FAQ', href: '/assets/starter_pdf/1-on-1/faceyoguez-1to1-faq.pdf' },
-    ],
-  },
-  group_session: {
-    key: 'group_session',
-    label: 'Group Kit',
-    blurb: 'The group class lowdown',
-    icon: Users,
-    files: [
-      { key: 'group-welcome', label: 'Welcome Guide', href: '/assets/starter_pdf/group/faceyoguez-welcome-guide.pdf' },
-      { key: 'group-faq', label: 'FAQ', href: '/assets/starter_pdf/group/faceyoguez-faq.pdf' },
-      { key: 'group-posture', label: 'Posture Routine', href: '/assets/starter_pdf/group/bodyworks-posture-routine.pdf' },
-    ],
-  },
-  lms: {
-    key: 'lms',
-    label: 'Recordings',
-    blurb: 'Course + recordings lowdown',
-    icon: PlayCircle,
-    files: [
-      { key: 'reco-welcome', label: 'Welcome Guide', href: '/assets/starter_pdf/recordings/faceyoguez-welcome-guide.pdf' },
-      { key: 'reco-posture', label: 'Posture Routine', href: '/assets/starter_pdf/recordings/bodyworks-posture-routine.pdf' },
-    ],
-  },
-};
-
-const SETUP_GUIDE_FOLDER: KitEntry = {
-  key: 'setup-guide',
-  label: 'Setup Guide',
-  blurb: 'Get your space camera-ready',
-  icon: FileText,
-  files: [
-    { key: 'setup-guide-main', label: 'Setup Guide', href: '/assets/starter_pdf/setup-guide/faceyoguez-setup-guide.pdf' },
-    { key: 'setup-posture', label: 'Posture Guide', href: '/assets/starter_pdf/setup-guide/faceyoguez-posture-guide.pdf' },
-  ],
-};
-
-const PRE_POST_FILE: KitFile = {
-  key: 'pre-post-guide',
-  label: 'Pre & Post Practice Guide',
-  href: '/assets/starter_pdf/pre-post-practice-guide.pdf',
+const FOLDER_ICONS: Record<string, typeof FileText> = {
+  one_on_one: User,
+  group_session: Users,
+  lms: PlayCircle,
+  'setup-guide': FileText,
 };
 
 function FileRow({ file }: { file: KitFile }) {
@@ -104,20 +53,29 @@ function FileRow({ file }: { file: KitFile }) {
   );
 }
 
-export function StarterKitSection({ activePlanTypes, className }: StarterKitSectionProps) {
+export function StarterKitSection({ activePlanTypes, className, autoOpen = false }: StarterKitSectionProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [openFolder, setOpenFolder] = useState<KitEntry | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
 
-  const planFolders = activePlanTypes
-    .map((p) => PLAN_FOLDERS[p])
-    .filter((f): f is KitEntry => !!f);
-  const folders = [...planFolders, SETUP_GUIDE_FOLDER];
-  const totalFileCount = folders.reduce((n, f) => n + f.files.length, 0) + 1;
+  const { folders: rawFolders, standaloneFiles } = getStarterKitForPlans(activePlanTypes);
+  const folders: KitEntry[] = rawFolders.map((f) => ({ ...f, icon: FOLDER_ICONS[f.key] || FileText }));
+  const totalFileCount = folders.reduce((n, f) => n + f.files.length, 0) + standaloneFiles.length;
 
   const close = () => {
     setIsOpen(false);
     setOpenFolder(null);
   };
+
+  useEffect(() => {
+    if (autoOpen) {
+      setIsOpen(true);
+      // Strip the query param so a refresh doesn't keep re-opening it.
+      router.replace(pathname);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoOpen]);
 
   return (
     <>
@@ -228,7 +186,7 @@ export function StarterKitSection({ activePlanTypes, className }: StarterKitSect
                         </button>
                       );
                     })}
-                    <FileRow file={PRE_POST_FILE} />
+                    {standaloneFiles.map((file) => <FileRow key={file.key} file={file} />)}
                   </>
                 )}
               </div>

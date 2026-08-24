@@ -19,6 +19,7 @@ import {
   meetingReminder10mEmailHtml,
   hostMeetingScheduledEmailHtml,
   hostMeetingCancelledEmailHtml,
+  starterPackEmailHtml,
 } from './templates';
 import type {
   InvoiceData,
@@ -29,6 +30,7 @@ import type {
   MeetingReminder10mData,
   HostMeetingScheduledData,
   HostMeetingCancelledData,
+  StarterPackEmailData,
 } from './templates';
 import {
   consultationReceiptEmailHtml,
@@ -256,6 +258,22 @@ export async function sendMeetingReminder10mEmail(to: string, data: MeetingRemin
     console.log(`[Email] 10m reminder sent → ${to}`);
   } catch (err) {
     console.error('[Email] 10m reminder failed:', err);
+  }
+}
+
+// ── 12. Starter Pack (post-purchase) ───────────────────────────
+export async function sendStarterPackEmail(to: string, data: StarterPackEmailData): Promise<void> {
+  try {
+    await transporter.sendMail({
+      from: FROM,
+      replyTo: EMAIL_CONFIG.replyTo,
+      to,
+      subject: `🎒 Your Starter Pack is ready, ${data.studentName}`,
+      html: starterPackEmailHtml(data),
+    });
+    console.log(`[Email] Starter pack sent → ${to}`);
+  } catch (err) {
+    console.error('[Email] Starter pack failed:', err);
   }
 }
 

@@ -5,11 +5,12 @@ import { revalidatePath } from 'next/cache';
 import { enrollInWaitingQueue } from '@/lib/actions/batches';
 import { z } from 'zod';
 import { rateLimit } from '@/lib/rate-limit';
-import { sendInvoiceEmail } from '@/lib/email/sender';
+import { sendInvoiceEmail, sendStarterPackEmail } from '@/lib/email/sender';
 import {
   sendConsultationReceiptEmail,
   sendConsultationPostNudgeEmail,
 } from '@/lib/email/sender';
+import { getStarterKitForPlans } from '@/lib/starter-kit-files';
 
 // ── Validation Schema ───────────────────────────────────────────────────────
 const verifySchema = z.object({
@@ -320,6 +321,24 @@ export async function POST(request: NextRequest) {
           couponDiscount: couponDiscount || 0,
           durationMonths: durationMonths || 1,
         }).catch(err => console.error('[Email] Invoice failed (non-fatal):', err));
+      }
+    } catch { /* non-fatal */ }
+
+    // Starter Pack email — welcome guide + setup guide + practice guide
+    // relevant to whichever plan was just purchased.
+    try {
+      if (userEmail) {
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.faceyoguez.com';
+        const { folders, standaloneFiles } = getStarterKitForPlans([planType]);
+        sendStarterPackEmail(userEmail, {
+          studentName: formattedName,
+          folders: folders.map((f) => ({
+            label: f.label,
+            blurb: f.blurb,
+            files: f.files.map((file) => ({ label: file.label, url: `${siteUrl}${file.href}` })),
+          })),
+          standaloneFiles: standaloneFiles.map((file) => ({ label: file.label, url: `${siteUrl}${file.href}` })),
+        }).catch(err => console.error('[Email] Starter pack failed (non-fatal):', err));
       }
     } catch { /* non-fatal */ }
 

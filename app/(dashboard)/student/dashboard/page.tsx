@@ -5,7 +5,14 @@ import { getStudentSubscriptions, getStudentEnrollments, getStudentJourneyLogs }
 import { differenceInDays } from 'date-fns';
 import { StudentDashboardClient } from './StudentDashboardClient';
 
-export default async function StudentDashboardPage() {
+export default async function StudentDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const resolvedSearchParams = await searchParams;
+  const openStarterPack = resolvedSearchParams.openStarterPack === '1';
+
   // ─── Auth & Profile ───
   const user = await getServerUser();
   if (!user) redirect('/auth/login');
@@ -130,6 +137,7 @@ export default async function StudentDashboardPage() {
       joinedDate={joinedDate}
       lastRenewed={lastRenewed}
       batchIds={batchIds}
+      openStarterPack={openStarterPack}
       isTrial={subscriptions.some((s: any) => s.is_trial) && !subscriptions.some((s: any) => !s.is_trial)}
     />
   );

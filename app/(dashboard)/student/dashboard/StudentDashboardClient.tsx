@@ -56,6 +56,7 @@ interface StudentDashboardClientProps {
   lastRenewed: Date | null;
   batchIds: string[];
   isTrial?: boolean;
+  openStarterPack?: boolean;
 }
 
 const QUOTES = [
@@ -80,6 +81,7 @@ export function StudentDashboardClient({
   lastRenewed,
   batchIds,
   isTrial = false,
+  openStarterPack = false,
 }: StudentDashboardClientProps) {
   const router = useRouter();
   const rawName = profile.full_name?.split(' ')[0] || 'there';
@@ -326,7 +328,7 @@ export function StudentDashboardClient({
       </motion.div>
 
       {/* ── Starter Pack ── */}
-      <StarterKitSection activePlanTypes={activePlanTypes} className="mb-4 lg:mb-5" />
+      <StarterKitSection activePlanTypes={activePlanTypes} className="mb-4 lg:mb-5" autoOpen={openStarterPack} />
 
       {/* ── Main Bento Grid ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 lg:gap-5">

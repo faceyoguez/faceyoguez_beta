@@ -97,3 +97,70 @@ export async function sendWhatsAppTemplate(to: string, templateName: string, lan
     return { success: false, error: error.message };
   }
 }
+
+/**
+ * Sends a document (PDF, etc.) as a WhatsApp message using an approved
+ * message TEMPLATE — required for any business-initiated message (like a
+ * post-purchase welcome kit) sent outside the 24-hour customer-service
+ * window, per Meta's WhatsApp Business API rules. Plain `type: 'document'`
+ * messages (no template) only work within that 24h window and would be
+ * rejected otherwise.
+ *
+ * `templateName` must be an ALREADY-APPROVED template in Meta Business
+ * Manager, configured with a Document header variable and (optionally)
+ * body text variables. Not wired into the purchase flow yet — no template
+ * has been created/approved for this. See lib/starter-kit-files.ts for the
+ * file list this would send.
+ */
+export async function sendWhatsAppDocumentTemplate(
+  to: string,
+  templateName: string,
+  documentUrl: string,
+  documentFilename: string,
+  bodyParams: string[] = [],
+  languageCode: string = 'en_US'
+) {
+  if (!WHATSAPP_PHONE_NUMBER_ID || !WHATSAPP_ACCESS_TOKEN) {
+    return { success: false, error: 'WhatsApp API not configured' };
+  }
+
+  const cleanTo = to.replace(/\D/g, '');
+
+  try {
+    const response = await fetch(
+      `https://graph.facebook.com/v21.0/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messaging_product: 'whatsapp',
+          to: cleanTo,
+          type: 'template',
+          template: {
+            name: templateName,
+            language: { code: languageCode },
+            components: [
+              {
+                type: 'header',
+                parameters: [
+                  { type: 'document', document: { link: documentUrl, filename: documentFilename } },
+                ],
+              },
+              ...(bodyParams.length > 0
+                ? [{ type: 'body', parameters: bodyParams.map((text) => ({ type: 'text', text })) }]
+                : []),
+            ],
+          },
+        }),
+      }
+    );
+
+    const data = await response.json();
+    return response.ok ? { success: true, data } : { success: false, error: data.error?.message };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}

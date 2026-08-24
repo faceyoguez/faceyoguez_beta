@@ -624,3 +624,72 @@ export function meetingReminder10mEmailHtml(data: MeetingReminder10mData): strin
   return baseLayout(body);
 }
 
+// ─────────────────────────────────────────────────────────────
+//  12. STARTER PACK EMAIL (post-purchase)
+// ─────────────────────────────────────────────────────────────
+export interface StarterPackEmailFile {
+  label: string;
+  url: string;
+}
+export interface StarterPackEmailFolder {
+  label: string;
+  blurb: string;
+  files: StarterPackEmailFile[];
+}
+export interface StarterPackEmailData {
+  studentName: string;
+  folders: StarterPackEmailFolder[];
+  standaloneFiles: StarterPackEmailFile[];
+}
+
+export function starterPackEmailHtml(data: StarterPackEmailData): string {
+  const fileLink = (f: StarterPackEmailFile) => `
+    <tr>
+      <td style="padding:6px 0;">
+        <a href="${f.url}" style="color:${C.primary};font-size:14px;font-weight:600;text-decoration:none;">📄 ${f.label} →</a>
+      </td>
+    </tr>`;
+
+  const folderBlocks = data.folders
+    .map(
+      (folder) => `
+    <div style="background-color:${C.background};border-radius:12px;padding:16px 20px;border:1px solid ${C.border};margin-bottom:12px;">
+      <p style="margin:0 0 2px;font-size:14px;font-weight:700;color:${C.dark};">${folder.label}</p>
+      <p style="margin:0 0 10px;font-size:12px;color:${C.muted};">${folder.blurb}</p>
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+        ${folder.files.map(fileLink).join('')}
+      </table>
+    </div>`
+    )
+    .join('');
+
+  const standaloneBlock = data.standaloneFiles.length
+    ? `
+    <div style="background-color:${C.background};border-radius:12px;padding:16px 20px;border:1px solid ${C.border};">
+      <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
+        ${data.standaloneFiles.map(fileLink).join('')}
+      </table>
+    </div>`
+    : '';
+
+  const body = `
+    <p style="margin:0 0 8px;font-size:13px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:${C.primary};">🎒 Your Starter Pack</p>
+    <h1 style="margin:0 0 20px;font-size:26px;font-weight:700;color:${C.dark};line-height:1.2;">Before you dive in, ${data.studentName}…</h1>
+
+    <p style="margin:0 0 20px;font-size:15px;line-height:1.7;color:${C.dark};">
+      We've packed your welcome guide, setup tips, and practice essentials — everything you need before your first session. Tap any file below to view or save it.
+    </p>
+
+    ${folderBlocks}
+    ${standaloneBlock}
+
+    ${divider()}
+
+    <p style="margin:0;font-size:13px;color:${C.muted};">
+      You can always find these again on your dashboard, under "Starter Pack."
+    </p>
+  `;
+
+  return baseLayout(body);
+}
+

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import ThankYouOverlay from '@/components/marketing/ThankYouOverlay';
+import StarterPackTeaserModal from '@/components/marketing/StarterPackTeaserModal';
 
 
 function PurchaseSuccessContent() {
@@ -26,6 +27,7 @@ function PurchaseSuccessContent() {
     const [copied, setCopied] = useState(false);
     const [verificationStatus, setVerificationStatus] = useState<'checking' | 'verified' | 'fallback'>('checking');
     const [showThankYou, setShowThankYou] = useState(true);
+    const [showStarterPackTeaser, setShowStarterPackTeaser] = useState(false);
 
 
     // Verify subscription actually exists in DB (guards against direct URL access)
@@ -102,14 +104,24 @@ function PurchaseSuccessContent() {
         <div className="min-h-screen bg-[#FFFAF7] flex items-center justify-center p-6 font-jakarta selection:bg-[#FF8A75]/20">
             {showThankYou && (
                 <ThankYouOverlay
-                    onClose={() => setShowThankYou(false)}
+                    onClose={() => {
+                        setShowThankYou(false);
+                        setShowStarterPackTeaser(true);
+                    }}
                     planId={planId}
                     amount={parseFloat(totalAmount)}
                     paymentId={paymentId}
                 />
             )}
 
-            
+            {showStarterPackTeaser && (
+                <StarterPackTeaserModal
+                    onClose={() => setShowStarterPackTeaser(false)}
+                    onGoToStarterPack={() => router.push('/student/dashboard?openStarterPack=1')}
+                />
+            )}
+
+
             <div className="max-w-xl w-full space-y-10 animate-in fade-in slide-in-from-bottom-5 duration-700">
 
                 {/* Success Header */}
