@@ -687,7 +687,7 @@ export function InstructorOneOnOneClient({ currentUser, students }: Props) {
                      </div>
                   </div>
 
-                  <div className="flex-1 overflow-hidden relative">
+                  <div className="flex-1 min-h-0 overflow-hidden relative">
                      {selectedStudent && selectedStudent.conversationId ? (
                         <ChatWindow
                            conversationId={selectedStudent.conversationId}

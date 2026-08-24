@@ -187,8 +187,8 @@ export function StudentChatClient({ currentUser, planType }: Props) {
           !selectedConv ? "hidden lg:flex" : "flex h-[500px] lg:h-full"
         )}>
           {selectedConv ? (
-            <div className="flex-1 flex flex-col overflow-hidden relative">
-               <button 
+            <div className="flex-1 min-h-0 flex flex-col overflow-hidden relative">
+               <button
                   onClick={() => setSelectedConv(null)}
                   className="lg:hidden absolute top-4 left-4 z-50 h-10 px-4 rounded-xl bg-white border border-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 shadow-sm"
                >

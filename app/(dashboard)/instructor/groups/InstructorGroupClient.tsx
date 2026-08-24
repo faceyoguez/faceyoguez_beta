@@ -1342,7 +1342,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                             );
                          })
                       ) : (
-                         <div className="h-full flex flex-col">
+                         <div className="h-full min-h-0 flex flex-col">
                             {studentConversationId ? (
                                <ChatWindow
                                   key={studentConversationId}
@@ -1351,7 +1351,7 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                   conversationType="direct"
                                   title={selectedStudent?.full_name}
                                   otherParticipant={selectedStudent}
-                                  className="h-full"
+                                  className="h-full min-h-0"
                                   hideHeader={true}
                                   isMultiParty={true}
                                />
