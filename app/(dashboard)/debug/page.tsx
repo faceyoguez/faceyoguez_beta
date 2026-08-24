@@ -32,6 +32,17 @@ export default async function DebugPage() {
         EMAIL_FROM: envCheck('EMAIL_FROM'),
     };
 
+    // TEMPORARY: presence/length-only check for WhatsApp env vars — same safe
+    // pattern as above — a local test just failed because these are entirely
+    // missing locally; checking whether production has them.
+    const whatsappEnvStatus = {
+        WHATSAPP_PHONE_NUMBER_ID: envCheck('WHATSAPP_PHONE_NUMBER_ID'),
+        WHATSAPP_ACCESS_TOKEN: envCheck('WHATSAPP_ACCESS_TOKEN'),
+        WHATSAPP_BUSINESS_ACCOUNT_ID: envCheck('WHATSAPP_BUSINESS_ACCOUNT_ID'),
+        // Not a secret (just a phone number) — shown in full to confirm it's the right sender.
+        WHATSAPP_OFFICIAL_NUMBER: process.env.WHATSAPP_OFFICIAL_NUMBER || '(not set)',
+    };
+
     // Names only (never values) of every env var Vercel actually injected that
     // contains "ZOOM" — reveals typos/renames invisible in the Vercel dashboard.
     const allZoomKeys = Object.keys(process.env)
@@ -87,6 +98,9 @@ export default async function DebugPage() {
 
             <h2 className="text-xl font-bold mt-8">SMTP Env Vars (presence/length only, never the value)</h2>
             <pre className="bg-gray-100 p-4 rounded">{JSON.stringify(smtpEnvStatus, null, 2)}</pre>
+
+            <h2 className="text-xl font-bold mt-8">WhatsApp Env Vars (presence/length only, never the value)</h2>
+            <pre className="bg-gray-100 p-4 rounded">{JSON.stringify(whatsappEnvStatus, null, 2)}</pre>
 
             <h2 className="text-xl font-bold mt-8">All env var KEY NAMES containing "ZOOM" (names only, never values)</h2>
             <pre className="bg-gray-100 p-4 rounded">{JSON.stringify(allZoomKeys, null, 2)}</pre>
