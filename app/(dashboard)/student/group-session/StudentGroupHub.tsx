@@ -26,6 +26,7 @@ import { DateDivider, isNewDay } from '@/components/chat/DateDivider';
 import { BatchChatWindow } from '@/components/chat/BatchChatWindow';
 import { ChatWindow } from '@/components/chat/ChatWindow';
 import { SupportContact } from '@/components/ui/SupportContact';
+import { WhatsAppCommunityButton } from '@/components/ui/WhatsAppCommunityButton';
 import { ZoomMeetingEmbed } from '@/components/zoom/ZoomMeetingEmbed';
 import { RecordingPlayerModal } from '@/components/RecordingPlayerModal';
 
@@ -736,7 +737,10 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                         Group <span className="text-[#e76f51]">Hub</span>
                     </h1>
                 </div>
-                <SupportContact className="px-3.5 py-2 bg-white rounded-2xl border border-slate-100 shadow-sm" />
+                <div className="flex items-center gap-3">
+                    <WhatsAppCommunityButton />
+                    <SupportContact className="px-3.5 py-2 bg-white rounded-2xl border border-slate-100 shadow-sm" />
+                </div>
             </header>
 
             <main className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start pb-20 lg:pb-0">

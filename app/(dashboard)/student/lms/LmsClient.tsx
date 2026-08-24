@@ -7,6 +7,7 @@ import { CourseCard } from '@/components/lms/CourseCard';
 import { BookOpen, Sparkles, Layout } from 'lucide-react';
 import { PlanExpiryPill } from '@/components/ui/plan-expiry-pill';
 import { SupportContact } from '@/components/ui/SupportContact';
+import { WhatsAppCommunityButton } from '@/components/ui/WhatsAppCommunityButton';
 import { cn } from '@/lib/utils';
 import type { Profile } from '@/types/database';
 
@@ -69,6 +70,7 @@ export function LmsClient({
           <p className="text-xs text-slate-400 font-medium mt-1">Master the art of natural radiance step-by-step</p>
         </div>
         <div className="flex items-center gap-3 ml-auto sm:ml-0">
+          <WhatsAppCommunityButton />
           <SupportContact className="px-3.5 py-2 bg-white rounded-2xl border border-slate-100 shadow-sm" />
           <div className="h-10 w-10 rounded-xl bg-[#e76f51]/10 flex items-center justify-center shrink-0 w-fit sm:w-10">
             <Layout className="w-5 h-5 text-[#e76f51]" />
