@@ -35,6 +35,7 @@ import { pixel } from '@/lib/pixel';
 
 import { SupportContact } from '@/components/ui/SupportContact';
 import { WhatsAppCommunityButton } from '@/components/ui/WhatsAppCommunityButton';
+import { StarterKitSection } from '@/components/ui/StarterKitSection';
 
 const ImageComparison = dynamic(() => import('@/components/ui/image-comparison-slider').then(mod => mod.ImageComparison), {
   ssr: false,
@@ -323,6 +324,9 @@ export function StudentDashboardClient({
           </div>
         </div>
       </motion.div>
+
+      {/* ── Starter Pack ── */}
+      <StarterKitSection activePlanTypes={activePlanTypes} className="mb-4 lg:mb-5" />
 
       {/* ── Main Bento Grid ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 lg:gap-5">
