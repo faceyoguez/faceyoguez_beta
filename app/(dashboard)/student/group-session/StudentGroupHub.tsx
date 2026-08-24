@@ -22,6 +22,7 @@ import { PollCard } from '../../../../components/ui/poll-card';
 import { useRouter } from 'next/navigation';
 import { cn, formatISTDate, formatISTTime, getSessionStatus } from '@/lib/utils';
 import { MessageBubble } from '@/components/chat/MessageBubble';
+import { DateDivider, isNewDay } from '@/components/chat/DateDivider';
 import { BatchChatWindow } from '@/components/chat/BatchChatWindow';
 import { ChatWindow } from '@/components/chat/ChatWindow';
 import { SupportContact } from '@/components/ui/SupportContact';
@@ -583,15 +584,20 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                                 <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 text-center">No messages yet</p>
                             </div>
                         )}
-                        {messages.map((msg: any) => {
+                        {messages.map((msg: any, idx: number) => {
                             const isOwn = msg.sender_id === currentUser.id;
                             const isPoll = msg.message_type === 'poll';
                             const poll = isPoll ? polls[msg.poll_id] : null;
+                            const prevMsg = messages[idx - 1];
+                            const divider = isNewDay(prevMsg?.created_at, msg.created_at) && (
+                                <DateDivider dateStr={msg.created_at} dark={false} />
+                            );
 
                             if (isPoll) {
                                 return (
                                     poll && (
                                         <div key={msg.id} className="w-full">
+                                            {divider}
                                             <PollCard
                                                 poll={poll}
                                                 isAdmin={false}
@@ -604,15 +610,17 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                             }
 
                             return (
-                                <MessageBubble
-                                    key={msg.id}
-                                    message={msg}
-                                    isOwn={isOwn}
-                                    showSender={msg.sender_id !== currentUser.id}
-                                    isMultiParty={true}
-                                    dark={false}
-                                    currentUserRole={currentUser.role}
-                                />
+                                <div key={msg.id}>
+                                    {divider}
+                                    <MessageBubble
+                                        message={msg}
+                                        isOwn={isOwn}
+                                        showSender={msg.sender_id !== currentUser.id}
+                                        isMultiParty={true}
+                                        dark={false}
+                                        currentUserRole={currentUser.role}
+                                    />
+                                </div>
                             );
                         })}
                     </div>
@@ -620,15 +628,24 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
                     <div className="p-4 sm:p-6 border-t border-outline-variant/10 bg-white/40 backdrop-blur-md shrink-0 mb-safe">
                         {isChatEnabled ? (
                             <div className="relative group">
-                                <input
-                                    type="text"
+                                <textarea
                                     value={newMessage}
-                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewMessage(e.target.value)}
-                                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleSendMessage()}
+                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                                        setNewMessage(e.target.value);
+                                        e.target.style.height = 'auto';
+                                        e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
+                                    }}
+                                    onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handleSendMessage();
+                                        }
+                                    }}
                                     placeholder="Type a message..."
-                                    className="w-full h-12 pl-5 pr-12 rounded-xl bg-white border border-outline-variant/10 text-base text-foreground font-medium placeholder:text-foreground/20 focus:ring-2 focus:ring-primary/10 focus:outline-none transition-all shadow-sm group-hover:border-primary/20"
+                                    rows={1}
+                                    className="w-full min-h-12 max-h-[120px] resize-none pl-5 pr-12 py-3.5 rounded-xl bg-white border border-outline-variant/10 text-base text-foreground font-medium placeholder:text-foreground/20 focus:ring-2 focus:ring-primary/10 focus:outline-none transition-all shadow-sm group-hover:border-primary/20 custom-scrollbar"
                                 />
-                                <button onClick={handleSendMessage} className="absolute right-1.5 top-1/2 -translate-y-1/2 h-9 w-9 rounded-xl bg-foreground text-background flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
+                                <button onClick={handleSendMessage} className="absolute right-1.5 bottom-1.5 h-9 w-9 rounded-xl bg-foreground text-background flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
                                     <Send className="w-3.5 h-3.5" />
                                 </button>
                             </div>

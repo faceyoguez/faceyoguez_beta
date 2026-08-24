@@ -52,6 +52,13 @@ export async function sendMessageToBatch(conversationId: string, content: string
     });
 
   if (error) return { success: false, error: error.message };
+
+  const { error: updateErr } = await admin
+    .from('conversations')
+    .update({ updated_at: new Date().toISOString() })
+    .eq('id', conversationId);
+  if (updateErr) console.error('[sendMessageToBatch] Failed to bump conversation updated_at:', updateErr);
+
   return { success: true };
 }
 
@@ -222,55 +229,11 @@ export async function getOrCreateStudentChat() {
     throw new Error('No instructors available');
   }
 
-  // 2. Find common direct conversation between user and instructor
-  const { data: commonParts } = await admin
-    .from('conversation_participants')
-    .select('conversation_id, user_id')
-    .in('user_id', [user.id, instructorId]);
-
-  const convCounts: Record<string, number> = {};
-  let commonId = null;
-
-  if (commonParts) {
-    // We want a conversation where BOTH are participants
-    commonParts.forEach((p: { conversation_id: string; user_id: string }) => {
-      convCounts[p.conversation_id] = (convCounts[p.conversation_id] || 0) + 1;
-    });
-
-    // Find conv IDs that have 2 matching participants (user and instructor)
-    const potentialIds = Object.keys(convCounts).filter(id => convCounts[id] === 2);
-
-    if (potentialIds.length > 0) {
-      // Verify it's a 'direct' conversation
-      const { data: convs } = await admin
-        .from('conversations')
-        .select('id, type')
-        .in('id', potentialIds)
-        .eq('type', 'direct');
-
-      if (convs && convs.length > 0) {
-        commonId = convs[0].id;
-      }
-    }
-  }
-
-  if (commonId) return { conversationId: commonId };
-
-  // 3. Create new one if none found
-  const { data: newConv, error: convError } = await admin
-    .from('conversations')
-    .insert({ type: 'direct' })
-    .select()
-    .single();
-
-  if (convError) throw convError;
-
-  await admin.from('conversation_participants').insert([
-    { conversation_id: newConv.id, user_id: user.id },
-    { conversation_id: newConv.id, user_id: instructorId }
-  ]);
-
-  return { conversationId: newConv.id };
+  // Delegate to the canonical shared-chat resolver (see getOrCreateSharedChat
+  // below) instead of a separate exact-participant-count lookup — mixing the
+  // two caused staff and students to land in different, invisible
+  // conversations depending on which screen they messaged from.
+  return getOrCreateSharedChat(user.id, instructorId);
 }
 
 export async function getOrCreateDirectChat(studentId: string) {
@@ -280,52 +243,19 @@ export async function getOrCreateDirectChat(studentId: string) {
 
   const admin = createAdminClient();
 
-  // 1. Find common direct conversation
-  const { data: commonParts } = await admin
-    .from('conversation_participants')
-    .select('conversation_id, user_id')
-    .in('user_id', [user.id, studentId]);
+  // Resolve the student's assigned instructor, same lookup as getOrCreateStudentChat.
+  const { data: activeSub } = await admin
+    .from('subscriptions')
+    .select('assigned_instructor_id')
+    .eq('student_id', studentId)
+    .eq('status', 'active')
+    .eq('plan_type', 'one_on_one')
+    .limit(1)
+    .maybeSingle();
 
-  const convCounts: Record<string, number> = {};
-  let commonId = null;
-
-  if (commonParts) {
-    commonParts.forEach((p: { conversation_id: string; user_id: string }) => {
-      convCounts[p.conversation_id] = (convCounts[p.conversation_id] || 0) + 1;
-    });
-
-    const potentialIds = Object.keys(convCounts).filter(id => convCounts[id] === 2);
-
-    if (potentialIds.length > 0) {
-      const { data: convs } = await admin
-        .from('conversations')
-        .select('id, type')
-        .in('id', potentialIds)
-        .eq('type', 'direct');
-
-      if (convs && convs.length > 0) {
-        commonId = convs[0].id;
-      }
-    }
-  }
-
-  if (commonId) return { conversationId: commonId };
-
-  // 2. Create new one
-  const { data: newConv, error: convError } = await admin
-    .from('conversations')
-    .insert({ type: 'direct' })
-    .select()
-    .single();
-
-  if (convError) throw convError;
-
-  await admin.from('conversation_participants').insert([
-    { conversation_id: newConv.id, user_id: user.id },
-    { conversation_id: newConv.id, user_id: studentId }
-  ]);
-
-  return { conversationId: newConv.id };
+  // Delegate to the canonical shared-chat resolver — see getOrCreateStudentChat's
+  // comment above for why this must not use its own separate matching logic.
+  return getOrCreateSharedChat(studentId, activeSub?.assigned_instructor_id || null);
 }
 
 // Create or find a direct conversation between two specific users (used by instructor assignment)
@@ -422,51 +352,15 @@ export async function getOrCreateSharedChat(studentId: string, assignedInstructo
     }
   }
 
-  return { conversationId: sharedConvId };
+  return { conversationId: sharedConvId as string };
 }
 
-export async function getOrCreateDirectChatBetween(userId1: string, userId2: string) {
-  const admin = createAdminClient();
-
-  const { data: commonParts } = await admin
-    .from('conversation_participants')
-    .select('conversation_id, user_id')
-    .in('user_id', [userId1, userId2]);
-
-  if (commonParts) {
-    const convCounts: Record<string, number> = {};
-    commonParts.forEach((p: { conversation_id: string; user_id: string }) => {
-      convCounts[p.conversation_id] = (convCounts[p.conversation_id] || 0) + 1;
-    });
-    const potentialIds = Object.keys(convCounts).filter(id => convCounts[id] === 2);
-
-    if (potentialIds.length > 0) {
-      const { data: convs } = await admin
-        .from('conversations')
-        .select('id, type')
-        .in('id', potentialIds)
-        .eq('type', 'direct');
-
-      if (convs && convs.length > 0) {
-        return { conversationId: convs[0].id };
-      }
-    }
-  }
-
-  const { data: newConv, error: convError } = await admin
-    .from('conversations')
-    .insert({ type: 'direct' })
-    .select()
-    .single();
-
-  if (convError) throw convError;
-
-  await admin.from('conversation_participants').insert([
-    { conversation_id: newConv.id, user_id: userId1 },
-    { conversation_id: newConv.id, user_id: userId2 }
-  ]);
-
-  return { conversationId: newConv.id };
+// Its only caller (lib/actions/subscription.ts, on instructor assignment)
+// always passes (studentId, instructorId) — delegates to the same canonical
+// resolver as everything else for that reason. Kept as a separate export so
+// existing call sites don't need to change.
+export async function getOrCreateDirectChatBetween(studentId: string, instructorId: string) {
+  return getOrCreateSharedChat(studentId, instructorId);
 }
 
 export async function searchStudents(query: string) {
@@ -550,6 +444,16 @@ export async function sendChatMessage(
     });
 
   if (error) throw error;
+
+  // Bump the conversation's timestamp so it sorts to the top of the list —
+  // nothing else updates this column, so without it every conversation
+  // list stays frozen in creation order forever, never reflecting activity.
+  const { error: updateErr } = await admin
+    .from('conversations')
+    .update({ updated_at: new Date().toISOString() })
+    .eq('id', conversationId);
+  if (updateErr) console.error('[sendChatMessage] Failed to bump conversation updated_at:', updateErr);
+
   return { success: true };
 }
 

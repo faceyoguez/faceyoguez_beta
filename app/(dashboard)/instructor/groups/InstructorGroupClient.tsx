@@ -21,6 +21,7 @@ import type { RecordedSession, StudentResource, Profile } from '@/types/database
 import { getBatchResources, uploadResource, getStudentResources } from '@/lib/actions/resources';
 import { sendBatchMessage, getBatchMessages, getOrCreateSharedChat, deleteChatMessage, getStudentsConversationMeta } from '@/lib/actions/chat';
 import { MessageBubble } from '@/components/chat/MessageBubble';
+import { DateDivider, isNewDay } from '@/components/chat/DateDivider';
 import { getBatchRecordedSessions, scheduleGroupSession, getInstructorUpcomingMeetings, startMeeting, completeMeeting, deleteMeeting } from '@/lib/actions/meetings';
 import { getJourneyLogs, type JourneyLog } from '@/lib/actions/journey';
 import { ImageComparison } from '@/components/ui/image-comparison-slider';
@@ -871,50 +872,64 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                                              <p className="text-[10px] font-bold uppercase tracking-widest">No messages yet</p>
                                           </div>
                                        ) : (
-                                          messages.map((msg: any) => {
+                                          messages.map((msg: any, idx: number) => {
                                              const isMe = msg.sender_id === currentUser.id;
                                              const sender = msg.sender || {};
-                                             const roles: Record<string, string> = { 
-                                                admin: 'Admin', 
-                                                instructor: 'Instructor', 
-                                                staff: 'Staff', 
-                                                client_management: 'Staff' 
+                                             const roles: Record<string, string> = {
+                                                admin: 'Admin',
+                                                instructor: 'Instructor',
+                                                staff: 'Staff',
+                                                client_management: 'Staff'
                                              };
                                              const roleLabel = roles[sender.role] || (msg.sender_id === selectedBatch?.instructor_id ? 'Instructor' : null);
+                                             const prevMsg = messages[idx - 1];
 
                                              return (
-                                                <MessageBubble
-                                                   key={msg.id}
-                                                   message={msg}
-                                                   isOwn={isMe}
-                                                   showSender={roleLabel !== null || !isMe}
-                                                   isMultiParty={true}
-                                                   dark={false}
-                                                   currentUserRole={currentUser.role}
-                                                   onDelete={async () => {
-                                                      const res = await deleteChatMessage(msg.id, 'batch_messages');
-                                                      if (!res.success) {
-                                                         toast.error(res.error || 'Failed to delete message');
-                                                      }
-                                                   }}
-                                                />
+                                                <div key={msg.id}>
+                                                   {isNewDay(prevMsg?.created_at, msg.created_at) && (
+                                                      <DateDivider dateStr={msg.created_at} dark={false} />
+                                                   )}
+                                                   <MessageBubble
+                                                      message={msg}
+                                                      isOwn={isMe}
+                                                      showSender={roleLabel !== null || !isMe}
+                                                      isMultiParty={true}
+                                                      dark={false}
+                                                      currentUserRole={currentUser.role}
+                                                      onDelete={async () => {
+                                                         const res = await deleteChatMessage(msg.id, 'batch_messages');
+                                                         if (!res.success) {
+                                                            toast.error(res.error || 'Failed to delete message');
+                                                         }
+                                                      }}
+                                                   />
+                                                </div>
                                              );
                                           })
                                        )}
                                     </div>
 
                                     <div className="relative mt-auto shrink-0 group border-t border-slate-100 pt-4">
-                                       <input
-                                          type="text"
+                                       <textarea
                                           value={newMessage}
-                                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewMessage(e.target.value)}
-                                          onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                                          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                                             setNewMessage(e.target.value);
+                                             e.target.style.height = 'auto';
+                                             e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
+                                          }}
+                                          onKeyDown={(e) => {
+                                             if (e.key === 'Enter' && !e.shiftKey) {
+                                                e.preventDefault();
+                                                handleSendMessage();
+                                             }
+                                          }}
                                           placeholder="Type a message..."
-                                          className="w-full h-12 rounded-2xl border-none pl-6 pr-14 text-sm font-medium transition-all outline-none bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#FF8A75]/20 focus:outline outline-slate-200"
+                                          rows={1}
+                                          className="w-full min-h-12 max-h-[120px] resize-none rounded-2xl border-none pl-6 pr-14 py-3.5 text-sm font-medium transition-all outline-none bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-[#FF8A75]/20 focus:outline outline-slate-200 custom-scrollbar"
                                        />
                                        <button
                                           onClick={handleSendMessage}
-                                          className="absolute right-2 top-[calc(50%+8px)] -translate-y-1/2 h-8 w-8 rounded-xl flex items-center justify-center transition-all transform active:scale-90 bg-[#FF8A75] text-white hover:bg-[#FF6B4E] shadow-md shadow-[#FF8A75]/20"
+                                          className="absolute right-2 bottom-2 h-8 w-8 rounded-xl flex items-center justify-center transition-all transform active:scale-90 bg-[#FF8A75] text-white hover:bg-[#FF6B4E] shadow-md shadow-[#FF8A75]/20"
                                        >
                                           <Send className="w-4 h-4" />
                                        </button>
@@ -1297,28 +1312,33 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                   {/* Messages Area */}
                   <div className="flex-1 space-y-5 overflow-y-auto custom-scrollbar p-6">
                       {chatMode === 'batch' ? (
-                         messages.map((msg: any) => {
+                         messages.map((msg: any, idx: number) => {
                             const isMe = msg.sender_id === currentUser.id;
                             const sender = msg.sender || {};
                             const roles: Record<string, string> = { admin: 'Admin', instructor: 'Instructor', staff: 'Staff', client_management: 'Staff' };
                             const roleLabel = roles[sender.role] || (msg.sender_id === selectedBatch?.instructor_id ? 'Instructor' : null);
- 
+                            const prevMsg = messages[idx - 1];
+
                             return (
-                               <MessageBubble
-                                  key={msg.id}
-                                  message={msg}
-                                  isOwn={isMe}
-                                  showSender={roleLabel !== null || !isMe}
-                                  isMultiParty={true}
-                                  dark={true}
-                                  currentUserRole={currentUser.role}
-                                  onDelete={async () => {
-                                     const res = await deleteChatMessage(msg.id, 'batch_messages');
-                                     if (!res.success) {
-                                        toast.error(res.error || 'Failed to delete message');
-                                     }
-                                  }}
-                               />
+                               <div key={msg.id}>
+                                  {isNewDay(prevMsg?.created_at, msg.created_at) && (
+                                     <DateDivider dateStr={msg.created_at} dark={true} />
+                                  )}
+                                  <MessageBubble
+                                     message={msg}
+                                     isOwn={isMe}
+                                     showSender={roleLabel !== null || !isMe}
+                                     isMultiParty={true}
+                                     dark={true}
+                                     currentUserRole={currentUser.role}
+                                     onDelete={async () => {
+                                        const res = await deleteChatMessage(msg.id, 'batch_messages');
+                                        if (!res.success) {
+                                           toast.error(res.error || 'Failed to delete message');
+                                        }
+                                     }}
+                                  />
+                               </div>
                             );
                          })
                       ) : (
@@ -1348,17 +1368,26 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
                   {/* Input Area */}
                   {chatMode === 'batch' && (
                      <div className="relative p-6 bg-black/50 backdrop-blur-xl border-t border-white/10 shrink-0 mb-4 focus-within:mb-0 transition-all">
-                        <input
-                           type="text"
+                        <textarea
                            value={newMessage}
-                           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewMessage(e.target.value)}
-                           onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                           onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                              setNewMessage(e.target.value);
+                              e.target.style.height = 'auto';
+                              e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
+                           }}
+                           onKeyDown={(e) => {
+                              if (e.key === 'Enter' && !e.shiftKey) {
+                                 e.preventDefault();
+                                 handleSendMessage();
+                              }
+                           }}
                            placeholder="Type a message..."
-                           className="w-full h-12 rounded-2xl border-none pl-6 pr-14 text-sm font-medium transition-all outline-none bg-white/10 text-white placeholder:text-white/20 focus:bg-white/15 focus:ring-2 focus:ring-[#FF8A75]/20"
+                           rows={1}
+                           className="w-full min-h-12 max-h-[120px] resize-none rounded-2xl border-none pl-6 pr-14 py-3.5 text-sm font-medium transition-all outline-none bg-white/10 text-white placeholder:text-white/20 focus:bg-white/15 focus:ring-2 focus:ring-[#FF8A75]/20 custom-scrollbar"
                         />
                         <button
                            onClick={handleSendMessage}
-                           className="absolute right-8 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full text-white flex items-center justify-center transition-all transform active:scale-90 bg-[#FF8A75] hover:bg-[#FF6B4E] shadow-xl shadow-[#FF8A75]/40"
+                           className="absolute right-8 bottom-8 h-10 w-10 rounded-full text-white flex items-center justify-center transition-all transform active:scale-90 bg-[#FF8A75] hover:bg-[#FF6B4E] shadow-xl shadow-[#FF8A75]/40"
                         >
                            <Send className="w-4 h-4" />
                         </button>

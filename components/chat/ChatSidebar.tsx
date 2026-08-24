@@ -41,7 +41,7 @@ export function ChatSidebar({
     }>
   >([]);
   const [isSearching, setIsSearching] = useState(false);
-  const isStaff = ['admin', 'instructor', 'staff'].includes(currentUser.role);
+  const isStaff = ['admin', 'instructor', 'staff', 'client_management'].includes(currentUser.role);
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);

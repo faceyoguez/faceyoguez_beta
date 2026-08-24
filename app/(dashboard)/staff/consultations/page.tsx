@@ -10,6 +10,7 @@ import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { ZoomJoinButton } from '@/components/zoom/ZoomJoinButton';
 import { MessageComposerModal } from '@/components/staff/MessageComposerModal';
+import { DateDivider, isNewDay } from '@/components/chat/DateDivider';
 
 interface ConsultationUser {
   id: string; full_name: string; email: string; phone?: string; avatar_url?: string;
@@ -313,22 +314,32 @@ export default function StaffConsultationsPage() {
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-5 space-y-4">
-            {messages.map(msg => {
+            {messages.map((msg, idx) => {
               const isStaff = msg.sender?.role !== 'student';
               const isSystem = msg.content_type === 'system';
+              const prevMsg = messages[idx - 1];
+              const divider = isNewDay(prevMsg?.created_at, msg.created_at) && (
+                <DateDivider dateStr={msg.created_at} />
+              );
               if (isSystem) return (
-                <div key={msg.id} className="flex justify-center">
-                  <div className="bg-slate-100 text-slate-500 text-xs px-4 py-2 rounded-full max-w-[80%] text-center whitespace-pre-line">{msg.content}</div>
+                <div key={msg.id}>
+                  {divider}
+                  <div className="flex justify-center">
+                    <div className="bg-slate-100 text-slate-500 text-xs px-4 py-2 rounded-full max-w-[80%] text-center whitespace-pre-line">{msg.content}</div>
+                  </div>
                 </div>
               );
               return (
-                <div key={msg.id} className={`flex ${isStaff ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[70%] rounded-2xl px-4 py-3 text-sm ${isStaff ? 'bg-[#FF8A75] text-white rounded-tr-sm' : 'bg-slate-100 text-slate-800 rounded-tl-sm'}`}>
-                    {msg.content_type === 'pdf' || msg.content_type === 'file' ? (
-                      <a href={msg.file_url || '#'} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 underline font-semibold">
-                        <Paperclip className="w-4 h-4" />{msg.file_name || 'File'}
-                      </a>
-                    ) : <p className="whitespace-pre-wrap">{msg.content}</p>}
+                <div key={msg.id}>
+                  {divider}
+                  <div className={`flex ${isStaff ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[70%] rounded-2xl px-4 py-3 text-sm ${isStaff ? 'bg-[#FF8A75] text-white rounded-tr-sm' : 'bg-slate-100 text-slate-800 rounded-tl-sm'}`}>
+                      {msg.content_type === 'pdf' || msg.content_type === 'file' ? (
+                        <a href={msg.file_url || '#'} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 underline font-semibold">
+                          <Paperclip className="w-4 h-4" />{msg.file_name || 'File'}
+                        </a>
+                      ) : <p className="whitespace-pre-wrap">{msg.content}</p>}
+                    </div>
                   </div>
                 </div>
               );

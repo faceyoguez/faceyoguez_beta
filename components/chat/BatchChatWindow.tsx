@@ -4,6 +4,7 @@ import { useRef, useEffect, useState } from 'react';
 import { useBatchMessages } from '@/hooks/useBatchMessages';
 import { MessageBubble } from './MessageBubble';
 import { MessageInput } from './MessageInput';
+import { DateDivider, isNewDay } from './DateDivider';
 import { Loader2, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Profile } from '@/types/database';
@@ -90,15 +91,19 @@ export function BatchChatWindow({
                 !prevMsg || prevMsg.sender_id !== msg.sender_id ||
                 new Date(msg.created_at).getTime() - new Date(prevMsg.created_at).getTime() > 5 * 60 * 1000;
               return (
-                <MessageBubble
-                  key={msg.id}
-                  message={msg}
-                  isOwn={msg.sender_id === currentUser.id}
-                  showSender={showSender}
-                  isMultiParty
-                  dark={dark}
-                  currentUserRole={currentUser.role}
-                />
+                <div key={msg.id}>
+                  {isNewDay(prevMsg?.created_at, msg.created_at) && (
+                    <DateDivider dateStr={msg.created_at} dark={dark} />
+                  )}
+                  <MessageBubble
+                    message={msg}
+                    isOwn={msg.sender_id === currentUser.id}
+                    showSender={showSender}
+                    isMultiParty
+                    dark={dark}
+                    currentUserRole={currentUser.role}
+                  />
+                </div>
               );
             })}
             <div ref={messagesEndRef} className="h-4" />

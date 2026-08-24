@@ -10,6 +10,7 @@ import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import type { ConsultationWithDetails, ConsultationMessageWithSender } from '@/types/consultation';
 import { ZoomJoinButton } from '@/components/zoom/ZoomJoinButton';
+import { DateDivider, isNewDay } from '@/components/chat/DateDivider';
 
 const CONSULTATION_PRICE = 999;
 
@@ -378,22 +379,31 @@ export default function StudentConsultationPage() {
                 <p>No messages yet. Say hi! 👋</p>
               </div>
             )}
-            {messages.map((msg: ConsultationMessageWithSender) => {
+            {messages.map((msg: ConsultationMessageWithSender, idx: number) => {
               const isStaff = msg.sender?.role !== 'student';
               const isSystem = msg.content_type === 'system';
+              const prevMsg = messages[idx - 1];
+              const divider = isNewDay(prevMsg?.created_at, msg.created_at) && (
+                <DateDivider dateStr={msg.created_at} />
+              );
 
               if (isSystem) {
                 return (
-                  <div key={msg.id} className="flex justify-center">
-                    <div className="bg-slate-50 text-slate-400 text-[10px] font-bold uppercase tracking-widest px-5 py-2.5 rounded-full max-w-[80%] text-center whitespace-pre-line leading-relaxed border border-slate-100">
-                      {msg.content}
+                  <div key={msg.id}>
+                    {divider}
+                    <div className="flex justify-center">
+                      <div className="bg-slate-50 text-slate-400 text-[10px] font-bold uppercase tracking-widest px-5 py-2.5 rounded-full max-w-[80%] text-center whitespace-pre-line leading-relaxed border border-slate-100">
+                        {msg.content}
+                      </div>
                     </div>
                   </div>
                 );
               }
 
               return (
-                <div key={msg.id} className={`flex ${isStaff ? 'justify-start' : 'justify-end'}`}>
+                <div key={msg.id}>
+                  {divider}
+                  <div className={`flex ${isStaff ? 'justify-start' : 'justify-end'}`}>
                   <div className={`max-w-[80%] ${isStaff ? 'order-2' : ''}`}>
                     {isStaff && (
                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1.5 ml-1">
@@ -418,6 +428,7 @@ export default function StudentConsultationPage() {
                     <p className={`text-[9px] font-bold text-slate-300 uppercase tracking-widest mt-1.5 ${isStaff ? 'ml-1' : 'text-right mr-1'}`}>
                       {new Date(msg.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}
                     </p>
+                  </div>
                   </div>
                 </div>
               );

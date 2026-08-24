@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useRealtimeMessages } from '@/hooks/useRealtimeMessages';
 import { deleteChatMessage } from '@/lib/actions/chat';
 import { MessageBubble } from './MessageBubble';
+import { DateDivider, isNewDay } from './DateDivider';
 import { MessageInput } from './MessageInput';
 import { Loader2, MessageCircle, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -222,21 +223,25 @@ export function ChatWindow({
                   5 * 60 * 1000;
 
                 return (
-                  <MessageBubble
-                    key={msg.id}
-                    message={msg}
-                    isOwn={msg.sender_id === currentUser.id}
-                    showSender={showSender && (conversationType === 'group' || isMultiParty)}
-                    isMultiParty={isMultiParty}
-                    dark={dark}
-                    currentUserRole={currentUser.role}
-                    onDelete={async () => {
-                      const res = await deleteChatMessage(msg.id, 'chat_messages');
-                      if (!res.success) {
-                        alert(res.error || 'Failed to delete message');
-                      }
-                    }}
-                  />
+                  <div key={msg.id}>
+                    {isNewDay(prevMsg?.created_at, msg.created_at) && (
+                      <DateDivider dateStr={msg.created_at} dark={dark} />
+                    )}
+                    <MessageBubble
+                      message={msg}
+                      isOwn={msg.sender_id === currentUser.id}
+                      showSender={showSender && (conversationType === 'group' || isMultiParty)}
+                      isMultiParty={isMultiParty}
+                      dark={dark}
+                      currentUserRole={currentUser.role}
+                      onDelete={async () => {
+                        const res = await deleteChatMessage(msg.id, 'chat_messages');
+                        if (!res.success) {
+                          alert(res.error || 'Failed to delete message');
+                        }
+                      }}
+                    />
+                  </div>
                 );
               })}
             </div>
