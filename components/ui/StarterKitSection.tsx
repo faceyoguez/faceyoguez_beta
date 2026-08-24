@@ -144,7 +144,7 @@ export function StarterKitSection({ activePlanTypes, className }: StarterKitSect
               </span>
             </div>
             <p className="text-xs text-white/40 font-medium mt-0.5 truncate">
-              The essentials before you dive in — zero fluff, all vibes ✨
+              The essentials before you dive in ✨
             </p>
           </div>
 
