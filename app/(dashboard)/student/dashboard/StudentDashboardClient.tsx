@@ -787,7 +787,7 @@ export function StudentDashboardClient({
               activeMeeting?.meeting_type === 'group_session' && activeMeeting.batch_id ? (
                 <BatchChatWindow batchId={activeMeeting.batch_id} currentUser={profile} title={activeMeeting.host?.full_name || 'Group Chat'} dark className="h-full" />
               ) : (
-                <OneOnOneChat currentUser={profile} hideHeader className="h-full" dark />
+                <OneOnOneChat currentUser={profile} hideHeader className="h-full" dark isMultiParty />
               )
             }
           />

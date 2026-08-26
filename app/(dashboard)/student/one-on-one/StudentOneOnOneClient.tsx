@@ -437,7 +437,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                 <span className="text-xs font-aktiv font-bold text-[#1a1a1a]">Instructor Chat</span>
               </div>
               <div className="flex-1 min-h-0 flex flex-col relative">
-                <OneOnOneChat currentUser={currentUser} hideHeader={true} className="flex-1 min-h-0 w-full border-0" />
+                <OneOnOneChat currentUser={currentUser} hideHeader={true} className="flex-1 min-h-0 w-full border-0" isMultiParty />
               </div>
             </motion.div>
 
@@ -539,7 +539,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
                      </button>
                   </div>
                   <div className="flex-1 min-h-0 flex flex-col relative">
-                     <OneOnOneChat currentUser={currentUser} hideHeader={true} className="flex-1 min-h-0 w-full border-0" />
+                     <OneOnOneChat currentUser={currentUser} hideHeader={true} className="flex-1 min-h-0 w-full border-0" isMultiParty />
                   </div>
                </motion.div>
             </>
@@ -552,7 +552,7 @@ export function StudentOneOnOneClient({ currentUser, hasSubscription, subscripti
           meetingId={activeCallMeetingId}
           type="meeting"
           onClose={() => setActiveCallMeetingId(null)}
-          chatPanel={<OneOnOneChat currentUser={currentUser} hideHeader className="h-full" dark />}
+          chatPanel={<OneOnOneChat currentUser={currentUser} hideHeader className="h-full" dark isMultiParty />}
         />
       )}
 
