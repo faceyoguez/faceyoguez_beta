@@ -11,7 +11,7 @@ import { z } from 'zod';
 import AuthLayout from '@/components/auth/AuthLayout';
 import AuthInput from '@/components/auth/AuthInput';
 import AuthButton from '@/components/auth/AuthButton';
-import { getRoleRedirectPath } from '@/lib/utils/auth';
+import { getRoleRedirectPath, getAuthContextCopy } from '@/lib/utils/auth';
 import { useSearchParams } from 'next/navigation';
 import { pixel } from '@/lib/pixel';
 
@@ -221,10 +221,12 @@ export default function SignUpForm() {
     }
   };
 
+  const paymentContext = getAuthContextCopy(searchParams.get('redirectTo') || searchParams.get('next'));
+
   return (
-    <AuthLayout 
-      title="Begin your journey" 
-      subtitle="Create your sanctuary and start practicing face yoga today."
+    <AuthLayout
+      title={paymentContext?.title || "Begin your journey"}
+      subtitle={paymentContext?.subtitle || "Create your sanctuary and start practicing face yoga today."}
       isSignup={true}
     >
       <form onSubmit={handleSignUp} className="space-y-3">

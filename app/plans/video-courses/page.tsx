@@ -6,6 +6,7 @@ import { PlanNavigation } from '@/components/marketing/PlanNavigation';
 import { LuxuryBackground } from '@/components/marketing/LuxuryBackground';
 import { useEffect } from 'react';
 import { pixel } from '@/lib/pixel';
+import { startGuestBrowsing } from '@/lib/guestSession';
 
 export default function VideoCoursesPage() {
   useEffect(() => {
@@ -234,8 +235,7 @@ export default function VideoCoursesPage() {
                   onClick={() => {
                     pixel.planCtaClicked({ planId: 'lms', planLabel: 'Video Courses', buttonLabel: 'Unlock Lifetime Access' });
                     pixel.initiateCheckout({ value: 1499, planId: 'lms', planLabel: 'Video Courses — L1+L2' });
-                    const redirectPath = '/student/plans?plan=lms';
-                    window.location.href = `/auth/signup?redirectTo=${encodeURIComponent(redirectPath)}`;
+                    startGuestBrowsing('/student/plans?plan=lms');
                   }}
                   className="w-full py-5 bg-[#2c2525] text-white rounded-xl text-[14px] font-semibold uppercase tracking-widest hover:bg-[#e76f51] transition-all duration-500 shadow-xl"
                >
@@ -262,8 +262,7 @@ export default function VideoCoursesPage() {
            <button 
               onClick={() => {
                 pixel.initiateCheckout({ value: 1499, planId: 'lms', planLabel: 'Video Courses — Footer CTA' });
-                const redirectPath = '/student/plans?plan=lms';
-                window.location.href = `/auth/signup?redirectTo=${encodeURIComponent(redirectPath)}`;
+                startGuestBrowsing('/student/plans?plan=lms');
               }}
               className="text-[10px] font-black uppercase tracking-[0.5em] text-[#2c2525] border-b border-[#e76f51] pb-2 hover:opacity-60 transition-opacity"
            >

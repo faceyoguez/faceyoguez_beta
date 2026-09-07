@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion, useInView, Variants, useAnimationFrame } from 'framer-motion';
 import { pixel } from '@/lib/pixel';
+import { startGuestBrowsing } from '@/lib/guestSession';
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 30 },
@@ -230,9 +231,11 @@ export function Testimonials({ hideCTA = false }: TestimonialsProps = {}) {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="flex justify-center mt-8 md:mt-12 relative z-20"
         >
-          <a
-            href="/auth/signup?redirectTo=/student/plans"
-            onClick={() => pixel.initiateCheckout({ value: 999, planId: 'consultation', planLabel: '1-on-1 Consultation' })}
+          <button
+            onClick={() => {
+              pixel.initiateCheckout({ value: 999, planId: 'consultation', planLabel: '1-on-1 Consultation' });
+              startGuestBrowsing('/student/plans');
+            }}
             className="group relative inline-flex items-center justify-center px-6 md:px-8 py-4 text-sm md:text-base font-bold text-white bg-[#2a2019] hover:bg-[#e76f51] rounded-full transition-all duration-500 overflow-hidden shadow-2xl"
           >
             <span className="relative z-10 flex items-center gap-2">
@@ -242,7 +245,7 @@ export function Testimonials({ hideCTA = false }: TestimonialsProps = {}) {
               </svg>
             </span>
             <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-in-out" />
-          </a>
+          </button>
         </motion.div>
       )}
     </section>

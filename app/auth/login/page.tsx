@@ -10,7 +10,7 @@ import { ArrowRight, Facebook, Instagram } from 'lucide-react';
 import AuthLayout from '@/components/auth/AuthLayout';
 import AuthInput from '@/components/auth/AuthInput';
 import AuthButton from '@/components/auth/AuthButton';
-import { getRoleRedirectPath, fetchUserRole } from '@/lib/utils/auth';
+import { getRoleRedirectPath, fetchUserRole, getAuthContextCopy } from '@/lib/utils/auth';
 import { pixel } from '@/lib/pixel';
 
 const GoogleIcon = () => (
@@ -129,10 +129,12 @@ function LoginContent() {
     }
   };
 
+  const paymentContext = getAuthContextCopy(searchParams.get('redirectTo') || searchParams.get('next'));
+
   return (
-    <AuthLayout 
-      title="Welcome back" 
-      subtitle="Sign in to continue your face yoga sanctuary."
+    <AuthLayout
+      title={paymentContext?.title || "Welcome back"}
+      subtitle={paymentContext?.subtitle || "Sign in to continue your face yoga sanctuary."}
     >
       <form onSubmit={handleLogin} className="space-y-6">
         <AuthInput

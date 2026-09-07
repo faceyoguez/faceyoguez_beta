@@ -15,6 +15,12 @@ export default async function DashboardLayout({
   const user = await getServerUser();
   if (!user) redirect('/auth/login');
 
+  // Guests (Supabase anonymous sign-in) pass the check above just like a
+  // real user — they get the same "browse everything, locked" experience
+  // as a registered-but-unsubscribed student, and only register for real
+  // right before payment (see GuestUpgradeModal).
+  const isGuest = !!(user as any).is_anonymous;
+
   // Enforce Email Verification for Dashboard Access (except for profile page)
   const headerList = await headers();
   const currentPath = headerList.get('x-pathname') || ''; 
@@ -66,10 +72,19 @@ export default async function DashboardLayout({
       activePlans={activePlans}
       unreadNotificationsCount={unreadNotificationsCount}
       isVerified={isVerified}
+      isGuest={isGuest}
     >
       <div className="relative flex-1 flex flex-col min-h-full">
+        {/* Guests have no email to verify yet — that only happens when they
+            register at payment, so skip the verification wall for them. */}
+        {isGuest && (
+          <div className="sticky top-0 z-50 bg-[#e76f51] text-white text-center text-[11px] font-bold uppercase tracking-widest py-2.5 px-4">
+            You're browsing as a guest — register to save your progress and unlock a plan.
+          </div>
+        )}
+
         {/* Enforce Email Verification Overlay */}
-        {!user.email_confirmed_at && (
+        {!isGuest && !user.email_confirmed_at && (
           <div className="absolute inset-0 z-[100] bg-white/60 backdrop-blur-md flex items-center justify-center p-6 text-center">
             <div className="max-w-md p-8 bg-white rounded-[2.5rem] premium-shadow border border-zen-peach/20 animate-in fade-in zoom-in duration-500">
               <div className="w-16 h-16 bg-zen-peach/10 rounded-2xl flex items-center justify-center mx-auto mb-6">

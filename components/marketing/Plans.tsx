@@ -7,6 +7,7 @@ import { User, Users, BookOpen, ArrowRight, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { trackConversionEvent } from '@/lib/conversionTracking';
 import { pixel } from '@/lib/pixel';
+import { startGuestBrowsing } from '@/lib/guestSession';
 
 const PLANS_PREVIEW: any[] = [
   {
@@ -137,19 +138,19 @@ export function Plans() {
               onClick={() => {
                 pixel.planCardClicked({ planId: plan.id, planTitle: plan.title });
                 if (plan.id === 'group_session') {
-                  window.location.href = 'https://www.faceyoguez.com/plans/live-group';
+                  window.location.href = '/plans/live-group';
                   return;
                 }
                 if (plan.id === 'one_on_one') {
-                  window.location.href = 'https://www.faceyoguez.com/plans/personal-classes';
+                  window.location.href = '/plans/personal-classes';
                   return;
                 }
                 if (plan.id === 'lms') {
-                  window.location.href = 'https://www.faceyoguez.com/plans/personal-classes';
+                  window.location.href = '/plans/video-courses';
                   return;
                 }
-                
-                window.location.href = '/auth/signup';
+
+                startGuestBrowsing('/student/plans');
               }}
               className={`group p-6 md:p-8 rounded-[2rem] transition-all duration-500 relative cursor-pointer flex flex-col border ${plan.popular
                   ? 'bg-white border-[#e76f51]/20 shadow-[0_32px_80px_rgba(231,111,81,0.08)]'
@@ -231,7 +232,7 @@ export function Plans() {
           <div 
             onClick={() => {
               pixel.initiateCheckout({ value: 999, planId: 'consultation', planLabel: 'Book a Consultation' });
-              window.location.href = `/auth/signup`;
+              startGuestBrowsing('/student/plans?plan=one_on_one');
             }}
             className="relative group w-full sm:w-auto cursor-pointer"
           >

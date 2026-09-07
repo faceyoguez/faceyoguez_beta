@@ -12,6 +12,12 @@ export default async function PlansPage() {
         redirect('/auth/login');
     }
 
+    // Guests (Supabase anonymous sign-in) are a real `user` above, so they
+    // pass through here — same locked-plans browsing experience as a real
+    // signed-up-but-unsubscribed student. They only register for real right
+    // before payment (see GuestUpgradeModal in PlansClient).
+    const isGuest = !!(user as any).is_anonymous;
+
     const admin = createAdminClient();
 
     // Get current user profile
@@ -45,6 +51,7 @@ export default async function PlansPage() {
                 userId={user.id}
                 currentUser={profile}
                 hasActiveSubscription={hasActiveSubscription}
+                isGuest={isGuest}
             />
         </Suspense>
     );

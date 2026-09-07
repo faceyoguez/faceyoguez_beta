@@ -20,6 +20,26 @@ export function getRoleRedirectPath(role?: string | null): string {
 }
 
 /**
+ * When a visitor is sent to sign-up/login because they clicked a plan or
+ * consultation CTA (redirectTo points at the plans/payment step), show a
+ * message that explains why they're being asked to register — instead of
+ * the generic "create your account" copy — right before they pay.
+ */
+export function getAuthContextCopy(redirectTo?: string | null): { title: string; subtitle: string } | null {
+  if (!redirectTo) return null;
+  // searchParams.get() already URL-decodes the value once — decoding again here
+  // would mangle it if the path ever contains a literal '%'.
+  const isPaymentContext = redirectTo.includes('/student/plans') || redirectTo.includes('plan=');
+
+  if (!isPaymentContext) return null;
+
+  return {
+    title: 'Almost there',
+    subtitle: 'Register to complete your payment and secure your spot.',
+  };
+}
+
+/**
  * Fetches the user role from the profiles table.
  * Used for both client-side and server-side role retrieval.
  */

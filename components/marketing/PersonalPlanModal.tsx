@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, ArrowRight, Sparkles } from 'lucide-react';
 import { useEffect } from 'react';
+import { startGuestBrowsing } from '@/lib/guestSession';
 
 interface PersonalPlanModalProps {
   isOpen: boolean;
@@ -202,7 +203,7 @@ export function PersonalPlanModal({ isOpen, onClose }: PersonalPlanModalProps) {
              <button 
                 onClick={() => {
                   onClose();
-                  window.location.href = '/auth/signup';
+                  startGuestBrowsing('/student/plans?plan=one_on_one');
                 }}
                 className="w-full bg-[#2a2019] text-white py-4 rounded-full text-[10px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-[#2a2019]/90 transition-all shadow-xl"
              >

@@ -17,6 +17,7 @@ import type { Profile } from '@/types/database';
 import { consumeCouponAction } from '@/lib/actions/coupons';
 import { pixel } from '@/lib/pixel';
 import { SupportContact } from '@/components/ui/SupportContact';
+import { GuestUpgradeModal } from '@/components/marketing/GuestUpgradeModal';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPERS
@@ -51,11 +52,14 @@ interface Props {
     userId: string;
     currentUser?: Profile | null;
     hasActiveSubscription?: boolean;
+    /** Browsing as a guest (anonymous account) — must register before paying. */
+    isGuest?: boolean;
 }
 
-export default function PlansClient({ currentSubscription, userId, currentUser, hasActiveSubscription = false }: Props) {
+export default function PlansClient({ currentSubscription, userId, currentUser, hasActiveSubscription = false, isGuest = false }: Props) {
     const searchParams = useSearchParams();
     const router = useRouter();
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
     // Toggle this flag to show/hide the Personal 1-on-1 Classes in the plans page
     const HIDE_ONE_ON_ONE = false;
@@ -1016,7 +1020,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                 </div>
                             </div>
                             <button
-                                onClick={handleProceed}
+                                onClick={() => isGuest ? setShowUpgradeModal(true) : handleProceed()}
                                 disabled={loading}
                                 className="w-full py-5 bg-[#FF8A75] hover:bg-[#ff705a] text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-lg shadow-[#FF8A75]/20"
                             >
@@ -1038,6 +1042,16 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                     scrollbar-width: none;
                 }
             `}</style>
+
+            {showUpgradeModal && (
+                <GuestUpgradeModal
+                    onClose={() => setShowUpgradeModal(false)}
+                    onSuccess={() => {
+                        setShowUpgradeModal(false);
+                        handleProceed();
+                    }}
+                />
+            )}
         </div>
     );
 }

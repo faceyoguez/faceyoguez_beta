@@ -20,6 +20,13 @@ export async function getConversationIdForBatch(batchId: string) {
 export async function sendMessageToBatch(conversationId: string, content: string, senderId: string) {
   const supabase = await createServerSupabaseClient();
 
+  // Guests (anonymous browsing accounts) can look around the locked
+  // dashboard, but can't message real staff/instructors until they
+  // actually register.
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+  if ((user as any).is_anonymous) throw new Error('Please register to send messages.');
+
   // First verify if chat is enabled
   const { data: conv } = await supabase
     .from('conversations')
@@ -406,6 +413,10 @@ export async function sendChatMessage(
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
+  // Guests (anonymous browsing accounts) can look around the locked
+  // dashboard, but can't message real staff/instructors until they
+  // actually register — that only guards the UI otherwise.
+  if ((user as any).is_anonymous) throw new Error('Please register to send messages.');
 
   const admin = createAdminClient();
 
@@ -659,6 +670,13 @@ export async function getBatchMessages(batchId: string, before?: string) {
 export async function sendBatchMessage(batchId: string, content: string, senderId: string) {
   const supabase = await createServerSupabaseClient();
   const admin = createAdminClient();
+
+  // Guests (anonymous browsing accounts) can look around the locked
+  // dashboard, but can't message real staff/instructors until they
+  // actually register.
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: 'Not authenticated' };
+  if ((user as any).is_anonymous) return { success: false, error: 'Please register to send messages.' };
 
   // Verify user is part of batch, or is staff/instructor
   const { data: senderProfile } = await admin.from('profiles').select('role').eq('id', senderId).single();

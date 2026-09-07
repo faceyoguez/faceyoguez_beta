@@ -7,6 +7,7 @@ import { Check, MessageCircle, Calendar, ShieldCheck, Heart, Camera, Zap } from 
 import { PlanNavigation } from '@/components/marketing/PlanNavigation';
 import { LuxuryBackground } from '@/components/marketing/LuxuryBackground';
 import { pixel } from '@/lib/pixel';
+import { startGuestBrowsing } from '@/lib/guestSession';
 
 declare global {
   interface Window {
@@ -61,12 +62,12 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
   const handleConsultationPurchase = async () => {
     // Per user logic: clicking consultation redirects to plans section on the sidebar
     const redirectPath = '/student/plans?plan=one_on_one';
-    
+
     if (!userId) {
-      window.location.href = `/auth/signup?redirectTo=${encodeURIComponent(redirectPath)}`;
+      await startGuestBrowsing(redirectPath);
       return;
-    } 
-    
+    }
+
     // If logged in, we check if they already have an active consultation
     // However, per user request: "if some one clicks on consultation redirect to plans section on the sidebar"
     // So we just redirect them to plans.
@@ -75,8 +76,12 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
 
   const handlePlanPurchase = async (tierIdx: number) => {
     pixel.planCtaClicked({ planId: 'one_on_one', planLabel: '1-on-1 Personal Coaching', buttonLabel: TIERS[tierIdx].label });
-    const redirectPath = encodeURIComponent(`/student/plans?plan=one_on_one&tierIdx=${tierIdx}`);
-    window.location.href = `/auth/signup?redirectTo=${redirectPath}`;
+    const redirectPath = `/student/plans?plan=one_on_one&tierIdx=${tierIdx}`;
+    if (!userId) {
+      await startGuestBrowsing(redirectPath);
+      return;
+    }
+    router.push(redirectPath);
   };
 
   return (
@@ -336,7 +341,7 @@ export default function PersonalClassesPage({ userId, hasCredit, hasActiveConsul
         <button
           onClick={() => {
             pixel.initiateCheckout({ value: TIERS[1].disc, planId: 'one_on_one', planLabel: 'Personal Classes — Footer CTA' });
-            window.location.href = '/auth/signup';
+            startGuestBrowsing('/student/plans?plan=one_on_one&tierIdx=1');
           }}
           className="text-[10px] font-black uppercase tracking-[0.5em] text-[#2c2525] border-b border-[#e76f51] pb-2 hover:opacity-60 transition-opacity"
         >

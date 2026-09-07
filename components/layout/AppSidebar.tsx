@@ -110,6 +110,8 @@ interface AppSidebarProps {
   activePlans?: string[];
   unreadNotificationsCount?: number;
   isVerified?: boolean;
+  /** Browsing as a guest (anonymous account) — not registered yet. */
+  isGuest?: boolean;
   children: React.ReactNode;
 }
 
@@ -118,6 +120,7 @@ export function AppSidebar({
   activePlans = [],
   unreadNotificationsCount = 0,
   isVerified = true,
+  isGuest = false,
   children,
 }: AppSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
@@ -176,7 +179,10 @@ export function AppSidebar({
   const touchStartX = useRef<number | null>(null);
 
   const router = useRouter();
-  const links = navConfig[user.role as keyof typeof navConfig] ?? navConfig.student;
+  // Guests can't message staff (blocked server-side too), so hide the
+  // Consultation link rather than send them to a dead end.
+  const links = (navConfig[user.role as keyof typeof navConfig] ?? navConfig.student)
+    .filter((link) => !isGuest || link.path !== '/student/consultation');
 
   const toggle = useCallback(() => setCollapsed((p) => !p), []);
 

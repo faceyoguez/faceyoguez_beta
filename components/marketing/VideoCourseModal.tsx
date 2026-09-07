@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, ArrowRight, PlayCircle, BookOpen, Layers } from 'lucide-react';
 import { useEffect } from 'react';
+import { startGuestBrowsing } from '@/lib/guestSession';
 
 interface VideoCourseModalProps {
   isOpen: boolean;
@@ -166,7 +167,7 @@ export function VideoCourseModal({ isOpen, onClose }: VideoCourseModalProps) {
           </div>
 
           <div className="flex-shrink-0 p-6 bg-[#faf7f2] border-t border-[#2a2019]/5">
-             <button onClick={() => { onClose(); window.location.href='/auth/signup'; }} className="w-full bg-[#2a2019] text-white py-4 rounded-full text-[10px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-[#2a2019]/90 transition-all shadow-xl">
+             <button onClick={() => { onClose(); startGuestBrowsing('/student/plans?plan=lms'); }} className="w-full bg-[#2a2019] text-white py-4 rounded-full text-[10px] font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:bg-[#2a2019]/90 transition-all shadow-xl">
                Get Lifetime Access <ArrowRight className="w-4 h-4" />
              </button>
           </div>

@@ -6,6 +6,7 @@ import { PlanNavigation } from '@/components/marketing/PlanNavigation';
 import { LuxuryBackground } from '@/components/marketing/LuxuryBackground';
 import { useEffect } from 'react';
 import { pixel } from '@/lib/pixel';
+import { startGuestBrowsing } from '@/lib/guestSession';
 
 
 export default function LiveGroupPage() {
@@ -188,8 +189,7 @@ export default function LiveGroupPage() {
                        onClick={() => {
                          pixel.planCtaClicked({ planId: 'group_session', planLabel: 'Live Group', buttonLabel: '1 Month Plan' });
                          pixel.initiateCheckout({ value: 1499, planId: 'group_session', planLabel: '1 Month Plan — Early Bird' });
-                         const redirectPath = encodeURIComponent('/student/plans?plan=group_session&tierIdx=0');
-                         window.location.href = `/auth/signup?redirectTo=${redirectPath}`;
+                         startGuestBrowsing('/student/plans?plan=group_session&tierIdx=0');
                        }}
                      >
                         <div className="flex justify-between items-start mb-3">
@@ -210,8 +210,7 @@ export default function LiveGroupPage() {
                        onClick={() => {
                          pixel.planCtaClicked({ planId: 'group_session', planLabel: 'Live Group', buttonLabel: '3 Months Plan' });
                          pixel.initiateCheckout({ value: 3499, planId: 'group_session', planLabel: '3 Months Plan — Best Value' });
-                         const redirectPath = encodeURIComponent('/student/plans?plan=group_session&tierIdx=1');
-                         window.location.href = `/auth/signup?redirectTo=${redirectPath}`;
+                         startGuestBrowsing('/student/plans?plan=group_session&tierIdx=1');
                        }}
                      >
                         <div className="absolute top-0 right-4 -translate-y-1/2 bg-[#e76f51] text-white text-[7px] font-black px-3 py-0.5 rounded-full tracking-widest uppercase">Most Popular</div>
@@ -233,8 +232,7 @@ export default function LiveGroupPage() {
                     onClick={() => {
                       pixel.planCtaClicked({ planId: 'group_session', planLabel: 'Live Group', buttonLabel: 'Join Transformation' });
                       pixel.initiateCheckout({ value: 1499, planId: 'group_session', planLabel: 'Live Group — 21 Days' });
-                      const redirectPath = encodeURIComponent('/student/plans?plan=group_session&tierIdx=0');
-                      window.location.href = `/auth/signup?redirectTo=${redirectPath}`;
+                      startGuestBrowsing('/student/plans?plan=group_session&tierIdx=0');
                     }}
                     className="w-full py-5 bg-[#2c2525] text-white rounded-xl text-[14px] font-semibold uppercase tracking-widest hover:bg-[#e76f51] transition-all duration-500 shadow-lg shadow-[#e76f51]/10"
                   >
@@ -258,8 +256,7 @@ export default function LiveGroupPage() {
            <button 
               onClick={() => {
                 pixel.initiateCheckout({ value: 1499, planId: 'group_session', planLabel: 'Live Group — Footer CTA' });
-                const redirectPath = encodeURIComponent('/student/plans?plan=group_session');
-                window.location.href = `/auth/signup?redirectTo=${redirectPath}`;
+                startGuestBrowsing('/student/plans?plan=group_session');
               }}
               className="text-[10px] font-black uppercase tracking-[0.5em] text-[#2c2525] border-b border-[#e76f51] pb-2 hover:opacity-60 transition-opacity"
            >
