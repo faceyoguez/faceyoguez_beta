@@ -28,6 +28,7 @@ export function GuestUpgradeModal({ onClose, onSuccess }: GuestUpgradeModalProps
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(false);
   const [resending, setResending] = useState(false);
@@ -94,15 +95,18 @@ export function GuestUpgradeModal({ onClose, onSuccess }: GuestUpgradeModalProps
     }
   };
 
-  const handleCheckVerified = async () => {
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otp.trim().length < 6) return setError('Enter the 6-digit code from your email.');
+    setError('');
     setChecking(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user?.email_confirmed_at) {
+      const { error: otpError } = await supabase.auth.verifyOtp({ email, token: otp.trim(), type: 'email_change' });
+      if (otpError) {
+        setError('That code is invalid or expired — check the latest email, or resend below.');
+      } else {
         toast.success('Email verified! Continuing to payment…');
         onSuccess();
-      } else {
-        toast.info("Not verified yet — click the link in your email first, then try again.");
       }
     } finally {
       setChecking(false);
@@ -226,24 +230,41 @@ export function GuestUpgradeModal({ onClose, onSuccess }: GuestUpgradeModalProps
 
               <h2 className="text-2xl font-aktiv font-bold text-[#2a2019] mb-2">Verify your email</h2>
               <p className="text-sm text-slate-500 mb-6 leading-relaxed">
-                We sent a verification link to <span className="font-bold text-[#2a2019]">{email}</span>. Click it,
-                then come back here and press Continue — this only takes a moment.
+                We sent a 6-digit code to <span className="font-bold text-[#2a2019]">{email}</span>. Enter it below to continue.
               </p>
 
-              <button
-                onClick={handleCheckVerified}
-                disabled={checking}
-                className="w-full py-4 bg-[#2a2019] hover:bg-[#e76f51] text-white rounded-xl text-xs font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2"
-              >
-                {checking ? <Loader2 className="w-4 h-4 animate-spin" /> : "I've verified — Continue"}
-              </button>
+              <form onSubmit={handleVerifyOtp} className="space-y-3">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  placeholder="6-digit code"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                  className="w-full px-4 py-3.5 rounded-xl border border-slate-200 text-center text-lg tracking-[0.4em] font-bold focus:outline-none focus:ring-2 focus:ring-[#e76f51]/30 focus:border-[#e76f51]"
+                />
+
+                {error && (
+                  <div className="text-xs font-medium text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={checking}
+                  className="w-full py-4 bg-[#2a2019] hover:bg-[#e76f51] text-white rounded-xl text-xs font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2"
+                >
+                  {checking ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Verify & Continue'}
+                </button>
+              </form>
 
               <button
                 onClick={handleResend}
                 disabled={resending}
                 className="w-full py-3 mt-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-[#e76f51] transition-colors flex items-center justify-center gap-2"
               >
-                {resending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Resend verification email'}
+                {resending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Resend code'}
               </button>
 
               <p className="text-[10px] text-slate-400 text-center mt-2">
