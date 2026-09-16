@@ -29,6 +29,16 @@ function PurchaseSuccessContent() {
     const [showThankYou, setShowThankYou] = useState(true);
     const [showStarterPackTeaser, setShowStarterPackTeaser] = useState(false);
 
+    // A guest who just registered + verified + paid is now a fully real
+    // account — refresh once we've already landed on this page (not
+    // alongside the router.push() that got us here, which causes a race
+    // condition elsewhere in this flow) so the shared dashboard layout
+    // re-fetches fresh server data: the "browsing as a guest" banner
+    // drops and the sidebar picks up their real name.
+    useEffect(() => {
+        router.refresh();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Verify subscription actually exists in DB (guards against direct URL access)
     useEffect(() => {

@@ -234,6 +234,10 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                         planLabel: currentPlan.title,
                     });
                     toast.success('Plan activated! Welcome to Faceyoguez 🎉');
+                    // NOTE: Do NOT call router.refresh() here — see the matching note
+                    // below in the Razorpay success handler for why (race condition
+                    // with router.push() that trips the error boundary). The guest
+                    // banner/sidebar refresh happens on the purchase-success page itself.
                     router.push(`/student/purchase-success?plan=${selectedPlanId}&variant=${selectedTierId}`);
                 } else {
                     toast.error(freeData.error || 'Could not activate free plan. Please contact support.');

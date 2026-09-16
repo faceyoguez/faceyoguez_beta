@@ -298,7 +298,7 @@ export function ExpiringStudentsCard({ stat }: { stat: Stat }) {
                                   <img src="/assets/gmail_icon.png" alt="Gmail" className="w-6 h-6 object-contain" />
                                 </button>
                               )}
-                              {s.phone && (
+                              {s.phone ? (
                                 <button
                                   type="button"
                                   onClick={() => setComposer({ channel: 'whatsapp', student: s })}
@@ -307,6 +307,21 @@ export function ExpiringStudentsCard({ stat }: { stat: Stat }) {
                                 >
                                   <img src="/assets/whatsapp_icon.png" alt="WhatsApp" className="w-6 h-6 object-contain" />
                                 </button>
+                              ) : (
+                                <div
+                                  title="Number not provided"
+                                  className="flex flex-col items-center gap-0.5 cursor-not-allowed"
+                                >
+                                  <div className="h-7 w-7 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center shadow-sm relative overflow-hidden">
+                                    <img src="/assets/whatsapp_icon.png" alt="WhatsApp" className="w-6 h-6 object-contain opacity-25 grayscale" />
+                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                      <div className="w-[150%] h-[1.5px] bg-red-400/70 rotate-45" />
+                                    </div>
+                                  </div>
+                                  <span className="text-[7px] font-bold uppercase tracking-wide text-slate-400 whitespace-nowrap leading-none">
+                                    No number
+                                  </span>
+                                </div>
                               )}
                             </div>
                           </td>
@@ -340,7 +355,7 @@ export function ExpiringStudentsCard({ stat }: { stat: Stat }) {
                                 <img src="/assets/gmail_icon.png" alt="Gmail" className="w-6 h-6 object-contain" />
                               </button>
                             )}
-                            {s.phone && (
+                            {s.phone ? (
                               <button
                                 type="button"
                                 onClick={() => setComposer({ channel: 'whatsapp', student: s })}
@@ -349,6 +364,21 @@ export function ExpiringStudentsCard({ stat }: { stat: Stat }) {
                               >
                                 <img src="/assets/whatsapp_icon.png" alt="WhatsApp" className="w-6 h-6 object-contain" />
                               </button>
+                            ) : (
+                              <div
+                                title="Number not provided"
+                                className="flex flex-col items-center gap-0.5 cursor-not-allowed"
+                              >
+                                <div className="h-7 w-7 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center shadow-sm relative overflow-hidden">
+                                  <img src="/assets/whatsapp_icon.png" alt="WhatsApp" className="w-6 h-6 object-contain opacity-25 grayscale" />
+                                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                    <div className="w-[150%] h-[1.5px] bg-red-400/70 rotate-45" />
+                                  </div>
+                                </div>
+                                <span className="text-[7px] font-bold uppercase tracking-wide text-slate-400 whitespace-nowrap leading-none">
+                                  No number
+                                </span>
+                              </div>
                             )}
                           </div>
                         </div>

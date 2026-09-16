@@ -17,24 +17,33 @@ export default async function StudentLmsPage() {
     getServerProfile(user.id),
     admin
       .from('subscriptions')
-      .select('plan_variant, status, created_at, end_date, metadata')
+      .select('plan_type, plan_variant, status, created_at, end_date, metadata')
       .eq('student_id', user.id)
       .eq('status', 'active')
       .or(`end_date.is.null,end_date.gte.${today}`)
-      .order('created_at', { ascending: false })
-      .limit(1),
+      .order('created_at', { ascending: false }),
   ]);
 
   const subscriptionStartDate = subscriptions?.[0]?.created_at || null;
 
   const isAdmin = ['admin', 'instructor', 'staff', 'client_management'].includes(profile?.role || '');
-  const hasActiveSub = (subscriptions && subscriptions.length > 0) || isAdmin;
-  const hasLevel2 = (subscriptions as any[])?.some(s => 
-    s.plan_variant?.includes('Level 2') ||
-    s.plan_variant?.includes('level_1_2') ||
+
+  // Check if student has active LMS access (via LMS plan or recorded course bump)
+  const hasLmsSub = (subscriptions as any[])?.some(s => 
+    s.plan_type === 'lms' ||
     s.metadata?.bumps?.includes('bump_recorded') ||
     s.metadata?.bumps?.includes('bump_recorded_1_1') ||
-    s.metadata?.bumps?.includes('bump_upgrade_l12')
+    s.metadata?.bumps?.includes('bump_upgrade_l12') ||
+    s.metadata?.has_lms_access === true
+  );
+
+  const hasActiveSub = hasLmsSub || isAdmin;
+
+  const hasLevel2 = (subscriptions as any[])?.some(s => 
+    (s.plan_type === 'lms' && (s.plan_variant?.includes('level_1_2') || s.plan_variant?.includes('Level 2'))) ||
+    s.metadata?.bumps?.includes('bump_recorded_1_1') ||
+    s.metadata?.bumps?.includes('bump_upgrade_l12') ||
+    s.metadata?.has_level_2_access === true
   ) || isAdmin;
 
   // 2. Fetch courses + progress in parallel

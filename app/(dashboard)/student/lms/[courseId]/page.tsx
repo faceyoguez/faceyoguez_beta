@@ -51,17 +51,25 @@ export default async function CourseViewerPage({ params }: PageProps) {
 
   const { data: activeSubscriptions } = await admin
     .from('subscriptions')
-    .select('plan_variant, is_trial, metadata')
+    .select('plan_type, plan_variant, is_trial, metadata')
     .eq('student_id', user.id)
     .eq('status', 'active');
 
-  const hasActiveSub = (activeSubscriptions && activeSubscriptions.length > 0) || isAdmin;
-  const hasLevel2 = activeSubscriptions?.some((s: any) => 
-    s.plan_variant?.includes('Level 2') ||
-    s.plan_variant?.includes('level_1_2') ||
+  const hasLmsSub = activeSubscriptions?.some((s: any) => 
+    s.plan_type === 'lms' ||
     s.metadata?.bumps?.includes('bump_recorded') ||
     s.metadata?.bumps?.includes('bump_recorded_1_1') ||
-    s.metadata?.bumps?.includes('bump_upgrade_l12')
+    s.metadata?.bumps?.includes('bump_upgrade_l12') ||
+    s.metadata?.has_lms_access === true
+  );
+
+  const hasActiveSub = hasLmsSub || isAdmin;
+
+  const hasLevel2 = activeSubscriptions?.some((s: any) => 
+    (s.plan_type === 'lms' && (s.plan_variant?.includes('level_1_2') || s.plan_variant?.includes('Level 2'))) ||
+    s.metadata?.bumps?.includes('bump_recorded_1_1') ||
+    s.metadata?.bumps?.includes('bump_upgrade_l12') ||
+    s.metadata?.has_level_2_access === true
   ) || isAdmin;
 
   const isLevelAllowed = isAdmin || (course.level === 1 

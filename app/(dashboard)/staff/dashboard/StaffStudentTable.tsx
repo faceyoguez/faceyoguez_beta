@@ -48,6 +48,10 @@ export function StaffStudentTable() {
   const [dateFilterOpen, setDateFilterOpen] = useState(false);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  // Which date the filter/sort applies to — joining date (default, newest
+  // first) or subscription expiry (soonest-expiring first, so staff can
+  // prioritize renewal outreach).
+  const [dateFilterMode, setDateFilterMode] = useState<'joining' | 'expiry'>('joining');
   const dateFilterRef = useRef<HTMLDivElement>(null);
   const itemsPerPage = 8;
 
@@ -100,9 +104,11 @@ export function StaffStudentTable() {
     }
   }
 
-  // ── Search + Join-Date Filtering ──
+  // ── Search + Date Filtering (by joining date or by expiry, per toggle) ──
   const filteredStudents = useMemo(() => {
-    return students.filter(s => {
+    const filterField = dateFilterMode === 'expiry' ? 'subscriptionEnd' : 'joinDate';
+
+    const filtered = students.filter(s => {
       const nameMatch = s.name?.toLowerCase().includes(searchTerm.toLowerCase());
       const emailMatch = s.email?.toLowerCase().includes(searchTerm.toLowerCase());
       const planMatch = s.plan?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -112,15 +118,29 @@ export function StaffStudentTable() {
       if (!searchOk) return false;
 
       if (dateFrom || dateTo) {
-        if (!s.joinDate) return false;
-        const joinDay = s.joinDate.slice(0, 10); // yyyy-MM-dd, safe for lexical comparison
-        if (dateFrom && joinDay < dateFrom) return false;
-        if (dateTo && joinDay > dateTo) return false;
+        const dateVal = s[filterField];
+        if (!dateVal) return false;
+        const day = dateVal.slice(0, 10); // yyyy-MM-dd, safe for lexical comparison
+        if (dateFrom && day < dateFrom) return false;
+        if (dateTo && day > dateTo) return false;
       }
 
       return true;
     });
-  }, [students, searchTerm, dateFrom, dateTo]);
+
+    // Expiry mode: always list soonest-expiring first, so staff can
+    // prioritize renewal outreach — students with no expiry go last.
+    // Joining mode keeps the incoming newest-first order as-is.
+    if (dateFilterMode === 'expiry') {
+      return [...filtered].sort((a, b) => {
+        if (!a.subscriptionEnd) return 1;
+        if (!b.subscriptionEnd) return -1;
+        return a.subscriptionEnd.localeCompare(b.subscriptionEnd);
+      });
+    }
+
+    return filtered;
+  }, [students, searchTerm, dateFrom, dateTo, dateFilterMode]);
 
   // ── Pagination ──
   const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
@@ -152,28 +172,61 @@ export function StaffStudentTable() {
         </div>
 
         <div className="flex gap-2 w-full md:w-auto md:max-w-lg flex-1">
-          {/* Join-Date Filter */}
+          {/* Date Filter — by Joining date or by Expiry, toggled below */}
           <div className="relative" ref={dateFilterRef}>
             <button
               onClick={() => setDateFilterOpen((v) => !v)}
               className={cn(
                 "h-full px-3 rounded-2xl border transition-all shadow-sm flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wide",
-                hasDateFilter
+                hasDateFilter || dateFilterMode === 'expiry'
                   ? "bg-[#FF8A75]/10 border-[#FF8A75]/30 text-[#FF8A75]"
                   : "bg-white border-slate-200 text-slate-400 hover:text-[#FF8A75] hover:bg-[#FF8A75]/5"
               )}
-              title="Filter by join date"
+              title={dateFilterMode === 'expiry' ? 'Filter/sort by expiry date' : 'Filter by join date'}
             >
               <CalendarDays className="w-4 h-4" />
               <span className="hidden sm:inline">
                 {hasDateFilter
                   ? `${dateFrom ? format(parseISO(dateFrom), 'dd MMM') : '…'} – ${dateTo ? format(parseISO(dateTo), 'dd MMM') : '…'}`
-                  : 'Calendar'}
+                  : dateFilterMode === 'expiry' ? 'Expiry' : 'Calendar'}
               </span>
             </button>
 
             {dateFilterOpen && (
               <div className="absolute right-0 sm:left-0 top-[calc(100%+8px)] z-30 w-72 bg-white rounded-2xl border border-slate-100 shadow-xl p-4 space-y-4">
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2">Filter By</p>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <button
+                      onClick={() => setDateFilterMode('joining')}
+                      className={cn(
+                        "px-2.5 py-1.5 rounded-lg border text-[10px] font-bold transition-all",
+                        dateFilterMode === 'joining'
+                          ? "bg-[#FF8A75] border-[#FF8A75] text-white"
+                          : "bg-slate-50 border-slate-100 text-slate-600 hover:bg-[#FF8A75]/10 hover:border-[#FF8A75]/20 hover:text-[#FF8A75]"
+                      )}
+                    >
+                      Joining
+                    </button>
+                    <button
+                      onClick={() => setDateFilterMode('expiry')}
+                      className={cn(
+                        "px-2.5 py-1.5 rounded-lg border text-[10px] font-bold transition-all",
+                        dateFilterMode === 'expiry'
+                          ? "bg-[#FF8A75] border-[#FF8A75] text-white"
+                          : "bg-slate-50 border-slate-100 text-slate-600 hover:bg-[#FF8A75]/10 hover:border-[#FF8A75]/20 hover:text-[#FF8A75]"
+                      )}
+                    >
+                      Expiry
+                    </button>
+                  </div>
+                  {dateFilterMode === 'expiry' && (
+                    <p className="text-[9px] text-slate-400 mt-1.5 leading-relaxed">
+                      Listed soonest-expiring first.
+                    </p>
+                  )}
+                </div>
+
                 <div>
                   <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2">Quick Ranges</p>
                   <div className="grid grid-cols-2 gap-1.5">
@@ -257,7 +310,9 @@ export function StaffStudentTable() {
             <h4 className="text-base font-bold text-slate-900">No students found</h4>
             <p className="text-xs text-slate-400 mt-1 max-w-[280px]">
               {hasDateFilter
-                ? 'No students joined in the selected date range.'
+                ? dateFilterMode === 'expiry'
+                  ? 'No students expiring in the selected date range.'
+                  : 'No students joined in the selected date range.'
                 : "We couldn't find any student matching your search term."}
             </p>
             {hasDateFilter && (
@@ -265,7 +320,7 @@ export function StaffStudentTable() {
                 onClick={clearDateFilter}
                 className="mt-4 text-[10px] font-black uppercase tracking-widest text-[#FF8A75] hover:underline"
               >
-                Clear join-date filter
+                Clear {dateFilterMode === 'expiry' ? 'expiry' : 'join'}-date filter
               </button>
             )}
           </div>
@@ -351,7 +406,7 @@ export function StaffStudentTable() {
                           >
                             <img src="/assets/gmail_icon.png" alt="Gmail" className="w-7 h-7 object-contain" />
                           </button>
-                          {student.phone && (
+                          {student.phone ? (
                             <button
                               type="button"
                               onClick={() => setComposer({ channel: 'whatsapp', student })}
@@ -360,6 +415,21 @@ export function StaffStudentTable() {
                             >
                               <img src="/assets/whatsapp_icon.png" alt="WhatsApp" className="w-7 h-7 object-contain" />
                             </button>
+                          ) : (
+                            <div
+                              title="Number not provided"
+                              className="flex flex-col items-center gap-0.5 cursor-not-allowed"
+                            >
+                              <div className="h-8 w-8 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center shadow-sm relative overflow-hidden">
+                                <img src="/assets/whatsapp_icon.png" alt="WhatsApp" className="w-7 h-7 object-contain opacity-25 grayscale" />
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                  <div className="w-[150%] h-[1.5px] bg-red-400/70 rotate-45" />
+                                </div>
+                              </div>
+                              <span className="text-[7px] font-bold uppercase tracking-wide text-slate-400 whitespace-nowrap leading-none">
+                                No number
+                              </span>
+                            </div>
                           )}
                           <button
                             type="button"
@@ -395,7 +465,7 @@ export function StaffStudentTable() {
                     >
                       <img src="/assets/gmail_icon.png" alt="Gmail" className="w-7 h-7 object-contain" />
                     </button>
-                    {student.phone && (
+                    {student.phone ? (
                       <button
                         type="button"
                         onClick={() => setComposer({ channel: 'whatsapp', student })}
@@ -404,6 +474,21 @@ export function StaffStudentTable() {
                       >
                         <img src="/assets/whatsapp_icon.png" alt="WhatsApp" className="w-7 h-7 object-contain" />
                       </button>
+                    ) : (
+                      <div
+                        title="Number not provided"
+                        className="h-9 flex-shrink-0 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-1.5 px-2 shadow-sm cursor-not-allowed relative"
+                      >
+                        <div className="relative shrink-0">
+                          <img src="/assets/whatsapp_icon.png" alt="WhatsApp" className="w-6 h-6 object-contain opacity-25 grayscale" />
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className="w-[150%] h-[1.5px] bg-red-400/70 rotate-45" />
+                          </div>
+                        </div>
+                        <span className="text-[8px] font-bold uppercase tracking-wide text-slate-400 whitespace-nowrap">
+                          No number
+                        </span>
+                      </div>
                     )}
                     <button
                       type="button"

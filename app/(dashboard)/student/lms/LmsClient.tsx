@@ -97,7 +97,7 @@ export function LmsClient({
                 <div key={course.id} className={cn("relative group", course.level === 1 && "mt-4 mb-4")}>
                   {course.level === 1 && (
                     <div className="absolute -top-4 left-8 z-20 px-4 py-2 bg-[#e76f51] text-white text-[9px] font-black uppercase tracking-[0.2em] rounded-full shadow-lg shadow-[#e76f51]/20">
-                      Free Rituals
+                      {hasActiveSub ? "Full Access" : "Free Preview Available"}
                     </div>
                   )}
                   <CourseCard

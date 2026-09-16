@@ -298,11 +298,17 @@ export function InstructorGroupClient({ currentUser, initialBatches, initialBatc
       loadResources();
    }, [chatMode, selectedStudent?.id, selectedBatch?.id]);
 
+   // Auto-scroll to the newest message only — must NOT fire when older
+   // history is prepended by "load more" (that would yank the view straight
+   // back to the bottom the instant it loads). Keying off the last
+   // message's id (not the whole array/length) means a prepend, which
+   // never changes the last id, correctly leaves the scroll position alone.
+   const lastMessageId = messages[messages.length - 1]?.id;
    useEffect(() => {
       if (chatContainerRef.current) {
          chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
       }
-   }, [messages]);
+   }, [lastMessageId]);
 
    // ——— HANDLERS ———
    const handleSendMessage = async () => {

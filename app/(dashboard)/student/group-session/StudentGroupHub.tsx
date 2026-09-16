@@ -415,13 +415,19 @@ export function StudentGroupHub({ currentUser, activeBatch, initialResources, is
         }
     };
 
+    // Auto-scroll to the newest message only — must NOT fire when older
+    // history is prepended by "load more" (that would yank the view
+    // straight back to the bottom the instant it loads). Keying off the
+    // last message's id (not messages.length) means a prepend, which never
+    // changes the last id, correctly leaves the scroll position alone.
+    const lastGroupMessageId = messages[messages.length - 1]?.id;
     useEffect(() => {
         if (messages.length > 0 && chatTab === 'group') {
             scrollToGroupBottom('auto');
             const timer = setTimeout(() => scrollToGroupBottom('smooth'), 100);
             return () => clearTimeout(timer);
         }
-    }, [messages.length, messages[messages.length - 1]?.id, chatTab]);
+    }, [lastGroupMessageId, chatTab]);
 
     useEffect(() => {
         if (isChatOpen && chatTab === 'group') {

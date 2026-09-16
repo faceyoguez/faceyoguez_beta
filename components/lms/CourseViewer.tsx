@@ -243,7 +243,21 @@ export function CourseViewer({
 
       const currentIndex = modules.findIndex(m => m.id === activeModuleId);
       if (currentIndex < modules.length - 1) {
-        setActiveModuleId(modules[currentIndex + 1].id);
+        const nextIndex = currentIndex + 1;
+        const isNextUnlocked = (courseLevel === 1 && nextIndex === 0)
+          ? true
+          : (hasActiveSub && (nextIndex === 0 || completedIds.has(modules[currentIndex].id)));
+
+        if (isNextUnlocked) {
+          setActiveModuleId(modules[nextIndex].id);
+        } else if (!hasActiveSub) {
+          toast.info('You finished the Free Preview! Upgrade to an LMS Plan to unlock all sessions.', {
+            action: {
+              label: 'Unlock Course',
+              onClick: () => window.location.href = '/student/plans'
+            }
+          });
+        }
       } else {
         toast.success('Congratulations! You finished the course! 🎉');
       }
@@ -510,8 +524,20 @@ export function CourseViewer({
               return (
                 <button
                   key={m.id}
-                  disabled={!isUnlocked}
-                  onClick={() => isUnlocked && setActiveModuleId(m.id)}
+                  onClick={() => {
+                    if (isUnlocked) {
+                      setActiveModuleId(m.id);
+                    } else if (!hasActiveSub) {
+                      toast.error('This ritual is locked. Upgrade to an LMS Plan to unlock all sessions!', {
+                        action: {
+                          label: 'View Plans',
+                          onClick: () => window.location.href = '/student/plans'
+                        }
+                      });
+                    } else {
+                      toast.info('Complete the previous ritual to unlock this session!');
+                    }
+                  }}
                   className={cn(
                     "w-full flex items-center gap-4 p-4 rounded-3xl transition-all duration-700 text-left relative overflow-hidden border",
                     isActive 

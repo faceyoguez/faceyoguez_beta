@@ -63,14 +63,18 @@ export function ChatWindow({
 
   const lastMessageId = messages[messages.length - 1]?.id;
 
-  // Auto-scroll to bottom whenever messages load or a new message arrives
+  // Auto-scroll to bottom whenever a new message arrives — but NOT when
+  // older history is prepended by "load more" (that would yank the view
+  // straight back to the bottom the instant it loads). Keying off only the
+  // last message's id (not messages.length) means a prepend, which never
+  // changes the last id, correctly leaves the scroll position alone.
   useEffect(() => {
     if (messages.length > 0) {
       scrollToBottom('auto');
       const timer = setTimeout(() => scrollToBottom('smooth'), 100);
       return () => clearTimeout(timer);
     }
-  }, [messages.length, lastMessageId]);
+  }, [lastMessageId]);
 
   const handleScroll = () => {
     const container = containerRef.current;

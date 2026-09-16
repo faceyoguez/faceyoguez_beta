@@ -2,28 +2,38 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Loader2, ShieldCheck } from 'lucide-react';
+import { X, Loader2, ShieldCheck, MailCheck } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 
 interface GuestUpgradeModalProps {
   onClose: () => void;
-  /** Called right after the guest account becomes a real one — resume payment here. */
+  /** Called only once the guest account is real AND the email is verified — resume payment here. */
   onSuccess: () => void;
 }
+
+type Step = 'form' | 'verify';
 
 /**
  * Shown the moment a guest (anonymous-session) visitor clicks "Complete
  * Payment". Turns their existing guest account into a real one — same
- * account ID throughout, nothing to migrate — then lets the caller resume
- * straight into the Razorpay flow with zero page reload.
+ * account ID throughout, nothing to migrate — then requires them to
+ * verify their email (a real link click, same mechanism as the rest of
+ * the app — see StudentProfileClient's "Verification Hub") before letting
+ * the caller resume into the Razorpay flow.
  */
 export function GuestUpgradeModal({ onClose, onSuccess }: GuestUpgradeModalProps) {
+  const [step, setStep] = useState<Step>('form');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [resending, setResending] = useState(false);
   const [error, setError] = useState('');
+
+  const supabase = createClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,17 +41,22 @@ export function GuestUpgradeModal({ onClose, onSuccess }: GuestUpgradeModalProps
 
     if (!fullName.trim()) return setError('Please enter your full name.');
     if (!/^\S+@\S+\.\S+$/.test(email)) return setError('Please enter a valid email address.');
+    if (!phone.trim() || phone.trim().length < 8) return setError('Please enter a valid phone number.');
     if (password.length < 6) return setError('Password must be at least 6 characters.');
 
     setLoading(true);
-    const supabase = createClient();
 
     try {
-      const { error: updateError } = await supabase.auth.updateUser({
-        email,
-        password,
-        data: { full_name: fullName },
-      });
+      // Email + password go through Supabase Auth (email needs a
+      // confirmation click before this account counts as verified).
+      const { error: updateError } = await supabase.auth.updateUser(
+        {
+          email,
+          password,
+          data: { full_name: fullName, phone },
+        },
+        { emailRedirectTo: `${window.location.origin}/auth/callback?next=/student/plans` }
+      );
 
       if (updateError) {
         if (/registered|exists|already/i.test(updateError.message)) {
@@ -54,19 +69,61 @@ export function GuestUpgradeModal({ onClose, onSuccess }: GuestUpgradeModalProps
       }
 
       // Best-effort — the placeholder "Guest" profile row (created at
-      // anonymous sign-in) should reflect their real name/email now.
-      // Not fatal if it fails; payment can still proceed.
+      // anonymous sign-in) should reflect their real name/email/phone now.
+      // Not fatal if it fails; the account itself is already updated.
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        await supabase.from('profiles').update({ full_name: fullName, email }).eq('id', user.id);
+        await supabase.from('profiles').update({ full_name: fullName, email, phone }).eq('id', user.id);
       }
 
-      toast.success('Account registered! Continuing to payment…');
-      onSuccess();
+      // Already confirmed (e.g. project has email confirmation turned
+      // off) — skip straight to payment instead of asking them to click
+      // a link that was never sent.
+      if (user?.email_confirmed_at) {
+        toast.success('Account registered! Continuing to payment…');
+        onSuccess();
+        return;
+      }
+
+      setStep('verify');
+      setLoading(false);
     } catch (err) {
       console.error('[GuestUpgradeModal] Registration failed:', err);
       setError('Something went wrong. Please try again.');
       setLoading(false);
+    }
+  };
+
+  const handleCheckVerified = async () => {
+    setChecking(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email_confirmed_at) {
+        toast.success('Email verified! Continuing to payment…');
+        onSuccess();
+      } else {
+        toast.info("Not verified yet — click the link in your email first, then try again.");
+      }
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setResending(true);
+    try {
+      const { error: resendError } = await supabase.auth.resend({
+        type: 'email_change',
+        email,
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/student/plans` },
+      });
+      if (resendError) {
+        toast.error('Could not resend', { description: resendError.message });
+      } else {
+        toast.success('Verification email resent — check your inbox and spam folder.');
+      }
+    } finally {
+      setResending(false);
     }
   };
 
@@ -93,64 +150,107 @@ export function GuestUpgradeModal({ onClose, onSuccess }: GuestUpgradeModalProps
             <X className="w-4 h-4" />
           </button>
 
-          <div className="w-14 h-14 rounded-2xl bg-[#e76f51]/10 flex items-center justify-center mb-5">
-            <ShieldCheck className="w-7 h-7 text-[#e76f51]" />
-          </div>
-
-          <h2 className="text-2xl font-aktiv font-bold text-[#2a2019] mb-2">Almost there</h2>
-          <p className="text-sm text-slate-500 mb-6 leading-relaxed">
-            Register to complete your payment and secure your spot. This takes 10 seconds — your plan selection is saved.
-          </p>
-
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <input
-              type="text"
-              placeholder="Full Name"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="w-full px-4 py-3.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#e76f51]/30 focus:border-[#e76f51]"
-            />
-            <input
-              type="email"
-              placeholder="Email Address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#e76f51]/30 focus:border-[#e76f51]"
-            />
-            <input
-              type="password"
-              placeholder="Create a Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#e76f51]/30 focus:border-[#e76f51]"
-            />
-
-            {error && (
-              <div className="text-xs font-medium text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
-                {error}
-                {error.includes('already registered') && (
-                  <a href="/auth/login" className="block mt-1.5 underline font-bold">
-                    Go to login →
-                  </a>
-                )}
+          {step === 'form' ? (
+            <>
+              <div className="w-14 h-14 rounded-2xl bg-[#e76f51]/10 flex items-center justify-center mb-5">
+                <ShieldCheck className="w-7 h-7 text-[#e76f51]" />
               </div>
-            )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-4 bg-[#2a2019] hover:bg-[#e76f51] text-white rounded-xl text-xs font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2"
-            >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Register & Continue to Payment'}
-            </button>
-          </form>
+              <h2 className="text-2xl font-aktiv font-bold text-[#2a2019] mb-2">Almost there</h2>
+              <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+                Register to complete your payment and secure your spot. This takes 10 seconds — your plan selection is saved.
+              </p>
 
-          <p className="text-[10px] text-slate-400 text-center mt-4">
-            Already have an account?{' '}
-            <a href="/auth/login" className="font-bold text-[#e76f51] hover:underline">
-              Log in
-            </a>
-          </p>
+              <form onSubmit={handleSubmit} className="space-y-3">
+                <input
+                  type="text"
+                  placeholder="Full Name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="w-full px-4 py-3.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#e76f51]/30 focus:border-[#e76f51]"
+                />
+                <input
+                  type="email"
+                  placeholder="Email Address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-3.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#e76f51]/30 focus:border-[#e76f51]"
+                />
+                <input
+                  type="tel"
+                  placeholder="Phone Number"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full px-4 py-3.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#e76f51]/30 focus:border-[#e76f51]"
+                />
+                <input
+                  type="password"
+                  placeholder="Create a Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#e76f51]/30 focus:border-[#e76f51]"
+                />
+
+                {error && (
+                  <div className="text-xs font-medium text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+                    {error}
+                    {error.includes('already registered') && (
+                      <a href="/auth/login" className="block mt-1.5 underline font-bold">
+                        Go to login →
+                      </a>
+                    )}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-4 bg-[#2a2019] hover:bg-[#e76f51] text-white rounded-xl text-xs font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2"
+                >
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Register & Verify Email'}
+                </button>
+              </form>
+
+              <p className="text-[10px] text-slate-400 text-center mt-4">
+                Already have an account?{' '}
+                <a href="/auth/login" className="font-bold text-[#e76f51] hover:underline">
+                  Log in
+                </a>
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center mb-5">
+                <MailCheck className="w-7 h-7 text-emerald-600" />
+              </div>
+
+              <h2 className="text-2xl font-aktiv font-bold text-[#2a2019] mb-2">Verify your email</h2>
+              <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+                We sent a verification link to <span className="font-bold text-[#2a2019]">{email}</span>. Click it,
+                then come back here and press Continue — this only takes a moment.
+              </p>
+
+              <button
+                onClick={handleCheckVerified}
+                disabled={checking}
+                className="w-full py-4 bg-[#2a2019] hover:bg-[#e76f51] text-white rounded-xl text-xs font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2"
+              >
+                {checking ? <Loader2 className="w-4 h-4 animate-spin" /> : "I've verified — Continue"}
+              </button>
+
+              <button
+                onClick={handleResend}
+                disabled={resending}
+                className="w-full py-3 mt-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-[#e76f51] transition-colors flex items-center justify-center gap-2"
+              >
+                {resending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Resend verification email'}
+              </button>
+
+              <p className="text-[10px] text-slate-400 text-center mt-2">
+                Didn't get it? Check your spam folder, or try resending above.
+              </p>
+            </>
+          )}
         </motion.div>
       </motion.div>
     </AnimatePresence>
