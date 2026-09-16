@@ -11,6 +11,8 @@ import {
 import { toast } from 'sonner';
 import ThankYouOverlay from '@/components/marketing/ThankYouOverlay';
 import StarterPackTeaserModal from '@/components/marketing/StarterPackTeaserModal';
+import { EmailOtpVerifyCard } from '@/components/marketing/EmailOtpVerifyCard';
+import { createClient } from '@/lib/supabase/client';
 
 
 function PurchaseSuccessContent() {
@@ -29,12 +31,34 @@ function PurchaseSuccessContent() {
     const [showThankYou, setShowThankYou] = useState(true);
     const [showStarterPackTeaser, setShowStarterPackTeaser] = useState(false);
 
+    // A guest registers (name/email/phone/password) before payment, but
+    // email verification itself happens here — right after payment, right
+    // before the welcome message — so nothing about checkout is slowed
+    // down. Blocks the welcome message until they've confirmed.
+    const [authGate, setAuthGate] = useState<'checking' | 'needs-verify' | 'ready'>('checking');
+    const [guestEmail, setGuestEmail] = useState('');
+
+    useEffect(() => {
+        const supabase = createClient();
+        supabase.auth.getUser().then((res: any) => {
+            const user = res?.data?.user;
+            if (user && user.is_anonymous && !user.email_confirmed_at && user.email) {
+                setGuestEmail(user.email);
+                setAuthGate('needs-verify');
+            } else {
+                setAuthGate('ready');
+            }
+        });
+    }, []);
+
     // A guest who just registered + verified + paid is now a fully real
     // account — refresh once we've already landed on this page (not
     // alongside the router.push() that got us here, which causes a race
     // condition elsewhere in this flow) so the shared dashboard layout
     // re-fetches fresh server data: the "browsing as a guest" banner
-    // drops and the sidebar picks up their real name.
+    // drops and the sidebar picks up their real name. Runs again once
+    // verification completes below, since that's when the account
+    // actually stops being a guest.
     useEffect(() => {
         router.refresh();
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -99,13 +123,30 @@ function PurchaseSuccessContent() {
         return '21-Day Group Transformation';
     };
 
-    if (verificationStatus === 'checking') {
+    if (verificationStatus === 'checking' || authGate === 'checking') {
         return (
             <div className="min-h-screen bg-[#FFFAF7] flex items-center justify-center">
                 <div className="text-center space-y-4">
                     <Loader2 className="w-10 h-10 animate-spin text-[#FF8A75] mx-auto" />
                     <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Confirming your purchase…</p>
                 </div>
+            </div>
+        );
+    }
+
+    // Block the welcome message until a guest confirms their email —
+    // matches the "payment first, verify right before the welcome
+    // message" flow.
+    if (authGate === 'needs-verify') {
+        return (
+            <div className="min-h-screen bg-[#FFFAF7] flex items-center justify-center p-6 font-jakarta selection:bg-[#FF8A75]/20">
+                <EmailOtpVerifyCard
+                    email={guestEmail}
+                    onVerified={() => {
+                        setAuthGate('ready');
+                        router.refresh();
+                    }}
+                />
             </div>
         );
     }
