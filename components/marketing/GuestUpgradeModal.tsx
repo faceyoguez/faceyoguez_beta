@@ -97,7 +97,7 @@ export function GuestUpgradeModal({ onClose, onSuccess }: GuestUpgradeModalProps
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (otp.trim().length < 6) return setError('Enter the 6-digit code from your email.');
+    if (otp.trim().length < 8) return setError('Enter the 8-digit code from your email.');
     setError('');
     setChecking(true);
     try {
@@ -230,15 +230,15 @@ export function GuestUpgradeModal({ onClose, onSuccess }: GuestUpgradeModalProps
 
               <h2 className="text-2xl font-aktiv font-bold text-[#2a2019] mb-2">Verify your email</h2>
               <p className="text-sm text-slate-500 mb-6 leading-relaxed">
-                We sent a 6-digit code to <span className="font-bold text-[#2a2019]">{email}</span>. Enter it below to continue.
+                We sent an 8-digit code to <span className="font-bold text-[#2a2019]">{email}</span>. Enter it below to continue.
               </p>
 
               <form onSubmit={handleVerifyOtp} className="space-y-3">
                 <input
                   type="text"
                   inputMode="numeric"
-                  maxLength={6}
-                  placeholder="6-digit code"
+                  maxLength={8}
+                  placeholder="8-digit code"
                   value={otp}
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                   className="w-full px-4 py-3.5 rounded-xl border border-slate-200 text-center text-lg tracking-[0.4em] font-bold focus:outline-none focus:ring-2 focus:ring-[#e76f51]/30 focus:border-[#e76f51]"
