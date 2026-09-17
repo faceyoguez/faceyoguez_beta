@@ -239,7 +239,7 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
             onClick={handleWebinarCTAClick}
             className="inline-flex items-center justify-center px-4 py-2.5 sm:px-6 sm:py-3 bg-[#1a1a1a] text-white rounded-full text-[9px] sm:text-[11px] font-black uppercase tracking-[0.2em] hover:bg-[#FF8A75] transition-all shadow-md active:scale-95 leading-none"
           >
-            Join Free Weekend Batch
+            Join Free Weekly Class
           </Link>
         </div>
       </nav>
@@ -256,7 +256,7 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FF8A75] opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-[#FF8A75]"></span>
               </span>
-              Weekend Live Webinar
+              Weekly Live Class — Every Monday
             </motion.div>
 
             <motion.h1 variants={fadeUp} className="text-4xl sm:text-6xl md:text-[5rem] font-aktiv font-bold text-[#2a2019] leading-[1.05] tracking-tight mx-auto max-w-4xl">
@@ -281,7 +281,7 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
             {/* Quick Info Bar */}
             <motion.div variants={fadeUp} className="flex flex-wrap justify-center gap-3 sm:gap-6 mt-8">
               {[
-                { icon: CalendarDays, text: 'Every Sat & Sun' },
+                { icon: CalendarDays, text: 'Every Monday' },
                 { icon: Video, text: 'Live on Zoom' },
                 { icon: Users, text: 'Limited Seats' }
               ].map((item, i) => (
@@ -619,8 +619,8 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
 
             <div className="space-y-8 sm:space-y-12">
               {[
-                { step: '1', title: "Join the Exclusive WhatsApp Group", desc: "Click the button below to join our free community group where we share the live Zoom links every weekend." },
-                { step: '2', title: "Show Up Live This Weekend", desc: "Join from your phone or laptop. No equipment needed — just a mirror and 60 minutes for yourself." },
+                { step: '1', title: "Join the Exclusive WhatsApp Group", desc: "Click the button below to join our free community group where we share the live Zoom links every Monday." },
+                { step: '2', title: "Show Up Live This Monday", desc: "Join from your phone or laptop. No equipment needed — just a mirror and 60 minutes for yourself." },
                 { step: '3', title: "Practice What You Learn", desc: "Walk away with a real technique and a daily routine you can start the very next morning." }
               ].map((item, i) => (
                 <div key={i} className="flex gap-6 sm:gap-8 items-start">
@@ -648,10 +648,10 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
             </div>
             <div className="space-y-6">
               {[
-                { q: "Is this webinar really free? What's the catch?", a: "Completely free. No credit card, no hidden charges. We run this every weekend because we know that once you experience Face Wellness live — even for 60 minutes — you'll understand why 2,000+ women have made it a daily practice." },
+                { q: "Is this webinar really free? What's the catch?", a: "Completely free. No credit card, no hidden charges. We run this every week, live on Monday, because we know that once you experience Face Wellness live — even for 60 minutes — you'll understand why 2,000+ women have made it a daily practice." },
                 { q: "I've never done face yoga before. Is that okay?", a: "That's actually ideal. Untrained facial muscles respond very quickly. Harsimrat designs the session for complete beginners — no experience required." },
                 { q: "I'm in my 40s/50s. Is it too late?", a: "It's never too late. Some of the most dramatic transformations in Harsimrat's community are women in their late 40s and 50s. Facial muscles respond to training at every age." },
-                { q: "Will there be a recording if I miss it?", a: "This session is live-only to keep the practice experience real and interactive. A new session runs every weekend — simply join the group to get the next date's link." },
+                { q: "Will there be a recording if I miss it?", a: "This session is live-only to keep the practice experience real and interactive. A new session runs every Monday — simply join the group to get the next date's link." },
                 { q: "Will I be asked to buy something?", a: "At the end of the session, Harsimrat will share how you can go deeper through her structured courses. There's no pressure. The webinar delivers complete value on its own." }
               ].map((faq, i) => (
                 <div key={i} className="p-6 rounded-[2rem] bg-[#FFFAF7] border border-[#FF8A75]/10">
@@ -667,10 +667,10 @@ export function WebinarPageClient({ whatsappLink }: WebinarPageClientProps) {
         <section className="py-16 sm:py-24">
           <div className="max-w-4xl mx-auto px-6 text-center">
             <h2 className="text-4xl sm:text-6xl font-aktiv font-bold text-[#2a2019] tracking-tight mb-6 sm:mb-8">
-              One Hour This Weekend Could Change the Way You See Your Face — Forever.
+              One Hour This Monday Could Change the Way You See Your Face — Forever.
             </h2>
             <p className="text-lg font-jakarta text-[#2a2019]/60 leading-relaxed max-w-2xl mx-auto mb-8 sm:mb-12">
-              Harsimrat has helped 2,000+ women stop fighting their reflection and start training it. The webinar is free. The practice is real. Don't let another weekend pass.
+              Harsimrat has helped 2,000+ women stop fighting their reflection and start training it. The webinar is free. The practice is real. Don't let another week pass.
             </p>
             <Link
               href="/webinar/register"
