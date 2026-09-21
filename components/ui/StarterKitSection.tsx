@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Backpack, X, Eye, Download, FileText, Users, User, PlayCircle, Folder, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Backpack, Lock, X, Eye, Download, FileText, Users, User, PlayCircle, Folder, ChevronRight, ChevronLeft } from 'lucide-react';
+import { toast } from 'sonner';
 import { getStarterKitForPlans, type StarterKitFile, type StarterKitFolder } from '@/lib/starter-kit-files';
 
 interface StarterKitSectionProps {
@@ -11,6 +12,8 @@ interface StarterKitSectionProps {
   className?: string;
   /** Opens the modal immediately on mount — used by the ?openStarterPack=1 redirect from purchase-success. */
   autoOpen?: boolean;
+  /** Guests (anonymous accounts) see the card but can't open it until they register. */
+  isGuest?: boolean;
 }
 
 type KitFile = StarterKitFile;
@@ -53,7 +56,7 @@ function FileRow({ file }: { file: KitFile }) {
   );
 }
 
-export function StarterKitSection({ activePlanTypes, className, autoOpen = false }: StarterKitSectionProps) {
+export function StarterKitSection({ activePlanTypes, className, autoOpen = false, isGuest = false }: StarterKitSectionProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [openFolder, setOpenFolder] = useState<KitEntry | null>(null);
   const router = useRouter();
@@ -69,7 +72,7 @@ export function StarterKitSection({ activePlanTypes, className, autoOpen = false
   };
 
   useEffect(() => {
-    if (autoOpen) {
+    if (autoOpen && !isGuest) {
       setIsOpen(true);
       // Strip the query param so a refresh doesn't keep re-opening it.
       router.replace(pathname);
@@ -85,13 +88,19 @@ export function StarterKitSection({ activePlanTypes, className, autoOpen = false
         className={className}
       >
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={() => {
+            if (isGuest) {
+              toast.info('Starter Pack is locked', { description: 'Register and start a plan to unlock your Starter Pack.' });
+              return;
+            }
+            setIsOpen(true);
+          }}
           className="w-full text-left bg-gradient-to-br from-[#1a1a1a] to-[#2a2320] rounded-[1.75rem] border border-white/5 shadow-sm p-5 lg:p-6 flex items-center gap-4 lg:gap-5 relative overflow-hidden group hover:shadow-lg hover:shadow-[#e76f51]/10 transition-all duration-500"
         >
           <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-[#e76f51]/20 blur-3xl group-hover:bg-[#e76f51]/30 transition-colors duration-700" />
 
           <div className="h-12 w-12 lg:h-14 lg:w-14 shrink-0 rounded-2xl bg-[#e76f51] flex items-center justify-center shadow-lg shadow-[#e76f51]/30 relative z-10">
-            <Backpack className="w-6 h-6 lg:w-7 lg:h-7 text-white" />
+            {isGuest ? <Lock className="w-6 h-6 lg:w-7 lg:h-7 text-white" /> : <Backpack className="w-6 h-6 lg:w-7 lg:h-7 text-white" />}
           </div>
 
           <div className="min-w-0 flex-1 relative z-10">
@@ -102,12 +111,12 @@ export function StarterKitSection({ activePlanTypes, className, autoOpen = false
               </span>
             </div>
             <p className="text-xs text-white/40 font-medium mt-0.5 truncate">
-              The essentials before you dive in ✨
+              {isGuest ? 'Register & start a plan to unlock 🔒' : 'The essentials before you dive in ✨'}
             </p>
           </div>
 
-          <span className="shrink-0 text-[9px] font-black uppercase tracking-[0.15em] text-white/70 bg-white/10 group-hover:bg-white/20 px-3.5 py-2 rounded-xl transition-colors relative z-10">
-            Open
+          <span className="shrink-0 text-[9px] font-black uppercase tracking-[0.15em] text-white/70 bg-white/10 group-hover:bg-white/20 px-3.5 py-2 rounded-xl transition-colors relative z-10 flex items-center gap-1.5">
+            {isGuest ? (<><Lock className="w-3 h-3" />Locked</>) : 'Open'}
           </span>
         </button>
       </motion.section>

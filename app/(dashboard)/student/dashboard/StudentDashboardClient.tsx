@@ -57,6 +57,8 @@ interface StudentDashboardClientProps {
   batchIds: string[];
   isTrial?: boolean;
   openStarterPack?: boolean;
+  /** Browsing as a guest (anonymous account) — Starter Pack stays locked until they register. */
+  isGuest?: boolean;
 }
 
 const QUOTES = [
@@ -82,6 +84,7 @@ export function StudentDashboardClient({
   batchIds,
   isTrial = false,
   openStarterPack = false,
+  isGuest = false,
 }: StudentDashboardClientProps) {
   const router = useRouter();
   const rawName = profile.full_name?.split(' ')[0] || 'there';
@@ -328,7 +331,7 @@ export function StudentDashboardClient({
       </motion.div>
 
       {/* ── Starter Pack ── */}
-      <StarterKitSection activePlanTypes={activePlanTypes} className="mb-4 lg:mb-5" autoOpen={openStarterPack} />
+      <StarterKitSection activePlanTypes={activePlanTypes} className="mb-4 lg:mb-5" autoOpen={openStarterPack} isGuest={isGuest} />
 
       {/* ── Main Bento Grid ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 lg:gap-5">

@@ -138,6 +138,7 @@ export default async function StudentDashboardPage({
       lastRenewed={lastRenewed}
       batchIds={batchIds}
       openStarterPack={openStarterPack}
+      isGuest={!!(user as any).is_anonymous}
       isTrial={subscriptions.some((s: any) => s.is_trial) && !subscriptions.some((s: any) => !s.is_trial)}
     />
   );
