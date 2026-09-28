@@ -118,7 +118,13 @@ export async function proxy(request: NextRequest) {
 
   if (isProtectedRoute && !user) {
     const url = request.nextUrl.clone();
-    url.pathname = '/auth/login';
+    // A shared plan/checkout link (WhatsApp, Instagram, etc.) opened cold
+    // has no session at all, so it would otherwise land here and bounce
+    // to a dead-end login page instead of the plan it was sent for. Send
+    // it through the guest-session bouncer instead — same temporary
+    // "guest" session a real button click on the site would create (see
+    // lib/guestSession.ts) — which then forwards into the exact plan/tier.
+    url.pathname = request.nextUrl.pathname === '/student/plans' ? '/plans/go' : '/auth/login';
     return NextResponse.redirect(url);
   }
 

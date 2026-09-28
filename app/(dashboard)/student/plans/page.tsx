@@ -3,7 +3,13 @@ import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
 import PlansClient from './PlansClient';
 
-
+// NOTE: a session-less cold visit to this route (e.g. a shared WhatsApp/
+// Instagram link) never actually reaches this "if (!user)" check — the
+// shared (dashboard) layout's own guard redirects to /auth/login first,
+// since layouts render before their child page. The real fix for that is
+// in middleware.ts, which intercepts this specific path before the
+// layout runs and routes it through the guest-session bouncer at
+// /plans/go instead. This check stays only as a defensive fallback.
 export default async function PlansPage() {
     const supabase = await createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
