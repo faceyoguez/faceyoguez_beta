@@ -41,7 +41,7 @@ export function Philosophy() {
 
       <div className="max-w-4xl mx-auto px-6 md:px-12 relative z-10">
 
-        {/* CHAPTER 1: THE FRUSTRATION */}
+        {/* CHAPTER 1: THE and FRUSTRATION */}
         <motion.div
           initial="hidden"
           whileInView="visible"
