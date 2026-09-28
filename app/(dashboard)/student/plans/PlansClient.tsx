@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -72,6 +72,13 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
     const [loading, setLoading] = useState(false);
     const [mobileTab, setMobileTab] = useState<'data' | 'pricing'>('data');
     const [isInitialParamLoad, setIsInitialParamLoad] = useState(true);
+    // Tells effect #2 below "I just explicitly picked this tier from the
+    // URL, don't override it" — without this, loading a link for any plan
+    // other than the first one in PLANS_DATA (e.g. group_session, lms)
+    // counts as a selectedPlanId "change", which triggers effect #2's
+    // auto-reset-to-popular and silently overwrites the tier the URL asked
+    // for, every time, regardless of which tierIdx was requested.
+    const skipNextTierResetRef = useRef(false);
 
 
     const currentPlan = PLANS_DATA.find((p: any) => p.id === selectedPlanId)!;
@@ -88,6 +95,14 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
             const plan = PLANS_DATA.find((p: any) => p.id === planParam);
             if (plan) {
                 setSelectedPlanId(planParam);
+                // Only arm the skip if this URL load is actually about to
+                // change selectedPlanId away from its current value — if
+                // the link's plan already matches the default, effect #2
+                // won't fire from this at all, and arming it here would
+                // wrongly suppress the NEXT real manual plan switch instead.
+                if (planParam !== selectedPlanId) {
+                    skipNextTierResetRef.current = true;
+                }
                 if (tierIdxParam) {
                     const tierIdx = parseInt(tierIdxParam);
                     if (!isNaN(tierIdx) && plan.tiers[tierIdx]) {
@@ -110,6 +125,14 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
     // 2. Handle Manual Plan Switching (Only AFTER initial load)
     useEffect(() => {
         if (isInitialParamLoad) return;
+
+        if (skipNextTierResetRef.current) {
+            // The selectedPlanId change we're reacting to was effect #1
+            // applying the plan/tier from the URL, not a real manual
+            // switch — leave the tier it just set alone.
+            skipNextTierResetRef.current = false;
+            return;
+        }
 
         const plan = PLANS_DATA.find((p: any) => p.id === selectedPlanId);
         if (plan) {
