@@ -55,6 +55,8 @@ import { Toaster } from 'sonner';
 import Script from 'next/script';
 import { Suspense } from 'react';
 import MetaPixel from '@/components/MetaPixel';
+
+const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || '925136517026086';
 import MicrosoftClarity from '@/components/MicrosoftClarity';
 
 export const metadata: Metadata = {
@@ -135,6 +137,29 @@ export default function RootLayout({
         <link rel="preconnect" href="https://images.unsplash.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://tivvuxyitgqaslqfccit.supabase.co" crossOrigin="anonymous" />
  
+        {/* ── Meta Pixel base code ──
+            A plain inline <script> in <head>, exactly as Meta's own install
+            instructions show. next/script (any strategy) wraps the code as an
+            escaped string inside Next's own loader (self.__next_s.push(...)),
+            which real browsers run fine but Meta's "detect pixel on this URL"
+            checker doesn't recognise. Route-change PageViews are handled by
+            <MetaPixel /> below. */}
+        <script
+          id="meta-pixel"
+          dangerouslySetInnerHTML={{
+            __html: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${META_PIXEL_ID}');fbq('track','PageView');`,
+          }}
+        />
+        <noscript>
+          <img
+            height="1"
+            width="1"
+            style={{ display: 'none' }}
+            src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
+            alt=""
+          />
+        </noscript>
+
         {/* ── Structured Data ── */}
         <Script
           id="structured-data"
