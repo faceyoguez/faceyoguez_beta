@@ -789,7 +789,7 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
                                         : 'bg-[#FFFAF7] text-[#6B7280] border-[#FF8A75]/10'}
                                  `}
                             >
-                                {plan.title.split(' ')[0]}
+                                {plan.shortLabel}
                             </button>
                         ))}
                     </div>

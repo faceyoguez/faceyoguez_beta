@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, ArrowRight, Calendar, Video, Clock, Sparkles } from 'lucide-react';
 import { useEffect } from 'react';
 import { startGuestBrowsing } from '@/lib/guestSession';
+import { SHOW_GROUP_3_MONTH_PLAN } from '@/lib/constants/plans';
 
 interface GroupPlanModalProps {
   isOpen: boolean;
@@ -155,7 +156,8 @@ export function GroupPlanModal({ isOpen, onClose }: GroupPlanModalProps) {
                             </div>
                          </div>
 
-                         {/* Tier 2 — 3 Months */}
+                         {/* Tier 2 — 3 Months (hidden via SHOW_GROUP_3_MONTH_PLAN) */}
+                         {SHOW_GROUP_3_MONTH_PLAN && (
                          <div className="bg-white p-5 rounded-2xl border-2 border-[#e76f51]/20 relative shadow-xl">
                             <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-[#e76f51] text-white text-[7px] font-black uppercase px-2 py-0.5 rounded-full whitespace-nowrap">Most Popular</div>
                             <div className="flex justify-between items-start mb-2">
@@ -170,6 +172,7 @@ export function GroupPlanModal({ isOpen, onClose }: GroupPlanModalProps) {
                                </div>
                             </div>
                          </div>
+                         )}
                      </div>
                   </div>
                </div>

@@ -7,6 +7,7 @@ import { LuxuryBackground } from '@/components/marketing/LuxuryBackground';
 import { useEffect } from 'react';
 import { pixel } from '@/lib/pixel';
 import { startGuestBrowsing } from '@/lib/guestSession';
+import { SHOW_GROUP_3_MONTH_PLAN } from '@/lib/constants/plans';
 
 
 export default function LiveGroupPage() {
@@ -205,7 +206,8 @@ export default function LiveGroupPage() {
                         </div>
                      </div>
 
-                     {/* Tier 2 — 3 Months */}
+                     {/* Tier 2 — 3 Months (hidden via SHOW_GROUP_3_MONTH_PLAN) */}
+                     {SHOW_GROUP_3_MONTH_PLAN && (
                      <div className="p-6 bg-[#e76f51]/5 border-2 border-[#e76f51]/20 rounded-2xl relative shadow-sm hover:shadow-md transition-all cursor-pointer"
                        onClick={() => {
                          pixel.planCtaClicked({ planId: 'group_session', planLabel: 'Live Group', buttonLabel: '3 Months Plan' });
@@ -226,6 +228,7 @@ export default function LiveGroupPage() {
                            </div>
                         </div>
                      </div>
+                     )}
                   </div>
 
                   <button 

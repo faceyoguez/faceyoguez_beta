@@ -1,8 +1,13 @@
 import { User, Users, BookOpen } from 'lucide-react';
 
-export const PLANS_DATA = [
+// Flip to true to bring the 3-month Live Group plan back on every plan
+// screen (home page modal, /plans/live-group, /student/plans).
+export const SHOW_GROUP_3_MONTH_PLAN = false;
+
+const ALL_PLANS_DATA = [
     {
         id: 'one_on_one',
+        shortLabel: 'Personal',
         title: 'Personal 1-on-1 Classes',
         subtitle: 'Get a customised face yoga routine made just for you',
         icon: User,
@@ -26,6 +31,7 @@ export const PLANS_DATA = [
     },
     {
         id: 'group_session',
+        shortLabel: 'Group Live',
         title: 'Live Face Yoga 21-Day Transformation',
         subtitle: 'The Glow-Up Your Skin Has Been Waiting For',
         icon: Users,
@@ -34,7 +40,7 @@ export const PLANS_DATA = [
         hasTrial: false,
         tiers: [
             { id: '1_month', label: '1 Month Plan', originalPrice: 4400, discountedPrice: 1499, note: 'EARLY BIRD' },
-            { id: '3_months', label: '3 Months Plan', originalPrice: 12999, discountedPrice: 3499, badge: 'MOST POPULAR', note: 'BEST VALUE' }
+            { id: '3_months', label: '3 Months Plan', originalPrice: 12999, discountedPrice: 3499, badge: 'MOST POPULAR', note: 'BEST VALUE', hidden: !SHOW_GROUP_3_MONTH_PLAN }
         ],
         features: [
             '21 Days Live Group Classes',
@@ -46,6 +52,7 @@ export const PLANS_DATA = [
     },
     {
         id: 'lms',
+        shortLabel: 'Recorded',
         title: 'Recorded Video Courses',
         subtitle: 'Learn face yoga at your own pace — lifetime access',
         icon: BookOpen,
@@ -65,3 +72,10 @@ export const PLANS_DATA = [
         ]
     }
 ];
+
+// Hidden tiers are dropped here so every consumer (tier lists, ?tierIdx=
+// links, the "most popular" default) sees a consistent list.
+export const PLANS_DATA = ALL_PLANS_DATA.map((plan) => ({
+    ...plan,
+    tiers: (plan.tiers as any[]).filter((t) => !t.hidden) as typeof plan.tiers,
+}));

@@ -60,7 +60,7 @@ const PLANS_PREVIEW: any[] = [
       'Community Support',
       'Expert Guidance',
       'Progress Tracking',
-      '1 or 3 months option'
+      '1 month plan'
     ],
     worksBestWith: 'Dark circles, Double chin, Smile lines, Fine lines, Sagging, Dullness + many more',
     accent: '#e76f51',
