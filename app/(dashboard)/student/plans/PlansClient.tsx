@@ -95,6 +95,10 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
             const plan = PLANS_DATA.find((p: any) => p.id === planParam);
             if (plan) {
                 setSelectedPlanId(planParam);
+                // A link that names a plan (WhatsApp/Instagram share, "Subscribe"
+                // buttons) wants the prices, not the plan description — on mobile
+                // open straight on the Pricing tab instead of Details.
+                setMobileTab('pricing');
                 // Only arm the skip if this URL load is actually about to
                 // change selectedPlanId away from its current value — if
                 // the link's plan already matches the default, effect #2
