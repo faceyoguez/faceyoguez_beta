@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-import { PLANS_DATA } from '@/lib/constants/plans';
+import { PLANS_DATA, SHOW_GROUP_PLAN } from '@/lib/constants/plans';
 import { toast } from 'sonner';
 import {
     Check, Loader2, Sparkles,
@@ -171,7 +171,8 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
         ],
         lms: [
             selectedTierId === 'level_1' ? { id: 'bump_upgrade_l12', title: 'Complete Plan (Level 1 + Level 2)', desc: 'Level 2 is where the real transformation happens.', originalPrice: 1499, discountedPrice: 1100, icon: Sparkles } : null,
-            { id: 'bump_group_1m', title: 'Daily Live Group Session (1 Month)', desc: 'Join live practice classes every evening to accelerate your results.', originalPrice: 1499, discountedPrice: 1100, icon: Users }
+            // Group add-on is hidden along with the Live Group plan itself.
+            SHOW_GROUP_PLAN ? { id: 'bump_group_1m', title: 'Daily Live Group Session (1 Month)', desc: 'Join live practice classes every evening to accelerate your results.', originalPrice: 1499, discountedPrice: 1100, icon: Users } : null
         ].filter(Boolean) as any[],
         one_on_one: []
     };
