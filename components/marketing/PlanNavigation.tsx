@@ -4,16 +4,18 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Sparkles, Map, Globe, Wind } from 'lucide-react';
+import { SHOW_GROUP_PLAN } from '@/lib/constants/plans';
 
 interface PlanNavigationProps {
   title: string;
 }
 
-const PLANS = [
+const ALL_PLANS = [
   { name: 'Personal', href: '/plans/personal-classes', label: '1:1 Mastery' },
   { name: 'Group', href: '/plans/live-group', label: 'Batch Ritual' },
   { name: 'LMS', href: '/plans/video-courses', label: 'Self-Paced' }
 ];
+const PLANS = ALL_PLANS.filter((p) => p.name !== 'Group' || SHOW_GROUP_PLAN);
 
 /**
  * Levitating Sanctuary Dock

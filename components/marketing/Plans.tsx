@@ -8,8 +8,9 @@ import { useRouter } from 'next/navigation';
 import { trackConversionEvent } from '@/lib/conversionTracking';
 import { pixel } from '@/lib/pixel';
 import { startGuestBrowsing } from '@/lib/guestSession';
+import { SHOW_GROUP_PLAN } from '@/lib/constants/plans';
 
-const PLANS_PREVIEW: any[] = [
+const ALL_PLANS_PREVIEW: any[] = [
   {
     id: 'one_on_one',
     title: '1-on-1 Personal Coaching',
@@ -68,6 +69,9 @@ const PLANS_PREVIEW: any[] = [
     cta: 'book your slot today ( only for limited people )'
   }
 ];
+
+// Live Group card is dropped while SHOW_GROUP_PLAN is off.
+const PLANS_PREVIEW = ALL_PLANS_PREVIEW.filter((p) => p.id !== 'group_session' || SHOW_GROUP_PLAN);
 
 export function Plans() {
   const router = useRouter();
@@ -129,7 +133,7 @@ export function Plans() {
           initial="hidden"
           animate={isInView ? "visible" : "hidden"}
           variants={containerVariants}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8"
+          className={`grid grid-cols-1 gap-6 lg:gap-8 ${PLANS_PREVIEW.length === 3 ? 'md:grid-cols-3' : 'md:grid-cols-2 max-w-4xl mx-auto'}`}
         >
           {PLANS_PREVIEW.map((plan) => (
             <motion.div

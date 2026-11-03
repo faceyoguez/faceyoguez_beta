@@ -4,7 +4,6 @@ import { useRef } from 'react';
 import { motion, useInView, Variants } from 'framer-motion';
 import { Heart, Instagram, Users, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { startGuestBrowsing } from '@/lib/guestSession';
 
 const INSTRUCTOR_IMAGE = '/assets/hero_v2.jpg';
 // const INSTRUCTOR_IMAGE = '/assets/instructor_img.jpg';
@@ -108,9 +107,9 @@ export function Instructor() {
 
               {/* Call to Action */}
               <motion.div variants={fadeUp} className="pt-6 flex flex-col sm:flex-row items-center gap-8">
-                <button onClick={() => startGuestBrowsing('/student/plans?plan=group_session')} className="w-full sm:w-auto px-10 py-5 bg-[#1a1a1a] text-white rounded-full text-[11px] font-black uppercase tracking-[0.3em] hover:bg-[#e76f51] transition-all shadow-xl hover:scale-105 active:scale-95 flex items-center justify-center text-center">
+                <a href="#plans-overview" className="w-full sm:w-auto px-10 py-5 bg-[#1a1a1a] text-white rounded-full text-[11px] font-black uppercase tracking-[0.3em] hover:bg-[#e76f51] transition-all shadow-xl hover:scale-105 active:scale-95 flex items-center justify-center text-center">
                   Book your class today
-                </button>
+                </a>
               </motion.div>
             </motion.div>
           </div>

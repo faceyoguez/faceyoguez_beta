@@ -1,5 +1,11 @@
 import { User, Users, BookOpen } from 'lucide-react';
 
+// Master switch for the whole Live Group plan. false = hidden from the home
+// page plan cards, the plan-page nav, /plans/live-group (redirects home) and
+// /student/plans. Existing group students keep their dashboard, chat and
+// sessions — this only stops new purchases.
+export const SHOW_GROUP_PLAN = false;
+
 // Flip to true to bring the 3-month Live Group plan back on every plan
 // screen (home page modal, /plans/live-group, /student/plans).
 export const SHOW_GROUP_3_MONTH_PLAN = false;
@@ -75,7 +81,7 @@ const ALL_PLANS_DATA = [
 
 // Hidden tiers are dropped here so every consumer (tier lists, ?tierIdx=
 // links, the "most popular" default) sees a consistent list.
-export const PLANS_DATA = ALL_PLANS_DATA.map((plan) => ({
+export const PLANS_DATA = ALL_PLANS_DATA.filter((plan) => plan.id !== 'group_session' || SHOW_GROUP_PLAN).map((plan) => ({
     ...plan,
     tiers: (plan.tiers as any[]).filter((t) => !t.hidden) as typeof plan.tiers,
 }));
