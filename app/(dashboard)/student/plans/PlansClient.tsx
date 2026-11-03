@@ -70,7 +70,13 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
     const [selectedPlanId, setSelectedPlanId] = useState<string>(visiblePlans[0].id);
     const [selectedTierId, setSelectedTierId] = useState<string>(visiblePlans[0].tiers[0].id);
     const [loading, setLoading] = useState(false);
-    const [mobileTab, setMobileTab] = useState<'data' | 'pricing'>('data');
+    // A link that names a plan (WhatsApp/Instagram share, "Subscribe" buttons)
+    // wants the prices, not the plan description — on mobile open straight on
+    // the Plans tab instead of Details. Decided from the URL on the very first
+    // render, so it can't be overridden by effect ordering.
+    const [mobileTab, setMobileTab] = useState<'data' | 'pricing'>(() =>
+        searchParams.get('plan') ? 'pricing' : 'data'
+    );
     const [isInitialParamLoad, setIsInitialParamLoad] = useState(true);
     // Tells effect #2 below "I just explicitly picked this tier from the
     // URL, don't override it" — without this, loading a link for any plan
@@ -95,10 +101,6 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
             const plan = PLANS_DATA.find((p: any) => p.id === planParam);
             if (plan) {
                 setSelectedPlanId(planParam);
-                // A link that names a plan (WhatsApp/Instagram share, "Subscribe"
-                // buttons) wants the prices, not the plan description — on mobile
-                // open straight on the Pricing tab instead of Details.
-                setMobileTab('pricing');
                 // Only arm the skip if this URL load is actually about to
                 // change selectedPlanId away from its current value — if
                 // the link's plan already matches the default, effect #2
