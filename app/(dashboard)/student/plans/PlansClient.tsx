@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -67,8 +67,25 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
         ? PLANS_DATA.filter((p: any) => p.id !== 'one_on_one')
         : PLANS_DATA;
 
-    const [selectedPlanId, setSelectedPlanId] = useState<string>(visiblePlans[0].id);
-    const [selectedTierId, setSelectedTierId] = useState<string>(visiblePlans[0].tiers[0].id);
+    // Which plan/tier a link asks for, worked out from the URL once, up front.
+    // Used as the *initial* state (not applied afterwards from an effect) so a
+    // shared link renders the right plan on the very first paint — otherwise
+    // the page flashes the default plan (Personal) for a moment and then
+    // visibly jumps to the one in the link.
+    const initialSelection = (() => {
+        const fallbackPlan = visiblePlans[0];
+        const planParam = searchParams.get('plan');
+        const plan = planParam ? PLANS_DATA.find((p: any) => p.id === planParam) : undefined;
+        if (!plan) return { planId: fallbackPlan.id, tierId: fallbackPlan.tiers[0].id };
+
+        const tierIdx = parseInt(searchParams.get('tierIdx') || '');
+        const popular = plan.tiers.find((t: any) => t.badge === 'MOST POPULAR') || plan.tiers[0];
+        const tier = !isNaN(tierIdx) && plan.tiers[tierIdx] ? plan.tiers[tierIdx] : popular;
+        return { planId: plan.id, tierId: tier.id };
+    })();
+
+    const [selectedPlanId, setSelectedPlanId] = useState<string>(initialSelection.planId);
+    const [selectedTierId, setSelectedTierId] = useState<string>(initialSelection.tierId);
     const [loading, setLoading] = useState(false);
     // A link that names a plan (WhatsApp/Instagram share, "Subscribe" buttons)
     // wants the prices, not the plan description — on mobile open straight on
@@ -78,67 +95,20 @@ export default function PlansClient({ currentSubscription, userId, currentUser, 
         searchParams.get('plan') ? 'pricing' : 'data'
     );
     const [isInitialParamLoad, setIsInitialParamLoad] = useState(true);
-    // Tells effect #2 below "I just explicitly picked this tier from the
-    // URL, don't override it" — without this, loading a link for any plan
-    // other than the first one in PLANS_DATA (e.g. group_session, lms)
-    // counts as a selectedPlanId "change", which triggers effect #2's
-    // auto-reset-to-popular and silently overwrites the tier the URL asked
-    // for, every time, regardless of which tierIdx was requested.
-    const skipNextTierResetRef = useRef(false);
-
 
     const currentPlan = PLANS_DATA.find((p: any) => p.id === selectedPlanId)!;
     const currentTier = (currentPlan.tiers as any[]).find((t: any) => t.id === selectedTierId) || currentPlan.tiers[0];
 
-    // 1. Initial Param Load
+    // The URL's plan/tier is already applied via the initial state above — this
+    // just marks the first render as done so the manual-switch effect below
+    // knows later plan changes are real user clicks.
     useEffect(() => {
-        if (!isInitialParamLoad) return;
-
-        const planParam = searchParams.get('plan');
-        const tierIdxParam = searchParams.get('tierIdx');
-
-        if (planParam) {
-            const plan = PLANS_DATA.find((p: any) => p.id === planParam);
-            if (plan) {
-                setSelectedPlanId(planParam);
-                // Only arm the skip if this URL load is actually about to
-                // change selectedPlanId away from its current value — if
-                // the link's plan already matches the default, effect #2
-                // won't fire from this at all, and arming it here would
-                // wrongly suppress the NEXT real manual plan switch instead.
-                if (planParam !== selectedPlanId) {
-                    skipNextTierResetRef.current = true;
-                }
-                if (tierIdxParam) {
-                    const tierIdx = parseInt(tierIdxParam);
-                    if (!isNaN(tierIdx) && plan.tiers[tierIdx]) {
-                        setSelectedTierId(plan.tiers[tierIdx].id);
-                    } else {
-                        // Default to popular if tierIdx is invalid
-                        const popular = plan.tiers.find((t: any) => t.badge === 'MOST POPULAR') || plan.tiers[0];
-                        setSelectedTierId(popular.id);
-                    }
-                } else {
-                    // Default to popular if no tierIdx provided
-                    const popular = plan.tiers.find((t: any) => t.badge === 'MOST POPULAR') || plan.tiers[0];
-                    setSelectedTierId(popular.id);
-                }
-            }
-        }
         setIsInitialParamLoad(false);
-    }, [searchParams, isInitialParamLoad]);
+    }, []);
 
     // 2. Handle Manual Plan Switching (Only AFTER initial load)
     useEffect(() => {
         if (isInitialParamLoad) return;
-
-        if (skipNextTierResetRef.current) {
-            // The selectedPlanId change we're reacting to was effect #1
-            // applying the plan/tier from the URL, not a real manual
-            // switch — leave the tier it just set alone.
-            skipNextTierResetRef.current = false;
-            return;
-        }
 
         const plan = PLANS_DATA.find((p: any) => p.id === selectedPlanId);
         if (plan) {
