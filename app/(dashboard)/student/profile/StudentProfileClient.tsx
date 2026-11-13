@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { EmailOtpVerifyCard } from '@/components/marketing/EmailOtpVerifyCard';
 import { createClient } from '@/lib/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { CheckCircle2, Mail, Phone, ArrowRight } from 'lucide-react';
@@ -46,21 +47,33 @@ export default function StudentProfileClient({
     }
   }, []);
 
+  // Guests who registered before paying have their email "pending" (Supabase keeps it
+  // in new_email until the code is confirmed), so user.email is empty for them.
+  const pendingEmail: string | undefined = (user as any).new_email || profile?.email || undefined;
+  const isPendingChange = !user.email && Boolean(pendingEmail);
+
   const handleVerifyEmail = async () => {
+    const targetEmail = user.email || pendingEmail;
+    if (!targetEmail) {
+      toast.error('No email on this account', { description: 'Please contact support so we can add it.' });
+      return;
+    }
     setLoadingEmail(true);
-    // Standard Supabase resend for signup verification
-    const { error } = await supabase.auth.resend({
-      type: 'signup',
-      email: user.email!,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      }
-    });
+    const { error } = isPendingChange
+      ? await supabase.auth.resend({ type: 'email_change', email: targetEmail })
+      : await supabase.auth.resend({
+          type: 'signup',
+          email: targetEmail,
+          options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+        });
 
     if (error) {
       toast.error('Failed to send verification link', { description: error.message });
     } else {
-      toast.success('Verification link sent', { description: 'Please check your email inbox and spam.' });
+      toast.success(isPendingChange ? 'Verification code sent' : 'Verification link sent', {
+        description: 'Please check your email inbox and spam.',
+      });
+      if (isPendingChange) setEmailOtpSent(true);
     }
     setLoadingEmail(false);
   };
@@ -239,7 +252,7 @@ export default function StudentProfileClient({
                   </span>
                 </div>
                 <h3 className="font-aktiv text-lg mb-1 text-zen-taupe">Email Address</h3>
-                <p className="text-sm text-warm-gray mb-6 break-all">{user.email}</p>
+                <p className="text-sm text-warm-gray mb-6 break-all">{user.email || pendingEmail}</p>
               </div>
 
               {!isEmailVerified && (
@@ -252,8 +265,14 @@ export default function StudentProfileClient({
                     {loadingEmail ? 'Sending Link...' : 'Send Verification Link'}
                   </button>
                   <p className="text-[10px] text-center text-warm-gray">
-                    Click the link in your inbox to verify
+                    {isPendingChange ? 'We will email you an 8-digit code' : 'Click the link in your inbox to verify'}
                   </p>
+                  {isPendingChange && emailOtpSent && pendingEmail && (
+                    <EmailOtpVerifyCard
+                      email={pendingEmail}
+                      onVerified={() => { window.location.reload(); }}
+                    />
+                  )}
                 </div>
               )}
               {isEmailVerified && (
