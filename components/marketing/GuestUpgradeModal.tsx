@@ -82,15 +82,18 @@ export function GuestUpgradeModal({ onClose, onSuccess }: GuestUpgradeModalProps
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+        className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm overflow-y-auto overscroll-contain"
         onClick={onClose}
       >
+        {/* min-h-full + overflow-y-auto on the parent: centred when it fits, scrollable
+            (never clipped) when the phone keyboard shrinks the visible screen. */}
+        <div className="min-h-full flex items-center justify-center p-4 pb-24">
         <motion.div
           initial={{ opacity: 0, y: 20, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 20, scale: 0.98 }}
           onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-md bg-white rounded-[2rem] p-8 shadow-2xl relative"
+          className="w-full max-w-md bg-white rounded-[2rem] p-6 sm:p-8 shadow-2xl relative"
         >
           <button
             onClick={onClose}
@@ -99,7 +102,7 @@ export function GuestUpgradeModal({ onClose, onSuccess }: GuestUpgradeModalProps
             <X className="w-4 h-4" />
           </button>
 
-          <div className="w-14 h-14 rounded-2xl bg-[#e76f51]/10 flex items-center justify-center mb-5">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#e76f51]/10 flex items-center justify-center mb-4 sm:mb-5">
             <ShieldCheck className="w-7 h-7 text-[#e76f51]" />
           </div>
 
@@ -152,7 +155,7 @@ export function GuestUpgradeModal({ onClose, onSuccess }: GuestUpgradeModalProps
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 bg-[#2a2019] hover:bg-[#e76f51] text-white rounded-xl text-xs font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2"
+              className="w-full py-4 bg-[#2a2019] hover:bg-[#e76f51] text-white rounded-xl text-xs font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 touch-manipulation"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Register & Continue to Payment'}
             </button>
@@ -165,6 +168,7 @@ export function GuestUpgradeModal({ onClose, onSuccess }: GuestUpgradeModalProps
             </a>
           </p>
         </motion.div>
+        </div>
       </motion.div>
     </AnimatePresence>
   );
