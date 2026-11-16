@@ -17,6 +17,9 @@ const ROLE_LABELS: Record<string, string> = {
   client_management: 'Client Management',
 };
 
+// SMS verification is switched off for now (it confused customers). Flip to true to bring it back.
+const SHOW_PHONE_VERIFICATION = false;
+
 export default function StudentProfileClient({
   user,
   profile,
@@ -154,7 +157,8 @@ export default function StudentProfileClient({
 
   const isEmailVerified = Boolean(user.email_confirmed_at || profile?.email_confirmed_at);
   const isPhoneVerified = Boolean(user.phone_confirmed_at || profile?.phone_confirmed_at);
-  const verifiedCount = (isEmailVerified ? 1 : 0) + (isPhoneVerified ? 1 : 0);
+  const totalSteps = SHOW_PHONE_VERIFICATION ? 2 : 1;
+  const verifiedCount = (isEmailVerified ? 1 : 0) + (SHOW_PHONE_VERIFICATION && isPhoneVerified ? 1 : 0);
   const roleLabel = ROLE_LABELS[profile?.role];
 
   return (
@@ -192,20 +196,22 @@ export default function StudentProfileClient({
             <div className="sm:w-52 shrink-0 pt-6 border-t border-outline-variant/60 sm:pt-0 sm:border-t-0 sm:pl-8 sm:border-l sm:border-outline-variant/60">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] font-black uppercase tracking-widest text-warm-gray">Account Security</span>
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#E76F51]">{verifiedCount}/2</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#E76F51]">{verifiedCount}/{totalSteps}</span>
               </div>
               <div className="flex items-center gap-1 mb-2.5">
                 <div className={cn("h-1.5 flex-1 rounded-full transition-colors", isEmailVerified ? "bg-[#E76F51]" : "bg-outline-variant")} />
-                <div className={cn("h-1.5 flex-1 rounded-full transition-colors", isPhoneVerified ? "bg-[#E76F51]" : "bg-outline-variant")} />
+                {SHOW_PHONE_VERIFICATION && (
+                  <div className={cn("h-1.5 flex-1 rounded-full transition-colors", isPhoneVerified ? "bg-[#E76F51]" : "bg-outline-variant")} />
+                )}
               </div>
               <p className="text-xs font-medium text-warm-gray flex items-center gap-1.5">
-                {verifiedCount === 2 ? (
+                {verifiedCount === totalSteps ? (
                   <>
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                     Fully verified
                   </>
                 ) : (
-                  `${2 - verifiedCount} step${2 - verifiedCount > 1 ? 's' : ''} remaining`
+                  `${totalSteps - verifiedCount} step${totalSteps - verifiedCount > 1 ? 's' : ''} remaining`
                 )}
               </p>
             </div>
@@ -216,10 +222,10 @@ export default function StudentProfileClient({
         <section id="verification-hub" className="scroll-mt-12 space-y-5 sm:space-y-6">
           <div>
             <h2 className="font-aktiv text-xl sm:text-2xl text-zen-taupe">Verification</h2>
-            <p className="text-sm text-warm-gray mt-1">Confirm your email and mobile number to secure your account.</p>
+            <p className="text-sm text-warm-gray mt-1">{SHOW_PHONE_VERIFICATION ? 'Confirm your email and mobile number to secure your account.' : 'Confirm your email to secure your account.'}</p>
           </div>
 
-          {!(user.phone || profile?.phone) && (
+          {SHOW_PHONE_VERIFICATION && !(user.phone || profile?.phone) && (
             <div className="p-4 bg-red-50/70 border border-red-100 rounded-2xl flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0">
                 <Phone className="w-4 h-4 text-red-500" />
@@ -228,7 +234,7 @@ export default function StudentProfileClient({
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+          <div className={cn("grid grid-cols-1 gap-5 sm:gap-6", SHOW_PHONE_VERIFICATION && "md:grid-cols-2")}>
             {/* Email Card */}
             <div className={cn(
               "p-6 sm:p-7 rounded-3xl border transition-all duration-500 flex flex-col justify-between",
@@ -284,7 +290,7 @@ export default function StudentProfileClient({
             </div>
 
             {/* Phone Card */}
-            <div className={cn(
+            {SHOW_PHONE_VERIFICATION && <div className={cn(
               "p-6 sm:p-7 rounded-3xl border transition-all duration-500 flex flex-col justify-between",
               isPhoneVerified
                 ? "bg-white border-outline-variant/40"
@@ -381,7 +387,7 @@ export default function StudentProfileClient({
                   Mobile verified
                 </div>
               )}
-            </div>
+            </div>}
           </div>
         </section>
       </div>
